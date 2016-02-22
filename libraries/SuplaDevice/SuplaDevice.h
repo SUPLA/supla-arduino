@@ -47,6 +47,14 @@ typedef struct SuplaDeviceParams {
 	
 }SuplaDeviceParams;
 
+typedef struct SuplaChannelPin {
+	int pin1;
+	int pin2;
+	bool hiIsLo;
+	
+	_supla_int_t time_left;
+	uint8_t last_val;
+};
 
 class SuplaDeviceClass
 {
@@ -55,20 +63,39 @@ protected:
 	char registered;
 	bool isInitialized(bool msg);
 	void setString(char *dst, const char *src, int max_size);
+	int addChannel(int pin1, int pin2, bool hiIsLo);
+	void channelValueChanged(int channel_number, char v);
+	void channelSetValue(int channel, char value, _supla_int_t DurationMS);
 	
 	SuplaDeviceParams Params;
 	_supla_int_t server_activity_timeout, last_response;
+	SuplaChannelPin *channel_pin;
+
+	unsigned long last_iterate_time;
+
+	
 public:
    SuplaDeviceClass();
    ~SuplaDeviceClass();
    void begin(char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const char *Server,
 		      int LocationID, const char *LocationPWD);
+   void setName(const char *Name);
+   
+   bool addRelay(int relayPin1, int relayPin2, bool hiIsLo, _supla_int_t functions);
+   bool addRelay(int relayPin1, int relayPin2, bool hiIsLo);
+   bool addRelay(int relayPin1, bool hiIsLo);
+   bool addRelay(int relayPin1);
+   bool addRollerShutterRelays(int relayPin1, int relayPin2, bool hiIsLo);
+   bool addRollerShutterRelays(int relayPin1, int relayPin2);
+   bool addSensorNO(int sensorPin);
+   
    void iterate(void);
    
    SuplaDeviceCallbacks getCallbacks(void);
    void onResponse(void);
    void onVersionError(TSDC_SuplaVersionError *version_error);
    void onRegisterResult(TSD_SuplaRegisterDeviceResult *register_device_result);
+   void onSensorInterrupt(void);
    void channelSetValue(TSD_SuplaChannelNewValue *new_value);
    void channelSetActivityTimeoutResult(TSDC_SuplaSetActivityTimeoutResult *result);
 };

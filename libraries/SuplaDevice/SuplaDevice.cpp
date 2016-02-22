@@ -64,11 +64,18 @@ void supla_arduino_on_remote_call_received(void *_srpc, unsigned _supla_int_t rr
 	
 }
 
+void supla_sensor_interrupt(void) {
+	supla_log(LOG_DEBUG, "Interrupt");
+	SuplaDevice.onSensorInterrupt();
+}
+
 SuplaDeviceClass::SuplaDeviceClass() {
 
 	char a;
 	srpc = NULL;
 	registered = 0;
+	last_iterate_time = 0;
+	channel_pin = NULL;
 	
 	memset(&Params, 0, sizeof(SuplaDeviceParams));
 	
@@ -83,6 +90,12 @@ SuplaDeviceClass::~SuplaDeviceClass() {
 		free(Params.server);
 		Params.server = NULL;
 	}
+	
+	if ( channel_pin != NULL ) {
+		free(channel_pin);
+		channel_pin = NULL;
+	}
+	
 }
 
 bool SuplaDeviceClass::isInitialized(bool msg) {
@@ -156,6 +169,101 @@ void SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const c
 	supla_log(LOG_DEBUG, "SuplaDevice initialized");
 }
 
+void SuplaDeviceClass::setName(const char *Name) {
+	
+	if ( isInitialized(true) ) return;
+	setString(Params.reg_dev.Name, Name, SUPLA_DEVICE_NAME_MAXSIZE);
+}
+
+int SuplaDeviceClass::addChannel(int pin1, int pin2, bool hiIsLo) {
+	if ( isInitialized(true) ) return -1;
+	
+	if ( Params.reg_dev.channel_count >= SUPLA_CHANNELMAXCOUNT ) {
+		supla_log(LOG_DEBUG, "Channel limit exceeded");
+		return -1;
+	}
+	
+	Params.reg_dev.channels[Params.reg_dev.channel_count].Number = Params.reg_dev.channel_count;
+	channel_pin = (SuplaChannelPin*)realloc(channel_pin, sizeof(SuplaChannelPin)*(Params.reg_dev.channel_count+1));
+	channel_pin[Params.reg_dev.channel_count].pin1 = pin1; 
+	channel_pin[Params.reg_dev.channel_count].pin2 = pin2; 
+	channel_pin[Params.reg_dev.channel_count].hiIsLo = hiIsLo;
+	channel_pin[Params.reg_dev.channel_count].time_left = 0;
+	channel_pin[Params.reg_dev.channel_count].last_val = digitalRead(pin1);
+	
+	Params.reg_dev.channel_count++;
+	
+	return Params.reg_dev.channel_count-1;
+}
+
+bool SuplaDeviceClass::addRelay(int relayPin1, int relayPin2, bool hiIsLo, _supla_int_t functions) {
+	
+	int c = addChannel(relayPin1, relayPin2, hiIsLo);
+	if ( c == -1 ) return false; 
+	
+	uint8_t _HI = hiIsLo ? LOW : HIGH;
+	uint8_t _LO = hiIsLo ? HIGH : LOW;
+	
+	Params.reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_RELAY;
+	Params.reg_dev.channels[c].FuncList = functions;
+	
+	if ( relayPin1 != 0 ) {
+		pinMode(relayPin1, OUTPUT); 
+		digitalWrite(relayPin1, hiIsLo ? HIGH : LOW); 
+		
+		Params.reg_dev.channels[c].value[0] = digitalRead(relayPin1) == _HI ? 1 : 0;
+	}
+
+	if ( relayPin2 != 0 ) {
+		pinMode(relayPin2, OUTPUT); 
+		digitalWrite(relayPin2, hiIsLo ? HIGH : LOW); 
+		
+		if ( Params.reg_dev.channels[c].value[0] == 0
+				&& digitalRead(relayPin2) == _HI )
+			Params.reg_dev.channels[c].value[0] = 2;
+	}
+
+	
+	return true;
+}
+
+bool SuplaDeviceClass::addRelay(int relayPin, bool hiIsLo) {
+	return addRelay(relayPin, 0, hiIsLo, SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEGATEWAYLOCK
+                              | SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEGATE
+                              | SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEGARAGEDOOR
+                              | SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEDOORLOCK
+                              | SUPLA_BIT_RELAYFUNC_POWERSWITCH
+                              | SUPLA_BIT_RELAYFUNC_LIGHTSWITCH);
+}
+
+bool SuplaDeviceClass::addRelay(int relayPin1) {
+	return addRelay(relayPin1, false);
+}
+
+bool SuplaDeviceClass::addRollerShutterRelays(int relayPin1, int relayPin2, bool hiIsLo) {
+	return addRelay(relayPin1, relayPin2, hiIsLo, SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEROLLERSHUTTER);
+}
+
+bool SuplaDeviceClass::addRollerShutterRelays(int relayPin1, int relayPin2) {
+	return addRollerShutterRelays(relayPin1, relayPin2, false);
+}
+
+bool SuplaDeviceClass::addSensorNO(int sensorPin) {
+	
+	int c = addChannel(sensorPin, 0, false);
+	if ( c == -1 ) return false; 
+	
+	Params.reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_SENSORNO;
+	pinMode(sensorPin, INPUT); 
+	
+	Params.reg_dev.channels[c].value[0] = digitalRead(sensorPin) == HIGH ? 1 : 0;
+	
+	attachInterrupt(digitalPinToInterrupt(sensorPin), supla_sensor_interrupt, CHANGE);
+	
+	return true;
+}
+
+
 SuplaDeviceCallbacks SuplaDeviceClass::getCallbacks(void) {
 	return Params.cb;
 }
@@ -210,6 +318,26 @@ void SuplaDeviceClass::iterate(void) {
 			srpc_dcs_async_ping_server(srpc);
 		}
 	}
+	
+	if ( last_iterate_time != 0 ) {
+		unsigned long td = abs(millis() - last_iterate_time);
+		
+		for(int a=0;a<Params.reg_dev.channel_count;a++)
+			if ( channel_pin[a].time_left > 0 ) {
+				if ( channel_pin[a].time_left-td <= 0 ) {
+					
+					channel_pin[a].time_left = 0;
+					
+					if ( Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_RELAY )
+						channelSetValue(a, 0, 0);
+					
+				} else {
+					channel_pin[a].time_left-=td;
+				}
+			}
+	}
+	
+	last_iterate_time = millis();
 	
 	if( srpc_iterate(srpc) == SUPLA_RESULT_FALSE ) {
 		supla_log(LOG_DEBUG, "Iterate fail");
@@ -286,7 +414,119 @@ void SuplaDeviceClass::onRegisterResult(TSD_SuplaRegisterDeviceResult *register_
 	delay(5000);
 }
 
+void SuplaDeviceClass::onSensorInterrupt(void) {
+	
+	for(int a=0;a<Params.reg_dev.channel_count;a++) 
+		if ( Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_SENSORNO ) {
+			
+			uint8_t val = digitalRead(channel_pin[a].pin1);
+			
+			if ( val != channel_pin[a].last_val ) {
+				channel_pin[a].last_val = val;
+				
+				if ( channel_pin[a].time_left == 0 ) 
+					channelValueChanged(Params.reg_dev.channels[a].Number, val == HIGH ? 1 : 0); 
+			}		
+		}			
+	
+}
+
+void SuplaDeviceClass::channelValueChanged(int channel_number, char v) {
+
+	if ( srpc != NULL
+		 && registered == 1 ) {
+
+		char value[SUPLA_CHANNELVALUE_SIZE];
+		memset(value, 0, SUPLA_CHANNELVALUE_SIZE);
+		value[0] = v;
+
+		srpc_ds_async_channel_value_changed(srpc, channel_number, value);
+	}
+
+}
+
+void SuplaDeviceClass::channelSetValue(int channel, char value, _supla_int_t DurationMS) {
+	
+	bool success = false;
+	
+	uint8_t _HI = channel_pin[channel].hiIsLo ? LOW : HIGH;
+	uint8_t _LO = channel_pin[channel].hiIsLo ? HIGH : LOW;
+
+	if ( Params.reg_dev.channels[channel].Type == SUPLA_CHANNELTYPE_RELAY ) {
+		
+		
+		if ( value == 0 ) {
+			
+			if ( channel_pin[channel].pin1 != 0 ) {
+				digitalWrite(channel_pin[channel].pin1, _LO); 
+				
+				success = digitalRead(channel_pin[channel].pin1) == _LO;
+			}
+				
+
+			if ( channel_pin[channel].pin2 != 0 ) {
+				digitalWrite(channel_pin[channel].pin2, _LO); 
+				
+				if ( !success )
+					success = digitalRead(channel_pin[channel].pin2) == _LO;
+			}
+				
+			
+		} else if ( value == 1 ) {
+			
+			if ( channel_pin[channel].pin2 != 0 ) {
+				digitalWrite(channel_pin[channel].pin2, _LO); 
+				delay(50);
+			}
+			
+			if ( channel_pin[channel].pin1 != 0 ) {
+				digitalWrite(channel_pin[channel].pin1, _HI); 
+				
+				if ( !success )
+					success = digitalRead(channel_pin[channel].pin1) == _HI;
+				
+				if ( DurationMS > 0 )
+					channel_pin[channel].time_left = DurationMS;
+			}
+				
+			
+			
+		} else if ( value == 2 ) {
+			
+			if ( channel_pin[channel].pin1 != 0 ) {
+				digitalWrite(channel_pin[channel].pin1, _LO); 
+				delay(50);
+			}
+			
+			if ( channel_pin[channel].pin2 != 0 ) {
+				digitalWrite(channel_pin[channel].pin2, _HI); 
+				
+				if ( !success )
+					success = digitalRead(channel_pin[channel].pin2) == _HI;
+			}
+				
+		}
+			
+		
+	}
+
+	
+	if ( success
+			&& registered == 1 
+			&& srpc ) {
+		channelValueChanged(Params.reg_dev.channels[channel].Number, value);
+	}
+	
+}
+
 void SuplaDeviceClass::channelSetValue(TSD_SuplaChannelNewValue *new_value) {
+
+	for(int a=0;a<Params.reg_dev.channel_count;a++) 
+		if ( new_value->ChannelNumber == Params.reg_dev.channels[a].Number ) {
+			channelSetValue(new_value->ChannelNumber, new_value->value[0], new_value->DurationMS);
+			break;
+		}
+
 	
 }
 
