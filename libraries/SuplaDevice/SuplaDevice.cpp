@@ -39,7 +39,7 @@ void supla_arduino_on_remote_call_received(void *_srpc, unsigned _supla_int_t rr
 	((SuplaDeviceClass*)_sdc)->onResponse();
 
 	if ( SUPLA_RESULT_TRUE == ( result = srpc_getdata(_srpc, &rd, 0)) ) {
-
+		
 		switch(rd.call_type) {
 		case SUPLA_SDC_CALL_VERSIONERROR:
 			((SuplaDeviceClass*)_sdc)->onVersionError(rd.data.sdc_version_error);
@@ -64,10 +64,6 @@ void supla_arduino_on_remote_call_received(void *_srpc, unsigned _supla_int_t rr
 	
 }
 
-void supla_sensor_interrupt(void) {
-	supla_log(LOG_DEBUG, "Interrupt");
-	SuplaDevice.onSensorInterrupt();
-}
 
 SuplaDeviceClass::SuplaDeviceClass() {
 
@@ -248,21 +244,23 @@ bool SuplaDeviceClass::addRollerShutterRelays(int relayPin1, int relayPin2) {
 	return addRollerShutterRelays(relayPin1, relayPin2, false);
 }
 
-bool SuplaDeviceClass::addSensorNO(int sensorPin) {
+bool SuplaDeviceClass::addSensorNO(int sensorPin, bool pullUp) {
 	
 	int c = addChannel(sensorPin, 0, false);
 	if ( c == -1 ) return false; 
 	
 	Params.reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_SENSORNO;
 	pinMode(sensorPin, INPUT); 
+	digitalWrite(sensorPin, pullUp ? HIGH : LOW);
 	
 	Params.reg_dev.channels[c].value[0] = digitalRead(sensorPin) == HIGH ? 1 : 0;
-	
-	attachInterrupt(digitalPinToInterrupt(sensorPin), supla_sensor_interrupt, CHANGE);
 	
 	return true;
 }
 
+bool SuplaDeviceClass::addSensorNO(int sensorPin) {
+	return addSensorNO(sensorPin, false);
+}
 
 SuplaDeviceCallbacks SuplaDeviceClass::getCallbacks(void) {
 	return Params.cb;
@@ -290,8 +288,10 @@ void SuplaDeviceClass::iterate(void) {
 	
 	if ( !Params.cb.svr_connected() ) {
 		
+		supla_log(LOG_DEBUG, "Not connected");
 	    registered = 0;
 	    last_response = 0;
+	    ping_flag = false;
 	    
 		if ( !Params.cb.svr_connect(Params.server, 2015) ) {
 			
@@ -300,42 +300,72 @@ void SuplaDeviceClass::iterate(void) {
 				return;
 		}
 	}
+	
+	unsigned long _millis = millis();
 
 	
 	if ( registered == 0 ) {
+		
 		registered = -1;
 		srpc_ds_async_registerdevice_b(srpc, &Params.reg_dev);
 		supla_log(LOG_DEBUG, "Register");
 		
 	} else if ( registered == 1 ) {
 		// PING
-		if ( (millis()-last_response)/1000 >= (server_activity_timeout+10)  ) {
+		if ( (_millis-last_response)/1000 >= (server_activity_timeout+10)  ) {
 			
 			supla_log(LOG_DEBUG, "TIMEOUT");
 			Params.cb.svr_disconnect();
 
-		} else if ( (millis()-last_response)/1000 >= (server_activity_timeout-5) ) {
+		} else if ( ping_flag == false 
+				    && (_millis-last_response)/1000 >= (server_activity_timeout-5) ) {
+			ping_flag = true;
 			srpc_dcs_async_ping_server(srpc);
 		}
 	}
 	
 	if ( last_iterate_time != 0 ) {
-		unsigned long td = abs(millis() - last_iterate_time);
 		
-		for(int a=0;a<Params.reg_dev.channel_count;a++)
-			if ( channel_pin[a].time_left > 0 ) {
-				if ( channel_pin[a].time_left-td <= 0 ) {
+		unsigned long td = abs(_millis - last_iterate_time);
+		
+		for(int a=0;a<Params.reg_dev.channel_count;a++) {
+			
+			if ( channel_pin[a].time_left != 0 ) {
+				if ( td >= channel_pin[a].time_left ) {
 					
 					channel_pin[a].time_left = 0;
 					
-					if ( Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_RELAY )
+					if ( Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_SENSORNO ) 
+						channel_pin[a].last_val = -1;
+					
+					else if ( Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_RELAY )
 						channelSetValue(a, 0, 0);
 					
-				} else {
+				} else if ( channel_pin[a].time_left > 0 ) {
 					channel_pin[a].time_left-=td;
 				}
 			}
+			
+			if ( Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_SENSORNO ) {
+				
+				uint8_t val = digitalRead(channel_pin[a].pin1);
+				
+				if ( val != channel_pin[a].last_val ) {
+					
+					channel_pin[a].last_val = val;
+					
+					if ( channel_pin[a].time_left <= 0 ) {
+						channel_pin[a].time_left = 500;
+						channelValueChanged(Params.reg_dev.channels[a].Number, val == HIGH ? 1 : 0); 
+					}
+						
+				}		
+			}
+			
+		}
+
 	}
+
 	
 	last_iterate_time = millis();
 	
@@ -350,6 +380,7 @@ void SuplaDeviceClass::iterate(void) {
 
 void SuplaDeviceClass::onResponse(void) {
 	last_response = millis();
+	ping_flag = false;
 }
 
 void SuplaDeviceClass::onVersionError(TSDC_SuplaVersionError *version_error) {
@@ -414,22 +445,6 @@ void SuplaDeviceClass::onRegisterResult(TSD_SuplaRegisterDeviceResult *register_
 	delay(5000);
 }
 
-void SuplaDeviceClass::onSensorInterrupt(void) {
-	
-	for(int a=0;a<Params.reg_dev.channel_count;a++) 
-		if ( Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_SENSORNO ) {
-			
-			uint8_t val = digitalRead(channel_pin[a].pin1);
-			
-			if ( val != channel_pin[a].last_val ) {
-				channel_pin[a].last_val = val;
-				
-				if ( channel_pin[a].time_left == 0 ) 
-					channelValueChanged(Params.reg_dev.channels[a].Number, val == HIGH ? 1 : 0); 
-			}		
-		}			
-	
-}
 
 void SuplaDeviceClass::channelValueChanged(int channel_number, char v) {
 

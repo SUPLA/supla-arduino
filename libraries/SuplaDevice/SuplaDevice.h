@@ -52,7 +52,7 @@ typedef struct SuplaChannelPin {
 	int pin2;
 	bool hiIsLo;
 	
-	_supla_int_t time_left;
+	unsigned long time_left;
 	uint8_t last_val;
 };
 
@@ -72,6 +72,7 @@ protected:
 	SuplaChannelPin *channel_pin;
 
 	unsigned long last_iterate_time;
+	bool ping_flag;
 
 	
 public:
@@ -87,6 +88,7 @@ public:
    bool addRelay(int relayPin1);
    bool addRollerShutterRelays(int relayPin1, int relayPin2, bool hiIsLo);
    bool addRollerShutterRelays(int relayPin1, int relayPin2);
+   bool addSensorNO(int sensorPin, bool pullUp);
    bool addSensorNO(int sensorPin);
    
    void iterate(void);
