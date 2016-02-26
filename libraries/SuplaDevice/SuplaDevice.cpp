@@ -106,11 +106,11 @@ bool SuplaDeviceClass::isInitialized(bool msg) {
 	return false;
 }
 
-void SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const char *Server,
+bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const char *Server,
 	                         int LocationID, const char *LocationPWD) {
 
 	unsigned char a;
-	if ( isInitialized(true) ) return;
+	if ( isInitialized(true) ) return false;
 	
 	if ( Params.cb.tcp_read == NULL
 	     || Params.cb.tcp_write == NULL
@@ -120,7 +120,14 @@ void SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const c
 	     || Params.cb.svr_disconnect == NULL ) {
 		
 		supla_log(LOG_DEBUG, "Callbacks not assigned!");
-		return;
+		return false;
+	}
+	
+	if ( local_ip ) {
+		Params.local_ip = *local_ip;
+		Params.use_local_ip = true;
+	} else {
+		Params.use_local_ip = false;
 	}
 	
 	memcpy(Params.reg_dev.GUID, GUID, SUPLA_GUID_SIZE);
@@ -134,24 +141,24 @@ void SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const c
 	
 	if ( a == SUPLA_GUID_SIZE ) {
 		supla_log(LOG_DEBUG, "Invalid GUID");
-		return;
+		return false;
 	}
 	
 	if ( Params.server == NULL 
 			|| Params.server[0] == NULL ) {
 		supla_log(LOG_DEBUG, "Unknown server address");
-		return;
+		return false;
 	}
 	
 	if ( Params.reg_dev.LocationID == 0 ) {
 		supla_log(LOG_DEBUG, "Unknown LocationID");
-		return;
+		return false;
 	}
 	
 	setString(Params.reg_dev.Name, "ARDUINO", SUPLA_DEVICE_NAME_MAXSIZE);
 	setString(Params.reg_dev.SoftVer, "1.0", SUPLA_SOFTVER_MAXSIZE);
 	
-	Params.cb.eth_setup(Params.mac);
+	Params.cb.eth_setup(Params.mac, Params.use_local_ip ? &Params.local_ip : NULL);
 
 	TsrpcParams srpc_params;
 	srpc_params_init(&srpc_params);
@@ -163,6 +170,12 @@ void SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const c
 
 	srpc = srpc_init(&srpc_params);
 	supla_log(LOG_DEBUG, "SuplaDevice initialized");
+}
+
+bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const char *Server,
+	                         int LocationID, const char *LocationPWD) {
+	
+	return begin(NULL, GUID, mac, Server, LocationID, LocationPWD);
 }
 
 void SuplaDeviceClass::setName(const char *Name) {
@@ -308,7 +321,7 @@ void SuplaDeviceClass::iterate(void) {
 		
 		registered = -1;
 		srpc_ds_async_registerdevice_b(srpc, &Params.reg_dev);
-		supla_log(LOG_DEBUG, "Register");
+		supla_log(LOG_DEBUG, "Register in progress");
 		
 	} else if ( registered == 1 ) {
 		// PING

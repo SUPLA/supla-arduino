@@ -18,11 +18,12 @@
 #define SUPLADEVICE_H
 
 #include "proto.h"
+#include <IPAddress.h>
 
 #define ACTIVITY_TIMEOUT 30
 
 typedef _supla_int_t (*_cb_arduino_rw)(void *buf, _supla_int_t count);
-typedef void (*_cb_arduino_eth_setup)(uint8_t mac[6]);
+typedef void (*_cb_arduino_eth_setup)(uint8_t mac[6], IPAddress *ip);
 typedef bool (*_cb_arduino_connect)(const char *server, _supla_int_t port);
 typedef bool (*_cb_arduino_connected)(void);
 typedef void (*_cb_arduino_stop)(void);
@@ -39,6 +40,9 @@ typedef struct SuplaDeviceCallbacks {
 }SuplaDeviceCallbacks;
 
 typedef struct SuplaDeviceParams {
+	
+	bool use_local_ip;
+	IPAddress local_ip;
 	
 	SuplaDeviceCallbacks cb;
 	TDS_SuplaRegisterDevice_B reg_dev;
@@ -73,13 +77,17 @@ protected:
 
 	unsigned long last_iterate_time;
 	bool ping_flag;
-
 	
 public:
    SuplaDeviceClass();
    ~SuplaDeviceClass();
-   void begin(char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const char *Server,
+   
+   bool begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const char *Server,
 		      int LocationID, const char *LocationPWD);
+   
+   bool begin(char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const char *Server,
+		      int LocationID, const char *LocationPWD);
+   
    void setName(const char *Name);
    
    bool addRelay(int relayPin1, int relayPin2, bool hiIsLo, _supla_int_t functions);
