@@ -309,6 +309,7 @@ void SuplaDeviceClass::iterate(void) {
 		if ( !Params.cb.svr_connect(Params.server, 2015) ) {
 			
 		    	supla_log(LOG_DEBUG, "Connection fail. Server: %s", Params.server);
+		    	Params.cb.svr_disconnect();
 				delay(2000);
 				return;
 		}
