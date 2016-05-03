@@ -27,6 +27,7 @@ typedef void (*_cb_arduino_eth_setup)(uint8_t mac[6], IPAddress *ip);
 typedef bool (*_cb_arduino_connect)(const char *server, _supla_int_t port);
 typedef bool (*_cb_arduino_connected)(void);
 typedef void (*_cb_arduino_stop)(void);
+typedef double (*_cb_arduino_get_temperature)(int channelNumber, double last_val);
 
 typedef struct SuplaDeviceCallbacks {
 	
@@ -36,6 +37,7 @@ typedef struct SuplaDeviceCallbacks {
 	_cb_arduino_connected svr_connected;
 	_cb_arduino_connect svr_connect;
 	_cb_arduino_stop svr_disconnect;
+	_cb_arduino_get_temperature get_temperature;
 
 }SuplaDeviceCallbacks;
 
@@ -57,7 +59,11 @@ typedef struct SuplaChannelPin {
 	bool hiIsLo;
 	
 	unsigned long time_left;
-	uint8_t last_val;
+	
+	union {
+		uint8_t last_val;
+		double last_val_dbl;
+	};
 };
 
 class SuplaDeviceClass
@@ -68,8 +74,12 @@ protected:
 	bool isInitialized(bool msg);
 	void setString(char *dst, const char *src, int max_size);
 	int addChannel(int pin1, int pin2, bool hiIsLo);
+	void channelValueChanged(int channel_number, char v, double d, char var);
 	void channelValueChanged(int channel_number, char v);
+	void channelDoubleValueChanged(int channel_number, double v);
 	void channelSetValue(int channel, char value, _supla_int_t DurationMS);
+	void channelSetDoubleValue(int channelNum, double value);
+	void setDoubleValue(char value[SUPLA_CHANNELVALUE_SIZE], double v);
 	
 	SuplaDeviceParams Params;
 	_supla_int_t server_activity_timeout, last_response;
@@ -98,10 +108,13 @@ public:
    bool addRollerShutterRelays(int relayPin1, int relayPin2);
    bool addSensorNO(int sensorPin, bool pullUp);
    bool addSensorNO(int sensorPin);
+   bool addDS18B20Thermometer(void);
    
    void iterate(void);
    
    SuplaDeviceCallbacks getCallbacks(void);
+   void setTemperatureCallback(_cb_arduino_get_temperature get_temperature);
+   
    void onResponse(void);
    void onVersionError(TSDC_SuplaVersionError *version_error);
    void onRegisterResult(TSD_SuplaRegisterDeviceResult *register_device_result);

@@ -62,6 +62,7 @@
 			  Serial.print("dnsServerIP: ");
 			  Serial.println(Ethernet.dnsServerIP());
 		}
+		
 				
 	#else
 		UNKNOWN ETHERNET LIBRARY 
@@ -79,6 +80,7 @@
 		      cb.svr_connected = &supla_arduino_svr_connected;
 		      cb.svr_connect = &supla_arduino_svr_connect;
 		      cb.svr_disconnect = &supla_arduino_svr_disconnect;
+		      cb.get_temperature = NULL;
 		      
 		      return cb;
 	}

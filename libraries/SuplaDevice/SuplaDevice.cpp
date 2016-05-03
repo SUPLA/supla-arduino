@@ -17,9 +17,11 @@
 #define SUPLADEVICE_CPP
 
 #include <Arduino.h>
+#include "IEEE754tools.h"
 #include "SuplaDevice.h"
 #include "srpc.h"
 #include "log.h"
+
 
 _supla_int_t supla_arduino_data_read(void *buf, _supla_int_t count, void *sdc) {
 	return ((SuplaDeviceClass*)sdc)->getCallbacks().tcp_read(buf, count);
@@ -271,6 +273,32 @@ bool SuplaDeviceClass::addSensorNO(int sensorPin, bool pullUp) {
 	return true;
 }
 
+void SuplaDeviceClass::setDoubleValue(char value[SUPLA_CHANNELVALUE_SIZE], double v) {
+	
+	if ( sizeof(double) == 8 ) {
+		memcpy(value, &v, 8);
+	} else if ( sizeof(double) == 4 ) {
+		float2DoublePacked(v, (byte*)value);
+	}
+
+}
+
+void SuplaDeviceClass::channelSetDoubleValue(int channelNum, double value) {
+	setDoubleValue(Params.reg_dev.channels[channelNum].value, value);
+}
+
+bool SuplaDeviceClass::addDS18B20Thermometer(void) {
+	
+	int c = addChannel(0, 0, false);
+	if ( c == -1 ) return false; 
+	
+	Params.reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_THERMOMETERDS18B20;
+	channel_pin[c].last_val_dbl = -275;	
+	channelSetDoubleValue(c, channel_pin[c].last_val_dbl);
+
+}
+
+
 bool SuplaDeviceClass::addSensorNO(int sensorPin) {
 	return addSensorNO(sensorPin, false);
 }
@@ -293,6 +321,10 @@ void SuplaDeviceClass::setString(char *dst, const char *src, int max_size) {
 		size = max_size-1;
 	
 	memcpy(dst, src, size);
+}
+
+void SuplaDeviceClass::setTemperatureCallback(_cb_arduino_get_temperature get_temperature) {
+	 Params.cb.get_temperature = get_temperature;
 }
 
 void SuplaDeviceClass::iterate(void) {
@@ -373,6 +405,23 @@ void SuplaDeviceClass::iterate(void) {
 						channelValueChanged(Params.reg_dev.channels[a].Number, val == HIGH ? 1 : 0); 
 					}
 						
+				}		
+			}
+			
+			if ( Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_THERMOMETERDS18B20
+				 && Params.cb.get_temperature != NULL ) {
+				
+				
+				if ( channel_pin[a].time_left <= 0 ) {
+				
+					channel_pin[a].time_left = 10000;
+					double val = Params.cb.get_temperature(a, channel_pin[a].last_val_dbl);
+					
+					if ( val != channel_pin[a].last_val_dbl ) {
+						channel_pin[a].last_val_dbl = val;
+						channelDoubleValueChanged(a, val); 	
+					}
+										
 				}		
 			}
 			
@@ -459,18 +508,32 @@ void SuplaDeviceClass::onRegisterResult(TSD_SuplaRegisterDeviceResult *register_
 	delay(5000);
 }
 
-
-void SuplaDeviceClass::channelValueChanged(int channel_number, char v) {
+void SuplaDeviceClass::channelValueChanged(int channel_number, char v, double d, char var) {
 
 	if ( srpc != NULL
 		 && registered == 1 ) {
 
 		char value[SUPLA_CHANNELVALUE_SIZE];
 		memset(value, 0, SUPLA_CHANNELVALUE_SIZE);
-		value[0] = v;
+		
+		if ( var == 1 )
+			value[0] = v;
+		else if ( var == 2 ) 
+			setDoubleValue(value, d);
 
 		srpc_ds_async_channel_value_changed(srpc, channel_number, value);
 	}
+
+}
+
+void SuplaDeviceClass::channelDoubleValueChanged(int channel_number, double v) {
+	channelValueChanged(channel_number, 0, v, 2);
+	
+}
+
+void SuplaDeviceClass::channelValueChanged(int channel_number, char v) {
+
+	channelValueChanged(channel_number, v, 0, 1);
 
 }
 
