@@ -28,6 +28,7 @@ typedef bool (*_cb_arduino_connect)(const char *server, _supla_int_t port);
 typedef bool (*_cb_arduino_connected)(void);
 typedef void (*_cb_arduino_stop)(void);
 typedef double (*_cb_arduino_get_temperature)(int channelNumber, double last_val);
+typedef void (*_cb_arduino_get_temperature_and_humidity)(int channelNumber, double *temp, double *humidity);
 
 typedef struct SuplaDeviceCallbacks {
 	
@@ -38,6 +39,7 @@ typedef struct SuplaDeviceCallbacks {
 	_cb_arduino_connect svr_connect;
 	_cb_arduino_stop svr_disconnect;
 	_cb_arduino_get_temperature get_temperature;
+	_cb_arduino_get_temperature_and_humidity get_temperature_and_humidity;
 
 }SuplaDeviceCallbacks;
 
@@ -62,7 +64,8 @@ typedef struct SuplaChannelPin {
 	
 	union {
 		uint8_t last_val;
-		double last_val_dbl;
+		double last_val_dbl1;
+		double last_val_dbl2;
 	};
 };
 
@@ -80,6 +83,8 @@ protected:
 	void channelSetValue(int channel, char value, _supla_int_t DurationMS);
 	void channelSetDoubleValue(int channelNum, double value);
 	void setDoubleValue(char value[SUPLA_CHANNELVALUE_SIZE], double v);
+	bool addDHT(int Type);
+	void channelSetTempAndHumidityValue(int channelNum, double temp, double humidity);
 	
 	SuplaDeviceParams Params;
 	_supla_int_t server_activity_timeout, last_response;
@@ -109,11 +114,15 @@ public:
    bool addSensorNO(int sensorPin, bool pullUp);
    bool addSensorNO(int sensorPin);
    bool addDS18B20Thermometer(void);
+   bool addDHT11(void);
+   bool addDHT22(void);
+   bool addAM2302(void);
    
    void iterate(void);
    
    SuplaDeviceCallbacks getCallbacks(void);
    void setTemperatureCallback(_cb_arduino_get_temperature get_temperature);
+   void setTemperatureHumidityCallback(_cb_arduino_get_temperature_and_humidity get_temperature_and_humidity);
    
    void onResponse(void);
    void onVersionError(TSDC_SuplaVersionError *version_error);

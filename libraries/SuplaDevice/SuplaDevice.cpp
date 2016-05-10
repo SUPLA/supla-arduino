@@ -287,15 +287,49 @@ void SuplaDeviceClass::channelSetDoubleValue(int channelNum, double value) {
 	setDoubleValue(Params.reg_dev.channels[channelNum].value, value);
 }
 
+void SuplaDeviceClass::channelSetTempAndHumidityValue(int channelNum, double temp, double humidity) {
+	
+	long t = temp*1000.00;
+	long h = humidity*1000.00;
+	
+	memcpy(Params.reg_dev.channels[channelNum].value, &t, 4);
+	memcpy(&Params.reg_dev.channels[channelNum].value[4], &h, 4);
+}
+
 bool SuplaDeviceClass::addDS18B20Thermometer(void) {
 	
 	int c = addChannel(0, 0, false);
 	if ( c == -1 ) return false; 
 	
 	Params.reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_THERMOMETERDS18B20;
-	channel_pin[c].last_val_dbl = -275;	
-	channelSetDoubleValue(c, channel_pin[c].last_val_dbl);
+	channel_pin[c].last_val_dbl1 = -275;	
+	channelSetDoubleValue(c, channel_pin[c].last_val_dbl1);
 
+}
+
+bool SuplaDeviceClass::addDHT(int Type) {
+	
+	int c = addChannel(0, 0, false);
+	if ( c == -1 ) return false; 
+	
+	Params.reg_dev.channels[c].Type = Type;
+	channel_pin[c].last_val_dbl1 = -275;	
+	channel_pin[c].last_val_dbl2 = -1;	
+	
+	channelSetTempAndHumidityValue(c, channel_pin[c].last_val_dbl1, channel_pin[c].last_val_dbl2);
+	
+}
+
+bool SuplaDeviceClass::addDHT11(void) {
+	return addDHT(SUPLA_CHANNELTYPE_DHT11);
+}
+
+bool SuplaDeviceClass::addDHT22(void) {
+	return addDHT(SUPLA_CHANNELTYPE_DHT22);
+}
+
+bool SuplaDeviceClass::addAM2302(void) {
+	return addDHT(SUPLA_CHANNELTYPE_AM2302);
 }
 
 
@@ -325,6 +359,10 @@ void SuplaDeviceClass::setString(char *dst, const char *src, int max_size) {
 
 void SuplaDeviceClass::setTemperatureCallback(_cb_arduino_get_temperature get_temperature) {
 	 Params.cb.get_temperature = get_temperature;
+}
+
+void SuplaDeviceClass::setTemperatureHumidityCallback(_cb_arduino_get_temperature_and_humidity get_temperature_and_humidity) {
+	Params.cb.get_temperature_and_humidity = get_temperature_and_humidity;
 }
 
 void SuplaDeviceClass::iterate(void) {
@@ -415,11 +453,40 @@ void SuplaDeviceClass::iterate(void) {
 				if ( channel_pin[a].time_left <= 0 ) {
 				
 					channel_pin[a].time_left = 10000;
-					double val = Params.cb.get_temperature(a, channel_pin[a].last_val_dbl);
+					double val = Params.cb.get_temperature(a, channel_pin[a].last_val_dbl1);
 					
-					if ( val != channel_pin[a].last_val_dbl ) {
-						channel_pin[a].last_val_dbl = val;
+					if ( val != channel_pin[a].last_val_dbl1 ) {
+						channel_pin[a].last_val_dbl1 = val;
 						channelDoubleValueChanged(a, val); 	
+					}
+										
+				}		
+			}
+			
+			
+			if ( ( Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_DHT11
+				   || Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_DHT22
+				   || Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_AM2302 )
+				 && Params.cb.get_temperature_and_humidity != NULL ) {
+				
+				
+				if ( channel_pin[a].time_left <= 0 ) {
+				
+					channel_pin[a].time_left = 10000;
+					
+					double t = channel_pin[a].last_val_dbl1;
+					double h = channel_pin[a].last_val_dbl2;
+					
+					Params.cb.get_temperature_and_humidity(a, &t, &h);
+					
+					if ( t != channel_pin[a].last_val_dbl1 
+							|| h != channel_pin[a].last_val_dbl2 ) {
+						
+						channel_pin[a].last_val_dbl1 = t;
+						channel_pin[a].last_val_dbl2 = h;
+						
+						channelSetTempAndHumidityValue(a, t, h);
+						srpc_ds_async_channel_value_changed(srpc, a, Params.reg_dev.channels[a].value);
 					}
 										
 				}		

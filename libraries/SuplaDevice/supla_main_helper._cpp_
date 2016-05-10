@@ -81,6 +81,7 @@
 		      cb.svr_connect = &supla_arduino_svr_connect;
 		      cb.svr_disconnect = &supla_arduino_svr_disconnect;
 		      cb.get_temperature = NULL;
+		      cb.get_temperature_and_humidity = NULL;
 		      
 		      return cb;
 	}
