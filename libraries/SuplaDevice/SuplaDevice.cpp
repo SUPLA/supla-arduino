@@ -296,6 +296,28 @@ void SuplaDeviceClass::channelSetTempAndHumidityValue(int channelNum, double tem
 	memcpy(&Params.reg_dev.channels[channelNum].value[4], &h, 4);
 }
 
+void SuplaDeviceClass::setRGBWvalue(int channelNum, char value[SUPLA_CHANNELVALUE_SIZE]) {
+	
+	if ( Params.cb.get_rgbw_value ) {
+		
+		unsigned char red = 0;
+		unsigned char green = 0xFF;
+		unsigned char blue = 0;
+		unsigned char color_brightness = 0;
+		unsigned char brightness = 0;
+		
+		Params.cb.get_rgbw_value(Params.reg_dev.channels[channelNum].Number, &red, &green, &blue, &color_brightness, &brightness);
+		
+		value[0] = brightness;
+		value[1] = color_brightness;
+		
+		value[2] = blue;
+		value[3] = green;
+		value[4] = red;
+	}
+	
+}
+
 bool SuplaDeviceClass::addDS18B20Thermometer(void) {
 	
 	int c = addChannel(0, 0, false);
@@ -332,6 +354,32 @@ bool SuplaDeviceClass::addAM2302(void) {
 	return addDHT(SUPLA_CHANNELTYPE_AM2302);
 }
 
+bool SuplaDeviceClass::addRgbControllerAndDimmer(void) {
+	
+	int c = addChannel(0, 0, false);
+	if ( c == -1 ) return false; 
+	
+	Params.reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_DIMMERANDRGBLED;
+	setRGBWvalue(c, Params.reg_dev.channels[c].value);
+}
+
+bool SuplaDeviceClass::addRgbController(void) {
+	
+	int c = addChannel(0, 0, false);
+	if ( c == -1 ) return false; 
+	
+	Params.reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_RGBLEDCONTROLLER;
+	setRGBWvalue(c, Params.reg_dev.channels[c].value);
+}
+
+bool SuplaDeviceClass::addRgbDimmer(void) {
+	
+	int c = addChannel(0, 0, false);
+	if ( c == -1 ) return false; 
+	
+	Params.reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_DIMMER;
+	setRGBWvalue(c, Params.reg_dev.channels[c].value);
+}
 
 bool SuplaDeviceClass::addSensorNO(int sensorPin) {
 	return addSensorNO(sensorPin, false);
@@ -363,6 +411,11 @@ void SuplaDeviceClass::setTemperatureCallback(_cb_arduino_get_temperature get_te
 
 void SuplaDeviceClass::setTemperatureHumidityCallback(_cb_arduino_get_temperature_and_humidity get_temperature_and_humidity) {
 	Params.cb.get_temperature_and_humidity = get_temperature_and_humidity;
+}
+
+void SuplaDeviceClass::setRGBWCallbacks(_cb_arduino_get_rgbw_value get_rgbw_value, _cb_arduino_set_rgbw_value set_rgbw_value) {
+	Params.cb.get_rgbw_value = get_rgbw_value;
+	Params.cb.set_rgbw_value = set_rgbw_value;
 }
 
 void SuplaDeviceClass::iterate(void) {
@@ -492,6 +545,7 @@ void SuplaDeviceClass::iterate(void) {
 				}		
 			}
 			
+ 			
 		}
 
 	}
@@ -665,15 +719,38 @@ void SuplaDeviceClass::channelSetValue(int channel, char value, _supla_int_t Dur
 			}
 				
 		}
-			
+					
 		
-	}
+	};
 
-	
 	if ( success
 			&& registered == 1 
 			&& srpc ) {
 		channelValueChanged(Params.reg_dev.channels[channel].Number, value);
+	}
+
+	
+}
+
+void SuplaDeviceClass::channelSetRGBWvalue(int channel, char value[SUPLA_CHANNELVALUE_SIZE]) {
+	
+	unsigned char red = (unsigned char)value[4];
+	unsigned char green = (unsigned char)value[3];
+	unsigned char blue = (unsigned char)value[2];
+	char color_brightness = (unsigned char)value[1];
+	char brightness = (unsigned char)value[0];
+	
+	Params.cb.set_rgbw_value(Params.reg_dev.channels[channel].Number, red, green, blue, color_brightness, brightness);
+	
+	if ( srpc != NULL
+		 && registered == 1 ) {
+
+		char value[SUPLA_CHANNELVALUE_SIZE];
+		memset(value, 0, SUPLA_CHANNELVALUE_SIZE);
+		
+		setRGBWvalue(channel, value);
+
+		srpc_ds_async_channel_value_changed(srpc, Params.reg_dev.channels[channel].Number, value);
 	}
 	
 }
@@ -682,11 +759,21 @@ void SuplaDeviceClass::channelSetValue(TSD_SuplaChannelNewValue *new_value) {
 
 	for(int a=0;a<Params.reg_dev.channel_count;a++) 
 		if ( new_value->ChannelNumber == Params.reg_dev.channels[a].Number ) {
-			channelSetValue(new_value->ChannelNumber, new_value->value[0], new_value->DurationMS);
+			
+			if ( Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_RELAY ) {
+				
+				channelSetValue(new_value->ChannelNumber, new_value->value[0], new_value->DurationMS);
+				
+			} else if ( ( Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_DIMMER
+						   || Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_RGBLEDCONTROLLER
+						   || Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_DIMMERANDRGBLED )
+							&& Params.cb.set_rgbw_value ) {
+				
+				channelSetRGBWvalue(a, new_value->value);
+			}
 			break;
 		}
 
-	
 }
 
 void SuplaDeviceClass::channelSetActivityTimeoutResult(TSDC_SuplaSetActivityTimeoutResult *result) {

@@ -82,6 +82,9 @@
 		      cb.svr_disconnect = &supla_arduino_svr_disconnect;
 		      cb.get_temperature = NULL;
 		      cb.get_temperature_and_humidity = NULL;
+		      cb.get_rgbw_value = NULL;
+		      cb.set_rgbw_value = NULL;
+		      
 		      
 		      return cb;
 	}

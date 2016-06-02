@@ -29,6 +29,8 @@ typedef bool (*_cb_arduino_connected)(void);
 typedef void (*_cb_arduino_stop)(void);
 typedef double (*_cb_arduino_get_temperature)(int channelNumber, double last_val);
 typedef void (*_cb_arduino_get_temperature_and_humidity)(int channelNumber, double *temp, double *humidity);
+typedef void (*_cb_arduino_get_rgbw_value)(int channelNumber, unsigned char *red, unsigned char *green, unsigned char *blue, unsigned char *color_brightness, unsigned char *brightness);
+typedef void (*_cb_arduino_set_rgbw_value)(int channelNumber, unsigned char red, unsigned char green, unsigned char blue, unsigned char color_brightness, unsigned char brightness);
 
 typedef struct SuplaDeviceCallbacks {
 	
@@ -40,6 +42,8 @@ typedef struct SuplaDeviceCallbacks {
 	_cb_arduino_stop svr_disconnect;
 	_cb_arduino_get_temperature get_temperature;
 	_cb_arduino_get_temperature_and_humidity get_temperature_and_humidity;
+	_cb_arduino_get_rgbw_value get_rgbw_value;
+	_cb_arduino_set_rgbw_value set_rgbw_value;
 
 }SuplaDeviceCallbacks;
 
@@ -85,6 +89,8 @@ protected:
 	void setDoubleValue(char value[SUPLA_CHANNELVALUE_SIZE], double v);
 	bool addDHT(int Type);
 	void channelSetTempAndHumidityValue(int channelNum, double temp, double humidity);
+	void setRGBWvalue(int channelNum, char value[SUPLA_CHANNELVALUE_SIZE]);
+	void channelSetRGBWvalue(int channel, char value[SUPLA_CHANNELVALUE_SIZE]);
 	
 	SuplaDeviceParams Params;
 	_supla_int_t server_activity_timeout, last_response;
@@ -117,12 +123,16 @@ public:
    bool addDHT11(void);
    bool addDHT22(void);
    bool addAM2302(void);
+   bool addRgbControllerAndDimmer(void);
+   bool addRgbController(void);
+   bool addRgbDimmer(void);
    
    void iterate(void);
    
    SuplaDeviceCallbacks getCallbacks(void);
    void setTemperatureCallback(_cb_arduino_get_temperature get_temperature);
    void setTemperatureHumidityCallback(_cb_arduino_get_temperature_and_humidity get_temperature_and_humidity);
+   void setRGBWCallbacks(_cb_arduino_get_rgbw_value get_rgbw_value, _cb_arduino_set_rgbw_value set_rgbw_value);
    
    void onResponse(void);
    void onVersionError(TSDC_SuplaVersionError *version_error);
