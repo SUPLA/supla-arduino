@@ -75,6 +75,9 @@ SuplaDeviceClass::SuplaDeviceClass() {
 	last_iterate_time = 0;
 	channel_pin = NULL;
 	
+	impl_arduino_digitalRead = NULL;
+	impl_arduino_digitalWrite = NULL;
+	
 	memset(&Params, 0, sizeof(SuplaDeviceParams));
 	
 	for(a=0;a<6;a++)
@@ -93,6 +96,35 @@ SuplaDeviceClass::~SuplaDeviceClass() {
 		free(channel_pin);
 		channel_pin = NULL;
 	}
+	
+}
+
+int SuplaDeviceClass::suplaDigitalRead(int channelNumber, uint8_t pin) {
+	
+	if ( impl_arduino_digitalRead != NULL )
+		return impl_arduino_digitalRead(channelNumber, pin);
+	
+	return digitalRead(pin);
+}
+
+void SuplaDeviceClass::suplaDigitalWrite(int channelNumber, uint8_t pin, uint8_t val) {
+	
+	if ( impl_arduino_digitalWrite != NULL )
+		 impl_arduino_digitalWrite(channelNumber, pin, val);
+	
+	digitalWrite(pin, val);
+	
+}
+
+void SuplaDeviceClass::setDigitalReadFuncImpl(_impl_arduino_digitalRead impl_arduino_digitalRead) {
+	
+	this->impl_arduino_digitalRead = impl_arduino_digitalRead;
+	
+}
+
+void SuplaDeviceClass::setDigitalWriteFuncImpl(_impl_arduino_digitalWrite impl_arduino_digitalWrite) {
+	
+	this->impl_arduino_digitalWrite = impl_arduino_digitalWrite;	
 	
 }
 
@@ -200,7 +232,7 @@ int SuplaDeviceClass::addChannel(int pin1, int pin2, bool hiIsLo) {
 	channel_pin[Params.reg_dev.channel_count].pin2 = pin2; 
 	channel_pin[Params.reg_dev.channel_count].hiIsLo = hiIsLo;
 	channel_pin[Params.reg_dev.channel_count].time_left = 0;
-	channel_pin[Params.reg_dev.channel_count].last_val = digitalRead(pin1);
+	channel_pin[Params.reg_dev.channel_count].last_val = suplaDigitalRead(Params.reg_dev.channel_count, pin1);
 	
 	Params.reg_dev.channel_count++;
 	
@@ -220,17 +252,17 @@ bool SuplaDeviceClass::addRelay(int relayPin1, int relayPin2, bool hiIsLo, _supl
 	
 	if ( relayPin1 != 0 ) {
 		pinMode(relayPin1, OUTPUT); 
-		digitalWrite(relayPin1, hiIsLo ? HIGH : LOW); 
+		suplaDigitalWrite(Params.reg_dev.channels[c].Number, relayPin1, hiIsLo ? HIGH : LOW); 
 		
-		Params.reg_dev.channels[c].value[0] = digitalRead(relayPin1) == _HI ? 1 : 0;
+		Params.reg_dev.channels[c].value[0] = suplaDigitalRead(Params.reg_dev.channels[c].Number, relayPin1) == _HI ? 1 : 0;
 	}
 
 	if ( relayPin2 != 0 ) {
 		pinMode(relayPin2, OUTPUT); 
-		digitalWrite(relayPin2, hiIsLo ? HIGH : LOW); 
+		suplaDigitalWrite(Params.reg_dev.channels[c].Number, relayPin2, hiIsLo ? HIGH : LOW); 
 		
 		if ( Params.reg_dev.channels[c].value[0] == 0
-				&& digitalRead(relayPin2) == _HI )
+				&& suplaDigitalRead(Params.reg_dev.channels[c].Number, relayPin2) == _HI )
 			Params.reg_dev.channels[c].value[0] = 2;
 	}
 
@@ -266,9 +298,9 @@ bool SuplaDeviceClass::addSensorNO(int sensorPin, bool pullUp) {
 	
 	Params.reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_SENSORNO;
 	pinMode(sensorPin, INPUT); 
-	digitalWrite(sensorPin, pullUp ? HIGH : LOW);
+	suplaDigitalWrite(Params.reg_dev.channels[c].Number, sensorPin, pullUp ? HIGH : LOW);
 	
-	Params.reg_dev.channels[c].value[0] = digitalRead(sensorPin) == HIGH ? 1 : 0;
+	Params.reg_dev.channels[c].value[0] = suplaDigitalRead(Params.reg_dev.channels[c].Number, sensorPin) == HIGH ? 1 : 0;
 	
 	return true;
 }
@@ -485,7 +517,7 @@ void SuplaDeviceClass::iterate(void) {
 			
 			if ( Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_SENSORNO ) {
 				
-				uint8_t val = digitalRead(channel_pin[a].pin1);
+				uint8_t val = suplaDigitalRead(Params.reg_dev.channels[a].Number, channel_pin[a].pin1);
 				
 				if ( val != channel_pin[a].last_val ) {
 					
@@ -671,32 +703,32 @@ void SuplaDeviceClass::channelSetValue(int channel, char value, _supla_int_t Dur
 		if ( value == 0 ) {
 			
 			if ( channel_pin[channel].pin1 != 0 ) {
-				digitalWrite(channel_pin[channel].pin1, _LO); 
+				suplaDigitalWrite(Params.reg_dev.channels[channel].Number, channel_pin[channel].pin1, _LO); 
 				
-				success = digitalRead(channel_pin[channel].pin1) == _LO;
+				success = suplaDigitalRead(Params.reg_dev.channels[channel].Number, channel_pin[channel].pin1) == _LO;
 			}
 				
 
 			if ( channel_pin[channel].pin2 != 0 ) {
-				digitalWrite(channel_pin[channel].pin2, _LO); 
+				suplaDigitalWrite(Params.reg_dev.channels[channel].Number, channel_pin[channel].pin2, _LO); 
 				
 				if ( !success )
-					success = digitalRead(channel_pin[channel].pin2) == _LO;
+					success = suplaDigitalRead(Params.reg_dev.channels[channel].Number, channel_pin[channel].pin2) == _LO;
 			}
 				
 			
 		} else if ( value == 1 ) {
 			
 			if ( channel_pin[channel].pin2 != 0 ) {
-				digitalWrite(channel_pin[channel].pin2, _LO); 
+				suplaDigitalWrite(Params.reg_dev.channels[channel].Number, channel_pin[channel].pin2, _LO); 
 				delay(50);
 			}
 			
 			if ( channel_pin[channel].pin1 != 0 ) {
-				digitalWrite(channel_pin[channel].pin1, _HI); 
+				suplaDigitalWrite(Params.reg_dev.channels[channel].Number, channel_pin[channel].pin1, _HI); 
 				
 				if ( !success )
-					success = digitalRead(channel_pin[channel].pin1) == _HI;
+					success = suplaDigitalRead(Params.reg_dev.channels[channel].Number, channel_pin[channel].pin1) == _HI;
 				
 				if ( DurationMS > 0 )
 					channel_pin[channel].time_left = DurationMS;
@@ -707,15 +739,15 @@ void SuplaDeviceClass::channelSetValue(int channel, char value, _supla_int_t Dur
 		} else if ( value == 2 ) {
 			
 			if ( channel_pin[channel].pin1 != 0 ) {
-				digitalWrite(channel_pin[channel].pin1, _LO); 
+				suplaDigitalWrite(Params.reg_dev.channels[channel].Number, channel_pin[channel].pin1, _LO); 
 				delay(50);
 			}
 			
 			if ( channel_pin[channel].pin2 != 0 ) {
-				digitalWrite(channel_pin[channel].pin2, _HI); 
+				suplaDigitalWrite(Params.reg_dev.channels[channel].Number, channel_pin[channel].pin2, _HI); 
 				
 				if ( !success )
-					success = digitalRead(channel_pin[channel].pin2) == _HI;
+					success = suplaDigitalRead(Params.reg_dev.channels[channel].Number, channel_pin[channel].pin2) == _HI;
 			}
 				
 		}

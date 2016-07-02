@@ -31,6 +31,8 @@ typedef double (*_cb_arduino_get_temperature)(int channelNumber, double last_val
 typedef void (*_cb_arduino_get_temperature_and_humidity)(int channelNumber, double *temp, double *humidity);
 typedef void (*_cb_arduino_get_rgbw_value)(int channelNumber, unsigned char *red, unsigned char *green, unsigned char *blue, unsigned char *color_brightness, unsigned char *brightness);
 typedef void (*_cb_arduino_set_rgbw_value)(int channelNumber, unsigned char red, unsigned char green, unsigned char blue, unsigned char color_brightness, unsigned char brightness);
+typedef int (*_impl_arduino_digitalRead)(int channelNumber, uint8_t pin);
+typedef void (*_impl_arduino_digitalWrite)(int channelNumber, uint8_t pin, uint8_t val);
 
 typedef struct SuplaDeviceCallbacks {
 	
@@ -44,7 +46,7 @@ typedef struct SuplaDeviceCallbacks {
 	_cb_arduino_get_temperature_and_humidity get_temperature_and_humidity;
 	_cb_arduino_get_rgbw_value get_rgbw_value;
 	_cb_arduino_set_rgbw_value set_rgbw_value;
-
+	
 }SuplaDeviceCallbacks;
 
 typedef struct SuplaDeviceParams {
@@ -99,6 +101,11 @@ protected:
 	unsigned long last_iterate_time;
 	bool ping_flag;
 	
+	_impl_arduino_digitalRead impl_arduino_digitalRead;
+	_impl_arduino_digitalWrite impl_arduino_digitalWrite;
+private:
+	int suplaDigitalRead(int channelNumber, uint8_t pin);
+	void suplaDigitalWrite(int channelNumber, uint8_t pin, uint8_t val);
 public:
    SuplaDeviceClass();
    ~SuplaDeviceClass();
@@ -133,6 +140,9 @@ public:
    void setTemperatureCallback(_cb_arduino_get_temperature get_temperature);
    void setTemperatureHumidityCallback(_cb_arduino_get_temperature_and_humidity get_temperature_and_humidity);
    void setRGBWCallbacks(_cb_arduino_get_rgbw_value get_rgbw_value, _cb_arduino_set_rgbw_value set_rgbw_value);
+   
+   void setDigitalReadFuncImpl(_impl_arduino_digitalRead impl_arduino_digitalRead);
+   void setDigitalWriteFuncImpl(_impl_arduino_digitalWrite impl_arduino_digitalWrite);
    
    void onResponse(void);
    void onVersionError(TSDC_SuplaVersionError *version_error);
