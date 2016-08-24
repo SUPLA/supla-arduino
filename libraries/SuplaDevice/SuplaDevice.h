@@ -65,8 +65,11 @@ typedef struct SuplaChannelPin {
 	int pin1;
 	int pin2;
 	bool hiIsLo;
+	bool bistable;
 	
 	unsigned long time_left;
+	unsigned long bi_time_left;
+	unsigned long vc_time;
 	
 	union {
 		uint8_t last_val;
@@ -82,7 +85,7 @@ protected:
 	char registered;
 	bool isInitialized(bool msg);
 	void setString(char *dst, const char *src, int max_size);
-	int addChannel(int pin1, int pin2, bool hiIsLo);
+	int addChannel(int pin1, int pin2, bool hiIsLo, bool bistable);
 	void channelValueChanged(int channel_number, char v, double d, char var);
 	void channelValueChanged(int channel_number, char v);
 	void channelDoubleValueChanged(int channel_number, double v);
@@ -118,7 +121,7 @@ public:
    
    void setName(const char *Name);
    
-   bool addRelay(int relayPin1, int relayPin2, bool hiIsLo, _supla_int_t functions);
+   bool addRelay(int relayPin1, int relayPin2, bool hiIsLo, bool bistable, _supla_int_t functions);
    bool addRelay(int relayPin1, int relayPin2, bool hiIsLo);
    bool addRelay(int relayPin1, bool hiIsLo);
    bool addRelay(int relayPin1);
