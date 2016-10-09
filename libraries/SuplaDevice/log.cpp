@@ -11,7 +11,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#ifdef defined(ESP8266) || defined(__AVR__)
+#ifdef defined(ARDUINO_ARCH_ESP8266) || defined(__AVR__)
     #include <Arduino.h>
 #else
 	#include <unistd.h>
@@ -27,14 +27,11 @@
 
 #ifdef ESP8266
 #include <Arduino.h>
-extern "C"{
 	#include <osapi.h>
 	#ifdef ARDUINO_ARCH_ESP8266
 	#include <ets_sys.h>
 	#endif
 	#include <mem.h>
-}
-
 	
 	#define malloc os_malloc
 	#define free os_free
@@ -107,11 +104,11 @@ char supla_log_string(char **buffer, int *size, va_list va, const char *__fmt) {
 
 #if defined(ESP8266) || defined(__AVR__)
 	void supla_vlog(int __pri, const char *message) {
-        //#ifdef ESP8266
-//		os_printf("%s\r\n", message);
-//        #else
+        #ifdef ESP8266 && !defined(ARDUINO_ARCH_ESP8266)
+		os_printf("%s\r\n", message);
+        #else
 		Serial.println(message);
-//        #endif
+        #endif
 	}
 #else
 void supla_vlog(int __pri, const char *message) {
