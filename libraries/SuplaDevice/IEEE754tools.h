@@ -63,33 +63,7 @@ typedef union _DBLCONV
 //
 // float;  array of 8 bytes;  LSBFIRST; MSBFIRST
 //
-void float2DoublePacked(float number, byte* bar, int byteOrder=LSBFIRST)  
-{
-    _FLOATCONV fl;
-    fl.f = number;
-    _DBLCONV dbl;
-    dbl.p.s = fl.p.s;
-    dbl.p.e = fl.p.e-127 +1023;  // exponent adjust
-    dbl.p.m = fl.p.m;
+//void float2DoublePacked(float number, byte* bar, int byteOrder=LSBFIRST);
 
-#ifdef IEEE754_ENABLE_MSB
-    if (byteOrder == LSBFIRST)
-    {
-#endif
-        for (int i=0; i<8; i++)
-        {
-            bar[i] = dbl.b[i];
-        }
-#ifdef IEEE754_ENABLE_MSB
-    }
-    else
-    {
-        for (int i=0; i<8; i++)
-        {
-            bar[i] = dbl.b[7-i];
-        }
-    }
-#endif
-}
 
 #endif

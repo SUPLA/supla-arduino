@@ -17,7 +17,13 @@
 #ifdef ESP8266
 
 	#include <osapi.h>
+	#ifdef ARDUINO_ARCH_ESP8266
+	#include <ets_sys.h>
+	#define __EH_DISABLED
+	#endif
 	#include <mem.h>
+
+
 	
 	#define srpc_BUFFER_SIZE      1024
 	#define srpc_QUEUE_MAX_SIZE   2
@@ -917,5 +923,7 @@ _supla_int_t SRPC_ICACHE_FLASH srpc_cs_async_set_channel_value(void *_srpc, TCS_
 _supla_int_t SRPC_ICACHE_FLASH srpc_cs_async_set_channel_value_b(void *_srpc, TCS_SuplaChannelNewValue_B *value) {
 	return srpc_async_call(_srpc, SUPLA_CS_CALL_CHANNEL_SET_VALUE_B, (char*)value, sizeof(TCS_SuplaChannelNewValue_B));
 }
+
+
 
 

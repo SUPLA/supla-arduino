@@ -31,6 +31,35 @@ _supla_int_t supla_arduino_data_write(void *buf, _supla_int_t count, void *sdc) 
 	return ((SuplaDeviceClass*)sdc)->getCallbacks().tcp_write(buf, count);
 }
 
+void float2DoublePacked(float number, byte* bar, int byteOrder=LSBFIRST)  
+{
+    _FLOATCONV fl;
+    fl.f = number;
+    _DBLCONV dbl;
+    dbl.p.s = fl.p.s;
+    dbl.p.e = fl.p.e-127 +1023;  // exponent adjust
+    dbl.p.m = fl.p.m;
+
+#ifdef IEEE754_ENABLE_MSB
+    if (byteOrder == LSBFIRST)
+    {
+#endif
+        for (int i=0; i<8; i++)
+        {
+            bar[i] = dbl.b[i];
+        }
+#ifdef IEEE754_ENABLE_MSB
+    }
+    else
+    {
+        for (int i=0; i<8; i++)
+        {
+            bar[i] = dbl.b[7-i];
+        }
+    }
+#endif
+}
+
 
 
 void supla_arduino_on_remote_call_received(void *_srpc, unsigned _supla_int_t rr_id, unsigned _supla_int_t call_type, void *_sdc, unsigned char proto_version) {
