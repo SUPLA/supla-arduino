@@ -2,7 +2,6 @@
  ============================================================================
  Name        : srpc.c [SUPLA DATA EXCHANGE]
  Author      : Przemyslaw Zygmunt p.zygmunt@acsoftware.pl [AC SOFTWARE]
- Version     : 1.3
  Copyright   : 2015-2016 GPLv2
  ============================================================================
  */
@@ -17,17 +16,15 @@
 #ifdef ESP8266
 
 	#include <osapi.h>
-	#ifdef ARDUINO_ARCH_ESP8266
-	#include <ets_sys.h>
-	#define __EH_DISABLED
+        #ifdef ARDUINO_ARCH_ESP8266
+           #include <ets_sys.h>
+ 	   #define __EH_DISABLED
 	#endif
 	#include <mem.h>
-
-
 	
 	#define srpc_BUFFER_SIZE      1024
 	#define srpc_QUEUE_MAX_SIZE   2
-	
+
 	#define malloc os_malloc
 	#define realloc os_realloc
 	#define free os_free
@@ -123,19 +120,21 @@ char SRPC_ICACHE_FLASH srpc_queue_push(TSuplaDataPacket ***queue, unsigned char 
 	if ( *size >= srpc_QUEUE_MAX_SIZE )
 		return SUPLA_RESULT_FALSE;
 
+	TSuplaDataPacket *sdp_new = (TSuplaDataPacket *)malloc(sizeof(TSuplaDataPacket));
+
+	if ( sdp_new == 0 )
+		return SUPLA_RESULT_FALSE;
+	
 	(*size)++;
 
     *queue = (TSuplaDataPacket **)realloc(*queue, sizeof(TSuplaDataPacket *)*(*size));
 
 	if ( *queue == 0 ) {
 			*size = 0;
+			free(sdp_new);
 			return SUPLA_RESULT_FALSE;
 	}
 
-	TSuplaDataPacket *sdp_new = (TSuplaDataPacket *)malloc(sizeof(TSuplaDataPacket));
-
-	if ( sdp_new == 0 )
-		return SUPLA_RESULT_FALSE;
 
 	memcpy(sdp_new, sdp, sizeof(TSuplaDataPacket));
 
@@ -661,6 +660,7 @@ unsigned char SRPC_ICACHE_FLASH srpc_get_proto_version(void *_srpc) {
 	return version;
 }
 
+
 void SRPC_ICACHE_FLASH srpc_set_proto_version(void *_srpc, unsigned char version) {
 
 	Tsrpc *srpc = (Tsrpc*)_srpc;
@@ -923,7 +923,5 @@ _supla_int_t SRPC_ICACHE_FLASH srpc_cs_async_set_channel_value(void *_srpc, TCS_
 _supla_int_t SRPC_ICACHE_FLASH srpc_cs_async_set_channel_value_b(void *_srpc, TCS_SuplaChannelNewValue_B *value) {
 	return srpc_async_call(_srpc, SUPLA_CS_CALL_CHANNEL_SET_VALUE_B, (char*)value, sizeof(TCS_SuplaChannelNewValue_B));
 }
-
-
 
 
