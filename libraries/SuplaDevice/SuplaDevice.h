@@ -31,8 +31,10 @@ typedef double (*_cb_arduino_get_temperature)(int channelNumber, double last_val
 typedef void (*_cb_arduino_get_temperature_and_humidity)(int channelNumber, double *temp, double *humidity);
 typedef void (*_cb_arduino_get_rgbw_value)(int channelNumber, unsigned char *red, unsigned char *green, unsigned char *blue, unsigned char *color_brightness, unsigned char *brightness);
 typedef void (*_cb_arduino_set_rgbw_value)(int channelNumber, unsigned char red, unsigned char green, unsigned char blue, unsigned char color_brightness, unsigned char brightness);
+typedef double (*_cb_arduino_get_distance)(int channelNumber, double distance);
 typedef int (*_impl_arduino_digitalRead)(int channelNumber, uint8_t pin);
 typedef void (*_impl_arduino_digitalWrite)(int channelNumber, uint8_t pin, uint8_t val);
+
 
 typedef struct SuplaDeviceCallbacks {
 	
@@ -46,6 +48,7 @@ typedef struct SuplaDeviceCallbacks {
 	_cb_arduino_get_temperature_and_humidity get_temperature_and_humidity;
 	_cb_arduino_get_rgbw_value get_rgbw_value;
 	_cb_arduino_set_rgbw_value set_rgbw_value;
+    _cb_arduino_get_distance get_distance;
 	
 }SuplaDeviceCallbacks;
 
@@ -96,7 +99,7 @@ protected:
 	void channelSetTempAndHumidityValue(int channelNum, double temp, double humidity);
 	void setRGBWvalue(int channelNum, char value[SUPLA_CHANNELVALUE_SIZE]);
 	void channelSetRGBWvalue(int channel, char value[SUPLA_CHANNELVALUE_SIZE]);
-	
+    
 	SuplaDeviceParams Params;
 	_supla_int_t server_activity_timeout, last_response;
 	SuplaChannelPin *channel_pin;
@@ -135,7 +138,8 @@ public:
    bool addAM2302(void);
    bool addRgbControllerAndDimmer(void);
    bool addRgbController(void);
-   bool addRgbDimmer(void);
+   bool addDimmer(void);
+   bool addDistanceSensor(void);
    
    void iterate(void);
    
@@ -143,6 +147,7 @@ public:
    void setTemperatureCallback(_cb_arduino_get_temperature get_temperature);
    void setTemperatureHumidityCallback(_cb_arduino_get_temperature_and_humidity get_temperature_and_humidity);
    void setRGBWCallbacks(_cb_arduino_get_rgbw_value get_rgbw_value, _cb_arduino_set_rgbw_value set_rgbw_value);
+   void setDistanceCallback(_cb_arduino_get_distance get_distance);
    
    void setDigitalReadFuncImpl(_impl_arduino_digitalRead impl_arduino_digitalRead);
    void setDigitalWriteFuncImpl(_impl_arduino_digitalWrite impl_arduino_digitalWrite);

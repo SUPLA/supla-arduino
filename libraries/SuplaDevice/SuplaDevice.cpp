@@ -446,7 +446,7 @@ bool SuplaDeviceClass::addRgbController(void) {
 	setRGBWvalue(c, Params.reg_dev.channels[c].value);
 }
 
-bool SuplaDeviceClass::addRgbDimmer(void) {
+bool SuplaDeviceClass::addDimmer(void) {
 	
 	int c = addChannel(0, 0, false, false);
 	if ( c == -1 ) return false; 
@@ -458,6 +458,18 @@ bool SuplaDeviceClass::addRgbDimmer(void) {
 bool SuplaDeviceClass::addSensorNO(int sensorPin) {
 	return addSensorNO(sensorPin, false);
 }
+
+bool SuplaDeviceClass::addDistanceSensor(void) {
+
+    int c = addChannel(0, 0, false, false);
+    if ( c == -1 ) return false;
+    
+    Params.reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_DISTANCESENSOR;
+    channel_pin[c].last_val_dbl1 = -1;
+    channelSetDoubleValue(c, channel_pin[c].last_val_dbl1);
+    
+}
+
 
 SuplaDeviceCallbacks SuplaDeviceClass::getCallbacks(void) {
 	return Params.cb;
@@ -490,6 +502,10 @@ void SuplaDeviceClass::setTemperatureHumidityCallback(_cb_arduino_get_temperatur
 void SuplaDeviceClass::setRGBWCallbacks(_cb_arduino_get_rgbw_value get_rgbw_value, _cb_arduino_set_rgbw_value set_rgbw_value) {
 	Params.cb.get_rgbw_value = get_rgbw_value;
 	Params.cb.set_rgbw_value = set_rgbw_value;
+}
+
+void SuplaDeviceClass::setDistanceCallback(_cb_arduino_get_distance get_distance) {
+    Params.cb.get_distance = get_distance;
 }
 
 void SuplaDeviceClass::iterate(void) {
@@ -649,7 +665,31 @@ void SuplaDeviceClass::iterate(void) {
 										
 				}		
 			}
-			
+            
+            
+            if ( Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_DISTANCESENSOR
+                 && Params.cb.get_distance != NULL ) {
+                
+                if ( channel_pin[a].time_left <= 0 ) {
+                    
+                    if ( channel_pin[a].time_left <= 0 ) {
+                        
+                        channel_pin[a].time_left = 1000;
+                        
+                        double val = Params.cb.get_distance(a, channel_pin[a].last_val_dbl1);
+                        
+                        if ( val != channel_pin[a].last_val_dbl1 ) {
+                            
+                            channel_pin[a].last_val_dbl1 = val;
+                            channelDoubleValueChanged(a, val);
+                        }
+                        
+                    }
+                    
+                }
+                
+            }
+            
  			
 		}
 
