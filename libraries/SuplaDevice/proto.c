@@ -1,8 +1,8 @@
 /*
  ============================================================================
  Name        : proto.c
- Author      : Przemyslaw Zygmunt p.zygmunt@acsoftware.pl [AC SOFTWARE]
- Version     : 1.2
+ Author      : Przemyslaw Zygmunt przemek@supla.org
+ Version     : 1.3.3
  Copyright   : 2015-2016 GPLv2
  ============================================================================
  */
@@ -17,10 +17,10 @@
 
 	#include <osapi.h>
 	#include <mem.h>
-	
+
 	#define BUFFER_MIN_SIZE    512
 	#define BUFFER_MAX_SIZE    2048
-	
+
 	#define malloc os_malloc
 	#define free os_free
 	#define realloc os_realloc
@@ -384,3 +384,4 @@ void sproto_buffer_dump(void *spd_ptr, unsigned char in) {
 
 
 }
+
