@@ -24,11 +24,13 @@
 
 
 _supla_int_t supla_arduino_data_read(void *buf, _supla_int_t count, void *sdc) {
-	return ((SuplaDeviceClass*)sdc)->getCallbacks().tcp_read(buf, count);
+    
+    return ((SuplaDeviceClass*)sdc)->getCallbacks().tcp_read(buf, count);
 }
 
 _supla_int_t supla_arduino_data_write(void *buf, _supla_int_t count, void *sdc) {
-	return ((SuplaDeviceClass*)sdc)->getCallbacks().tcp_write(buf, count);
+    
+    return ((SuplaDeviceClass*)sdc)->getCallbacks().tcp_write(buf, count);
 }
 
 void float2DoublePacked(float number, byte* bar, int byteOrder=LSBFIRST)  
@@ -60,7 +62,15 @@ void float2DoublePacked(float number, byte* bar, int byteOrder=LSBFIRST)
 #endif
 }
 
-
+void SuplaDeviceClass::status(int status, const char *msg) {
+    
+    if ( impl_arduino_status != NULL ) {
+        impl_arduino_status(status, msg);
+    } else {
+        supla_log(LOG_DEBUG, "%s", msg);
+    }
+    
+}
 
 void supla_arduino_on_remote_call_received(void *_srpc, unsigned _supla_int_t rr_id, unsigned _supla_int_t call_type, void *_sdc, unsigned char proto_version) {
 
@@ -90,7 +100,7 @@ void supla_arduino_on_remote_call_received(void *_srpc, unsigned _supla_int_t rr
 
 	} else if ( result == SUPLA_RESULT_DATA_ERROR ) {
 
-		supla_log(LOG_DEBUG, "DATA ERROR!");
+        supla_log(LOG_DEBUG, "DATA ERROR!");
 	}
 	
 }
@@ -157,11 +167,16 @@ void SuplaDeviceClass::setDigitalWriteFuncImpl(_impl_arduino_digitalWrite impl_a
 	
 }
 
+void SuplaDeviceClass::setStatusFuncImpl(_impl_arduino_status impl_arduino_status) {
+    
+    this->impl_arduino_status = impl_arduino_status;
+}
+
 bool SuplaDeviceClass::isInitialized(bool msg) {
 	if ( srpc != NULL ) {
 		
 		if ( msg )
-		   supla_log(LOG_DEBUG, "SuplaDevice is already initialized");
+            status(STATUS_ALREADY_INITIALIZED, "SuplaDevice is already initialized");
 		
 		return true;
 	}
@@ -182,7 +197,7 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
 	     || Params.cb.svr_connect == NULL
 	     || Params.cb.svr_disconnect == NULL ) {
 		
-		supla_log(LOG_DEBUG, "Callbacks not assigned!");
+        status(STATUS_CB_NOT_ASSIGNED, "Callbacks not assigned!");
 		return false;
 	}
 	
@@ -203,18 +218,18 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
 		if ( Params.reg_dev.GUID[a] != 0 ) break;
 	
 	if ( a == SUPLA_GUID_SIZE ) {
-		supla_log(LOG_DEBUG, "Invalid GUID");
+		status(STATUS_INVALID_GUID, "Invalid GUID");
 		return false;
 	}
 	
 	if ( Params.server == NULL 
 			|| Params.server[0] == NULL ) {
-		supla_log(LOG_DEBUG, "Unknown server address");
+		status(STATUS_UNKNOWN_SERVER_ADDRESS, "Unknown server address");
 		return false;
 	}
 	
 	if ( Params.reg_dev.LocationID == 0 ) {
-		supla_log(LOG_DEBUG, "Unknown LocationID");
+		status(STATUS_UNKNOWN_LOCATION_ID, "Unknown LocationID");
 		return false;
 	}
 	
@@ -232,7 +247,7 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
 	
 
 	srpc = srpc_init(&srpc_params);
-	supla_log(LOG_DEBUG, "SuplaDevice initialized");
+	status(STATUS_INITIALIZED, "SuplaDevice initialized");
 }
 
 bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const char *Server,
@@ -251,10 +266,11 @@ int SuplaDeviceClass::addChannel(int pin1, int pin2, bool hiIsLo, bool bistable)
 	if ( isInitialized(true) ) return -1;
 	
 	if ( Params.reg_dev.channel_count >= SUPLA_CHANNELMAXCOUNT ) {
-		supla_log(LOG_DEBUG, "Channel limit exceeded");
+		status(STATUS_CHANNEL_LIMIT_EXCEEDED, "Channel limit exceeded");
 		return -1;
 	}
-	
+
+    
 	if ( bistable && ( pin1 == 0 || pin2 == 0 ) )
 		bistable = false;
 	
@@ -514,7 +530,7 @@ void SuplaDeviceClass::iterate(void) {
 	
 	if ( !Params.cb.svr_connected() ) {
 		
-		supla_log(LOG_DEBUG, "Not connected");
+		status(STATUS_DISCONNECTED, "Not connected");
 	    registered = 0;
 	    last_response = 0;
 	    ping_flag = false;
@@ -535,7 +551,7 @@ void SuplaDeviceClass::iterate(void) {
 		
 		registered = -1;
 		srpc_ds_async_registerdevice_b(srpc, &Params.reg_dev);
-		supla_log(LOG_DEBUG, "Register in progress");
+		status(STATUS_REGISTER_IN_PROGRESS, "Register in progress");
 		
 	} else if ( registered == 1 ) {
 		// PING
@@ -699,7 +715,7 @@ void SuplaDeviceClass::iterate(void) {
 	last_iterate_time = millis();
 	
 	if( srpc_iterate(srpc) == SUPLA_RESULT_FALSE ) {
-		supla_log(LOG_DEBUG, "Iterate fail");
+		status(STATUS_ITERATE_FAIL, "Iterate fail");
 		Params.cb.svr_disconnect();
 		delay(5000);
 	}
@@ -713,7 +729,7 @@ void SuplaDeviceClass::onResponse(void) {
 }
 
 void SuplaDeviceClass::onVersionError(TSDC_SuplaVersionError *version_error) {
-	supla_log(LOG_ERR, "Protocol version error");
+	status(STATUS_PROTOCOL_VERSION_ERROR, "Protocol version error");
 	Params.cb.svr_disconnect();
 	delay(5000);
 }
@@ -722,26 +738,26 @@ void SuplaDeviceClass::onRegisterResult(TSD_SuplaRegisterDeviceResult *register_
 
 	switch(register_device_result->result_code) {
 	case SUPLA_RESULTCODE_BAD_CREDENTIALS:
-		supla_log(LOG_ERR, "Bad credentials!");
+		status(STATUS_BAD_CREDENTIALS, "Bad credentials!");
 		break;
 
 	case SUPLA_RESULTCODE_TEMPORARILY_UNAVAILABLE:
-		supla_log(LOG_NOTICE, "Temporarily unavailable!");
+		status(STATUS_TEMPORARILY_UNAVAILABLE, "Temporarily unavailable!");
 		break;
 
 	case SUPLA_RESULTCODE_LOCATION_CONFLICT:
-		supla_log(LOG_ERR, "Location conflict!");
+		status(STATUS_LOCATION_CONFLICT, "Location conflict!");
 		break;
 
 	case SUPLA_RESULTCODE_CHANNEL_CONFLICT:
-		supla_log(LOG_ERR, "Channel conflict!");
+		status(STATUS_CHANNEL_CONFLICT, "Channel conflict!");
 		break;
 	case SUPLA_RESULTCODE_TRUE:
 
 		server_activity_timeout = register_device_result->activity_timeout;
 		registered = 1;
 
-		supla_log(LOG_DEBUG, "Registered and ready.");
+		status(STATUS_REGISTERED_AND_READY, "Registered and ready.");
 
 		if ( server_activity_timeout != ACTIVITY_TIMEOUT ) {
 
@@ -754,19 +770,19 @@ void SuplaDeviceClass::onRegisterResult(TSD_SuplaRegisterDeviceResult *register_
 		return;
 
 	case SUPLA_RESULTCODE_DEVICE_DISABLED:
-		supla_log(LOG_NOTICE, "Device is disabled!");
+		status(STATUS_DEVICE_IS_DISABLED, "Device is disabled!");
 		break;
 
 	case SUPLA_RESULTCODE_LOCATION_DISABLED:
-		supla_log(LOG_NOTICE, "Location is disabled!");
+		status(STATUS_LOCATION_IS_DISABLED, "Location is disabled!");
 		break;
 
 	case SUPLA_RESULTCODE_DEVICE_LIMITEXCEEDED:
-		supla_log(LOG_NOTICE, "Device limit exceeded!");
+		status(STATUS_DEVICE_LIMIT_EXCEEDED, "Device limit exceeded!");
 		break;
 
 	case SUPLA_RESULTCODE_GUID_ERROR:
-		supla_log(LOG_NOTICE, "Incorrect device GUID!");
+		status(STATUS_INVALID_GUID, "Incorrect device GUID!");
 		break;
 	}
 

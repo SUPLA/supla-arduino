@@ -22,6 +22,26 @@
 
 #define ACTIVITY_TIMEOUT 30
 
+#define STATUS_ALREADY_INITIALIZED     2
+#define STATUS_CB_NOT_ASSIGNED         3
+#define STATUS_INVALID_GUID            4
+#define STATUS_UNKNOWN_SERVER_ADDRESS  5
+#define STATUS_UNKNOWN_LOCATION_ID     6
+#define STATUS_INITIALIZED             7
+#define STATUS_CHANNEL_LIMIT_EXCEEDED  8
+#define STATUS_DISCONNECTED            9
+#define STATUS_REGISTER_IN_PROGRESS    10
+#define STATUS_ITERATE_FAIL            11
+#define STATUS_PROTOCOL_VERSION_ERROR  12
+#define STATUS_BAD_CREDENTIALS         13
+#define STATUS_TEMPORARILY_UNAVAILABLE 14
+#define STATUS_LOCATION_CONFLICT       15
+#define STATUS_CHANNEL_CONFLICT        16
+#define STATUS_REGISTERED_AND_READY    17
+#define STATUS_DEVICE_IS_DISABLED      18
+#define STATUS_LOCATION_IS_DISABLED    19
+#define STATUS_DEVICE_LIMIT_EXCEEDED   20
+
 typedef _supla_int_t (*_cb_arduino_rw)(void *buf, _supla_int_t count);
 typedef void (*_cb_arduino_eth_setup)(uint8_t mac[6], IPAddress *ip);
 typedef bool (*_cb_arduino_connect)(const char *server, _supla_int_t port);
@@ -34,7 +54,7 @@ typedef void (*_cb_arduino_set_rgbw_value)(int channelNumber, unsigned char red,
 typedef double (*_cb_arduino_get_distance)(int channelNumber, double distance);
 typedef int (*_impl_arduino_digitalRead)(int channelNumber, uint8_t pin);
 typedef void (*_impl_arduino_digitalWrite)(int channelNumber, uint8_t pin, uint8_t val);
-
+typedef void (*_impl_arduino_status)(int status, const char *msg);
 
 typedef struct SuplaDeviceCallbacks {
 	
@@ -109,9 +129,12 @@ protected:
 	
 	_impl_arduino_digitalRead impl_arduino_digitalRead;
 	_impl_arduino_digitalWrite impl_arduino_digitalWrite;
+    _impl_arduino_status impl_arduino_status;
+    
 private:
 	int suplaDigitalRead(int channelNumber, uint8_t pin);
 	void suplaDigitalWrite(int channelNumber, uint8_t pin, uint8_t val);
+    void status(int status, const char *msg);
 public:
    SuplaDeviceClass();
    ~SuplaDeviceClass();
@@ -151,7 +174,8 @@ public:
    
    void setDigitalReadFuncImpl(_impl_arduino_digitalRead impl_arduino_digitalRead);
    void setDigitalWriteFuncImpl(_impl_arduino_digitalWrite impl_arduino_digitalWrite);
-   
+   void setStatusFuncImpl(_impl_arduino_status impl_arduino_status);
+    
    void onResponse(void);
    void onVersionError(TSDC_SuplaVersionError *version_error);
    void onRegisterResult(TSD_SuplaRegisterDeviceResult *register_device_result);
