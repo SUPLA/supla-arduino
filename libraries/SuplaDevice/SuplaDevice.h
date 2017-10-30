@@ -110,8 +110,6 @@ protected:
 	void setString(char *dst, const char *src, int max_size);
 	int addChannel(int pin1, int pin2, bool hiIsLo, bool bistable);
 	void channelValueChanged(int channel_number, char v, double d, char var);
-	void channelValueChanged(int channel_number, char v);
-	void channelDoubleValueChanged(int channel_number, double v);
 	void channelSetValue(int channel, char value, _supla_int_t DurationMS);
 	void channelSetDoubleValue(int channelNum, double value);
 	void setDoubleValue(char value[SUPLA_CHANNELVALUE_SIZE], double v);
@@ -139,6 +137,9 @@ public:
    SuplaDeviceClass();
    ~SuplaDeviceClass();
    
+   void channelValueChanged(int channel_number, char v);
+   void channelDoubleValueChanged(int channel_number, double v);
+    
    bool begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const char *Server,
 		      int LocationID, const char *LocationPWD);
    

@@ -589,10 +589,7 @@ void SuplaDeviceClass::iterate(void) {
 					
 					channel_pin[a].time_left = 0;
 					
-					if ( Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_SENSORNO ) 
-						channel_pin[a].last_val = -1;
-					
-					else if ( Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_RELAY )
+					if ( Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_RELAY )
 						channelSetValue(a, 0, 0);
 					
 				} else if ( channel_pin[a].time_left > 0 ) {
@@ -629,7 +626,7 @@ void SuplaDeviceClass::iterate(void) {
 					channel_pin[a].last_val = val;
 					
 					if ( channel_pin[a].time_left <= 0 ) {
-						channel_pin[a].time_left = 500;
+						channel_pin[a].time_left = 100;
 						channelValueChanged(Params.reg_dev.channels[a].Number, val == HIGH ? 1 : 0); 
 					}
 						
