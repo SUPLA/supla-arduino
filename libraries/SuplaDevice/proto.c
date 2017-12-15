@@ -1,10 +1,19 @@
 /*
- ============================================================================
- Name        : proto.c
- Author      : Przemyslaw Zygmunt przemek@supla.org
- Version     : 1.3.3
- Copyright   : 2015-2016 GPLv2
- ============================================================================
+ Copyright (C) AC SOFTWARE SP. Z O.O.
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
 #include <stdlib.h>
@@ -21,9 +30,8 @@
 	#define BUFFER_MIN_SIZE    512
 	#define BUFFER_MAX_SIZE    2048
 
-	#define malloc os_malloc
-	#define free os_free
-	#define realloc os_realloc
+	#include <user_interface.h>
+	#include "espmissingincludes.h"
 
 #elif defined(__AVR__)
 
@@ -109,15 +117,23 @@ unsigned char sproto_buffer_append(void *spd_ptr, char **buffer, unsigned _supla
 	if ( size >= BUFFER_MAX_SIZE ) 
 		return (SUPLA_RESULT_BUFFER_OVERFLOW);
 		
-	if ( size != (*buffer_size) )
-		*buffer = (char *)realloc(*buffer, size);
+	if ( size != (*buffer_size) ) {
 
-    #ifndef ESP8266
-    #ifndef __AVR__
-    if ( errno == ENOMEM )
-    	return (SUPLA_RESULT_FALSE);
-    #endif
-    #endif
+		char *new_buffer = (char *)realloc(*buffer, size);
+
+		if ( size > 0 && new_buffer == NULL ) {
+			return (SUPLA_RESULT_FALSE);
+		}
+
+		#ifndef ESP8266
+		#ifndef __AVR__
+		if ( errno == ENOMEM )
+			return (SUPLA_RESULT_FALSE);
+		#endif
+		#endif
+
+		*buffer = new_buffer;
+	}
 
     memcpy(&(*buffer)[(*buffer_data_size)], data, data_size);
 
@@ -184,8 +200,18 @@ unsigned _supla_int_t sproto_pop_out_data(void *spd_ptr, char *buffer, unsigned 
     	if ( spd->out.size < BUFFER_MIN_SIZE )
     		spd->out.size = BUFFER_MIN_SIZE;
 
-    	if ( b != spd->out.size )
-    	  spd->out.buffer = (char *)realloc(spd->out.buffer, spd->out.size);
+    	if ( b != spd->out.size ) {
+
+    		char *new_out_buffer = (char *)realloc(spd->out.buffer, spd->out.size);
+
+    		if ( new_out_buffer == NULL && spd->out.size > 0 ) {
+    			spd->out.size = b;
+    		} else {
+    			spd->out.buffer = new_out_buffer;
+    		}
+
+    	}
+
     }
 
     return (buffer_size);
@@ -221,8 +247,18 @@ void sproto_shrink_in_buffer(TSuplaProtoInBuffer *in, unsigned _supla_int_t size
 		if ( in->size < BUFFER_MIN_SIZE )
 			in->size = BUFFER_MIN_SIZE;
 
-		if ( old_size != in->size )
-			in->buffer = (char *)realloc(in->buffer, in->size);
+		if ( old_size != in->size ) {
+
+			char *new_in_buffer = (char *)realloc(in->buffer, in->size);
+
+			if ( new_in_buffer == NULL && in->size > 0 ) {
+				in->size = old_size;
+			} else {
+				in->buffer = new_in_buffer;
+			}
+
+		}
+
 	}
 
 }
@@ -292,7 +328,12 @@ char sproto_pop_in_sdp(void *spd_ptr, TSuplaDataPacket *sdp) {
 }
 
 void sproto_set_version(void *spd_ptr, unsigned char version) {
-	((TSuplaProtoData *)spd_ptr)->version = version;
+
+	if ( version >= SUPLA_PROTO_VERSION_MIN && version <= SUPLA_PROTO_VERSION ) {
+		((TSuplaProtoData *)spd_ptr)->version = version;
+	} else {
+		((TSuplaProtoData *)spd_ptr)->version = SUPLA_PROTO_VERSION;
+	}
 }
 
 unsigned char sproto_get_version(void *spd_ptr) {
@@ -333,7 +374,6 @@ char sproto_set_data(TSuplaDataPacket *sdp, char *data, unsigned _supla_int_t da
 
 	if ( data_size >  SUPLA_MAX_DATA_SIZE )
 		return SUPLA_RESULT_FALSE;
-
 
 	if ( data_size > 0 )
 	  memcpy(sdp->data, data, data_size);

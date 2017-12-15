@@ -1,9 +1,19 @@
 /*
- ============================================================================
- Name        : proto.h
- Author      : Przemyslaw Zygmunt przemek@supla.org
- Copyright   : 2015-2016 GPLv2
- ============================================================================
+ Copyright (C) AC SOFTWARE SP. Z O.O.
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
 #ifndef supla_proto_H_
@@ -46,11 +56,13 @@ extern "C" {
 // CS  - client -> server
 // SC  - server -> client
 
-#define SUPLA_PROTO_VERSION                 5
+#define SUPLA_PROTO_VERSION                 8
 #define SUPLA_PROTO_VERSION_MIN             1
 #define SUPLA_TAG_SIZE                      5
-#ifdef __AVR__
+#if defined(__AVR__)
 	#define SUPLA_MAX_DATA_SIZE                 1024
+#elif defined(ESP8266)
+	#define SUPLA_MAX_DATA_SIZE                 1536
 #else
 	#define SUPLA_MAX_DATA_SIZE                 10240
 #endif
@@ -64,9 +76,24 @@ extern "C" {
 #define SUPLA_ACCESSID_PWDHEX_MAXSIZE       65
 #define SUPLA_ACCESSID_PWD_MAXSIZE          33
 #define SUPLA_LOCATION_CAPTION_MAXSIZE      401
-#define SUPLA_LOCATIONPACK_MAXSIZE          20
+#define SUPLA_LOCATIONPACK_MAXCOUNT         20
 #define SUPLA_CHANNEL_CAPTION_MAXSIZE       401
-#define SUPLA_CHANNELPACK_MAXSIZE           20
+#define SUPLA_CHANNELPACK_MAXCOUNT          20
+#define SUPLA_URL_HOST_MAXSIZE              101
+#define SUPLA_URL_PATH_MAXSIZE              101
+#define SUPLA_SERVER_NAME_MAXSIZE           65
+#define SUPLA_EMAIL_MAXSIZE                 256 // ver. >= 7
+#define SUPLA_EMAILHEX_MAXSIZE              513 // ver. >= 7
+#define SUPLA_AUTHKEY_SIZE                  16  // ver. >= 7
+#define SUPLA_AUTHKEY_HEXSIZE               33  // ver. >= 7
+#define SUPLA_OAUTH_SERVER_MAXSIZE          256 // ver. >= 7
+#define SUPLA_OAUTH_CLIENTID_MAXSIZE        276 // ver. >= 7
+#define SUPLA_OAUTH_SECRET_MAXSIZE          276 // ver. >= 7
+#define SUPLA_OAUTH_USERNAME_MAXSIZE        65  // ver. >= 7
+#define SUPLA_OAUTH_PASSWORD_MAXSIZE        65  // ver. >= 7
+#define SUPLA_CHANNELGROUP_PACK_MAXCOUNT    20  // ver. >= 8
+#define SUPLA_CHANNELGROUP_CAPTION_MAXSIZE  401 // ver. >= 8
+#define SUPLA_CHANNELGROUP_RELATION_PACK_MAXCOUNT  100 // ver. >= 8
 
 #define SUPLA_DCS_CALL_GETVERSION                         10
 #define SUPLA_SDC_CALL_GETVERSION_RESULT                  20
@@ -75,8 +102,12 @@ extern "C" {
 #define SUPLA_SDC_CALL_PING_SERVER_RESULT                 50
 #define SUPLA_DS_CALL_REGISTER_DEVICE                     60
 #define SUPLA_DS_CALL_REGISTER_DEVICE_B                   65 // ver. >= 2
+#define SUPLA_DS_CALL_REGISTER_DEVICE_C                   67 // ver. >= 6
+#define SUPLA_DS_CALL_REGISTER_DEVICE_D                   68 // ver. >= 7
 #define SUPLA_SD_CALL_REGISTER_DEVICE_RESULT              70
 #define SUPLA_CS_CALL_REGISTER_CLIENT                     80
+#define SUPLA_CS_CALL_REGISTER_CLIENT_B                   85 // ver. >= 6
+#define SUPLA_CS_CALL_REGISTER_CLIENT_C                   86 // ver. >= 7
 #define SUPLA_SC_CALL_REGISTER_CLIENT_RESULT              90
 #define SUPLA_DS_CALL_DEVICE_CHANNEL_VALUE_CHANGED        100
 #define SUPLA_SD_CALL_CHANNEL_SET_VALUE                   110
@@ -92,7 +123,16 @@ extern "C" {
 #define SUPLA_CS_CALL_CHANNEL_SET_VALUE_B                 205 // ver. >= 3
 #define SUPLA_DCS_CALL_SET_ACTIVITY_TIMEOUT               210 // ver. >= 2
 #define SUPLA_SDC_CALL_SET_ACTIVITY_TIMEOUT_RESULT        220 // ver. >= 2
+#define SUPLA_DS_CALL_GET_FIRMWARE_UPDATE_URL             300 // ver. >= 5
+#define SUPLA_SD_CALL_GET_FIRMWARE_UPDATE_URL_RESULT      310 // ver. >= 5
+#define SUPLA_DCS_CALL_GET_REGISTRATION_ENABLED           320 // ver. >= 7
+#define SUPLA_SDC_CALL_GET_REGISTRATION_ENABLED_RESULT    330 // ver. >= 7
+#define SUPLA_CS_CALL_GET_OAUTH_PARAMETERS                340 // ver. >= 7
+#define SUPLA_SC_CALL_GET_OAUTH_PARAMETERS_RESULT         350 // ver. >= 7
+#define SUPLA_SC_CALL_CHANNELPACK_UPDATE_B                360 // ver. >= 8
+#define SUPLA_SC_CALL_CHANNEL_UPDATE_B                    370 // ver. >= 8
 
+#define SUPLA_RESULT_CALL_NOT_ALLOWED       -5
 #define SUPLA_RESULT_DATA_TOO_LARGE         -4
 #define SUPLA_RESULT_BUFFER_OVERFLOW        -3
 #define SUPLA_RESULT_DATA_ERROR             -2
@@ -115,14 +155,23 @@ extern "C" {
 #define SUPLA_RESULTCODE_CLIENT_LIMITEXCEEDED      12
 #define SUPLA_RESULTCODE_DEVICE_LIMITEXCEEDED      13
 #define SUPLA_RESULTCODE_GUID_ERROR                14
-#define SUPLA_RESULTCODE_HOSTNOTFOUND              15 // ver. >= 5
-#define SUPLA_RESULTCODE_CANTCONNECTTOHOST         16 // ver. >= 5
+#define SUPLA_RESULTCODE_HOSTNOTFOUND              15  // ver. >= 5
+#define SUPLA_RESULTCODE_CANTCONNECTTOHOST         16  // ver. >= 5
+#define SUPLA_RESULTCODE_REGISTRATION_DISABLED     17  // ver. >= 7
+#define SUPLA_RESULTCODE_ACCESSID_NOT_ASSIGNED     18  // ver. >= 7
+#define SUPLA_RESULTCODE_AUTHKEY_ERROR             19  // ver. >= 7
+#define SUPLA_RESULTCODE_NO_LOCATION_AVAILABLE     20  // ver. >= 7
+#define SUPLA_RESULTCODE_USER_CONFLICT             21  // ver. >= 7
+
 
 #define SUPLA_DEVICE_NAME_MAXSIZE                  201
 #define SUPLA_DEVICE_NAMEHEX_MAXSIZE               401
 #define SUPLA_CLIENT_NAME_MAXSIZE                  201
 #define SUPLA_CLIENT_NAMEHEX_MAXSIZE               401
 #define SUPLA_SENDER_NAME_MAXSIZE                  201
+
+#define SUPLA_DEVICE_CFGDATA_MAXSIZE               512
+
 
 #ifdef __AVR__
 	#ifdef __AVR_ATmega2560__
@@ -147,11 +196,22 @@ extern "C" {
 #define SUPLA_CHANNELTYPE_THERMOMETERDS18B20       3000
 #define SUPLA_CHANNELTYPE_DHT11                    3010  // ver. >= 4
 #define SUPLA_CHANNELTYPE_DHT22                    3020  // ver. >= 4
+#define SUPLA_CHANNELTYPE_DHT21                    3022  // ver. >= 5
 #define SUPLA_CHANNELTYPE_AM2302                   3030  // ver. >= 4
+#define SUPLA_CHANNELTYPE_AM2301                   3032  // ver. >= 5
+
+#define SUPLA_CHANNELTYPE_THERMOMETER              3034  // ver. >= 8
+#define SUPLA_CHANNELTYPE_HUMIDITYSENSOR           3036  // ver. >= 8
+#define SUPLA_CHANNELTYPE_HUMIDITYANDTEMPSENSOR    3038  // ver. >= 8
+#define SUPLA_CHANNELTYPE_WINDSENSOR               3042  // ver. >= 8
+#define SUPLA_CHANNELTYPE_PRESSURESENSOR           3044  // ver. >= 8
+#define SUPLA_CHANNELTYPE_RAINSENSOR               3048  // ver. >= 8
+#define SUPLA_CHANNELTYPE_WEIGHTSENSOR             3050  // ver. >= 8
+#define SUPLA_CHANNELTYPE_WEATHER_STATION          3100  // ver. >= 8
+
 #define SUPLA_CHANNELTYPE_DIMMER                   4000  // ver. >= 4
 #define SUPLA_CHANNELTYPE_RGBLEDCONTROLLER         4010  // ver. >= 4
 #define SUPLA_CHANNELTYPE_DIMMERANDRGBLED          4020  // ver. >= 4
-#define SUPLA_CHANNELTYPE_HCSR04                   5000  // ver. >= 5
 
 #define SUPLA_CHANNELDRIVER_MCP23008               2
 
@@ -180,7 +240,14 @@ extern "C" {
 #define SUPLA_CHANNELFNC_DIMMERANDRGBLIGHTING             200
 #define SUPLA_CHANNELFNC_DEPTHSENSOR                      210  // ver. >= 5
 #define SUPLA_CHANNELFNC_DISTANCESENSOR                   220  // ver. >= 5
-
+#define SUPLA_CHANNELFNC_OPENINGSENSOR_WINDOW             230  // ver. >= 8
+#define SUPLA_CHANNELFNC_MAILSENSOR                       240  // ver. >= 8
+#define SUPLA_CHANNELFNC_WINDSENSOR                       250  // ver. >= 8
+#define SUPLA_CHANNELFNC_PRESSURESENSOR                   260  // ver. >= 8
+#define SUPLA_CHANNELFNC_RAINSENSOR                       270  // ver. >= 8
+#define SUPLA_CHANNELFNC_WEIGHTSENSOR                     280  // ver. >= 8
+#define SUPLA_CHANNELFNC_WEATHER_STATION                  290  // ver. >= 8
+#define SUPLA_CHANNELFNC_STAIRCASETIMER                   300  // ver. >= 8
 
 #define SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEGATEWAYLOCK         0x0001
 #define SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEGATE                0x0002
@@ -189,6 +256,7 @@ extern "C" {
 #define SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEROLLERSHUTTER       0x0010
 #define SUPLA_BIT_RELAYFUNC_POWERSWITCH                       0x0020
 #define SUPLA_BIT_RELAYFUNC_LIGHTSWITCH                       0x0040
+#define SUPLA_BIT_RELAYFUNC_STAIRCASETIMER                    0x0080  // ver. >= 8
 
 #define SUPLA_EVENT_CONTROLLINGTHEGATEWAYLOCK               10
 #define SUPLA_EVENT_CONTROLLINGTHEGATE                      20
@@ -197,6 +265,15 @@ extern "C" {
 #define SUPLA_EVENT_CONTROLLINGTHEROLLERSHUTTER             50
 #define SUPLA_EVENT_POWERONOFF                              60
 #define SUPLA_EVENT_LIGHTONOFF                              70
+
+#define SUPLA_URL_PROTO_HTTP   0x01
+#define SUPLA_URL_PROTO_HTTPS  0x02
+
+#define SUPLA_PLATFORM_UNKNOWN  0
+#define SUPLA_PLATFORM_ESP8266  1
+
+
+#define SUPLA_CHANNEL_FLAG_HIDDEN                           0x01 // ver. >= 8
 
 #pragma pack(push, 1)
 
@@ -283,7 +360,7 @@ typedef struct {
 
 	_supla_int_t count;
 	_supla_int_t total_left;
-	TSC_SuplaLocation locations[SUPLA_LOCATIONPACK_MAXSIZE]; // Last variable in struct!
+	TSC_SuplaLocation locations[SUPLA_LOCATIONPACK_MAXCOUNT]; // Last variable in struct!
 
 }TSC_SuplaLocationPack;
 
@@ -340,6 +417,41 @@ typedef struct {
 	TDS_SuplaDeviceChannel_B channels[SUPLA_CHANNELMAXCOUNT]; // Last variable in struct!
 
 }TDS_SuplaRegisterDevice_B; // ver. >= 2
+
+typedef struct {
+	// device -> server
+
+	_supla_int_t LocationID;
+	char LocationPWD[SUPLA_LOCATION_PWD_MAXSIZE]; // UTF8
+
+	char GUID[SUPLA_GUID_SIZE];
+	char Name[SUPLA_DEVICE_NAME_MAXSIZE]; // UTF8
+	char SoftVer[SUPLA_SOFTVER_MAXSIZE];
+
+	char ServerName[SUPLA_SERVER_NAME_MAXSIZE];
+
+	unsigned char channel_count;
+	TDS_SuplaDeviceChannel_B channels[SUPLA_CHANNELMAXCOUNT]; // Last variable in struct!
+
+}TDS_SuplaRegisterDevice_C; // ver. >= 6
+
+typedef struct {
+	// device -> server
+
+	char Email[SUPLA_EMAIL_MAXSIZE];   // UTF8
+	char AuthKey[SUPLA_AUTHKEY_SIZE];
+
+	char GUID[SUPLA_GUID_SIZE];
+
+	char Name[SUPLA_DEVICE_NAME_MAXSIZE]; // UTF8
+	char SoftVer[SUPLA_SOFTVER_MAXSIZE];
+
+	char ServerName[SUPLA_SERVER_NAME_MAXSIZE];
+
+	unsigned char channel_count;
+	TDS_SuplaDeviceChannel_B channels[SUPLA_CHANNELMAXCOUNT]; // Last variable in struct!
+
+}TDS_SuplaRegisterDevice_D; // ver. >= 7
 
 typedef struct {
 	// server -> device
@@ -405,15 +517,90 @@ typedef struct {
 
 }TSC_SuplaChannel;
 
+typedef struct {
+	// server -> client
+
+	_supla_int_t count;
+	_supla_int_t total_left;
+	TSC_SuplaChannel channels[SUPLA_CHANNELPACK_MAXCOUNT]; // Last variable in struct!
+
+}TSC_SuplaChannelPack;
+
+typedef struct {
+	// server -> client
+	char EOL; // End Of List
+
+	_supla_int_t Id;
+	_supla_int_t LocationID;
+	_supla_int_t Func;
+	_supla_int_t AltIcon;
+	_supla_int_t Flags;
+	unsigned char ProtocolVersion;
+	char online;
+
+	TSuplaChannelValue value;
+
+	unsigned _supla_int_t CaptionSize; // including the terminating null byte ('\0')
+	char Caption[SUPLA_CHANNEL_CAPTION_MAXSIZE]; // Last variable in struct!
+
+}TSC_SuplaChannel_B; // ver. >= 8
+
 
 typedef struct {
 	// server -> client
 
 	_supla_int_t count;
 	_supla_int_t total_left;
-	TSC_SuplaChannel channels[SUPLA_CHANNELPACK_MAXSIZE]; // Last variable in struct!
+	TSC_SuplaChannel_B channels[SUPLA_CHANNELPACK_MAXCOUNT]; // Last variable in struct!
 
-}TSC_SuplaChannelPack;
+}TSC_SuplaChannelPack_B; // ver. >= 8
+
+
+typedef struct {
+	// server -> client
+	char EOL; // End Of List
+
+	_supla_int_t Id;
+	_supla_int_t LocationID;
+	_supla_int_t Func;
+	_supla_int_t AltIcon;
+	_supla_int_t Flags;
+	unsigned char ProtocolVersion;
+
+	unsigned _supla_int_t CaptionSize; // including the terminating null byte ('\0')
+	char Caption[SUPLA_CHANNELGROUP_CAPTION_MAXSIZE]; // Last variable in struct!
+
+}TSC_SuplaChannelGroup; // ver. >= 8
+
+
+typedef struct {
+	// server -> client
+
+	_supla_int_t count;
+	_supla_int_t total_left;
+	TSC_SuplaChannelGroup groups[SUPLA_CHANNELGROUP_PACK_MAXCOUNT]; // Last variable in struct!
+
+}TSC_SuplaChannelGroupPack; // ver. >= 8
+
+
+typedef struct {
+	// server -> client
+	char EOL; // End Of List
+
+	_supla_int_t ChennelGroupID;
+	_supla_int_t ChennelID;
+
+}TSC_SuplaChannelGroupRelation; // ver. >= 8
+
+
+typedef struct {
+	// server -> client
+
+	_supla_int_t count;
+	_supla_int_t total_left;
+	TSC_SuplaChannelGroup groups[SUPLA_CHANNELGROUP_RELATION_PACK_MAXCOUNT]; // Last variable in struct!
+
+}TSC_SuplaChannelGroupRelationPack; // ver. >= 8
 
 
 typedef struct {
@@ -428,6 +615,36 @@ typedef struct {
 
 
 }TCS_SuplaRegisterClient;
+
+typedef struct {
+	// client -> server
+
+	_supla_int_t AccessID;
+	char AccessIDpwd[SUPLA_ACCESSID_PWD_MAXSIZE]; // UTF8
+
+	char GUID[SUPLA_GUID_SIZE];
+	char Name[SUPLA_CLIENT_NAME_MAXSIZE]; // UTF8
+	char SoftVer[SUPLA_SOFTVER_MAXSIZE];
+
+	char ServerName[SUPLA_SERVER_NAME_MAXSIZE];
+
+}TCS_SuplaRegisterClient_B; // ver. >= 6
+
+
+typedef struct {
+	// client -> server
+
+	char Email[SUPLA_EMAIL_MAXSIZE]; // UTF8
+	char AuthKey[SUPLA_AUTHKEY_SIZE];
+
+	char GUID[SUPLA_GUID_SIZE];
+	char Name[SUPLA_CLIENT_NAME_MAXSIZE]; // UTF8
+	char SoftVer[SUPLA_SOFTVER_MAXSIZE];
+
+	char ServerName[SUPLA_SERVER_NAME_MAXSIZE];
+
+}TCS_SuplaRegisterClient_C; // ver. >= 7
+
 
 typedef struct {
 	// server -> client
@@ -468,6 +685,56 @@ typedef struct {
 	char SenderName[SUPLA_SENDER_NAME_MAXSIZE]; // Last variable in struct! | UTF8
 
 }TSC_SuplaEvent;
+
+typedef struct {
+
+	char Platform;
+
+	int Param1;
+	int Param2;
+	int Param3;
+	int Param4;
+
+}TDS_FirmwareUpdateParams;
+
+typedef struct {
+
+	char available_protocols;
+	char host[SUPLA_URL_HOST_MAXSIZE];
+	int port;
+	char path[SUPLA_URL_PATH_MAXSIZE];
+
+}TSD_FirmwareUpdate_Url;
+
+typedef struct {
+
+	char exists;
+	TSD_FirmwareUpdate_Url url;
+
+}TSD_FirmwareUpdate_UrlResult;
+
+typedef struct {
+
+	unsigned int client_timestamp;    // time >= now == enabled
+	unsigned int iodevice_timestamp;  // time >= now == enabled
+
+}TSDC_RegistrationEnabled;
+
+typedef struct {
+
+	char password[SUPLA_OAUTH_PASSWORD_MAXSIZE];
+
+}TCS_OAuthParametersRequest;
+
+typedef struct {
+
+	char server[SUPLA_OAUTH_SERVER_MAXSIZE];
+	char username[SUPLA_OAUTH_USERNAME_MAXSIZE];
+	char client_id[SUPLA_OAUTH_CLIENTID_MAXSIZE];
+	char secret[SUPLA_OAUTH_SECRET_MAXSIZE];
+
+}TSC_OAuthParameters;
+
 
 #pragma pack(pop)
 
