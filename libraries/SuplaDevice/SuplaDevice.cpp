@@ -233,7 +233,10 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
 		return false;
 	}
 	
-	setString(Params.reg_dev.Name, "ARDUINO", SUPLA_DEVICE_NAME_MAXSIZE);
+    if ( strnlen(Params.reg_dev.Name, SUPLA_DEVICE_NAME_MAXSIZE) == 0 ) {
+        setString(Params.reg_dev.Name, "ARDUINO", SUPLA_DEVICE_NAME_MAXSIZE);
+    }
+	
 	setString(Params.reg_dev.SoftVer, "1.1", SUPLA_SOFTVER_MAXSIZE);
 	
 	Params.cb.eth_setup(Params.mac, Params.use_local_ip ? &Params.local_ip : NULL);
