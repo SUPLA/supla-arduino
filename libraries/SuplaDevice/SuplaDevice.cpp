@@ -112,6 +112,7 @@ SuplaDeviceClass::SuplaDeviceClass() {
 	srpc = NULL;
 	registered = 0;
 	last_iterate_time = 0;
+    wait_for_iterate = 0;
 	channel_pin = NULL;
 	
 	impl_arduino_digitalRead = NULL;
@@ -529,6 +530,14 @@ void SuplaDeviceClass::setDistanceCallback(_cb_arduino_get_distance get_distance
 
 void SuplaDeviceClass::iterate(void) {
 	
+    if ( wait_for_iterate != 0
+         && millis() < wait_for_iterate ) {
+        return;
+        
+    } else {
+        wait_for_iterate = 0;
+    }
+    
 	if ( !isInitialized(false) ) return;
 	
 	if ( !Params.cb.svr_connected() ) {
@@ -542,7 +551,8 @@ void SuplaDeviceClass::iterate(void) {
 			
 		    	supla_log(LOG_DEBUG, "Connection fail. Server: %s", Params.server);
 		    	Params.cb.svr_disconnect();
-				delay(2000);
+
+                wait_for_iterate = millis() + 2000;
 				return;
 		}
 	}
@@ -717,7 +727,9 @@ void SuplaDeviceClass::iterate(void) {
 	if( srpc_iterate(srpc) == SUPLA_RESULT_FALSE ) {
 		status(STATUS_ITERATE_FAIL, "Iterate fail");
 		Params.cb.svr_disconnect();
-		delay(5000);
+        
+		wait_for_iterate = millis() + 5000;
+        return;
 	}
 	
 	
@@ -731,7 +743,8 @@ void SuplaDeviceClass::onResponse(void) {
 void SuplaDeviceClass::onVersionError(TSDC_SuplaVersionError *version_error) {
 	status(STATUS_PROTOCOL_VERSION_ERROR, "Protocol version error");
 	Params.cb.svr_disconnect();
-	delay(5000);
+    
+    wait_for_iterate = millis()+5000;
 }
 
 void SuplaDeviceClass::onRegisterResult(TSD_SuplaRegisterDeviceResult *register_device_result) {
@@ -787,7 +800,7 @@ void SuplaDeviceClass::onRegisterResult(TSD_SuplaRegisterDeviceResult *register_
 	}
 
 	Params.cb.svr_disconnect();
-	delay(5000);
+    wait_for_iterate = millis() + 5000;
 }
 
 void SuplaDeviceClass::channelValueChanged(int channel_number, char v, double d, char var) {

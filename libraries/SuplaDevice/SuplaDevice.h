@@ -123,6 +123,7 @@ protected:
 	SuplaChannelPin *channel_pin;
 
 	unsigned long last_iterate_time;
+    unsigned long wait_for_iterate;
 	bool ping_flag;
 	
 	_impl_arduino_digitalRead impl_arduino_digitalRead;
