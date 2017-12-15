@@ -101,6 +101,12 @@ typedef struct SuplaChannelPin {
 	};
 };
 
+typedef struct SuplaDeviceMemPrefs {
+    
+    byte tag[6];
+    
+}SuplaDevicePrefs;
+
 class SuplaDeviceClass
 {
 protected:
@@ -118,6 +124,10 @@ protected:
 	void setRGBWvalue(int channelNum, char value[SUPLA_CHANNELVALUE_SIZE]);
 	void channelSetRGBWvalue(int channel, char value[SUPLA_CHANNELVALUE_SIZE]);
     
+    bool chceckEepromSize();
+    bool prefsRead(bool init);
+    bool prefsWrite(void);
+    
 	SuplaDeviceParams Params;
 	_supla_int_t server_activity_timeout, last_response;
 	SuplaChannelPin *channel_pin;
@@ -125,10 +135,14 @@ protected:
 	unsigned long last_iterate_time;
     unsigned long wait_for_iterate;
 	bool ping_flag;
-	
+    
+    int eeprom_address;
+    SuplaDevicePrefs prefs;
+    
 	_impl_arduino_digitalRead impl_arduino_digitalRead;
 	_impl_arduino_digitalWrite impl_arduino_digitalWrite;
     _impl_arduino_status impl_arduino_status;
+
     
 private:
 	int suplaDigitalRead(int channelNumber, uint8_t pin);
@@ -165,6 +179,8 @@ public:
    bool addRgbController(void);
    bool addDimmer(void);
    bool addDistanceSensor(void);
+    
+   void setEepromAddress(int address);
    
    void iterate(void);
    
