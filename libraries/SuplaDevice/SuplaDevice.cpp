@@ -809,53 +809,73 @@ void SuplaDeviceClass::onVersionError(TSDC_SuplaVersionError *version_error) {
 void SuplaDeviceClass::onRegisterResult(TSD_SuplaRegisterDeviceResult *register_device_result) {
 
 	switch(register_device_result->result_code) {
-	case SUPLA_RESULTCODE_BAD_CREDENTIALS:
-		status(STATUS_BAD_CREDENTIALS, "Bad credentials!");
-		break;
-
-	case SUPLA_RESULTCODE_TEMPORARILY_UNAVAILABLE:
-		status(STATUS_TEMPORARILY_UNAVAILABLE, "Temporarily unavailable!");
-		break;
-
-	case SUPLA_RESULTCODE_LOCATION_CONFLICT:
-		status(STATUS_LOCATION_CONFLICT, "Location conflict!");
-		break;
-
-	case SUPLA_RESULTCODE_CHANNEL_CONFLICT:
-		status(STATUS_CHANNEL_CONFLICT, "Channel conflict!");
-		break;
-	case SUPLA_RESULTCODE_TRUE:
-
-		server_activity_timeout = register_device_result->activity_timeout;
-		registered = 1;
-
-		status(STATUS_REGISTERED_AND_READY, "Registered and ready.");
-
-		if ( server_activity_timeout != ACTIVITY_TIMEOUT ) {
-
-			TDCS_SuplaSetActivityTimeout at;
-			at.activity_timeout = ACTIVITY_TIMEOUT;
-			srpc_dcs_async_set_activity_timeout(srpc, &at);
-
-		}
-
-		return;
-
-	case SUPLA_RESULTCODE_DEVICE_DISABLED:
-		status(STATUS_DEVICE_IS_DISABLED, "Device is disabled!");
-		break;
-
-	case SUPLA_RESULTCODE_LOCATION_DISABLED:
-		status(STATUS_LOCATION_IS_DISABLED, "Location is disabled!");
-		break;
-
-	case SUPLA_RESULTCODE_DEVICE_LIMITEXCEEDED:
-		status(STATUS_DEVICE_LIMIT_EXCEEDED, "Device limit exceeded!");
-		break;
-
-	case SUPLA_RESULTCODE_GUID_ERROR:
-		status(STATUS_INVALID_GUID, "Incorrect device GUID!");
-		break;
+        case SUPLA_RESULTCODE_BAD_CREDENTIALS:
+            status(STATUS_BAD_CREDENTIALS, "Bad credentials!");
+            break;
+            
+        case SUPLA_RESULTCODE_TEMPORARILY_UNAVAILABLE:
+            status(STATUS_TEMPORARILY_UNAVAILABLE, "Temporarily unavailable!");
+            break;
+            
+        case SUPLA_RESULTCODE_LOCATION_CONFLICT:
+            status(STATUS_LOCATION_CONFLICT, "Location conflict!");
+            break;
+            
+        case SUPLA_RESULTCODE_CHANNEL_CONFLICT:
+            status(STATUS_CHANNEL_CONFLICT, "Channel conflict!");
+            break;
+        case SUPLA_RESULTCODE_TRUE:
+            
+            server_activity_timeout = register_device_result->activity_timeout;
+            registered = 1;
+            
+            status(STATUS_REGISTERED_AND_READY, "Registered and ready.");
+            
+            if ( server_activity_timeout != ACTIVITY_TIMEOUT ) {
+                
+                TDCS_SuplaSetActivityTimeout at;
+                at.activity_timeout = ACTIVITY_TIMEOUT;
+                srpc_dcs_async_set_activity_timeout(srpc, &at);
+                
+            }
+            
+            return;
+            
+        case SUPLA_RESULTCODE_DEVICE_DISABLED:
+            status(STATUS_DEVICE_IS_DISABLED, "Device is disabled!");
+            break;
+            
+        case SUPLA_RESULTCODE_LOCATION_DISABLED:
+            status(STATUS_LOCATION_IS_DISABLED, "Location is disabled!");
+            break;
+            
+        case SUPLA_RESULTCODE_DEVICE_LIMITEXCEEDED:
+            status(STATUS_DEVICE_LIMIT_EXCEEDED, "Device limit exceeded!");
+            break;
+            
+        case SUPLA_RESULTCODE_GUID_ERROR:
+            status(STATUS_INVALID_GUID, "Incorrect device GUID!");
+            break;
+            
+        case SUPLA_RESULTCODE_AUTHKEY_ERROR:
+            status(STATUS_INVALID_GUID, "Incorrect AuthKey!");
+            break;
+            
+        case SUPLA_RESULTCODE_REGISTRATION_DISABLED:
+            status(STATUS_INVALID_GUID, "Registration disabled!");
+            break;
+            
+        case SUPLA_RESULTCODE_NO_LOCATION_AVAILABLE:
+            status(STATUS_INVALID_GUID, "No location available!");
+            break;
+            
+        case SUPLA_RESULTCODE_USER_CONFLICT:
+            status(STATUS_INVALID_GUID, "User conflict!");
+            break;
+            
+        default:
+            supla_log(LOG_ERR, "Register result code %i", register_device_result->result_code);
+            break;
 	}
 
 	Params.cb.svr_disconnect();
