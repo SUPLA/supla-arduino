@@ -148,6 +148,7 @@ protected:
     void iterate_relay(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
     void iterate_sensor(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
     void iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
+    void iterate_rollershutter(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
     
 private:
 	int suplaDigitalRead(int channelNumber, uint8_t pin);
@@ -168,7 +169,7 @@ public:
    
    void setName(const char *Name);
    
-   bool addRelay(int relayPin1, int relayPin2, bool hiIsLo, bool bistable, _supla_int_t functions);
+   int addRelay(int relayPin1, int relayPin2, bool hiIsLo, bool bistable, _supla_int_t functions);
    bool addRelay(int relayPin1, int relayPin2, bool hiIsLo);
    bool addRelay(int relayPin1, bool hiIsLo);
    bool addRelay(int relayPin1);

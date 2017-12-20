@@ -353,10 +353,10 @@ int SuplaDeviceClass::addChannel(int pin1, int pin2, bool hiIsLo, bool bistable)
 	return Params.reg_dev.channel_count-1;
 }
 
-bool SuplaDeviceClass::addRelay(int relayPin1, int relayPin2, bool hiIsLo, bool bistable, _supla_int_t functions) {
+int SuplaDeviceClass::addRelay(int relayPin1, int relayPin2, bool hiIsLo, bool bistable, _supla_int_t functions) {
 	
 	int c = addChannel(relayPin1, relayPin2, hiIsLo, bistable);
-	if ( c == -1 ) return false; 
+	if ( c == -1 ) return -1;
 	
 	uint8_t _HI = hiIsLo ? LOW : HIGH;
 	uint8_t _LO = hiIsLo ? HIGH : LOW;
@@ -388,7 +388,7 @@ bool SuplaDeviceClass::addRelay(int relayPin1, int relayPin2, bool hiIsLo, bool 
 	}
 
 	
-	return true;
+	return c;
 }
 
 bool SuplaDeviceClass::addRelay(int relayPin, bool hiIsLo) {
@@ -397,15 +397,15 @@ bool SuplaDeviceClass::addRelay(int relayPin, bool hiIsLo) {
                               | SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEGARAGEDOOR
                               | SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEDOORLOCK
                               | SUPLA_BIT_RELAYFUNC_POWERSWITCH
-                              | SUPLA_BIT_RELAYFUNC_LIGHTSWITCH);
+                              | SUPLA_BIT_RELAYFUNC_LIGHTSWITCH) > -1;
 }
 
 bool SuplaDeviceClass::addRelay(int relayPin1) {
-	return addRelay(relayPin1, false);
+	return addRelay(relayPin1, false) > -1;
 }
 
 bool SuplaDeviceClass::addRollerShutterRelays(int relayPin1, int relayPin2, bool hiIsLo) {
-	return addRelay(relayPin1, relayPin2, hiIsLo, false, SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEROLLERSHUTTER);
+	return addRelay(relayPin1, relayPin2, hiIsLo, false, SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEROLLERSHUTTER) > -1;
 }
 
 bool SuplaDeviceClass::addRollerShutterRelays(int relayPin1, int relayPin2) {
@@ -727,6 +727,15 @@ void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDevice
     }
     
 };
+
+void SuplaDeviceClass::iterate_rollershutter(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx) {
+    
+    if ( channel->FuncList != SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEROLLERSHUTTER
+        || channel->Type != SUPLA_CHANNELTYPE_RELAY ) return;
+    
+    
+    
+}
 
 void SuplaDeviceClass::iterate(void) {
 	
