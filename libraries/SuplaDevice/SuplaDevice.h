@@ -107,6 +107,8 @@ typedef struct SuplaDeviceMemPrefs {
     
 }SuplaDevicePrefs;
 
+
+
 class SuplaDeviceClass
 {
 protected:
@@ -143,6 +145,9 @@ protected:
 	_impl_arduino_digitalWrite impl_arduino_digitalWrite;
     _impl_arduino_status impl_arduino_status;
 
+    void iterate_relay(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
+    void iterate_sensor(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
+    void iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
     
 private:
 	int suplaDigitalRead(int channelNumber, uint8_t pin);
