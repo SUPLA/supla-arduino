@@ -1123,11 +1123,11 @@ bool SuplaDeviceClass::relayOff(int channel_number) {
     channelSetValue(channel_number, LOW);
 }
 
-bool SuplaDeviceClass::rollerShutterOpen(int channel_number) {
+bool SuplaDeviceClass::rollerShutterReveal(int channel_number) {
     
 }
 
-bool SuplaDeviceClass::rollerShutterClose(int channel_number) {
+bool SuplaDeviceClass::rollerShutterShut(int channel_number) {
     
 }
 

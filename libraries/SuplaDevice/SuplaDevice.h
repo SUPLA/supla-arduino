@@ -199,8 +199,8 @@ public:
    bool relayOn(int channel_number, _supla_int_t DurationMS);
    bool relayOff(int channel_number);
     
-   bool rollerShutterOpen(int channel_number);
-   bool rollerShutterClose(int channel_number);
+   bool rollerShutterReveal(int channel_number);
+   bool rollerShutterShut(int channel_number);
    bool rollerShutterStop(int channel_number);
     
    void iterate(void);
