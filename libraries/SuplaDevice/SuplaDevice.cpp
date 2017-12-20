@@ -115,6 +115,8 @@ SuplaDeviceClass::SuplaDeviceClass() {
     wait_for_iterate = 0;
 	channel_pin = NULL;
     eeprom_address = NULL;
+    roller_shutter = NULL;
+    rs_count = 0;
 	
 	impl_arduino_digitalRead = NULL;
 	impl_arduino_digitalWrite = NULL;
@@ -137,6 +139,13 @@ SuplaDeviceClass::~SuplaDeviceClass() {
 		free(channel_pin);
 		channel_pin = NULL;
 	}
+    
+    if ( roller_shutter != NULL ) {
+        free(roller_shutter);
+        roller_shutter = NULL;
+    }
+    
+    rs_count = 0;
 	
 }
 
@@ -148,6 +157,11 @@ int SuplaDeviceClass::suplaDigitalRead(int channelNumber, uint8_t pin) {
 	return digitalRead(pin);
 }
 
+bool SuplaDeviceClass::suplaDigitalRead_isHI(int channelNumber, uint8_t pin) {
+    
+    return suplaDigitalRead(channelNumber, pin) == ( channel_pin[channelNumber].hiIsLo ? LOW : HIGH );
+}
+
 void SuplaDeviceClass::suplaDigitalWrite(int channelNumber, uint8_t pin, uint8_t val) {
 	
 	if ( impl_arduino_digitalWrite != NULL )
@@ -155,6 +169,15 @@ void SuplaDeviceClass::suplaDigitalWrite(int channelNumber, uint8_t pin, uint8_t
 	
 	digitalWrite(pin, val);
 	
+}
+
+void SuplaDeviceClass::suplaDigitalWrite_setHI(int channelNumber, uint8_t pin, bool hi) {
+    
+    if ( channel_pin[channelNumber].hiIsLo ) {
+        hi = hi ? LOW : HIGH;
+    }
+    
+    suplaDigitalWrite(channelNumber, pin, hi);
 }
 
 void SuplaDeviceClass::setDigitalReadFuncImpl(_impl_arduino_digitalRead impl_arduino_digitalRead) {
@@ -405,7 +428,20 @@ bool SuplaDeviceClass::addRelay(int relayPin1) {
 }
 
 bool SuplaDeviceClass::addRollerShutterRelays(int relayPin1, int relayPin2, bool hiIsLo) {
-	return addRelay(relayPin1, relayPin2, hiIsLo, false, SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEROLLERSHUTTER) > -1;
+	int channel_idx = addRelay(relayPin1, relayPin2, hiIsLo, false, SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEROLLERSHUTTER);
+    
+    if ( channel_idx > -1 ) {
+        Params.reg_dev.channels[channel_idx].value[0] = -1;
+        
+        roller_shutter = (SuplaDeviceRollerShutter*)realloc(roller_shutter, sizeof(SuplaDeviceRollerShutter)*(rs_count+1));
+        roller_shutter[rs_count].channel_idx = channel_idx;
+
+        rs_count++;
+    
+        return true;
+    }
+    
+    return false;
 }
 
 bool SuplaDeviceClass::addRollerShutterRelays(int relayPin1, int relayPin2) {
@@ -728,19 +764,28 @@ void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDevice
     
 };
 
-void SuplaDeviceClass::iterate_rollershutter(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx) {
+void SuplaDeviceClass::iterate_rollershutter(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel) {
     
-    if ( channel->FuncList != SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEROLLERSHUTTER
-        || channel->Type != SUPLA_CHANNELTYPE_RELAY ) return;
-    
-    
+    if ( suplaDigitalRead_isHI(rs->channel_number, pin->pin1) ) { // DOWN
+        
+    } else if ( suplaDigitalRead_isHI(rs->channel_number, pin->pin2) ) { // UP
+        
+    }
     
 }
 
 void SuplaDeviceClass::iterate(void) {
 	
+    int a;
+    unsigned long _millis = millis();
+    unsigned long time_diff = abs(_millis - last_iterate_time);
+    
+    for(a=0;a<rs_count;a++) {
+        iterate_rollershutter(&roller_shutter[a], &channel_pin[roller_shutter[a].channel_idx], &Params.reg_dev.channels[roller_shutter[a].channel_idx]);
+    }
+    
     if ( wait_for_iterate != 0
-         && millis() < wait_for_iterate ) {
+         && _millis < wait_for_iterate ) {
         return;
         
     } else {
@@ -766,9 +811,7 @@ void SuplaDeviceClass::iterate(void) {
 		}
 	}
 	
-	unsigned long _millis = millis();
 
-	
 	if ( registered == 0 ) {
 		
 		registered = -1;
@@ -791,16 +834,14 @@ void SuplaDeviceClass::iterate(void) {
 	
 	if ( last_iterate_time != 0 ) {
 		
-		unsigned long time_diff = abs(_millis - last_iterate_time);
-		
-		for(int a=0;a<Params.reg_dev.channel_count;a++) {
+		for(a=0;a<Params.reg_dev.channel_count;a++) {
 			
             iterate_relay(&channel_pin[a], &Params.reg_dev.channels[a], time_diff, a);
             iterate_sensor(&channel_pin[a], &Params.reg_dev.channels[a], time_diff, a);
 			iterate_thermometer(&channel_pin[a], &Params.reg_dev.channels[a], time_diff, a);
  			
 		}
-
+        
 	}
 
 	
@@ -1072,6 +1113,26 @@ void SuplaDeviceClass::channelSetValue(TSD_SuplaChannelNewValue *new_value) {
 
 void SuplaDeviceClass::channelSetActivityTimeoutResult(TSDC_SuplaSetActivityTimeoutResult *result) {
 	server_activity_timeout = result->activity_timeout;
+}
+
+bool SuplaDeviceClass::relayOn(int channel_number, _supla_int_t DurationMS) {
+    channelSetValue(channel_number, HIGH, DurationMS);
+}
+
+bool SuplaDeviceClass::relayOff(int channel_number) {
+    channelSetValue(channel_number, LOW);
+}
+
+bool SuplaDeviceClass::rollerShutterOpen(int channel_number) {
+    
+}
+
+bool SuplaDeviceClass::rollerShutterClose(int channel_number) {
+    
+}
+
+bool SuplaDeviceClass::rollerShutterStop(int channel_number) {
+    
 }
 
 SuplaDeviceClass SuplaDevice;

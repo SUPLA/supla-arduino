@@ -101,12 +101,15 @@ typedef struct SuplaChannelPin {
 	};
 };
 
-typedef struct SuplaDeviceMemPrefs {
+typedef struct SuplaDevicePrefs {
     
     byte tag[6];
     
-}SuplaDevicePrefs;
+};
 
+typedef struct SuplaDeviceRollerShutter {
+    int channel_idx;
+};
 
 
 class SuplaDeviceClass
@@ -133,6 +136,9 @@ protected:
 	SuplaDeviceParams Params;
 	_supla_int_t server_activity_timeout, last_response;
 	SuplaChannelPin *channel_pin;
+    
+    int rs_count;
+    SuplaDeviceRollerShutter *roller_shutter;
 
 	unsigned long last_iterate_time;
     unsigned long wait_for_iterate;
@@ -148,11 +154,13 @@ protected:
     void iterate_relay(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
     void iterate_sensor(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
     void iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
-    void iterate_rollershutter(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
+    void iterate_rollershutter(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel);
     
 private:
 	int suplaDigitalRead(int channelNumber, uint8_t pin);
+    bool suplaDigitalRead_isHI(int channelNumber, uint8_t pin);
 	void suplaDigitalWrite(int channelNumber, uint8_t pin, uint8_t val);
+    void suplaDigitalWrite_setHI(int channelNumber, uint8_t pin, bool hi);
     void status(int status, const char *msg);
 public:
    SuplaDeviceClass();
@@ -187,7 +195,14 @@ public:
    bool addDistanceSensor(void);
     
    void setEepromAddress(int address);
-   
+    
+   bool relayOn(int channel_number, _supla_int_t DurationMS);
+   bool relayOff(int channel_number);
+    
+   bool rollerShutterOpen(int channel_number);
+   bool rollerShutterClose(int channel_number);
+   bool rollerShutterStop(int channel_number);
+    
    void iterate(void);
    
    SuplaDeviceCallbacks getCallbacks(void);
