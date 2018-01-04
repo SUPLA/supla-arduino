@@ -134,7 +134,7 @@ protected:
     bool prefsWrite(void);
     
 	SuplaDeviceParams Params;
-	_supla_int_t server_activity_timeout, last_response;
+	_supla_int_t server_activity_timeout, last_response, last_sent;
 	SuplaChannelPin *channel_pin;
     
     int rs_count;
@@ -215,6 +215,7 @@ public:
    void setDigitalWriteFuncImpl(_impl_arduino_digitalWrite impl_arduino_digitalWrite);
    void setStatusFuncImpl(_impl_arduino_status impl_arduino_status);
     
+   void onSent(void);
    void onResponse(void);
    void onVersionError(TSDC_SuplaVersionError *version_error);
    void onRegisterResult(TSD_SuplaRegisterDeviceResult *register_device_result);

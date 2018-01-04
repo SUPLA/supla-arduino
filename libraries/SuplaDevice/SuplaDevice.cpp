@@ -30,7 +30,11 @@ _supla_int_t supla_arduino_data_read(void *buf, _supla_int_t count, void *sdc) {
 
 _supla_int_t supla_arduino_data_write(void *buf, _supla_int_t count, void *sdc) {
     
-    return ((SuplaDeviceClass*)sdc)->getCallbacks().tcp_write(buf, count);
+    _supla_int_t r = ((SuplaDeviceClass*)sdc)->getCallbacks().tcp_write(buf, count);
+    if ( r > 0 ) {
+        ((SuplaDeviceClass*)sdc)->onSent();
+    }
+    return r;
 }
 
 void float2DoublePacked(float number, byte* bar, int byteOrder=LSBFIRST)  
@@ -318,7 +322,7 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
         setString(Params.reg_dev.Name, "ARDUINO", SUPLA_DEVICE_NAME_MAXSIZE);
     }
 	
-	setString(Params.reg_dev.SoftVer, "1.1", SUPLA_SOFTVER_MAXSIZE);
+	setString(Params.reg_dev.SoftVer, "1.5", SUPLA_SOFTVER_MAXSIZE);
 	
 	Params.cb.eth_setup(Params.mac, Params.use_local_ip ? &Params.local_ip : NULL);
 
@@ -766,11 +770,13 @@ void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDevice
 
 void SuplaDeviceClass::iterate_rollershutter(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel) {
     
+    /*
     if ( suplaDigitalRead_isHI(rs->channel_number, pin->pin1) ) { // DOWN
         
     } else if ( suplaDigitalRead_isHI(rs->channel_number, pin->pin2) ) { // UP
         
     }
+     */
     
 }
 
@@ -799,6 +805,7 @@ void SuplaDeviceClass::iterate(void) {
 		status(STATUS_DISCONNECTED, "Not connected");
 	    registered = 0;
 	    last_response = 0;
+        last_sent = 0;
 	    ping_flag = false;
 	    
 		if ( !Params.cb.svr_connect(Params.server, 2015) ) {
@@ -826,7 +833,9 @@ void SuplaDeviceClass::iterate(void) {
 			Params.cb.svr_disconnect();
 
 		} else if ( ping_flag == false 
-				    && (_millis-last_response)/1000 >= (server_activity_timeout-5) ) {
+				    && ( (_millis-last_response)/1000 >= (server_activity_timeout-5)
+                         || (_millis-last_sent)/1000 >= (server_activity_timeout-5) ) ) {
+            supla_log(LOG_DEBUG, "PING");
 			ping_flag = true;
 			srpc_dcs_async_ping_server(srpc);
 		}
@@ -861,6 +870,11 @@ void SuplaDeviceClass::iterate(void) {
 void SuplaDeviceClass::onResponse(void) {
 	last_response = millis();
 	ping_flag = false;
+}
+
+void SuplaDeviceClass::onSent(void) {
+    last_sent = millis();
+    ping_flag = false;
 }
 
 void SuplaDeviceClass::onVersionError(TSDC_SuplaVersionError *version_error) {
@@ -1116,11 +1130,11 @@ void SuplaDeviceClass::channelSetActivityTimeoutResult(TSDC_SuplaSetActivityTime
 }
 
 bool SuplaDeviceClass::relayOn(int channel_number, _supla_int_t DurationMS) {
-    channelSetValue(channel_number, HIGH, DurationMS);
+    //channelSetValue(channel_number, HIGH, DurationMS);
 }
 
 bool SuplaDeviceClass::relayOff(int channel_number) {
-    channelSetValue(channel_number, LOW);
+    //channelSetValue(channel_number, LOW);
 }
 
 bool SuplaDeviceClass::rollerShutterReveal(int channel_number) {
