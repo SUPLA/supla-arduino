@@ -24,7 +24,6 @@
 #include "log.h"
 
 _supla_int_t supla_arduino_data_read(void *buf, _supla_int_t count, void *sdc) {
-    
     return ((SuplaDeviceClass*)sdc)->getCallbacks().tcp_read(buf, count);
 }
 
@@ -806,7 +805,7 @@ void SuplaDeviceClass::iterate(void) {
 	    registered = 0;
 	    last_response = 0;
         last_sent = 0;
-	    ping_flag = false;
+	    last_ping_time = 0;
 	    
 		if ( !Params.cb.svr_connect(Params.server, 2015) ) {
 			
@@ -832,11 +831,10 @@ void SuplaDeviceClass::iterate(void) {
 			supla_log(LOG_DEBUG, "TIMEOUT");
 			Params.cb.svr_disconnect();
 
-		} else if ( ping_flag == false 
+		} else if ( _millis-last_ping_time >= 1000
 				    && ( (_millis-last_response)/1000 >= (server_activity_timeout-5)
                          || (_millis-last_sent)/1000 >= (server_activity_timeout-5) ) ) {
-            supla_log(LOG_DEBUG, "PING");
-			ping_flag = true;
+            last_ping_time = _millis;
 			srpc_dcs_async_ping_server(srpc);
 		}
 	}
@@ -869,12 +867,10 @@ void SuplaDeviceClass::iterate(void) {
 
 void SuplaDeviceClass::onResponse(void) {
 	last_response = millis();
-	ping_flag = false;
 }
 
 void SuplaDeviceClass::onSent(void) {
     last_sent = millis();
-    ping_flag = false;
 }
 
 void SuplaDeviceClass::onVersionError(TSDC_SuplaVersionError *version_error) {

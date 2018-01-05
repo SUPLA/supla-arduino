@@ -142,7 +142,7 @@ protected:
 
 	unsigned long last_iterate_time;
     unsigned long wait_for_iterate;
-	bool ping_flag;
+	unsigned long last_ping_time;
     
     int eeprom_address;
     SuplaDevicePrefs prefs;
