@@ -437,8 +437,13 @@ bool SuplaDeviceClass::addRollerShutterRelays(int relayPin1, int relayPin2, bool
         Params.reg_dev.channels[channel_idx].value[0] = -1;
         
         roller_shutter = (SuplaDeviceRollerShutter*)realloc(roller_shutter, sizeof(SuplaDeviceRollerShutter)*(rs_count+1));
+        
         roller_shutter[rs_count].channel_idx = channel_idx;
-
+        roller_shutter[rs_count].pos = -1;
+        
+        roller_shutter[rs_count].full_opening_time = 350; // Tmp
+        roller_shutter[rs_count].full_closing_time = 400; // Tmp
+        
         rs_count++;
     
         return true;
@@ -1080,8 +1085,18 @@ void SuplaDeviceClass::channelSetRGBWvalue(int channel, char value[SUPLA_CHANNEL
 	
 }
 
-void SuplaDeviceClass::channelSetValue(TSD_SuplaChannelNewValue *new_value) {
+SuplaDeviceRollerShutter *SuplaDeviceClass::rsByChannelNumber(int channel_number) {
+    for(int a=0;a<rs_count;a++) {
+        if ( Params.reg_dev.channels[roller_shutter[a].channel_idx].Number == channel_number ) {
+            return &roller_shutter[a];
+        }
+    }
+    
+    return NULL;
+}
 
+void SuplaDeviceClass::channelSetValue(TSD_SuplaChannelNewValue *new_value) {
+    
 	for(int a=0;a<Params.reg_dev.channel_count;a++) 
 		if ( new_value->ChannelNumber == Params.reg_dev.channels[a].Number ) {
 			
@@ -1089,20 +1104,34 @@ void SuplaDeviceClass::channelSetValue(TSD_SuplaChannelNewValue *new_value) {
 				
                 if ( Params.reg_dev.channels[a].FuncList == SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEROLLERSHUTTER ) {
                     
-                    int ct = new_value->DurationMS & 0xFFFF;
-                    int ot = (new_value->DurationMS >> 16) & 0xFFFF;
-                    
-
-                    if ( ct < 0 ) {
-                        ct = 0;
+                    SuplaDeviceRollerShutter *rs = rsByChannelNumber(new_value->ChannelNumber);
+                    if ( rs != NULL ) {
+                        
+                        int ct = new_value->DurationMS & 0xFFFF;
+                        int ot = (new_value->DurationMS >> 16) & 0xFFFF;
+                        
+                        
+                        if ( ct < 0 ) {
+                            ct = 0;
+                        }
+                        
+                        if ( ot < 0 ) {
+                            ot = 0;
+                        }
+                        
+                        if ( ct != rs->full_closing_time ) {
+                            rs->full_closing_time = ct;
+                            rs->pos = -1;
+                        }
+                        
+                        if ( ot != rs->full_opening_time) {
+                            rs->full_opening_time = ot;
+                            rs->pos = -1;
+                        }
+                        
+                        supla_log(LOG_DEBUG, "AAA %d, %d, %d, %d", rs->full_closing_time, rs->full_opening_time, rs->pos, new_value->value[0]);
+                        
                     }
-                    
-                    if ( ot < 0 ) {
-                        ot = 0;
-                    }
-
-                    supla_log(LOG_DEBUG, "AAA %d, %d, %d", ot, ct, new_value->value[0]);
-                    
                     
                 } else {
                    channelSetValue(new_value->ChannelNumber, new_value->value[0], new_value->DurationMS);

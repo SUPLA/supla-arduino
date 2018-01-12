@@ -108,7 +108,10 @@ typedef struct SuplaDevicePrefs {
 };
 
 typedef struct SuplaDeviceRollerShutter {
+    int pos;
     int channel_idx;
+    unsigned int full_opening_time;
+    unsigned int full_closing_time;
 };
 
 
@@ -139,6 +142,8 @@ protected:
     
     int rs_count;
     SuplaDeviceRollerShutter *roller_shutter;
+    
+    SuplaDeviceRollerShutter *rsByChannelNumber(int channel_number);
 
 	unsigned long last_iterate_time;
     unsigned long wait_for_iterate;
