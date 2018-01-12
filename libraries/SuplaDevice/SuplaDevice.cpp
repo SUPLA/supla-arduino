@@ -337,6 +337,25 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
 	status(STATUS_INITIALIZED, "SuplaDevice initialized");
     
     prefsRead(true);
+    
+    if ( rs_count > 0 ) {
+        
+        cli(); // disable interrupts
+        TCCR1A = 0;// set entire TCCR1A register to 0
+        TCCR1B = 0;// same for TCCR1B
+        TCNT1  = 0;//initialize counter value to 0
+        // set compare match register for 1hz increments
+        OCR1A = 155;// (16*10^6) / (100*1024) - 1 (must be <65536) == 155.25
+        // turn on CTC mode
+        TCCR1B |= (1 << WGM12);
+        // Set CS12 and CS10 bits for 1024 prescaler
+        TCCR1B |= (1 << CS12) | (1 << CS10);
+        // enable timer compare interrupt
+        TIMSK1 |= (1 << OCIE1A);
+        sei(); // enable interrupts
+        
+    }
+    
 }
 
 bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const char *Server,
@@ -775,11 +794,18 @@ void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDevice
 
 void SuplaDeviceClass::iterate_rollershutter(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel) {
     
-    
     if ( suplaDigitalRead_isHI(rs->channel_number, pin->pin1) ) { // DOWN
-        
+
     } else if ( suplaDigitalRead_isHI(rs->channel_number, pin->pin2) ) { // UP
-        
+        supla_log(LOG_DEBUG, "aaa %d", pin->pin1);
+    }
+    
+}
+
+void SuplaDeviceClass::onTimer(void) {
+    
+    for(int a=0;a<rs_count;a++) {
+        iterate_rollershutter(&roller_shutter[a], &channel_pin[roller_shutter[a].channel_number], &Params.reg_dev.channels[roller_shutter[a].channel_number]);
     }
     
 }
@@ -789,10 +815,6 @@ void SuplaDeviceClass::iterate(void) {
     int a;
     unsigned long _millis = millis();
     unsigned long time_diff = abs(_millis - last_iterate_time);
-    
-    for(a=0;a<rs_count;a++) {
-        iterate_rollershutter(&roller_shutter[a], &channel_pin[roller_shutter[a].channel_number], &Params.reg_dev.channels[roller_shutter[a].channel_number]);
-    }
     
     if ( wait_for_iterate != 0
          && _millis < wait_for_iterate ) {
@@ -811,7 +833,7 @@ void SuplaDeviceClass::iterate(void) {
 	    last_response = 0;
         last_sent = 0;
 	    last_ping_time = 0;
-	    
+        
 		if ( !Params.cb.svr_connect(Params.server, 2015) ) {
 			
 		    	supla_log(LOG_DEBUG, "Connection fail. Server: %s", Params.server);
@@ -820,8 +842,9 @@ void SuplaDeviceClass::iterate(void) {
                 wait_for_iterate = millis() + 2000;
 				return;
 		}
+
 	}
-	
+
 
 	if ( registered == 0 ) {
 		
@@ -1172,6 +1195,10 @@ bool SuplaDeviceClass::rollerShutterShut(int channel_number) {
 
 bool SuplaDeviceClass::rollerShutterStop(int channel_number) {
     
+}
+
+ISR(TIMER1_COMPA_vect){
+    SuplaDevice.onTimer();
 }
 
 SuplaDeviceClass SuplaDevice;

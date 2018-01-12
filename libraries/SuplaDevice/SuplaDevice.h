@@ -207,7 +207,8 @@ public:
    bool rollerShutterReveal(int channel_number);
    bool rollerShutterShut(int channel_number);
    bool rollerShutterStop(int channel_number);
-    
+   
+   void onTimer(void);
    void iterate(void);
    
    SuplaDeviceCallbacks getCallbacks(void);
