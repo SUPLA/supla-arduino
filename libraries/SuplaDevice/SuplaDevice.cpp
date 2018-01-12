@@ -457,6 +457,7 @@ bool SuplaDeviceClass::addRollerShutterRelays(int relayPin1, int relayPin2, bool
         Params.reg_dev.channels[channel_number].value[0] = -1;
         
         roller_shutter = (SuplaDeviceRollerShutter*)realloc(roller_shutter, sizeof(SuplaDeviceRollerShutter)*(rs_count+1));
+        memset(&roller_shutter[rs_count], 0, sizeof(SuplaDeviceRollerShutter));
         
         roller_shutter[rs_count].channel_number = channel_number;
         roller_shutter[rs_count].pos = -1;
@@ -794,12 +795,36 @@ void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDevice
 
 void SuplaDeviceClass::iterate_rollershutter(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel) {
     
-    if ( suplaDigitalRead_isHI(rs->channel_number, pin->pin1) ) { // DOWN
-
-    } else if ( suplaDigitalRead_isHI(rs->channel_number, pin->pin2) ) { // UP
-        supla_log(LOG_DEBUG, "aaa %d", pin->pin1);
+    if ( rs->last_iterate_time == 0 ) {
+        rs->last_iterate_time = millis();
+        return;
     }
     
+    unsigned long time_diff = millis() - rs->last_iterate_time;
+    
+    if ( suplaDigitalRead_isHI(rs->channel_number, pin->pin1) ) { // DOWN
+        
+        rs->up_time = 0;
+        rs->down_time += time_diff;
+        
+    } else if ( suplaDigitalRead_isHI(rs->channel_number, pin->pin2) ) { // UP
+
+        rs->up_time = 0;
+        rs->down_time += time_diff;
+        
+    } else {
+        
+        if ( rs->up_time != 0 ) {
+            rs->up_time = 0;
+        }
+        
+        if ( rs->down_time != 0 ) {
+            rs->down_time = 0;
+        }
+        
+    }
+    
+    rs->last_iterate_time = millis();
 }
 
 void SuplaDeviceClass::onTimer(void) {
