@@ -109,7 +109,7 @@ typedef struct SuplaDevicePrefs {
 
 typedef struct SuplaDeviceRollerShutter {
     int pos;
-    int channel_idx;
+    int channel_number;
     unsigned int full_opening_time;
     unsigned int full_closing_time;
 };
