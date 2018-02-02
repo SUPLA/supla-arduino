@@ -161,6 +161,7 @@ protected:
     _impl_arduino_status impl_arduino_status;
 
     void rs_calibrate(SuplaDeviceRollerShutter *rs, unsigned long full_time, unsigned long time, int dest_pos);
+    void rs_move_position(SuplaDeviceRollerShutter *rs, unsigned long full_time, unsigned long *time, bool up);
     
     void iterate_relay(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
     void iterate_sensor(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);

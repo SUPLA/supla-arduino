@@ -24,7 +24,8 @@
 #include "log.h"
 
 
-#define SAVE_CONFIG
+#define SAVE_RS_STATE
+#define RS_SET_RELAY
 
 _supla_int_t supla_arduino_data_read(void *buf, _supla_int_t count, void *sdc) {
     return ((SuplaDeviceClass*)sdc)->getCallbacks().tcp_read(buf, count);
@@ -464,10 +465,17 @@ bool SuplaDeviceClass::addRollerShutterRelays(int relayPin1, int relayPin2, bool
         memset(&roller_shutter[rs_count], 0, sizeof(SuplaDeviceRollerShutter));
         
         roller_shutter[rs_count].channel_number = channel_number;
+        /*
         roller_shutter[rs_count].position = -1;
+        roller_shutter[rs_count].full_opening_time = 0;
+        roller_shutter[rs_count].full_closing_time = 0;
+        */
         
-        roller_shutter[rs_count].full_opening_time = 350 * 100; // Tmp
-        roller_shutter[rs_count].full_closing_time = 400 * 100; // Tmp
+        // TMP ----
+        roller_shutter[rs_count].position = 100;
+        roller_shutter[rs_count].full_opening_time = 350 * 100;
+        roller_shutter[rs_count].full_closing_time = 400 * 100;
+        // --------
         
         rs_count++;
     
@@ -808,10 +816,65 @@ void SuplaDeviceClass::rs_calibrate(SuplaDeviceRollerShutter *rs, unsigned long 
             Serial.println("Kalibracja");
             Serial.println(millis());
             rs->position = dest_pos;
-            SAVE_CONFIG;
+            SAVE_RS_STATE;
         }
         
     }
+    
+}
+
+void SuplaDeviceClass::rs_move_position(SuplaDeviceRollerShutter *rs, unsigned long full_time, unsigned long *time, bool up) {
+    
+    if ( rs->position < 100
+        || rs->position > 10100
+        || full_time == 0 )  {
+        return;
+    };
+    
+    int last_pos = rs->position;
+    unsigned long p = (*time) * 100.00 / full_time * 100;
+    unsigned long x = p * (full_time) / 10000;
+    
+    if ( p > 0 ) {
+
+        if ( up ) {
+            
+            if ( rs->position - p <= 100 ) {
+               rs->position = 100;
+            } else {
+                rs->position -= p;
+            }
+            
+        } else {
+            
+            if ( rs->position + p >= 10100 ) {
+                rs->position = 10100;
+            } else {
+                rs->position += p;
+            }
+        }
+        
+        if ( last_pos != rs->position ) {
+            SAVE_RS_STATE;
+            Serial.println(rs->position);
+        }
+        
+    }
+    
+    if ( (up && rs->position == 100) || (!up && rs->position == 10100) ) {
+        
+        if ( (*time) >= full_time * 1.1 ) {
+            RS_SET_RELAY; //supla_esp_gpio_rs_set_relay(rs_cfg, RS_RELAY_OFF, 0, 0);
+        }
+        
+        return;
+    }
+    
+    
+    if ( x <= (*time) )
+        (*time) -= x;
+    else  // something goes wrong
+        (*time) = 0;
     
 }
 
@@ -830,6 +893,7 @@ void SuplaDeviceClass::iterate_rollershutter(SuplaDeviceRollerShutter *rs, Supla
         rs->down_time += time_diff;
         
         rs_calibrate(rs, rs->full_closing_time, rs->down_time, 1100);
+        rs_move_position(rs, rs->full_closing_time, &rs->down_time, false);
         
     } else if ( suplaDigitalRead_isHI(rs->channel_number, pin->pin2) ) { // UP
 
@@ -837,6 +901,7 @@ void SuplaDeviceClass::iterate_rollershutter(SuplaDeviceRollerShutter *rs, Supla
         rs->up_time += time_diff;
         
         rs_calibrate(rs, rs->full_opening_time, rs->up_time, 100);
+        rs_move_position(rs, rs->full_opening_time, &rs->up_time, true);
         
     } else {
         
