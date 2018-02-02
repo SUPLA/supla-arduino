@@ -856,16 +856,14 @@ void SuplaDeviceClass::rs_move_position(SuplaDeviceRollerShutter *rs, SuplaChann
     if ( p > 0 ) {
 
         if ( up ) {
-            
-            if ( rs->position - p <= 100 ) {
+            if ( int(rs->position - p) <= 100 ) {
                rs->position = 100;
             } else {
                 rs->position -= p;
             }
-            
         } else {
             
-            if ( rs->position + p >= 10100 ) {
+            if ( int(rs->position + p) >= 10100) ) {
                 rs->position = 10100;
             } else {
                 rs->position += p;
@@ -973,6 +971,10 @@ void SuplaDeviceClass::iterate_rollershutter(SuplaDeviceRollerShutter *rs, Supla
         if ( rs->up_time > 600000 || rs->down_time > 600000 ) { // 10 min. - timeout
              rs_set_relay(rs, pin, RS_RELAY_OFF);
         }
+        
+        Serial.println(rs->up_time);
+        Serial.println(rs->down_time);
+        Serial.println(rs->position);
         
         rs->tick_1s = millis();
         
