@@ -30,6 +30,10 @@
 #define RS_RELAY_UP    2
 #define RS_RELAY_DOWN  1
 
+#define RS_DIRECTION_NONE   0
+#define RS_DIRECTION_UP     2
+#define RS_DIRECTION_DOWN   1
+
 _supla_int_t supla_arduino_data_read(void *buf, _supla_int_t count, void *sdc) {
     return ((SuplaDeviceClass*)sdc)->getCallbacks().tcp_read(buf, count);
 }
@@ -863,7 +867,7 @@ void SuplaDeviceClass::rs_move_position(SuplaDeviceRollerShutter *rs, SuplaChann
             }
         } else {
             
-            if ( int(rs->position + p) >= 10100) ) {
+            if ( int(rs->position + p) >= 10100 ) {
                 rs->position = 10100;
             } else {
                 rs->position += p;
@@ -894,6 +898,12 @@ void SuplaDeviceClass::rs_move_position(SuplaDeviceRollerShutter *rs, SuplaChann
     }
 }
 
+bool SuplaDeviceClass::rs_time_margin(unsigned long full_time, unsigned long time, byte m) {
+    
+    return  (full_time > 0 && ( time * 100 / full_time ) < m ) ? true : false;
+    
+}
+
 void SuplaDeviceClass::rs_task_processing(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin) {
     
     if ( !rs->task.active ) {
@@ -916,6 +926,52 @@ void SuplaDeviceClass::rs_task_processing(SuplaDeviceRollerShutter *rs, SuplaCha
         }
         
         return;
+    }
+    
+    byte percent = (rs->position-100)/100;
+    
+    if ( rs->task.direction == RS_DIRECTION_NONE ) {
+        
+        if ( percent > rs->task.percent ) {
+            
+            rs->task.direction = RS_DIRECTION_UP;
+            rs_set_relay(rs, pin, RS_RELAY_UP);
+            
+        } else if ( percent < rs->task.percent ) {
+            
+            rs->task.direction = RS_DIRECTION_DOWN;
+            rs_set_relay(rs, pin, RS_RELAY_DOWN);
+            
+        } else {
+            
+            rs->task.active = 0;
+            rs_set_relay(rs, pin, RS_RELAY_OFF);
+            
+        }
+        
+    } else if ( ( rs->task.direction == RS_DIRECTION_UP
+                  && percent <= rs->task.percent )
+               || ( rs->task.direction == RS_DIRECTION_DOWN
+                   && percent >= rs->task.percent )  ) {
+                   
+       if ( rs->task.percent == 0
+           && rs_time_margin(rs->full_opening_time, rs->up_time, 5) ) { // margin 5%
+           
+           //supla_log(LOG_DEBUG, "UP MARGIN 5%");
+           
+       } else if ( rs->task.percent == 100
+                  && rs_time_margin(rs->full_closing_time, rs->down_time, 5) ) {
+           
+           //supla_log(LOG_DEBUG, "DOWN MARGIN 5%");
+           
+       } else {
+           
+           rs->task.active = 0;
+           rs_set_relay(rs, pin, RS_RELAY_OFF);
+           
+       }
+                   
+                   
     }
     
 }

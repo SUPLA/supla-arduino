@@ -175,6 +175,7 @@ protected:
     void rs_set_relay(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, byte value);
     void rs_calibrate(SuplaDeviceRollerShutter *rs, unsigned long full_time, unsigned long time, int dest_pos);
     void rs_move_position(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, unsigned long full_time, unsigned long *time, bool up);
+    bool rs_time_margin(unsigned long full_time, unsigned long time, byte m);
     void rs_task_processing(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin);
     
     void iterate_relay(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
