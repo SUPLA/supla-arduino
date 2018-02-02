@@ -856,7 +856,7 @@ void SuplaDeviceClass::rs_move_position(SuplaDeviceRollerShutter *rs, unsigned l
         
         if ( last_pos != rs->position ) {
             SAVE_RS_STATE;
-            Serial.println(rs->position);
+            //Serial.println(rs->position);
         }
         
     }
@@ -914,6 +914,25 @@ void SuplaDeviceClass::iterate_rollershutter(SuplaDeviceRollerShutter *rs, Supla
         }
         
     }
+    
+    if ( rs->last_iterate_time-rs->tick_1s >= 1000 ) { // 1000 == 1 sec.
+        
+    
+        if ( rs->last_position != rs->position ) {
+    
+            rs->last_position = rs->position;
+            //supla_esp_channel_value_changed(rs_cfg->up->channel, (rs_cfg->last_position-100)/100);
+        }
+        
+        if ( rs->up_time > 600000 || rs->down_time > 600000 ) { // 10 min. - timeout
+             RS_SET_RELAY; //supla_esp_gpio_rs_set_relay(rs_cfg, RS_RELAY_OFF, 0, 0);
+        }
+        
+
+        rs->tick_1s = millis();
+        
+    }
+    
     
     rs->last_iterate_time = millis();
 }
