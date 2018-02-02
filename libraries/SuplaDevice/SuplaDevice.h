@@ -107,6 +107,14 @@ typedef struct SuplaDevicePrefs {
     
 };
 
+typedef struct SuplaDeviceRollerShutterTask {
+    
+    byte percent;
+    byte direction;
+    bool active;
+    
+};
+
 typedef struct SuplaDeviceRollerShutter {
     int position;
     int last_position;
@@ -118,6 +126,8 @@ typedef struct SuplaDeviceRollerShutter {
     unsigned long tick_1s;
     unsigned long up_time;
     unsigned long down_time;
+    
+    SuplaDeviceRollerShutterTask task;
 };
 
 
@@ -162,8 +172,10 @@ protected:
 	_impl_arduino_digitalWrite impl_arduino_digitalWrite;
     _impl_arduino_status impl_arduino_status;
 
+    void rs_set_relay(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, byte value);
     void rs_calibrate(SuplaDeviceRollerShutter *rs, unsigned long full_time, unsigned long time, int dest_pos);
-    void rs_move_position(SuplaDeviceRollerShutter *rs, unsigned long full_time, unsigned long *time, bool up);
+    void rs_move_position(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, unsigned long full_time, unsigned long *time, bool up);
+    void rs_task_processing(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin);
     
     void iterate_relay(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
     void iterate_sensor(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
