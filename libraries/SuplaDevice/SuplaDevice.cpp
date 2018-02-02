@@ -23,6 +23,9 @@
 #include "srpc.h"
 #include "log.h"
 
+
+#define SAVE_CONFIG
+
 _supla_int_t supla_arduino_data_read(void *buf, _supla_int_t count, void *sdc) {
     return ((SuplaDeviceClass*)sdc)->getCallbacks().tcp_read(buf, count);
 }
@@ -460,7 +463,7 @@ bool SuplaDeviceClass::addRollerShutterRelays(int relayPin1, int relayPin2, bool
         memset(&roller_shutter[rs_count], 0, sizeof(SuplaDeviceRollerShutter));
         
         roller_shutter[rs_count].channel_number = channel_number;
-        roller_shutter[rs_count].pos = -1;
+        roller_shutter[rs_count].position = -1;
         
         roller_shutter[rs_count].full_opening_time = 350; // Tmp
         roller_shutter[rs_count].full_closing_time = 400; // Tmp
@@ -793,6 +796,22 @@ void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDevice
     
 };
 
+void SuplaDeviceClass::rs_calibrate(SuplaDeviceRollerShutter *rs, unsigned long full_time, unsigned long time, int dest_pos) {
+    
+    if ( full_time > 0
+        && ( rs->position < 100 || rs->position > 10100 ) ) {
+        
+        full_time *= 1.1; // 10% margin
+        
+        if ( time >= full_time ) {
+            rs->position = dest_pos;
+            SAVE_CONFIG;
+        }
+        
+    }
+    
+}
+
 void SuplaDeviceClass::iterate_rollershutter(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel) {
     
     if ( rs->last_iterate_time == 0 ) {
@@ -807,10 +826,14 @@ void SuplaDeviceClass::iterate_rollershutter(SuplaDeviceRollerShutter *rs, Supla
         rs->up_time = 0;
         rs->down_time += time_diff;
         
+        rs_calibrate(rs, rs->full_closing_time, rs->down_time, 1100);
+        
     } else if ( suplaDigitalRead_isHI(rs->channel_number, pin->pin2) ) { // UP
 
         rs->up_time = 0;
-        rs->down_time += time_diff;
+        rs->up_time += time_diff;
+        
+        rs_calibrate(rs, rs->full_opening_time, rs->up_time, 100);
         
     } else {
         
@@ -1169,15 +1192,15 @@ void SuplaDeviceClass::channelSetValue(TSD_SuplaChannelNewValue *new_value) {
                         
                         if ( ct != rs->full_closing_time ) {
                             rs->full_closing_time = ct;
-                            rs->pos = -1;
+                            rs->position = -1;
                         }
                         
                         if ( ot != rs->full_opening_time) {
                             rs->full_opening_time = ot;
-                            rs->pos = -1;
+                            rs->position = -1;
                         }
                         
-                        supla_log(LOG_DEBUG, "AAA %d, %d, %d, %d", rs->full_closing_time, rs->full_opening_time, rs->pos, new_value->value[0]);
+                        supla_log(LOG_DEBUG, "AAA %d, %d, %d, %d", rs->full_closing_time, rs->full_opening_time, rs->position, new_value->value[0]);
                         
                     }
                     

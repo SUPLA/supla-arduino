@@ -108,7 +108,7 @@ typedef struct SuplaDevicePrefs {
 };
 
 typedef struct SuplaDeviceRollerShutter {
-    int pos;
+    int position;
     int channel_number;
     unsigned int full_opening_time;
     unsigned int full_closing_time;
@@ -160,6 +160,8 @@ protected:
 	_impl_arduino_digitalWrite impl_arduino_digitalWrite;
     _impl_arduino_status impl_arduino_status;
 
+    void rs_calibrate(SuplaDeviceRollerShutter *rs, unsigned long full_time, unsigned long time, int dest_pos);
+    
     void iterate_relay(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
     void iterate_sensor(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
     void iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
