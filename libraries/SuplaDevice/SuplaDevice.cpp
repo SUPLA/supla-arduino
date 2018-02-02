@@ -359,6 +359,7 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
         
     }
     
+    Serial.println(millis());
 }
 
 bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const char *Server,
@@ -465,8 +466,8 @@ bool SuplaDeviceClass::addRollerShutterRelays(int relayPin1, int relayPin2, bool
         roller_shutter[rs_count].channel_number = channel_number;
         roller_shutter[rs_count].position = -1;
         
-        roller_shutter[rs_count].full_opening_time = 350; // Tmp
-        roller_shutter[rs_count].full_closing_time = 400; // Tmp
+        roller_shutter[rs_count].full_opening_time = 350 * 100; // Tmp
+        roller_shutter[rs_count].full_closing_time = 400 * 100; // Tmp
         
         rs_count++;
     
@@ -804,6 +805,8 @@ void SuplaDeviceClass::rs_calibrate(SuplaDeviceRollerShutter *rs, unsigned long 
         full_time *= 1.1; // 10% margin
         
         if ( time >= full_time ) {
+            Serial.println("Kalibracja");
+            Serial.println(millis());
             rs->position = dest_pos;
             SAVE_CONFIG;
         }
@@ -1191,12 +1194,12 @@ void SuplaDeviceClass::channelSetValue(TSD_SuplaChannelNewValue *new_value) {
                         }
                         
                         if ( ct != rs->full_closing_time ) {
-                            rs->full_closing_time = ct;
+                            rs->full_closing_time = ct * 100;
                             rs->position = -1;
                         }
                         
                         if ( ot != rs->full_opening_time) {
-                            rs->full_opening_time = ot;
+                            rs->full_opening_time = ot * 100;
                             rs->position = -1;
                         }
                         
