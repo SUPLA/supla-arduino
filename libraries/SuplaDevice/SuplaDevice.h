@@ -115,6 +115,14 @@ typedef struct SuplaDeviceRollerShutterTask {
     
 };
 
+typedef struct SuplaDeviceRollerShutterCVR {
+    
+    byte active;
+    byte value;
+    unsigned long time;
+    
+};
+
 typedef struct SuplaDeviceRollerShutter {
     int position;
     int last_position;
@@ -126,6 +134,11 @@ typedef struct SuplaDeviceRollerShutter {
     unsigned long tick_1s;
     unsigned long up_time;
     unsigned long down_time;
+    
+    unsigned long start_time;
+    unsigned long stop_time;
+    
+    SuplaDeviceRollerShutterCVR cvr; // Change Value Request
     
     SuplaDeviceRollerShutterTask task;
 };
@@ -172,11 +185,14 @@ protected:
 	_impl_arduino_digitalWrite impl_arduino_digitalWrite;
     _impl_arduino_status impl_arduino_status;
 
-    void rs_set_relay(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, byte value);
+    void rs_set_relay(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, byte value, bool cancel_task, bool stop_delay);
+    void rs_set_relay(int channel_number, byte value);
     void rs_calibrate(SuplaDeviceRollerShutter *rs, unsigned long full_time, unsigned long time, int dest_pos);
     void rs_move_position(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, unsigned long full_time, unsigned long *time, bool up);
     bool rs_time_margin(unsigned long full_time, unsigned long time, byte m);
     void rs_task_processing(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin);
+    void rs_add_task(SuplaDeviceRollerShutter *rs, unsigned char percent);
+    void rs_cancel_task(SuplaDeviceRollerShutter *rs);
     
     void iterate_relay(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
     void iterate_sensor(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
@@ -226,9 +242,9 @@ public:
    bool relayOn(int channel_number, _supla_int_t DurationMS);
    bool relayOff(int channel_number);
     
-   bool rollerShutterReveal(int channel_number);
-   bool rollerShutterShut(int channel_number);
-   bool rollerShutterStop(int channel_number);
+   void rollerShutterReveal(int channel_number);
+   void rollerShutterShut(int channel_number);
+   void rollerShutterStop(int channel_number);
    
    void onTimer(void);
    void iterate(void);

@@ -25,6 +25,9 @@
 
 
 #define SAVE_RS_STATE
+#define SAVE_CONFIG
+#define LOAD_CONFIG
+#define LOAD_RS_STATE
 
 #define RS_RELAY_OFF   0
 #define RS_RELAY_UP    2
@@ -351,6 +354,13 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
     
     if ( rs_count > 0 ) {
         
+        LOAD_CONFIG;
+        LOAD_RS_STATE;
+        
+        for(int a=0;a<rs_count;a++) {
+            Params.reg_dev.channels[roller_shutter[rs_count].channel_number].value[0] = roller_shutter[a].position;
+        }
+        
         cli(); // disable interrupts
         TCCR1A = 0;// set entire TCCR1A register to 0
         TCCR1B = 0;// same for TCCR1B
@@ -466,23 +476,13 @@ bool SuplaDeviceClass::addRollerShutterRelays(int relayPin1, int relayPin2, bool
 	int channel_number = addRelay(relayPin1, relayPin2, hiIsLo, false, SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEROLLERSHUTTER);
     
     if ( channel_number > -1 ) {
-        Params.reg_dev.channels[channel_number].value[0] = -1;
         
         roller_shutter = (SuplaDeviceRollerShutter*)realloc(roller_shutter, sizeof(SuplaDeviceRollerShutter)*(rs_count+1));
         memset(&roller_shutter[rs_count], 0, sizeof(SuplaDeviceRollerShutter));
         
         roller_shutter[rs_count].channel_number = channel_number;
-        /*
         roller_shutter[rs_count].position = -1;
-        roller_shutter[rs_count].full_opening_time = 0;
-        roller_shutter[rs_count].full_closing_time = 0;
-        */
-        
-        // TMP ----
-        roller_shutter[rs_count].task.active = true;
-        roller_shutter[rs_count].full_opening_time = 350 * 100;
-        roller_shutter[rs_count].full_closing_time = 400 * 100;
-        // --------
+        Params.reg_dev.channels[channel_number].value[0] = roller_shutter[rs_count].position;
         
         rs_count++;
     
@@ -812,20 +812,40 @@ void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDevice
     
 };
 
-void SuplaDeviceClass::rs_set_relay(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, byte value) {
+void SuplaDeviceClass::rs_set_relay(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, byte value, bool cancel_task, bool stop_delay) {
     
+    if ( cancel_task ) {
+        rs_cancel_task(rs);
+    }
+    
+    if ( value == RS_RELAY_OFF )  {
+        
+        
+        
+    } else {
+        
+    }
     
     if (  value == RS_RELAY_UP ) {
         suplaDigitalWrite_setHI(rs->channel_number, pin->pin1, false);
         suplaDigitalWrite_setHI(rs->channel_number, pin->pin2, true);
     } else if ( value == RS_RELAY_DOWN ) {
-        suplaDigitalWrite_setHI(rs->channel_number, pin->pin1, true);
         suplaDigitalWrite_setHI(rs->channel_number, pin->pin2, false);
+        suplaDigitalWrite_setHI(rs->channel_number, pin->pin1, true);
     } else {
         suplaDigitalWrite_setHI(rs->channel_number, pin->pin1, false);
         suplaDigitalWrite_setHI(rs->channel_number, pin->pin2, false);
     }
 }
+
+void SuplaDeviceClass::rs_set_relay(int channel_number, byte value) {
+    SuplaDeviceRollerShutter *rs = rsByChannelNumber(channel_number);
+    
+    if ( rs ) {
+        rs_set_relay(rs, &channel_pin[channel_number], value, true, true);
+    }
+    
+};
 
 void SuplaDeviceClass::rs_calibrate(SuplaDeviceRollerShutter *rs, unsigned long full_time, unsigned long time, int dest_pos) {
     
@@ -835,8 +855,6 @@ void SuplaDeviceClass::rs_calibrate(SuplaDeviceRollerShutter *rs, unsigned long 
         full_time *= 1.1; // 10% margin
         
         if ( time >= full_time ) {
-            Serial.println("Kalibracja");
-            Serial.println(millis());
             rs->position = dest_pos;
             SAVE_RS_STATE;
         }
@@ -884,7 +902,7 @@ void SuplaDeviceClass::rs_move_position(SuplaDeviceRollerShutter *rs, SuplaChann
     if ( (up && rs->position == 100) || (!up && rs->position == 10100) ) {
         
         if ( (*time) >= full_time * 1.1 ) {
-           rs_set_relay(rs, pin, RS_RELAY_OFF);
+           rs_set_relay(rs, pin, RS_RELAY_OFF, false, false);
         }
         
         return;
@@ -919,9 +937,9 @@ void SuplaDeviceClass::rs_task_processing(SuplaDeviceRollerShutter *rs, SuplaCha
              && rs->full_closing_time > 0 ) {
             
             if ( rs->task.percent < 50 ) {
-                rs_set_relay(rs, pin, RS_RELAY_UP);
+                rs_set_relay(rs, pin, RS_RELAY_UP, false, false);
             } else {
-                rs_set_relay(rs, pin, RS_RELAY_DOWN);
+                rs_set_relay(rs, pin, RS_RELAY_DOWN, false, false);
             }
         }
         
@@ -935,17 +953,17 @@ void SuplaDeviceClass::rs_task_processing(SuplaDeviceRollerShutter *rs, SuplaCha
         if ( percent > rs->task.percent ) {
             
             rs->task.direction = RS_DIRECTION_UP;
-            rs_set_relay(rs, pin, RS_RELAY_UP);
+            rs_set_relay(rs, pin, RS_RELAY_UP, false, false);
             
         } else if ( percent < rs->task.percent ) {
             
             rs->task.direction = RS_DIRECTION_DOWN;
-            rs_set_relay(rs, pin, RS_RELAY_DOWN);
+            rs_set_relay(rs, pin, RS_RELAY_DOWN, false, false);
             
         } else {
             
             rs->task.active = 0;
-            rs_set_relay(rs, pin, RS_RELAY_OFF);
+            rs_set_relay(rs, pin, RS_RELAY_OFF, false, false);
             
         }
         
@@ -967,13 +985,42 @@ void SuplaDeviceClass::rs_task_processing(SuplaDeviceRollerShutter *rs, SuplaCha
        } else {
            
            rs->task.active = 0;
-           rs_set_relay(rs, pin, RS_RELAY_OFF);
+           rs_set_relay(rs, pin, RS_RELAY_OFF, false, false);
            
        }
                    
                    
     }
     
+}
+
+void SuplaDeviceClass::rs_add_task(SuplaDeviceRollerShutter *rs, unsigned char percent) {
+    
+    if ( (rs->position-100)/100 == percent )
+        return;
+    
+    if ( percent > 100 )
+        percent = 100;
+    
+    
+    rs->task.percent = percent;
+    rs->task.direction = RS_DIRECTION_NONE;
+    rs->task.active = 1;
+    
+    SAVE_RS_STATE;
+    
+}
+
+void SuplaDeviceClass::rs_cancel_task(SuplaDeviceRollerShutter *rs) {
+    
+    if ( rs == NULL )
+        return;
+    
+    rs->task.active = 0;
+    rs->task.percent = 0;
+    rs->task.direction = RS_DIRECTION_NONE;
+    
+    SAVE_RS_STATE;
 }
 
 void SuplaDeviceClass::iterate_rollershutter(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel) {
@@ -1019,13 +1066,12 @@ void SuplaDeviceClass::iterate_rollershutter(SuplaDeviceRollerShutter *rs, Supla
         
     
         if ( rs->last_position != rs->position ) {
-    
             rs->last_position = rs->position;
-            //supla_esp_channel_value_changed(rs_cfg->up->channel, (rs_cfg->last_position-100)/100);
+            channelValueChanged(rs->channel_number, (rs->position-100)/100, 0, 1);
         }
         
         if ( rs->up_time > 600000 || rs->down_time > 600000 ) { // 10 min. - timeout
-             rs_set_relay(rs, pin, RS_RELAY_OFF);
+             rs_set_relay(rs, pin, RS_RELAY_OFF, false, false);
         }
         
         Serial.println(rs->up_time);
@@ -1369,8 +1415,10 @@ void SuplaDeviceClass::channelSetValue(TSD_SuplaChannelNewValue *new_value) {
                     SuplaDeviceRollerShutter *rs = rsByChannelNumber(new_value->ChannelNumber);
                     if ( rs != NULL ) {
                         
-                        int ct = new_value->DurationMS & 0xFFFF;
-                        int ot = (new_value->DurationMS >> 16) & 0xFFFF;
+                        char v = new_value->value[0];
+                        
+                        unsigned long ct = new_value->DurationMS & 0xFFFF;
+                        unsigned long ot = (new_value->DurationMS >> 16) & 0xFFFF;
                         
                         
                         if ( ct < 0 ) {
@@ -1381,17 +1429,34 @@ void SuplaDeviceClass::channelSetValue(TSD_SuplaChannelNewValue *new_value) {
                             ot = 0;
                         }
                         
-                        if ( ct != rs->full_closing_time ) {
-                            rs->full_closing_time = ct * 100;
+                        ct*=100;
+                        ot*=100;
+                        
+                        if ( ct != rs->full_closing_time
+                             || ot != rs->full_opening_time ) {
+                            
+                            rs->full_closing_time = ct;
+                            rs->full_opening_time = ot;
                             rs->position = -1;
+                            
+                            SAVE_CONFIG;
+                            SAVE_RS_STATE;
                         }
                         
-                        if ( ot != rs->full_opening_time) {
-                            rs->full_opening_time = ot * 100;
-                            rs->position = -1;
-                        }
                         
-                        supla_log(LOG_DEBUG, "AAA %d, %d, %d, %d", rs->full_closing_time, rs->full_opening_time, rs->position, new_value->value[0]);
+                        if ( v >= 10 && v <= 110 ) {
+                            rs_add_task(rs, v-10);
+                        } else {
+                            
+                            if ( v == 1 ) {
+                                rs_set_relay(rs->channel_number, RS_RELAY_DOWN);
+                            } else if ( v == 2 ) {
+                                rs_set_relay(rs->channel_number, RS_RELAY_UP);
+                            } else {
+                                rs_set_relay(rs->channel_number, RS_RELAY_OFF);
+                            }
+                            
+                        }
                         
                     }
                     
@@ -1424,16 +1489,16 @@ bool SuplaDeviceClass::relayOff(int channel_number) {
     //channelSetValue(channel_number, LOW);
 }
 
-bool SuplaDeviceClass::rollerShutterReveal(int channel_number) {
-    
+void SuplaDeviceClass::rollerShutterReveal(int channel_number) {
+    rs_set_relay(channel_number, RS_RELAY_UP);
 }
 
-bool SuplaDeviceClass::rollerShutterShut(int channel_number) {
-    
+void SuplaDeviceClass::rollerShutterShut(int channel_number) {
+    rs_set_relay(channel_number, RS_RELAY_DOWN);
 }
 
-bool SuplaDeviceClass::rollerShutterStop(int channel_number) {
-    
+void SuplaDeviceClass::rollerShutterStop(int channel_number) {
+    rs_set_relay(channel_number, RS_RELAY_OFF);
 }
 
 ISR(TIMER1_COMPA_vect){
