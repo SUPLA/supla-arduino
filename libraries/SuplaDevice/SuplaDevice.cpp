@@ -29,6 +29,9 @@
 #define LOAD_CONFIG
 #define LOAD_RS_STATE
 
+#define RS_STOP_DELAY   500
+#define RS_START_DELAY  1000
+
 #define RS_RELAY_OFF   0
 #define RS_RELAY_UP    2
 #define RS_RELAY_DOWN  1
@@ -818,24 +821,55 @@ void SuplaDeviceClass::rs_set_relay(SuplaDeviceRollerShutter *rs, SuplaChannelPi
         rs_cancel_task(rs);
     }
     
+    unsigned long now = millis();
+    
     if ( value == RS_RELAY_OFF )  {
         
+        if ( rs->cvr1.active ) {
+            return;
+        }
         
+        rs->cvr2.active = false;
+        rs->cvr1.value = value;
+        
+        if ( now-rs->start_time >= RS_STOP_DELAY  ) {
+           rs->cvr1.time = now;
+        } else {
+           rs->cvr1.time = now + RS_STOP_DELAY - (now-rs->start_time);
+        }
+ 
+        rs->cvr1.active = true;
         
     } else {
         
+        if ( rs->cvr2.active ) {
+            return;
+        }
+        
+        rs->cvr1.active = false;
+        rs->cvr2.value = value;
+        
+        SuplaChannelPin *_pin = value == RS_RELAY_DOWN ? pin->pin2 : pin->pin1;
+        
+        if ( suplaDigitalRead_isHI(rs->channel_number, _pin) ) {
+            rs_set_relay(rs, _pin, RS_RELAY_OFF, false, stop_delay);
+            rs->cvr2.time = rs->cvr1.time + RS_START_DELAY;
+        } else {
+            
+            if ( now-rs->stop_time >= RS_START_DELAY  ) {
+                rs->cvr2.time = now;
+            } else {
+                rs->cvr2.time = now + RS_START_DELAY - (now-rs->stop_time);
+            }
+            
+        }
+      
+        rs->cvr2.active = true;
+        
+
     }
     
-    if (  value == RS_RELAY_UP ) {
-        suplaDigitalWrite_setHI(rs->channel_number, pin->pin1, false);
-        suplaDigitalWrite_setHI(rs->channel_number, pin->pin2, true);
-    } else if ( value == RS_RELAY_DOWN ) {
-        suplaDigitalWrite_setHI(rs->channel_number, pin->pin2, false);
-        suplaDigitalWrite_setHI(rs->channel_number, pin->pin1, true);
-    } else {
-        suplaDigitalWrite_setHI(rs->channel_number, pin->pin1, false);
-        suplaDigitalWrite_setHI(rs->channel_number, pin->pin2, false);
-    }
+
 }
 
 void SuplaDeviceClass::rs_set_relay(int channel_number, byte value) {
@@ -1023,7 +1057,35 @@ void SuplaDeviceClass::rs_cancel_task(SuplaDeviceRollerShutter *rs) {
     SAVE_RS_STATE;
 }
 
+void SuplaDeviceClass::rs_cvr_processing(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, SuplaDeviceRollerShutterCVR *cvr) {
+    
+    unsigned long now = millis();
+    
+    if ( cvr->active && cvr->time <= now ) {
+        
+        cvr->active = false;
+        
+        if (  cvr->value == RS_RELAY_UP ) {
+            rs->start_time = now;
+            suplaDigitalWrite_setHI(rs->channel_number, pin->pin1, false);
+            suplaDigitalWrite_setHI(rs->channel_number, pin->pin2, true);
+        } else if ( cvr->value == RS_RELAY_DOWN ) {
+            rs->start_time = now;
+            suplaDigitalWrite_setHI(rs->channel_number, pin->pin2, false);
+            suplaDigitalWrite_setHI(rs->channel_number, pin->pin1, true);
+        } else {
+            rs->stop_time = now;
+            suplaDigitalWrite_setHI(rs->channel_number, pin->pin1, false);
+            suplaDigitalWrite_setHI(rs->channel_number, pin->pin2, false);
+        }
+        
+    }
+}
+
 void SuplaDeviceClass::iterate_rollershutter(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel) {
+    
+    rs_cvr_processing(rs, pin, &rs->cvr1);
+    rs_cvr_processing(rs, pin, &rs->cvr2);
     
     if ( rs->last_iterate_time == 0 ) {
         rs->last_iterate_time = millis();

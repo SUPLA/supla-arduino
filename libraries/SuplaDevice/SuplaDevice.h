@@ -138,7 +138,8 @@ typedef struct SuplaDeviceRollerShutter {
     unsigned long start_time;
     unsigned long stop_time;
     
-    SuplaDeviceRollerShutterCVR cvr; // Change Value Request
+    SuplaDeviceRollerShutterCVR cvr1; // Change Value Request 1
+    SuplaDeviceRollerShutterCVR cvr2; 
     
     SuplaDeviceRollerShutterTask task;
 };
@@ -185,6 +186,7 @@ protected:
 	_impl_arduino_digitalWrite impl_arduino_digitalWrite;
     _impl_arduino_status impl_arduino_status;
 
+    void rs_cvr_processing(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, SuplaDeviceRollerShutterCVR *cvr);
     void rs_set_relay(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, byte value, bool cancel_task, bool stop_delay);
     void rs_set_relay(int channel_number, byte value);
     void rs_calibrate(SuplaDeviceRollerShutter *rs, unsigned long full_time, unsigned long time, int dest_pos);
@@ -193,6 +195,7 @@ protected:
     void rs_task_processing(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin);
     void rs_add_task(SuplaDeviceRollerShutter *rs, unsigned char percent);
     void rs_cancel_task(SuplaDeviceRollerShutter *rs);
+    
     
     void iterate_relay(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
     void iterate_sensor(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
