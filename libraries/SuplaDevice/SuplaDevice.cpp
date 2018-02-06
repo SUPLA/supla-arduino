@@ -17,7 +17,6 @@
 #define SUPLADEVICE_CPP
 
 #include <Arduino.h>
-#include <EEPROM.h>
 #include "IEEE754tools.h"
 #include "SuplaDevice.h"
 #include "srpc.h"
@@ -128,7 +127,6 @@ SuplaDeviceClass::SuplaDeviceClass() {
 	last_iterate_time = 0;
     wait_for_iterate = 0;
 	channel_pin = NULL;
-    eeprom_address = NULL;
     roller_shutter = NULL;
     rs_count = 0;
 	
