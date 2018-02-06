@@ -134,6 +134,11 @@ SuplaDeviceClass::SuplaDeviceClass() {
 	
 	impl_arduino_digitalRead = NULL;
 	impl_arduino_digitalWrite = NULL;
+    
+    impl_rs_save_position = NULL;
+    impl_rs_load_position = NULL;
+    impl_rs_save_settings = NULL;
+    impl_rs_load_settings = NULL;
 	
 	memset(&Params, 0, sizeof(SuplaDeviceParams));
 	
@@ -624,15 +629,15 @@ void SuplaDeviceClass::setDistanceCallback(_cb_arduino_get_distance get_distance
     Params.cb.get_distance = get_distance;
 }
 
-void SuplaDeviceClass::setRollerShutterCallbacks(_cb_rs_save_position rs_save_position,
-                                                 _cb_rs_save_position rs_load_position,
-                                                 _cb_rs_save_settings rs_save_settings,
-                                                 _cb_rs_load_settings rs_load_settings) {
+void SuplaDeviceClass::setRollerShutterFuncImpl(_impl_rs_save_position impl_rs_save_position,
+                                                 _impl_rs_save_position impl_rs_load_position,
+                                                 _impl_rs_save_settings impl_rs_save_settings,
+                                                 _impl_rs_load_settings impl_rs_load_settings) {
     
-    Params.cb.rs_save_position = rs_save_position;
-    Params.cb.rs_load_position = rs_load_position;
-    Params.cb.rs_save_settings = rs_save_settings;
-    Params.cb.rs_load_settings = rs_load_settings;
+    this->impl_rs_save_position = impl_rs_save_position;
+    this->impl_rs_save_position = impl_rs_load_position;
+    this->impl_rs_save_settings = impl_rs_save_settings;
+    this->impl_rs_load_settings = impl_rs_load_settings;
     
     
 }
@@ -779,26 +784,26 @@ void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDevice
 };
 
 void SuplaDeviceClass::rs_save_position(SuplaDeviceRollerShutter *rs) {
-    if ( getCallbacks().rs_save_position ) {
-        getCallbacks().rs_save_position(rs->channel_number, rs->position);
+    if ( impl_rs_save_position ) {
+        impl_rs_save_position(rs->channel_number, rs->position);
     }
 }
 
 void SuplaDeviceClass::rs_load_position(SuplaDeviceRollerShutter *rs) {
-    if ( getCallbacks().rs_save_position ) {
-        getCallbacks().rs_load_position(rs->channel_number, &rs->position);
+    if ( impl_rs_save_position ) {
+        impl_rs_load_position(rs->channel_number, &rs->position);
     }
 }
 
 void SuplaDeviceClass::rs_save_settings(SuplaDeviceRollerShutter *rs) {
-    if ( getCallbacks().rs_save_settings ) {
-        getCallbacks().rs_save_settings(rs->channel_number, rs->full_opening_time, rs->full_closing_time);
+    if ( impl_rs_save_settings ) {
+        impl_rs_save_settings(rs->channel_number, rs->full_opening_time, rs->full_closing_time);
     }
 }
 
 void SuplaDeviceClass::rs_load_settings(SuplaDeviceRollerShutter *rs) {
-    if ( getCallbacks().rs_load_settings ) {
-        getCallbacks().rs_load_settings(rs->channel_number, &rs->full_opening_time, &rs->full_closing_time);
+    if ( impl_rs_load_settings ) {
+        impl_rs_load_settings(rs->channel_number, &rs->full_opening_time, &rs->full_closing_time);
     }
 }
 

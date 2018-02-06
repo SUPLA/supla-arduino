@@ -56,10 +56,12 @@ typedef int (*_impl_arduino_digitalRead)(int channelNumber, uint8_t pin);
 typedef void (*_impl_arduino_digitalWrite)(int channelNumber, uint8_t pin, uint8_t val);
 typedef void (*_impl_arduino_status)(int status, const char *msg);
 
-typedef void (*_cb_rs_save_position)(int channelNumber, int position);
-typedef void (*_cb_rs_load_position)(int channelNumber, int *position);
-typedef void (*_cb_rs_save_settings)(int channelNumber, int full_opening_time, int full_closing_time);
-typedef void (*_cb_rs_load_settings)(int channelNumber, int *full_opening_time, int *full_closing_time);
+typedef void (*_impl_rs_save_position)(int channelNumber, int position);
+typedef void (*_impl_rs_load_position)(int channelNumber, int *position);
+typedef void (*_impl_rs_save_settings)(int channelNumber, int full_opening_time, int full_closing_time);
+typedef void (*_impl_rs_load_settings)(int channelNumber, int *full_opening_time, int *full_closing_time);
+
+typedef void (*_impl_arduino_timer)(void);
 
 typedef struct SuplaDeviceCallbacks {
 	
@@ -74,12 +76,7 @@ typedef struct SuplaDeviceCallbacks {
 	_cb_arduino_get_rgbw_value get_rgbw_value;
 	_cb_arduino_set_rgbw_value set_rgbw_value;
     _cb_arduino_get_distance get_distance;
-    
-    _cb_rs_save_position rs_save_position;
-    _cb_rs_save_position rs_load_position;
-    _cb_rs_save_settings rs_save_settings;
-	_cb_rs_load_settings rs_load_settings;
-    
+
 }SuplaDeviceCallbacks;
 
 typedef struct SuplaDeviceParams {
@@ -194,6 +191,11 @@ protected:
 	_impl_arduino_digitalRead impl_arduino_digitalRead;
 	_impl_arduino_digitalWrite impl_arduino_digitalWrite;
     _impl_arduino_status impl_arduino_status;
+    
+    _impl_rs_save_position impl_rs_save_position;
+    _impl_rs_save_position impl_rs_load_position;
+    _impl_rs_save_settings impl_rs_save_settings;
+    _impl_rs_load_settings impl_rs_load_settings;
 
     void rs_save_position(SuplaDeviceRollerShutter *rs);
     void rs_load_position(SuplaDeviceRollerShutter *rs);
@@ -273,10 +275,10 @@ public:
    void setTemperatureHumidityCallback(_cb_arduino_get_temperature_and_humidity get_temperature_and_humidity);
    void setRGBWCallbacks(_cb_arduino_get_rgbw_value get_rgbw_value, _cb_arduino_set_rgbw_value set_rgbw_value);
    void setDistanceCallback(_cb_arduino_get_distance get_distance);
-   void setRollerShutterCallbacks(_cb_rs_save_position rs_save_position,
-                                   _cb_rs_save_position rs_load_position,
-                                   _cb_rs_save_settings rs_save_settings,
-                                   _cb_rs_load_settings rs_load_settings);
+   void setRollerShutterFuncImpl(_impl_rs_save_position impl_save_position,
+                                   _impl_rs_save_position impl_load_position,
+                                   _impl_rs_save_settings impl_save_settings,
+                                   _impl_rs_load_settings impl_load_settings);
    
    void setDigitalReadFuncImpl(_impl_arduino_digitalRead impl_arduino_digitalRead);
    void setDigitalWriteFuncImpl(_impl_arduino_digitalWrite impl_arduino_digitalWrite);
