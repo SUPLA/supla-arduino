@@ -432,6 +432,23 @@ bool SuplaDeviceClass::addRollerShutterRelays(int relayPin1, int relayPin2) {
 	return addRollerShutterRelays(relayPin1, relayPin2, false);
 }
 
+void SuplaDeviceClass::setRollerShutterButtons(int channel_number, int btnUpPin, int btnDownPin) {
+    SuplaDeviceRollerShutter *rs = rsByChannelNumber(channel_number);
+    if ( rs ) {
+        if ( btnUpPin > 0 ) {
+             pinMode(btnUpPin, INPUT_PULLUP);
+        }
+        rs->btnUp.pin = btnUpPin;
+        rs->btnUp.value = 1;
+        
+        if ( btnDownPin > 0 ) {
+            pinMode(btnDownPin, INPUT_PULLUP);
+        }
+        rs->btnDown.pin = btnDownPin;
+        rs->btnDown.value = 1;
+    }
+}
+
 bool SuplaDeviceClass::addSensorNO(int sensorPin, bool pullUp) {
 	
 	int c = addChannel(sensorPin, 0, false, false);
@@ -1047,6 +1064,40 @@ void SuplaDeviceClass::rs_cvr_processing(SuplaDeviceRollerShutter *rs, SuplaChan
     }
 }
 
+bool SuplaDeviceClass::rs_button_released(SuplaDeviceRollerShutterButton *btn) {
+    
+    if ( btn->pin > 0 ) {
+        byte v = digitalRead(btn->pin);
+        if ( v != btn->value && millis()-btn->time >= 50 ) {
+            btn->value = v;
+            return v == 1;
+        }
+    }
+    
+    return false;
+}
+
+void SuplaDeviceClass::rs_buttons_processing(SuplaDeviceRollerShutter *rs) {
+    
+    if ( rs_button_released(&rs->btnUp) ) {
+       
+        if ( SuplaDevice.rollerShutterMotorIsOn(rs->channel_number) ) {
+            SuplaDevice.rollerShutterStop(rs->channel_number);
+        } else {
+            SuplaDevice.rollerShutterReveal(rs->channel_number);
+        }
+        
+    } else if ( rs_button_released(&rs->btnDown) ) {
+
+        if ( SuplaDevice.rollerShutterMotorIsOn(rs->channel_number) ) {
+            SuplaDevice.rollerShutterStop(rs->channel_number);
+        } else {
+            SuplaDevice.rollerShutterShut(rs->channel_number);
+        }
+        ;
+    }
+}
+
 void SuplaDeviceClass::iterate_rollershutter(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel) {
     
     rs_cvr_processing(rs, pin, &rs->cvr1);
@@ -1107,6 +1158,7 @@ void SuplaDeviceClass::iterate_rollershutter(SuplaDeviceRollerShutter *rs, Supla
     
     
     rs->last_iterate_time = millis();
+    rs_buttons_processing(rs);
 }
 
 void SuplaDeviceClass::onTimer(void) {
@@ -1503,11 +1555,11 @@ void SuplaDeviceClass::channelSetActivityTimeoutResult(TSDC_SuplaSetActivityTime
 }
 
 bool SuplaDeviceClass::relayOn(int channel_number, _supla_int_t DurationMS) {
-    //channelSetValue(channel_number, HIGH, DurationMS);
+    channelSetValue(channel_number, HIGH, DurationMS);
 }
 
 bool SuplaDeviceClass::relayOff(int channel_number) {
-    //channelSetValue(channel_number, LOW);
+    channelSetValue(channel_number, LOW, 0);
 }
 
 void SuplaDeviceClass::rollerShutterReveal(int channel_number) {
@@ -1520,6 +1572,12 @@ void SuplaDeviceClass::rollerShutterShut(int channel_number) {
 
 void SuplaDeviceClass::rollerShutterStop(int channel_number) {
     rs_set_relay(channel_number, RS_RELAY_OFF);
+}
+
+bool SuplaDeviceClass::rollerShutterMotorIsOn(int channel_number) {
+    return channel_number < Params.reg_dev.channel_count
+           && ( suplaDigitalRead_isHI(channel_number, channel_pin[channel_number].pin1)
+                || suplaDigitalRead_isHI(channel_number, channel_pin[channel_number].pin2) );
 }
 
 ISR(TIMER1_COMPA_vect){

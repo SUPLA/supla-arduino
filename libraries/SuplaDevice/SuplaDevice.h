@@ -127,7 +127,17 @@ typedef struct SuplaDeviceRollerShutterCVR {
     
 };
 
+typedef struct {
+    int pin;
+    byte value;
+    unsigned long time;
+}SuplaDeviceRollerShutterButton;
+
 typedef struct SuplaDeviceRollerShutter {
+    
+    SuplaDeviceRollerShutterButton btnUp;
+    SuplaDeviceRollerShutterButton btnDown;
+    
     int position;
     int last_position;
     int channel_number;
@@ -198,7 +208,8 @@ protected:
     void rs_task_processing(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin);
     void rs_add_task(SuplaDeviceRollerShutter *rs, unsigned char percent);
     void rs_cancel_task(SuplaDeviceRollerShutter *rs);
-    
+    bool rs_button_released(SuplaDeviceRollerShutterButton *btn);
+    void rs_buttons_processing(SuplaDeviceRollerShutter *rs);
     
     void iterate_relay(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
     void iterate_sensor(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
@@ -232,6 +243,7 @@ public:
    bool addRelay(int relayPin1);
    bool addRollerShutterRelays(int relayPin1, int relayPin2, bool hiIsLo);
    bool addRollerShutterRelays(int relayPin1, int relayPin2);
+   void setRollerShutterButtons(int channel_number, int btnUpPin, int btnDownPin);
    bool addSensorNO(int sensorPin, bool pullUp);
    bool addSensorNO(int sensorPin);
    bool addDS18B20Thermometer(void);
@@ -251,6 +263,7 @@ public:
    void rollerShutterReveal(int channel_number);
    void rollerShutterShut(int channel_number);
    void rollerShutterStop(int channel_number);
+   bool rollerShutterMotorIsOn(int channel_number);
    
    void onTimer(void);
    void iterate(void);
