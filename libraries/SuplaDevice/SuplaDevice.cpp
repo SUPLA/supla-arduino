@@ -301,7 +301,7 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
 	
 	srpc = srpc_init(&srpc_params);
 	
-    if ( rs_count > 0 ) {
+    if ( rs_count > 0 || impl_arduino_timer ) {
         
         for(int a=0;a<rs_count;a++) {
             rs_load_settings(&roller_shutter[rs_count]);
