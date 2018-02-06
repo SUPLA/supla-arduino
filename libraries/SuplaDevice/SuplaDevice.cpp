@@ -23,12 +23,6 @@
 #include "srpc.h"
 #include "log.h"
 
-
-#define SAVE_RS_STATE
-#define SAVE_CONFIG
-#define LOAD_CONFIG
-#define LOAD_RS_STATE
-
 #define RS_STOP_DELAY   500
 #define RS_START_DELAY  1000
 
@@ -297,10 +291,9 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
 	
     if ( rs_count > 0 ) {
         
-        LOAD_CONFIG;
-        LOAD_RS_STATE;
-        
         for(int a=0;a<rs_count;a++) {
+            rs_load_settings(&roller_shutter[rs_count]);
+            rs_load_position(&roller_shutter[rs_count]);
             Params.reg_dev.channels[roller_shutter[rs_count].channel_number].value[0] = roller_shutter[a].position;
         }
         
@@ -614,6 +607,19 @@ void SuplaDeviceClass::setDistanceCallback(_cb_arduino_get_distance get_distance
     Params.cb.get_distance = get_distance;
 }
 
+void SuplaDeviceClass::setRollerShutterCallbacks(_cb_rs_save_position rs_save_position,
+                                                 _cb_rs_save_position rs_load_position,
+                                                 _cb_rs_save_settings rs_save_settings,
+                                                 _cb_rs_load_settings rs_load_settings) {
+    
+    Params.cb.rs_save_position = rs_save_position;
+    Params.cb.rs_load_position = rs_load_position;
+    Params.cb.rs_save_settings = rs_save_settings;
+    Params.cb.rs_load_settings = rs_load_settings;
+    
+    
+}
+
 void SuplaDeviceClass::iterate_relay(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_number) {
     
     if ( pin->bi_time_left != 0 ) {
@@ -755,6 +761,30 @@ void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDevice
     
 };
 
+void SuplaDeviceClass::rs_save_position(SuplaDeviceRollerShutter *rs) {
+    if ( getCallbacks().rs_save_position ) {
+        getCallbacks().rs_save_position(rs->channel_number, rs->position);
+    }
+}
+
+void SuplaDeviceClass::rs_load_position(SuplaDeviceRollerShutter *rs) {
+    if ( getCallbacks().rs_save_position ) {
+        getCallbacks().rs_load_position(rs->channel_number, &rs->position);
+    }
+}
+
+void SuplaDeviceClass::rs_save_settings(SuplaDeviceRollerShutter *rs) {
+    if ( getCallbacks().rs_save_settings ) {
+        getCallbacks().rs_save_settings(rs->channel_number, rs->full_opening_time, rs->full_closing_time);
+    }
+}
+
+void SuplaDeviceClass::rs_load_settings(SuplaDeviceRollerShutter *rs) {
+    if ( getCallbacks().rs_load_settings ) {
+        getCallbacks().rs_load_settings(rs->channel_number, rs->full_opening_time, rs->full_closing_time);
+    }
+}
+
 void SuplaDeviceClass::rs_set_relay(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, byte value, bool cancel_task, bool stop_delay) {
     
     if ( cancel_task ) {
@@ -829,7 +859,7 @@ void SuplaDeviceClass::rs_calibrate(SuplaDeviceRollerShutter *rs, unsigned long 
         
         if ( time >= full_time ) {
             rs->position = dest_pos;
-            SAVE_RS_STATE;
+            rs_save_position(rs);
         }
         
     }
@@ -866,7 +896,7 @@ void SuplaDeviceClass::rs_move_position(SuplaDeviceRollerShutter *rs, SuplaChann
         }
         
         if ( last_pos != rs->position ) {
-            SAVE_RS_STATE;
+            rs_save_position(rs);
         }
         
     }
@@ -979,8 +1009,6 @@ void SuplaDeviceClass::rs_add_task(SuplaDeviceRollerShutter *rs, unsigned char p
     rs->task.direction = RS_DIRECTION_NONE;
     rs->task.active = 1;
     
-    SAVE_RS_STATE;
-    
 }
 
 void SuplaDeviceClass::rs_cancel_task(SuplaDeviceRollerShutter *rs) {
@@ -991,8 +1019,7 @@ void SuplaDeviceClass::rs_cancel_task(SuplaDeviceRollerShutter *rs) {
     rs->task.active = 0;
     rs->task.percent = 0;
     rs->task.direction = RS_DIRECTION_NONE;
-    
-    SAVE_RS_STATE;
+
 }
 
 void SuplaDeviceClass::rs_cvr_processing(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, SuplaDeviceRollerShutterCVR *cvr) {
@@ -1434,8 +1461,8 @@ void SuplaDeviceClass::channelSetValue(TSD_SuplaChannelNewValue *new_value) {
                             rs->full_opening_time = ot;
                             rs->position = -1;
                             
-                            SAVE_CONFIG;
-                            SAVE_RS_STATE;
+                            rs_save_settings(rs);
+                            rs_save_position(rs);
                         }
                         
                         if ( v >= 10 && v <= 110 ) {
