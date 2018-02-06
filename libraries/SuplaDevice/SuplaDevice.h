@@ -59,7 +59,7 @@ typedef void (*_impl_arduino_status)(int status, const char *msg);
 typedef void (*_cb_rs_save_position)(int channelNumber, int position);
 typedef void (*_cb_rs_load_position)(int channelNumber, int *position);
 typedef void (*_cb_rs_save_settings)(int channelNumber, int full_opening_time, int full_closing_time);
-typedef void (*_cb_rs_load_settings)(int channelNumber, int full_opening_time, int full_closing_time);
+typedef void (*_cb_rs_load_settings)(int channelNumber, int *full_opening_time, int *full_closing_time);
 
 typedef struct SuplaDeviceCallbacks {
 	

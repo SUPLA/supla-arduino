@@ -781,7 +781,7 @@ void SuplaDeviceClass::rs_save_settings(SuplaDeviceRollerShutter *rs) {
 
 void SuplaDeviceClass::rs_load_settings(SuplaDeviceRollerShutter *rs) {
     if ( getCallbacks().rs_load_settings ) {
-        getCallbacks().rs_load_settings(rs->channel_number, rs->full_opening_time, rs->full_closing_time);
+        getCallbacks().rs_load_settings(rs->channel_number, &rs->full_opening_time, &rs->full_closing_time);
     }
 }
 
