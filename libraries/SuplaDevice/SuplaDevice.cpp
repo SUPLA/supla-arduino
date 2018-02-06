@@ -229,62 +229,6 @@ bool SuplaDeviceClass::isInitialized(bool msg) {
 	return false;
 }
 
-bool SuplaDeviceClass::chceckEepromSize() {
-    
-    if ( sizeof(SuplaDevicePrefs) > EEPROM.length()-eeprom_address ) {
-        supla_log(LOG_ERR, "EEPROM size too small!");
-        return false;
-    };
-    
-    return true;
-}
-
-
-bool SuplaDeviceClass::prefsWrite(void) {
-    
-    int a;
-    
-    if ( !chceckEepromSize() ) {
-        return false;
-    }
-    
-    for(a=0;a<sizeof(SuplaDevicePrefs);a++) {
-        EEPROM.write(eeprom_address+a, ((byte*)&prefs)[a]);
-    }
-    
-    supla_log(LOG_DEBUG, "Preferences initialized");
-}
-
-bool SuplaDeviceClass::prefsRead(bool init) {
-    
-    byte tag[6] = { 'S', 'U', 'P', 'L', 'A', 1};
-    int a;
-    
-    if ( !chceckEepromSize() ) {
-        return false;
-    }
-    
-    for(a=0;a<sizeof(SuplaDevicePrefs);a++) {
-        ((byte*)&prefs)[a] = EEPROM.read(eeprom_address+a);
-    }
-    
-    if ( memcmp(prefs.tag, tag, 6) == 0 ) {
-        supla_log(LOG_DEBUG, "Preferences loaded");
-        return true;
-    } else {
-        if ( init ) {
-            memset(&prefs, 0, sizeof(SuplaDevicePrefs));
-            memcpy(prefs.tag, tag, 6);
-            return prefsWrite();
-        } else {
-            supla_log(LOG_DEBUG, "state.tag error!");
-        }
-    }
-
-    return false;
-    
-}
-
 bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const char *Server,
 	                         int LocationID, const char *LocationPWD) {
 
@@ -349,12 +293,8 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
 	srpc_params.on_remote_call_received = &supla_arduino_on_remote_call_received;
 	srpc_params.user_params = this;
 	
-
 	srpc = srpc_init(&srpc_params);
-	status(STATUS_INITIALIZED, "SuplaDevice initialized");
-    
-    prefsRead(true);
-    
+	
     if ( rs_count > 0 ) {
         
         LOAD_CONFIG;
@@ -380,7 +320,7 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
         
     }
     
-    Serial.println(millis());
+    status(STATUS_INITIALIZED, "SuplaDevice initialized");
 }
 
 bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const char *Server,

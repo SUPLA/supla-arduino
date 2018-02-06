@@ -101,12 +101,6 @@ typedef struct SuplaChannelPin {
 	};
 };
 
-typedef struct SuplaDevicePrefs {
-    
-    byte tag[6];
-    
-};
-
 typedef struct SuplaDeviceRollerShutterTask {
     
     byte percent;
@@ -161,11 +155,7 @@ protected:
 	void channelSetTempAndHumidityValue(int channelNum, double temp, double humidity);
 	void setRGBWvalue(int channelNum, char value[SUPLA_CHANNELVALUE_SIZE]);
 	void channelSetRGBWvalue(int channel, char value[SUPLA_CHANNELVALUE_SIZE]);
-    
-    bool chceckEepromSize();
-    bool prefsRead(bool init);
-    bool prefsWrite(void);
-    
+
 	SuplaDeviceParams Params;
 	_supla_int_t server_activity_timeout, last_response, last_sent;
 	SuplaChannelPin *channel_pin;
@@ -180,7 +170,6 @@ protected:
 	unsigned long last_ping_time;
     
     int eeprom_address;
-    SuplaDevicePrefs prefs;
     
 	_impl_arduino_digitalRead impl_arduino_digitalRead;
 	_impl_arduino_digitalWrite impl_arduino_digitalWrite;
