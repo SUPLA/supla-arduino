@@ -196,6 +196,8 @@ protected:
     _impl_rs_save_position impl_rs_load_position;
     _impl_rs_save_settings impl_rs_save_settings;
     _impl_rs_load_settings impl_rs_load_settings;
+    
+    _impl_arduino_timer impl_arduino_timer;
 
     void rs_save_position(SuplaDeviceRollerShutter *rs);
     void rs_load_position(SuplaDeviceRollerShutter *rs);
@@ -283,6 +285,7 @@ public:
    void setDigitalReadFuncImpl(_impl_arduino_digitalRead impl_arduino_digitalRead);
    void setDigitalWriteFuncImpl(_impl_arduino_digitalWrite impl_arduino_digitalWrite);
    void setStatusFuncImpl(_impl_arduino_status impl_arduino_status);
+   void setTimerFuncImpl(_impl_arduino_timer impl_arduino_timer);
     
    void onSent(void);
    void onResponse(void);
@@ -291,6 +294,8 @@ public:
    void onSensorInterrupt(void);
    void channelSetValue(TSD_SuplaChannelNewValue *new_value);
    void channelSetActivityTimeoutResult(TSDC_SuplaSetActivityTimeoutResult *result);
+    
+
 };
 
 #include "supla_main_helper._cpp_"			

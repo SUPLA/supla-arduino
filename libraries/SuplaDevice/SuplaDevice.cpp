@@ -139,6 +139,8 @@ SuplaDeviceClass::SuplaDeviceClass() {
     impl_rs_load_position = NULL;
     impl_rs_save_settings = NULL;
     impl_rs_load_settings = NULL;
+    
+    impl_arduino_timer = NULL;
 	
 	memset(&Params, 0, sizeof(SuplaDeviceParams));
 	
@@ -214,6 +216,11 @@ void SuplaDeviceClass::setDigitalWriteFuncImpl(_impl_arduino_digitalWrite impl_a
 void SuplaDeviceClass::setStatusFuncImpl(_impl_arduino_status impl_arduino_status) {
     
     this->impl_arduino_status = impl_arduino_status;
+}
+
+void SuplaDeviceClass::setTimerFuncImpl(_impl_arduino_timer impl_arduino_timer) {
+    
+    this->impl_arduino_timer = impl_arduino_timer;
 }
 
 bool SuplaDeviceClass::isInitialized(bool msg) {
@@ -1168,6 +1175,10 @@ void SuplaDeviceClass::iterate_rollershutter(SuplaDeviceRollerShutter *rs, Supla
 
 void SuplaDeviceClass::onTimer(void) {
 
+    if ( impl_arduino_timer ) {
+        impl_arduino_timer();
+    }
+    
     for(int a=0;a<rs_count;a++) {
         iterate_rollershutter(&roller_shutter[a], &channel_pin[roller_shutter[a].channel_number], &Params.reg_dev.channels[roller_shutter[a].channel_number]);
     }
