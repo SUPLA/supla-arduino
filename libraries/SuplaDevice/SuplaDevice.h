@@ -186,8 +186,6 @@ protected:
     unsigned long wait_for_iterate;
 	unsigned long last_ping_time;
     
-    int eeprom_address;
-    
 	_impl_arduino_digitalRead impl_arduino_digitalRead;
 	_impl_arduino_digitalWrite impl_arduino_digitalWrite;
     _impl_arduino_status impl_arduino_status;
@@ -258,8 +256,6 @@ public:
    bool addRgbController(void);
    bool addDimmer(void);
    bool addDistanceSensor(void);
-    
-   void setEepromAddress(int address);
     
    bool relayOn(int channel_number, _supla_int_t DurationMS);
    bool relayOff(int channel_number);
