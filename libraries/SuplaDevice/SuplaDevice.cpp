@@ -789,13 +789,12 @@ void SuplaDeviceClass::rs_set_relay(SuplaDeviceRollerShutter *rs, SuplaChannelPi
         rs->cvr1.active = false;
         rs->cvr2.value = value;
         
-        SuplaChannelPin *_pin = value == RS_RELAY_DOWN ? pin->pin2 : pin->pin1;
+        int _pin = value == RS_RELAY_DOWN ? pin->pin2 : pin->pin1;
         
         if ( suplaDigitalRead_isHI(rs->channel_number, _pin) ) {
             rs_set_relay(rs, _pin, RS_RELAY_OFF, false, stop_delay);
             rs->cvr2.time = rs->cvr1.time + RS_START_DELAY;
         } else {
-            
             if ( now-rs->stop_time >= RS_START_DELAY  ) {
                 rs->cvr2.time = now;
             } else {
@@ -868,7 +867,6 @@ void SuplaDeviceClass::rs_move_position(SuplaDeviceRollerShutter *rs, SuplaChann
         
         if ( last_pos != rs->position ) {
             SAVE_RS_STATE;
-            //Serial.println(rs->position);
         }
         
     }
@@ -1075,11 +1073,7 @@ void SuplaDeviceClass::iterate_rollershutter(SuplaDeviceRollerShutter *rs, Supla
         if ( rs->up_time > 600000 || rs->down_time > 600000 ) { // 10 min. - timeout
              rs_set_relay(rs, pin, RS_RELAY_OFF, false, false);
         }
-        
-        Serial.println(rs->up_time);
-        Serial.println(rs->down_time);
-        Serial.println(rs->position);
-        
+  
         rs->tick_1s = millis();
         
     }
@@ -1218,7 +1212,6 @@ void SuplaDeviceClass::onRegisterResult(TSD_SuplaRegisterDeviceResult *register_
             registered = 1;
             
             status(STATUS_REGISTERED_AND_READY, "Registered and ready.");
-            Serial.println(millis());
             
             if ( server_activity_timeout != ACTIVITY_TIMEOUT ) {
                 
@@ -1444,7 +1437,6 @@ void SuplaDeviceClass::channelSetValue(TSD_SuplaChannelNewValue *new_value) {
                             SAVE_CONFIG;
                             SAVE_RS_STATE;
                         }
-                        
                         
                         if ( v >= 10 && v <= 110 ) {
                             rs_add_task(rs, v-10);
