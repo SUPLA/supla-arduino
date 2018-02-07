@@ -307,20 +307,22 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
             Params.reg_dev.channels[roller_shutter[rs_count].channel_number].value[0] = roller_shutter[a].position;
         }
         
-        cli(); // disable interrupts
-        TCCR1A = 0;// set entire TCCR1A register to 0
-        TCCR1B = 0;// same for TCCR1B
-        TCNT1  = 0;//initialize counter value to 0
-        // set compare match register for 1hz increments
-        OCR1A = 155;// (16*10^6) / (100*1024) - 1 (must be <65536) == 155.25
-        // turn on CTC mode
-        TCCR1B |= (1 << WGM12);
-        // Set CS12 and CS10 bits for 1024 prescaler
-        TCCR1B |= (1 << CS12) | (1 << CS10);
-        // enable timer compare interrupt
-        TIMSK1 |= (1 << OCIE1A);
-        sei(); // enable interrupts
-        
+        #ifdef ARDUINO_ARCH_ESP8266
+        #else
+                cli(); // disable interrupts
+                TCCR1A = 0;// set entire TCCR1A register to 0
+                TCCR1B = 0;// same for TCCR1B
+                TCNT1  = 0;//initialize counter value to 0
+                // set compare match register for 1hz increments
+                OCR1A = 155;// (16*10^6) / (100*1024) - 1 (must be <65536) == 155.25
+                // turn on CTC mode
+                TCCR1B |= (1 << WGM12);
+                // Set CS12 and CS10 bits for 1024 prescaler
+                TCCR1B |= (1 << CS12) | (1 << CS10);
+                // enable timer compare interrupt
+                TIMSK1 |= (1 << OCIE1A);
+                sei(); // enable interrupts
+        #endif
     }
     
     status(STATUS_INITIALIZED, "SuplaDevice initialized");
@@ -849,7 +851,7 @@ void SuplaDeviceClass::rs_set_relay(SuplaDeviceRollerShutter *rs, SuplaChannelPi
         int _pin = value == RS_RELAY_DOWN ? pin->pin2 : pin->pin1;
         
         if ( suplaDigitalRead_isHI(rs->channel_number, _pin) ) {
-            rs_set_relay(rs, _pin, RS_RELAY_OFF, false, stop_delay);
+            rs_set_relay(rs, pin, RS_RELAY_OFF, false, stop_delay);
             rs->cvr2.time = rs->cvr1.time + RS_START_DELAY;
         } else {
             if ( now-rs->stop_time >= RS_START_DELAY  ) {
@@ -1594,8 +1596,11 @@ bool SuplaDeviceClass::rollerShutterMotorIsOn(int channel_number) {
                 || suplaDigitalRead_isHI(channel_number, channel_pin[channel_number].pin2) );
 }
 
+#ifdef ARDUINO_ARCH_ESP8266
+#else
 ISR(TIMER1_COMPA_vect){
     SuplaDevice.onTimer();
 }
+#endif
 
 SuplaDeviceClass SuplaDevice;
