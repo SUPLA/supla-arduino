@@ -33,6 +33,18 @@
 #define RS_DIRECTION_UP     2
 #define RS_DIRECTION_DOWN   1
 
+#ifdef ARDUINO_ARCH_ESP8266
+ETSTimer esp_timer;
+
+void esp_timer_cb(void *timer_arg) {
+    SuplaDevice.onTimer();
+}
+#else
+ISR(TIMER1_COMPA_vect){
+    SuplaDevice.onTimer();
+}
+#endif
+
 _supla_int_t supla_arduino_data_read(void *buf, _supla_int_t count, void *sdc) {
     return ((SuplaDeviceClass*)sdc)->getCallbacks().tcp_read(buf, count);
 }
@@ -308,6 +320,9 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
         }
         
         #ifdef ARDUINO_ARCH_ESP8266
+                os_timer_disarm(&esp_timer);
+                os_timer_setfn(&esp_timer, (os_timer_func_t *)esp_timer_cb, NULL);
+                os_timer_arm(&esp_timer, 10, 1);
         #else
                 cli(); // disable interrupts
                 TCCR1A = 0;// set entire TCCR1A register to 0
@@ -1596,11 +1611,6 @@ bool SuplaDeviceClass::rollerShutterMotorIsOn(int channel_number) {
                 || suplaDigitalRead_isHI(channel_number, channel_pin[channel_number].pin2) );
 }
 
-#ifdef ARDUINO_ARCH_ESP8266
-#else
-ISR(TIMER1_COMPA_vect){
-    SuplaDevice.onTimer();
-}
-#endif
+
 
 SuplaDeviceClass SuplaDevice;
