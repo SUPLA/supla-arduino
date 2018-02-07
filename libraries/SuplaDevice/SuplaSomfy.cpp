@@ -1,4 +1,6 @@
 /*
+ Copyright (C) AC SOFTWARE SP. Z O.O.
+ 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
@@ -10,13 +12,14 @@
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- 
+*/
+#include "SuplaSomfy.h"
+
+/*
  Library for Somfy RTS remote controller
  Author: Maciej Królewski
  Using documantation: https://pushstack.wordpress.com/somfy-rts-protocol/
 */
-
-#include "SuplaSomfy.h"
 
 SuplaSomfy::SuplaSomfy(uint8_t dataPin)
 {
@@ -126,7 +129,7 @@ somfy_remote_t SuplaSomfy::GetRemote()
 
 void SuplaSomfy::PushButton(ControlButtons pushButton)
 {
-	somfy_frame_t *frame = malloc(FRAME_SIZE);
+	somfy_frame_t *frame = (somfy_frame_t *)malloc(FRAME_SIZE);
 	
 	frame[0] = 0xA7;                				// Encryption key
 	frame[1] = pushButton << 4;     				// MSB - Button pressed, LSB - Checksum
