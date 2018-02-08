@@ -28,12 +28,12 @@ void supla_rs_LoadPosition(int channelNumber, int *position) {
     // Load roller shutter position from flash memory
 }
 
-void supla_rs_SaveSettings(int channelNumber, int full_opening_time, int full_closing_time) {
+void supla_rs_SaveSettings(int channelNumber, unsigned int full_opening_time, unsigned int full_closing_time) {
     // Save roller shutter settings on flash memory.
     // *Arduino EEPROM is not recommended because of write cycle limits.
 }
 
-void supla_rs_LoadSettings(int channelNumber, int *full_opening_time, int *full_closing_time) {
+void supla_rs_LoadSettings(int channelNumber, unsigned int *full_opening_time, unsigned int *full_closing_time) {
     // Load roller shutter settings from flash memory
 }
 
