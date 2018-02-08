@@ -218,6 +218,8 @@ protected:
     void iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
     void iterate_rollershutter(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel);
     
+    void begin_thermometer(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, int channel_number);
+    
 private:
 	int suplaDigitalRead(int channelNumber, uint8_t pin);
     bool suplaDigitalRead_isHI(int channelNumber, uint8_t pin);
