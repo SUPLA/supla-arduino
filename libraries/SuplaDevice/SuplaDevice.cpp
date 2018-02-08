@@ -652,12 +652,12 @@ void SuplaDeviceClass::setDistanceCallback(_cb_arduino_get_distance get_distance
 }
 
 void SuplaDeviceClass::setRollerShutterFuncImpl(_impl_rs_save_position impl_rs_save_position,
-                                                 _impl_rs_save_position impl_rs_load_position,
+                                                 _impl_rs_load_position impl_rs_load_position,
                                                  _impl_rs_save_settings impl_rs_save_settings,
                                                  _impl_rs_load_settings impl_rs_load_settings) {
     
     this->impl_rs_save_position = impl_rs_save_position;
-    this->impl_rs_save_position = impl_rs_load_position;
+    this->impl_rs_load_position = impl_rs_load_position;
     this->impl_rs_save_settings = impl_rs_save_settings;
     this->impl_rs_load_settings = impl_rs_load_settings;
     
@@ -812,7 +812,7 @@ void SuplaDeviceClass::rs_save_position(SuplaDeviceRollerShutter *rs) {
 }
 
 void SuplaDeviceClass::rs_load_position(SuplaDeviceRollerShutter *rs) {
-    if ( impl_rs_save_position ) {
+    if ( impl_rs_load_position ) {
         impl_rs_load_position(rs->channel_number, &rs->position);
     }
 }

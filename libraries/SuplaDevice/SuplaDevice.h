@@ -274,7 +274,7 @@ public:
    void setRGBWCallbacks(_cb_arduino_get_rgbw_value get_rgbw_value, _cb_arduino_set_rgbw_value set_rgbw_value);
    void setDistanceCallback(_cb_arduino_get_distance get_distance);
    void setRollerShutterFuncImpl(_impl_rs_save_position impl_save_position,
-                                   _impl_rs_save_position impl_load_position,
+                                   _impl_rs_load_position impl_load_position,
                                    _impl_rs_save_settings impl_save_settings,
                                    _impl_rs_load_settings impl_load_settings);
    
