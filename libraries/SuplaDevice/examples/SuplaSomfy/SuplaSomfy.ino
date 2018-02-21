@@ -78,47 +78,9 @@ void showRSCommand() {
   Serial.println("P [chanel] => PROGRAM");
 }
 
-void setup() {
-  Serial.begin(115200);
+void supla_Timer() {
 
-  // ﻿Replace the falowing GUID
-  char GUID[SUPLA_GUID_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
-  // ﻿with GUID that you can retrieve from https://www.supla.org/arduino/get-guid
-
-  // Ethernet MAC address
-  uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
-
-  // Generate remote controls
-  createRemote(RC_COUNT);
-
-  // Show RS command
-  showRSCommand();
-
-  // CHANNEL3 - TWO RELAYS (Roller shutter operation)
-  for (uint8_t i = 0; i < RC_COUNT; i++)
-  {
-    uint8_t pin = pinChanel(i);
-    SuplaDevice.addRollerShutterRelays(pin,         // 100 - ﻿﻿Pin number where the 1st relay is connected
-                                       pin + 1);    // 101 - ﻿Pin number where the 2nd relay is connected
-  }
-
-  SuplaDevice.setDigitalReadFuncImpl(&supla_DigitalRead);
-  SuplaDevice.setDigitalWriteFuncImpl(&supla_DigitalWrite);
-  SuplaDevice.setName("Somfy Remote");
-
-  SuplaDevice.begin(GUID,              // Global Unique Identifier
-                    mac,               // Ethernet MAC address
-                    "svr1.supla.org",  // SUPLA server address
-                    0,                // Location ID
-                    "");           // Location Password
-
-  //testRemote();
-}
-
-void loop() {
-  SuplaDevice.iterate();
-
-  if (Serial.available()) {
+    if (Serial.available()) {
     char cmd = (char)Serial.read();
     if (isSpace((char)Serial.read())) {
       int chanel = Serial.parseInt();
@@ -144,6 +106,50 @@ void loop() {
       }
     }
   }
+  
+}
+
+
+void setup() {
+  Serial.begin(115200);
+
+  // ﻿Replace the falowing GUID
+  char GUID[SUPLA_GUID_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+  // ﻿with GUID that you can retrieve from https://www.supla.org/arduino/get-guid
+
+  // Ethernet MAC address
+  uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
+
+  // Generate remote controls
+  createRemote(RC_COUNT);
+
+  // Show RS command
+  showRSCommand();
+
+  // CHANNEL3 - TWO RELAYS (Roller shutter operation)
+  for (uint8_t i = 0; i < RC_COUNT; i++)
+  {
+    uint8_t pin = pinChanel(i);
+    SuplaDevice.addRollerShutterRelays(pin,         // 100 - ﻿﻿Pin number where the 1st relay is connected
+                                       pin + 1);    // 101 - ﻿Pin number where the 2nd relay is connected
+  }
+
+  SuplaDevice.setTimerFuncImpl(&supla_Timer);
+  SuplaDevice.setDigitalReadFuncImpl(&supla_DigitalRead);
+  SuplaDevice.setDigitalWriteFuncImpl(&supla_DigitalWrite);
+  SuplaDevice.setName("Somfy Remote");
+
+  SuplaDevice.begin(GUID,              // Global Unique Identifier
+                    mac,               // Ethernet MAC address
+                    "svr1.supla.org",  // SUPLA server address
+                    0,                // Location ID
+                    "");           // Location Password
+
+  //testRemote();
+}
+
+void loop() {
+  SuplaDevice.iterate();
 }
 
 void testRemote() {
