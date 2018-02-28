@@ -22,33 +22,39 @@
 #include <sys/select.h>
 #endif
 
+#if !defined(__AVR__) && !defined(_WIN32)
+#include <sys/time.h>
+#endif
+
+#ifdef __AVR__
+#include "proto.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef struct {
+  int nfds;
 
-	int nfds;
+#ifndef _WIN32
 
-	#ifndef _WIN32
+#ifdef __linux__
+  int epoll_fd;
+  int fd1;
+#else
+  int fd1[2];
+#endif
 
-		#ifdef __linux__
-		int epoll_fd;
-		int fd1;
-		#else
-		int fd1[2];
-		#endif
+  int fd2;
+  int fd3;
 
-		int fd2;
-		int fd3;
+  struct timeval tv;
 
-		struct timeval tv;
+#endif
+} TEventHandler;
 
-	#endif
-
-}TEventHandler;
-
-TEventHandler* eh_init(void);
+TEventHandler *eh_init(void);
 void eh_add_fd(TEventHandler *eh, int fd);
 void eh_raise_event(TEventHandler *eh);
 int eh_wait(TEventHandler *eh, int usec);
