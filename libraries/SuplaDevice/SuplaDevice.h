@@ -85,9 +85,8 @@ typedef struct SuplaDeviceParams {
 	IPAddress local_ip;
 	
 	SuplaDeviceCallbacks cb;
-	TDS_SuplaRegisterDevice_B reg_dev;
+	TDS_SuplaRegisterDevice_C reg_dev;
 	uint8_t mac[6];
-	char *server;
 	
 }SuplaDeviceParams;
 

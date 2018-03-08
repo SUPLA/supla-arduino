@@ -161,11 +161,6 @@ SuplaDeviceClass::SuplaDeviceClass() {
 }
 
 SuplaDeviceClass::~SuplaDeviceClass() {
-	if ( Params.server != NULL ) {
-		free(Params.server);
-		Params.server = NULL;
-	}
-	
 	if ( channel_pin != NULL ) {
 		free(channel_pin);
 		channel_pin = NULL;
@@ -273,7 +268,7 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
 	memcpy(Params.mac, mac, 6);
 	Params.reg_dev.LocationID = LocationID;
 	setString(Params.reg_dev.LocationPWD, LocationPWD, SUPLA_LOCATION_PWD_MAXSIZE);
-	Params.server = strdup(Server);
+    setString(Params.reg_dev.ServerName, Server, SUPLA_SERVER_NAME_MAXSIZE);
 	
 	for(a=0;a<SUPLA_GUID_SIZE;a++)
 		if ( Params.reg_dev.GUID[a] != 0 ) break;
@@ -283,8 +278,7 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
 		return false;
 	}
 	
-	if ( Params.server == NULL 
-			|| Params.server[0] == NULL ) {
+	if ( Params.reg_dev.ServerName[0] == NULL ) {
 		status(STATUS_UNKNOWN_SERVER_ADDRESS, "Unknown server address");
 		return false;
 	}
@@ -1249,9 +1243,9 @@ void SuplaDeviceClass::iterate(void) {
         last_sent = 0;
 	    last_ping_time = 0;
         
-		if ( !Params.cb.svr_connect(Params.server, 2015) ) {
+		if ( !Params.cb.svr_connect(Params.reg_dev.ServerName, 2015) ) {
 			
-		    	supla_log(LOG_DEBUG, "Connection fail. Server: %s", Params.server);
+		    	supla_log(LOG_DEBUG, "Connection fail. Server: %s", Params.reg_dev.ServerName);
 		    	Params.cb.svr_disconnect();
 
                 wait_for_iterate = millis() + 2000;
@@ -1264,7 +1258,7 @@ void SuplaDeviceClass::iterate(void) {
 	if ( registered == 0 ) {
 		
 		registered = -1;
-		srpc_ds_async_registerdevice_b(srpc, &Params.reg_dev);
+		srpc_ds_async_registerdevice_c(srpc, &Params.reg_dev);
 		status(STATUS_REGISTER_IN_PROGRESS, "Register in progress");
 		
 	} else if ( registered == 1 ) {
