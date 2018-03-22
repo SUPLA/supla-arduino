@@ -1274,23 +1274,21 @@ void SuplaDeviceClass::iterate(void) {
             last_ping_time = _millis;
 			srpc_dcs_async_ping_server(srpc);
 		}
-	}
-	
-	if ( last_iterate_time != 0 ) {
-		
-		for(a=0;a<Params.reg_dev.channel_count;a++) {
-			
-            iterate_relay(&channel_pin[a], &Params.reg_dev.channels[a], time_diff, a);
-            iterate_sensor(&channel_pin[a], &Params.reg_dev.channels[a], time_diff, a);
-			iterate_thermometer(&channel_pin[a], &Params.reg_dev.channels[a], time_diff, a);
- 			
-		}
         
+        if ( time_diff > 0 ) {
+            
+            for(a=0;a<Params.reg_dev.channel_count;a++) {
+                
+                iterate_relay(&channel_pin[a], &Params.reg_dev.channels[a], time_diff, a);
+                iterate_sensor(&channel_pin[a], &Params.reg_dev.channels[a], time_diff, a);
+                iterate_thermometer(&channel_pin[a], &Params.reg_dev.channels[a], time_diff, a);
+                
+            }
+            
+            last_iterate_time = millis();
+        }
 	}
 
-	
-	last_iterate_time = millis();
-	
 	if( srpc_iterate(srpc) == SUPLA_RESULT_FALSE ) {
 		status(STATUS_ITERATE_FAIL, "Iterate fail");
 		Params.cb.svr_disconnect();
