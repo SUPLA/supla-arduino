@@ -292,7 +292,7 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
         setString(Params.reg_dev.Name, "ARDUINO", SUPLA_DEVICE_NAME_MAXSIZE);
     }
 	
-	setString(Params.reg_dev.SoftVer, "1.5", SUPLA_SOFTVER_MAXSIZE);
+	setString(Params.reg_dev.SoftVer, "1.6", SUPLA_SOFTVER_MAXSIZE);
 	
 	Params.cb.eth_setup(Params.mac, Params.use_local_ip ? &Params.local_ip : NULL);
 
@@ -308,9 +308,10 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
     if ( rs_count > 0 || impl_arduino_timer ) {
         
         for(int a=0;a<rs_count;a++) {
-            rs_load_settings(&roller_shutter[rs_count]);
-            rs_load_position(&roller_shutter[rs_count]);
-            Params.reg_dev.channels[roller_shutter[rs_count].channel_number].value[0] = roller_shutter[a].position;
+            rs_load_settings(&roller_shutter[a]);
+            rs_load_position(&roller_shutter[a]);
+            
+            Params.reg_dev.channels[roller_shutter[rs_count].channel_number].value[0] = (roller_shutter[a].position-100)/100;
         }
         
         #ifdef ARDUINO_ARCH_ESP8266
@@ -446,7 +447,8 @@ bool SuplaDeviceClass::addRelay(int relayPin, bool hiIsLo) {
                               | SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEGARAGEDOOR
                               | SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEDOORLOCK
                               | SUPLA_BIT_RELAYFUNC_POWERSWITCH
-                              | SUPLA_BIT_RELAYFUNC_LIGHTSWITCH) > -1;
+                              | SUPLA_BIT_RELAYFUNC_LIGHTSWITCH
+                              | SUPLA_BIT_RELAYFUNC_STAIRCASETIMER ) > -1;
 }
 
 bool SuplaDeviceClass::addRelay(int relayPin1) {
@@ -462,8 +464,8 @@ bool SuplaDeviceClass::addRollerShutterRelays(int relayPin1, int relayPin2, bool
         memset(&roller_shutter[rs_count], 0, sizeof(SuplaDeviceRollerShutter));
         
         roller_shutter[rs_count].channel_number = channel_number;
-        roller_shutter[rs_count].position = -1;
-        Params.reg_dev.channels[channel_number].value[0] = roller_shutter[rs_count].position;
+        roller_shutter[rs_count].position = 0;
+        Params.reg_dev.channels[channel_number].value[0] = -1;
         
         rs_count++;
     
@@ -922,7 +924,7 @@ void SuplaDeviceClass::rs_calibrate(SuplaDeviceRollerShutter *rs, unsigned long 
         
         if ( time >= full_time ) {
             rs->position = dest_pos;
-            rs_save_position(rs);
+            rs->save_position = 1;
         }
         
     }
@@ -959,7 +961,7 @@ void SuplaDeviceClass::rs_move_position(SuplaDeviceRollerShutter *rs, SuplaChann
         }
         
         if ( last_pos != rs->position ) {
-            rs_save_position(rs);
+            rs->save_position = 1;
         }
         
     }
@@ -1197,11 +1199,15 @@ void SuplaDeviceClass::iterate_rollershutter(SuplaDeviceRollerShutter *rs, Supla
         if ( rs->up_time > 600000 || rs->down_time > 600000 ) { // 10 min. - timeout
              rs_set_relay(rs, pin, RS_RELAY_OFF, false, false);
         }
+        
+        if ( rs->save_position ) {
+            rs->save_position = 0;
+            rs_save_position(rs);
+        }
   
         rs->tick_1s = millis();
         
     }
-    
     
     rs->last_iterate_time = millis();
     rs_buttons_processing(rs);
@@ -1227,6 +1233,7 @@ void SuplaDeviceClass::iterate(void) {
     
     if ( wait_for_iterate != 0
          && _millis < wait_for_iterate ) {
+    
         return;
         
     } else {
@@ -1403,6 +1410,8 @@ void SuplaDeviceClass::channelValueChanged(int channel_number, char v, double d,
 			value[0] = v;
 		else if ( var == 2 ) 
 			setDoubleValue(value, d);
+        
+        supla_log(LOG_DEBUG, "Value changed");
 
 		srpc_ds_async_channel_value_changed(srpc, channel_number, value);
 	}
@@ -1562,7 +1571,7 @@ void SuplaDeviceClass::channelSetValue(TSD_SuplaChannelNewValue *new_value) {
                             rs->position = -1;
                             
                             rs_save_settings(rs);
-                            rs_save_position(rs);
+                            rs->save_position = 1;
                         }
                         
                         if ( v >= 10 && v <= 110 ) {

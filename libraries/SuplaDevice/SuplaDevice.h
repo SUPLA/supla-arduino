@@ -152,6 +152,7 @@ typedef struct SuplaDeviceRollerShutter {
     SuplaDeviceRollerShutterCVR cvr2; 
     
     SuplaDeviceRollerShutterTask task;
+    byte save_position;
 };
 
 
