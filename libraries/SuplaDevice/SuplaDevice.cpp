@@ -507,7 +507,6 @@ bool SuplaDeviceClass::addSensorNO(int sensorPin, bool pullUp) {
 	suplaDigitalWrite(Params.reg_dev.channels[c].Number, sensorPin, pullUp ? HIGH : LOW);
 	
 	Params.reg_dev.channels[c].value[0] = suplaDigitalRead(Params.reg_dev.channels[c].Number, sensorPin) == HIGH ? 1 : 0;
-	
 	return true;
 }
 
@@ -747,7 +746,8 @@ void SuplaDeviceClass::iterate_sensor(SuplaChannelPin *pin, TDS_SuplaDeviceChann
         if ( val != pin->last_val ) {
             
             pin->last_val = val;
-
+            Params.reg_dev.channels[channel->Number].value[0] = val;
+            
             if ( pin->time_left <= 0 ) {
                 pin->time_left = 100;
                 channelValueChanged(channel->Number, val == HIGH ? 1 : 0);
