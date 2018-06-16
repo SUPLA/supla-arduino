@@ -293,7 +293,7 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
         setString(Params.reg_dev.Name, "ARDUINO", SUPLA_DEVICE_NAME_MAXSIZE);
     }
 	
-	setString(Params.reg_dev.SoftVer, "1.6", SUPLA_SOFTVER_MAXSIZE);
+	setString(Params.reg_dev.SoftVer, "1.6.1", SUPLA_SOFTVER_MAXSIZE);
 	
 	Params.cb.eth_setup(Params.mac, Params.use_local_ip ? &Params.local_ip : NULL);
 
@@ -355,8 +355,7 @@ void SuplaDeviceClass::begin_thermometer(SuplaChannelPin *pin, TDS_SuplaDeviceCh
         && Params.cb.get_temperature != NULL ) {
         
         pin->last_val_dbl1 = Params.cb.get_temperature(channel_number, pin->last_val_dbl1);
-        setDoubleValue(channel->value, channel_number);
-
+        channelSetDoubleValue(channel_number, pin->last_val_dbl1);
 
     } else if ( ( channel->Type == SUPLA_CHANNELTYPE_DHT11
                  || channel->Type == SUPLA_CHANNELTYPE_DHT22
