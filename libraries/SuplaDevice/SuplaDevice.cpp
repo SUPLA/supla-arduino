@@ -312,7 +312,7 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
             rs_load_settings(&roller_shutter[a]);
             rs_load_position(&roller_shutter[a]);
             
-            Params.reg_dev.channels[roller_shutter[rs_count].channel_number].value[0] = (roller_shutter[a].position-100)/100;
+            Params.reg_dev.channels[roller_shutter[a].channel_number].value[0] = (roller_shutter[a].position-100)/100;
         }
         
         #ifdef ARDUINO_ARCH_ESP8266
