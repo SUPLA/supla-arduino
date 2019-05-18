@@ -341,6 +341,7 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
     }
     
     status(STATUS_INITIALIZED, "SuplaDevice initialized");
+    return true;
 }
 
 bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const char *Server,
