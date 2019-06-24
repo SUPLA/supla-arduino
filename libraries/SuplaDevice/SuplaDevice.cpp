@@ -717,23 +717,23 @@ void SuplaDeviceClass::setString(char *dst, const char *src, int max_size) {
 	memcpy(dst, src, size);
 }
 
-void SuplaDeviceClass::setTemperatureCallback(_cb_arduino_get_temperature get_temperature) {
+void SuplaDeviceClass::setTemperatureCallback(_cb_arduino_get_double get_temperature) {
 	 Params.cb.get_temperature = get_temperature;
 }
 
-void SuplaDeviceClass::setPressureCallback(_cb_arduino_get_pressure get_pressure) {
+void SuplaDeviceClass::setPressureCallback(_cb_arduino_get_double get_pressure) {
     Params.cb.get_pressure = get_pressure;
 }
 
-void SuplaDeviceClass::setWeightCallback(_cb_arduino_get_weight get_weight) {
+void SuplaDeviceClass::setWeightCallback(_cb_arduino_get_double get_weight) {
     Params.cb.get_weight = get_weight;
 }
 
-void SuplaDeviceClass::setWindCallback(_cb_arduino_get_wind get_wind) {
+void SuplaDeviceClass::setWindCallback(_cb_arduino_get_double get_wind) {
     Params.cb.get_wind = get_wind;
 }
 
-void SuplaDeviceClass::setRainCallback(_cb_arduino_get_rain get_rain) {
+void SuplaDeviceClass::setRainCallback(_cb_arduino_get_double get_rain) {
     Params.cb.get_rain = get_rain;
 }
 
@@ -746,7 +746,7 @@ void SuplaDeviceClass::setRGBWCallbacks(_cb_arduino_get_rgbw_value get_rgbw_valu
 	Params.cb.set_rgbw_value = set_rgbw_value;
 }
 
-void SuplaDeviceClass::setDistanceCallback(_cb_arduino_get_distance get_distance) {
+void SuplaDeviceClass::setDistanceCallback(_cb_arduino_get_double get_distance) {
     Params.cb.get_distance = get_distance;
 }
 

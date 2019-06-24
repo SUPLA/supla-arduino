@@ -47,15 +47,10 @@ typedef void (*_cb_arduino_eth_setup)(uint8_t mac[6], IPAddress *ip);
 typedef bool (*_cb_arduino_connect)(const char *server, _supla_int_t port);
 typedef bool (*_cb_arduino_connected)(void);
 typedef void (*_cb_arduino_stop)(void);
-typedef double (*_cb_arduino_get_temperature)(int channelNumber, double last_val);
+typedef double (*_cb_arduino_get_double)(int channelNumber, double current_value);
 typedef void (*_cb_arduino_get_temperature_and_humidity)(int channelNumber, double *temp, double *humidity);
 typedef void (*_cb_arduino_get_rgbw_value)(int channelNumber, unsigned char *red, unsigned char *green, unsigned char *blue, unsigned char *color_brightness, unsigned char *brightness);
 typedef void (*_cb_arduino_set_rgbw_value)(int channelNumber, unsigned char red, unsigned char green, unsigned char blue, unsigned char color_brightness, unsigned char brightness);
-typedef double (*_cb_arduino_get_distance)(int channelNumber, double distance);
-typedef double (*_cb_arduino_get_pressure)(int channelNumber, double pressure);
-typedef double (*_cb_arduino_get_weight)(int channelNumber, double weight);
-typedef double (*_cb_arduino_get_wind)(int channelNumber, double wind);
-typedef double (*_cb_arduino_get_rain)(int channelNumber, double rain);
 typedef int (*_impl_arduino_digitalRead)(int channelNumber, uint8_t pin);
 typedef void (*_impl_arduino_digitalWrite)(int channelNumber, uint8_t pin, uint8_t val);
 typedef void (*_impl_arduino_status)(int status, const char *msg);
@@ -75,15 +70,15 @@ typedef struct SuplaDeviceCallbacks {
 	_cb_arduino_connected svr_connected;
 	_cb_arduino_connect svr_connect;
 	_cb_arduino_stop svr_disconnect;
-	_cb_arduino_get_temperature get_temperature;
-	_cb_arduino_get_pressure get_pressure;
-	_cb_arduino_get_weight get_weight;
-	_cb_arduino_get_wind get_wind;
-	_cb_arduino_get_rain get_rain;
+	_cb_arduino_get_double get_temperature;
+	_cb_arduino_get_double get_pressure;
+	_cb_arduino_get_double get_weight;
+	_cb_arduino_get_double get_wind;
+	_cb_arduino_get_double get_rain;
 	_cb_arduino_get_temperature_and_humidity get_temperature_and_humidity;
 	_cb_arduino_get_rgbw_value get_rgbw_value;
 	_cb_arduino_set_rgbw_value set_rgbw_value;
-	_cb_arduino_get_distance get_distance;
+	_cb_arduino_get_double get_distance;
 
 }SuplaDeviceCallbacks;
 
@@ -283,14 +278,14 @@ public:
    void iterate(void);
    
    SuplaDeviceCallbacks getCallbacks(void);
-   void setTemperatureCallback(_cb_arduino_get_temperature get_temperature);
+   void setTemperatureCallback(_cb_arduino_get_double get_temperature);
    void setTemperatureHumidityCallback(_cb_arduino_get_temperature_and_humidity get_temperature_and_humidity);
    void setRGBWCallbacks(_cb_arduino_get_rgbw_value get_rgbw_value, _cb_arduino_set_rgbw_value set_rgbw_value);
-   void setDistanceCallback(_cb_arduino_get_distance get_distance);
-   void setPressureCallback(_cb_arduino_get_pressure get_pressure);
-   void setWeightCallback(_cb_arduino_get_weight get_weight);
-   void setWindCallback(_cb_arduino_get_wind get_wind);
-   void setRainCallback(_cb_arduino_get_rain get_rain);
+   void setDistanceCallback(_cb_arduino_get_double get_distance);
+   void setPressureCallback(_cb_arduino_get_double get_pressure);
+   void setWeightCallback(_cb_arduino_get_double get_weight);
+   void setWindCallback(_cb_arduino_get_double get_wind);
+   void setRainCallback(_cb_arduino_get_double get_rain);
    void setRollerShutterFuncImpl(_impl_rs_save_position impl_save_position,
                                    _impl_rs_load_position impl_load_position,
                                    _impl_rs_save_settings impl_save_settings,
