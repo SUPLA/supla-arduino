@@ -81,6 +81,10 @@
 		      cb.svr_connect = &supla_arduino_svr_connect;
 		      cb.svr_disconnect = &supla_arduino_svr_disconnect;
 		      cb.get_temperature = NULL;
+		      cb.get_pressure = NULL;
+		      cb.get_weight = NULL;
+		      cb.get_wind = NULL;
+		      cb.get_rain = NULL;
 		      cb.get_temperature_and_humidity = NULL;
 		      cb.get_rgbw_value = NULL;
 		      cb.set_rgbw_value = NULL;
