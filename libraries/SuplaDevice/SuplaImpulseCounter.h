@@ -28,6 +28,7 @@ class SuplaImpulseCounter {
         static *SuplaImpulseCounter firstCounter;
 
         *SuplaImpulseCounter nextCounter;
+
         int prevPinStatus;
         int impulsePin;
         int statusLedPin;
