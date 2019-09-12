@@ -18,15 +18,65 @@
 #include <SuplaImpulseCounter.h>
 #include <EEPROM.h>
 
-SuplaImpulseCounter::SuplaImpulseCounter(int _impulsePin, int _statusLedPin) {
+SuplaImpulseCounter * SuplaImpulseCounter::firstCounter = NULL;
+
+SuplaImpulseCounter * SuplaImpulseCounter::getLastCounter() {
+    SuplaImpulseCounter *ptr = firstCounter;
+    if (ptr != NULL) {
+        for (; ptr->nextCounter; ptr = ptr->nextCounter);
+    }
+    return ptr;
+}
+
+int SuplaImpulseCounter::count() {
+    int counter = 0;
+    SuplaImpulseCounter *ptr = firstCounter;
+    if (firstCounter != NULL) {
+        counter++;
+        while (ptr->nextCounter != NULL) {
+            counter++;
+            ptr = ptr->nextCounter;
+        }
+    }
+    return counter;
+}
+
+void SuplaImpulseCounter::create(int _impulsePin, int _statusLedPin, unsigned long _debounceDelay) {
+    new SuplaImpulseCounter(_impulsePin, _statusLedPin, _debounceDelay);
+}
+
+void SuplaImpulseCounter::iterateAll() {
+    SuplaImpulseCounter *ptr = firstCounter;
+    while (ptr != NULL) {
+        ptr->iterate();
+        ptr = ptr->nextCounter;
+    }
+}
+
+SuplaImpulseCounter::SuplaImpulseCounter(int _impulsePin, int _statusLedPin, unsigned long _debounceDelay) {
+    // Init list of pointers to the first element
+    if (firstCounter == NULL) {
+        firstCounter = this;
+    }
+    // Add current instance to the last position on list
+    nextCounter = NULL;
+    SuplaImpulseCounter *ptr = getLastCounter();
+    if (ptr != this) {
+        ptr->nextCounter = this;
+    }
+
     impulsePin = _impulsePin;
     statusLedPin = _statusLedPin;
+    debounceDelay = _debounceDelay;
+    lastImpulseMillis = 0;
 
     Serial.print("Initializing SuplaImpulseCounter with: impulsePin(");
     Serial.print(impulsePin);
     Serial.print("), statusLedPin(");
     Serial.print(statusLedPin);
-    Serial.println(")");
+    Serial.print("), delay(");
+    Serial.print(debounceDelay);
+    Serial.println(" ms)");
     if (impulsePin <= 0) {
         Serial.println("SuplaImpulseCounter ERROR - incorrect impulse pin number");
         return;
@@ -57,5 +107,24 @@ void SuplaImpulseCounter::setCounter(int value) {
     counter = value;
     Serial.print("SuplaImpulseCounter - set counter to ");
     Serial.println(counter);
+}
+
+void SuplaImpulseCounter::iterate() {
+   int currentState = digitalRead(impulsePin);
+   if (prevState == LOW) {
+       if (millis() - lastImpulseMillis > 50) {
+           if (currentState == HIGH) {
+               incCounter();
+               lastImpulseMillis = millis();
+           }
+       }
+   }
+   prevState = currentState;
+
+}
+
+void SuplaImpulseCounter::incCounter() {
+    counter++;
+    debug();
 }
 
