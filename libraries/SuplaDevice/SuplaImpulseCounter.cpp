@@ -41,8 +41,8 @@ int SuplaImpulseCounter::count() {
     return counter;
 }
 
-void SuplaImpulseCounter::create(int _impulsePin, int _statusLedPin, unsigned long _debounceDelay) {
-    new SuplaImpulseCounter(_impulsePin, _statusLedPin, _debounceDelay);
+void SuplaImpulseCounter::create(int _channelNumber, int _impulsePin, int _statusLedPin, bool _detectLowToHigh, bool _inputPullup, unsigned long _debounceDelay) {
+    new SuplaImpulseCounter(_channelNumber, _impulsePin, _statusLedPin, _detectLowToHigh, _inputPullup, _debounceDelay);
 }
 
 void SuplaImpulseCounter::iterateAll() {
@@ -53,7 +53,20 @@ void SuplaImpulseCounter::iterateAll() {
     }
 }
 
-SuplaImpulseCounter::SuplaImpulseCounter(int _impulsePin, int _statusLedPin, unsigned long _debounceDelay) {
+
+_supla_int64_t SuplaImpulseCounter::getCounterValue(int _channel) {
+    _supla_int64_t result = 0;
+    SuplaImpulseCounter *ptr = firstCounter;
+    while (ptr != NULL) {
+        if (ptr->getChannelNumber() == _channel) {
+            result = ptr->counter;
+            break;
+        }
+    }
+    return result;
+}
+
+SuplaImpulseCounter::SuplaImpulseCounter(int _channelNumber, int _impulsePin, int _statusLedPin, bool _detectLowToHigh, bool _inputPullup, unsigned long _debounceDelay) {
     // Init list of pointers to the first element
     if (firstCounter == NULL) {
         firstCounter = this;
@@ -65,10 +78,13 @@ SuplaImpulseCounter::SuplaImpulseCounter(int _impulsePin, int _statusLedPin, uns
         ptr->nextCounter = this;
     }
 
+    channelNumber = _channelNumber;
     impulsePin = _impulsePin;
     statusLedPin = _statusLedPin;
     debounceDelay = _debounceDelay;
+    detectLowToHigh = _detectLowToHigh;
     lastImpulseMillis = 0;
+    prevState = HIGH;
 
     Serial.print("Initializing SuplaImpulseCounter with: impulsePin(");
     Serial.print(impulsePin);
@@ -82,7 +98,11 @@ SuplaImpulseCounter::SuplaImpulseCounter(int _impulsePin, int _statusLedPin, uns
         return;
     } 
 
-    pinMode(impulsePin, INPUT_PULLUP);
+    if (_inputPullup) {
+        pinMode(impulsePin, INPUT_PULLUP);
+    } else {
+        pinMode(impulsePin, INPUT);
+    }
 
     if (statusLedPin <= 0) {
         Serial.println("SuplaImpulseCounter - status LED disabled");
@@ -96,24 +116,26 @@ SuplaImpulseCounter::SuplaImpulseCounter(int _impulsePin, int _statusLedPin, uns
 }
 
 void SuplaImpulseCounter::debug() {
-    Serial.print("SuplaImpulseCounter - impulsePin(");
+    Serial.print("SuplaImpulseCounter - channel(");
+    Serial.print(channelNumber);
+    Serial.print("), impulsePin(");
     Serial.print(impulsePin);
     Serial.print("), counter(");
-    Serial.print(counter);
+    Serial.print(static_cast<int>(counter));
     Serial.println(")");
 }
 
-void SuplaImpulseCounter::setCounter(int value) {
+void SuplaImpulseCounter::setCounter(_supla_int64_t value) {
     counter = value;
     Serial.print("SuplaImpulseCounter - set counter to ");
-    Serial.println(counter);
+    Serial.println(static_cast<int>(counter));
 }
 
 void SuplaImpulseCounter::iterate() {
    int currentState = digitalRead(impulsePin);
-   if (prevState == LOW) {
-       if (millis() - lastImpulseMillis > 50) {
-           if (currentState == HIGH) {
+   if (prevState == (detectLowToHigh == true ? LOW : HIGH)) {
+       if (millis() - lastImpulseMillis > debounceDelay) {
+           if (currentState == (detectLowToHigh == true ? HIGH : LOW)) {
                incCounter();
                lastImpulseMillis = millis();
            }
@@ -128,3 +150,6 @@ void SuplaImpulseCounter::incCounter() {
     debug();
 }
 
+int SuplaImpulseCounter::getChannelNumber() {
+    return channelNumber;
+}
