@@ -21,13 +21,40 @@
 
 class SuplaImpulseCounter {
     public:
+        // Returns how many impulse counters are used
         static int count();
+        
+        // Creates impulse counter (it is called automatically from SuplaDevice - no need to use it manually)
         static void create(int _channelNumber, int _impulsePin, int _statusLedPin = 0, bool _detectLowToHigh = false, bool inputPullup = true, unsigned long _debounceDelay = 10);
+        
+        // Iterates all impulse counters to check if there is new impulse to count (used by SuplaDevice timer)
         static void iterateAll();
-        static _supla_int64_t getCounterValue(int _channel);  // returns value of counter for a given Supla channel number
+        
+        // Returns value of a counter at given Supla channel
+        static _supla_int64_t getCounterValue(int _channel);
+        
+        // use to clear internal EEPROM storage value (i.e. to reset counters to 0);
+        static void clearStorage(); 
 
+        // method used internally to store counters to EEPROM memory. You can call it in your program to save current values of counters
+        // i.e. to initialize counters with a given values
+        static void writeToStorage(); 
+
+        // Load counter values from EEPROM memory
+        static void loadStorage();
+
+        // Updates counters to EEPROM memory every 2 minutes
+        static void updateStorageOccasionally();
+
+        // Print debug value of impulse counter
         void debug();
+
+        // Retuns Supla channel number for current impulse counter
         int getChannelNumber();
+
+        // Set counter to a given value
+        void setCounter(_supla_int64_t value);
+
 
     protected:
         SuplaImpulseCounter(int _channelNumber, int _impulsePin, int _statusLedPin = 0, bool _detectLowToHigh = false, bool inputPullup = true, unsigned long _debounceDelay = 10);
@@ -54,9 +81,6 @@ class SuplaImpulseCounter {
 
         // Method check current status of an impulse pin and updates counter
         void iterate();
-
-        // Set counter to a given value
-        void setCounter(_supla_int64_t value);
 
         // Increment the counter by 1
         void incCounter();
