@@ -23,6 +23,10 @@
 
 #include <WinSock2.h>
 #define _supla_int_t int
+#define _supla_int16_t short
+#define _supla_int64_t __int64
+#define _supla_timeval timeval
+
 
 #elif defined(__AVR__)
 
@@ -38,7 +42,9 @@ struct timeval {
   suseconds_t tv_usec[2];
 };
 #endif
+#define _supla_int16_t int
 #define _supla_int_t long
+#define _supla_int64_t long long
 
 #else
 #include <sys/time.h>
@@ -220,6 +226,8 @@ extern "C" {
 #define SUPLA_CHANNELTYPE_DIMMER 4000            // ver. >= 4
 #define SUPLA_CHANNELTYPE_RGBLEDCONTROLLER 4010  // ver. >= 4
 #define SUPLA_CHANNELTYPE_DIMMERANDRGBLED 4020   // ver. >= 4
+
+#define SUPLA_CHANNELTYPE_IMPULSE_COUNTER 5010    // ver. >= 10
 
 #define SUPLA_CHANNELDRIVER_MCP23008 2
 

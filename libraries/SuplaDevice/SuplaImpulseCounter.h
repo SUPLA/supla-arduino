@@ -17,27 +17,73 @@
 #ifndef _supla_impulse_counter_h_
 #define _supla_impulse_counter_h_
 
+#include <proto.h>
+
 class SuplaImpulseCounter {
     public:
-        SuplaImpulseCounter(int _impulsePin, int _statusLedPin = 0);
+        // Returns how many impulse counters are used
+        static int count();
+        
+        // Creates impulse counter (it is called automatically from SuplaDevice - no need to use it manually)
+        static void create(int _channelNumber, int _impulsePin, int _statusLedPin = 0, bool _detectLowToHigh = false, bool inputPullup = true, unsigned long _debounceDelay = 10);
+        
+        // Iterates all impulse counters to check if there is new impulse to count (used by SuplaDevice timer)
+        static void iterateAll();
+        
+        // Returns value of a counter at given Supla channel
+        static _supla_int64_t getCounterValue(int _channel);
+        
+        // use to clear internal EEPROM storage value (i.e. to reset counters to 0);
+        static void clearStorage(); 
 
+        // method used internally to store counters to EEPROM memory. You can call it in your program to save current values of counters
+        // i.e. to initialize counters with a given values
+        static void writeToStorage(); 
+
+        // Load counter values from EEPROM memory
+        static void loadStorage();
+
+        // Updates counters to EEPROM memory every 2 minutes
+        static void updateStorageOccasionally();
+
+        // Print debug value of impulse counter
         void debug();
 
+        // Retuns Supla channel number for current impulse counter
+        int getChannelNumber();
+
+        // Set counter to a given value
+        void setCounter(_supla_int64_t value);
+
+
     protected:
+        SuplaImpulseCounter(int _channelNumber, int _impulsePin, int _statusLedPin = 0, bool _detectLowToHigh = false, bool inputPullup = true, unsigned long _debounceDelay = 10);
         static int instanceCounter; // Stores how many instances of counters were created. It is used in EEPROM functions to read/write memory
-        static *SuplaImpulseCounter firstCounter;
 
-        *SuplaImpulseCounter nextCounter;
+        // Pointer to first counter
+        static SuplaImpulseCounter *firstCounter;
 
-        int prevPinStatus;
-        int impulsePin;
-        int statusLedPin;
+        // Returns pointer to last counter
+        static SuplaImpulseCounter * getLastCounter();
 
-        int counter; 
+        // Pointer to next counter
+        SuplaImpulseCounter *nextCounter;
 
+        int channelNumber;  // Supla Channel number
+        int prevState; // Store previous state of pin (LOW/HIGH). It is used to track changes on pin state.
+        int impulsePin;   // Pin where impulses are counted
+        int statusLedPin; // Pin used to connect additional LED to visually verify if impulses are counted correctly (value 0 can be used to not configure this pin)
+        unsigned long lastImpulseMillis; // Stores timestamp of last impulse (used to ignore changes of state during 10 ms timeframe)
+        unsigned long debounceDelay;
+        bool detectLowToHigh; // defines if we count raining (LOW to HIGH) or falling (HIGH to LOW) edge
+
+        _supla_int64_t counter;      // Actual count of impulses
+
+        // Method check current status of an impulse pin and updates counter
         void iterate();
 
-        void setCounter(int value);
+        // Increment the counter by 1
+        void incCounter();
         
 };
 

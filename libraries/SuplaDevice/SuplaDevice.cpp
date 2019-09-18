@@ -21,6 +21,7 @@
 #include "SuplaDevice.h"
 #include "srpc.h"
 #include "log.h"
+#include "SuplaImpulseCounter.h"
 
 #define RS_STOP_DELAY   500
 #define RS_START_DELAY  1000
@@ -306,7 +307,7 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
 	
 	srpc = srpc_init(&srpc_params);
 	
-    if ( rs_count > 0 || impl_arduino_timer ) {
+    if ( rs_count > 0 ) {
         
         for(int a=0;a<rs_count;a++) {
             rs_load_settings(&roller_shutter[a]);
@@ -315,27 +316,34 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
             Params.reg_dev.channels[roller_shutter[a].channel_number].value[0] = (roller_shutter[a].position-100)/100;
         }
         
-        #ifdef ARDUINO_ARCH_ESP8266
-                os_timer_disarm(&esp_timer);
-                os_timer_setfn(&esp_timer, (os_timer_func_t *)esp_timer_cb, NULL);
-                os_timer_arm(&esp_timer, 10, 1);
-        #else
-                cli(); // disable interrupts
-                TCCR1A = 0;// set entire TCCR1A register to 0
-                TCCR1B = 0;// same for TCCR1B
-                TCNT1  = 0;//initialize counter value to 0
-                // set compare match register for 1hz increments
-                OCR1A = 155;// (16*10^6) / (100*1024) - 1 (must be <65536) == 155.25
-                // turn on CTC mode
-                TCCR1B |= (1 << WGM12);
-                // Set CS12 and CS10 bits for 1024 prescaler
-                TCCR1B |= (1 << CS12) | (1 << CS10);
-                // enable timer compare interrupt
-                TIMSK1 |= (1 << OCIE1A);
-                sei(); // enable interrupts
-        #endif
     }
+
+    // Load counters values from EEPROM storage
+    SuplaImpulseCounter::loadStorage();
     
+    // Enable timer if there are Roller Shutters defined, or custom call back to impl_arduino_timer or there are Impulse Counters 
+    if (rs_count > 0 || impl_arduino_timer || SuplaImpulseCounter::count() > 0) {
+#ifdef ARDUINO_ARCH_ESP8266
+        os_timer_disarm(&esp_timer);
+        os_timer_setfn(&esp_timer, (os_timer_func_t *)esp_timer_cb, NULL);
+        os_timer_arm(&esp_timer, 10, 1);
+#else
+        cli(); // disable interrupts
+        TCCR1A = 0;// set entire TCCR1A register to 0
+        TCCR1B = 0;// same for TCCR1B
+        TCNT1  = 0;//initialize counter value to 0
+        // set compare match register for 1hz increments
+        OCR1A = 155;// (16*10^6) / (100*1024) - 1 (must be <65536) == 155.25
+        // turn on CTC mode
+        TCCR1B |= (1 << WGM12);
+        // Set CS12 and CS10 bits for 1024 prescaler
+        TCCR1B |= (1 << CS12) | (1 << CS10);
+        // enable timer compare interrupt
+        TIMSK1 |= (1 << OCIE1A);
+        sei(); // enable interrupts
+#endif
+    }
+
     for(a=0;a<Params.reg_dev.channel_count;a++) {
         begin_thermometer(&channel_pin[a], &Params.reg_dev.channels[a], a);
     }
@@ -355,36 +363,36 @@ void SuplaDeviceClass::begin_thermometer(SuplaChannelPin *pin, TDS_SuplaDeviceCh
     if ( channel->Type == SUPLA_CHANNELTYPE_THERMOMETERDS18B20
         && Params.cb.get_temperature != NULL ) {
         
-        pin->last_val_dbl1 = Params.cb.get_temperature(channel_number, pin->last_val_dbl1);
-        channelSetDoubleValue(channel_number, pin->last_val_dbl1);
+        pin->last_val_dbl = Params.cb.get_temperature(channel_number, pin->last_val_dbl);
+        channelSetDoubleValue(channel_number, pin->last_val_dbl);
 
     } else if ( channel->Type == SUPLA_CHANNELTYPE_PRESSURESENSOR && Params.cb.get_pressure != NULL ){
 
-        pin->last_val_dbl1 = Params.cb.get_pressure(channel_number, pin->last_val_dbl1);
-        channelSetDoubleValue(channel_number, pin->last_val_dbl1);
+        pin->last_val_dbl = Params.cb.get_pressure(channel_number, pin->last_val_dbl);
+        channelSetDoubleValue(channel_number, pin->last_val_dbl);
 
 	} else if ( channel->Type == SUPLA_CHANNELTYPE_WEIGHTSENSOR && Params.cb.get_weight != NULL ){
 
-        pin->last_val_dbl1 = Params.cb.get_weight(channel_number, pin->last_val_dbl1);
-        channelSetDoubleValue(channel_number, pin->last_val_dbl1);
+        pin->last_val_dbl = Params.cb.get_weight(channel_number, pin->last_val_dbl);
+        channelSetDoubleValue(channel_number, pin->last_val_dbl);
 		
 	} else if ( channel->Type == SUPLA_CHANNELTYPE_WINDSENSOR && Params.cb.get_wind != NULL ){
 
-        pin->last_val_dbl1 = Params.cb.get_wind(channel_number, pin->last_val_dbl1);
-        channelSetDoubleValue(channel_number, pin->last_val_dbl1);
+        pin->last_val_dbl = Params.cb.get_wind(channel_number, pin->last_val_dbl);
+        channelSetDoubleValue(channel_number, pin->last_val_dbl);
 	
 	} else if ( channel->Type == SUPLA_CHANNELTYPE_RAINSENSOR && Params.cb.get_rain != NULL ){
 
-        pin->last_val_dbl1 = Params.cb.get_rain(channel_number, pin->last_val_dbl1);
-        channelSetDoubleValue(channel_number, pin->last_val_dbl1);
+        pin->last_val_dbl = Params.cb.get_rain(channel_number, pin->last_val_dbl);
+        channelSetDoubleValue(channel_number, pin->last_val_dbl);
 			
     } else if ( ( channel->Type == SUPLA_CHANNELTYPE_DHT11
                  || channel->Type == SUPLA_CHANNELTYPE_DHT22
                  || channel->Type == SUPLA_CHANNELTYPE_AM2302 )
                && Params.cb.get_temperature_and_humidity != NULL ) {
 
-        Params.cb.get_temperature_and_humidity(channel_number, &pin->last_val_dbl1, &pin->last_val_dbl2);
-        channelSetTempAndHumidityValue(channel_number, pin->last_val_dbl1, pin->last_val_dbl2);
+        Params.cb.get_temperature_and_humidity(channel_number, &pin->last_val_dbl_array[0], &pin->last_val_dbl_array[1]);
+        channelSetTempAndHumidityValue(channel_number, pin->last_val_dbl_array[0], pin->last_val_dbl_array[1]);
     }
     
 };
@@ -581,9 +589,9 @@ bool SuplaDeviceClass::addDS18B20Thermometer(void) {
 	if ( c == -1 ) return false; 
 	
 	Params.reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_THERMOMETERDS18B20;
-	channel_pin[c].last_val_dbl1 = -275;
+	channel_pin[c].last_val_dbl = -275;
     
-	channelSetDoubleValue(c, channel_pin[c].last_val_dbl1);
+	channelSetDoubleValue(c, channel_pin[c].last_val_dbl);
 
 }
 
@@ -593,10 +601,10 @@ bool SuplaDeviceClass::addDHT(int Type) {
 	if ( c == -1 ) return false; 
 	
 	Params.reg_dev.channels[c].Type = Type;
-	channel_pin[c].last_val_dbl1 = -275;	
-	channel_pin[c].last_val_dbl2 = -1;	
+	channel_pin[c].last_val_dbl_array[0] = -275;	
+	channel_pin[c].last_val_dbl_array[0] = -1;	
 	
-	channelSetTempAndHumidityValue(c, channel_pin[c].last_val_dbl1, channel_pin[c].last_val_dbl2);
+	channelSetTempAndHumidityValue(c, channel_pin[c].last_val_dbl_array[0], channel_pin[c].last_val_dbl_array[1]);
 	
 }
 
@@ -649,8 +657,8 @@ bool SuplaDeviceClass::addDistanceSensor(void) {
     if ( c == -1 ) return false;
     
     Params.reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_DISTANCESENSOR;
-    channel_pin[c].last_val_dbl1 = -1;
-    channelSetDoubleValue(c, channel_pin[c].last_val_dbl1);
+    channel_pin[c].last_val_dbl = -1;
+    channelSetDoubleValue(c, channel_pin[c].last_val_dbl);
     
 }
 
@@ -660,8 +668,8 @@ bool SuplaDeviceClass::addPressureSensor(void) {
     if ( c == -1 ) return false; 
 	
     Params.reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_PRESSURESENSOR;
-    channel_pin[c].last_val_dbl1 = -1;
-    channelSetDoubleValue(c, channel_pin[c].last_val_dbl1);
+    channel_pin[c].last_val_dbl = -1;
+    channelSetDoubleValue(c, channel_pin[c].last_val_dbl);
     
 }
 
@@ -671,8 +679,8 @@ bool SuplaDeviceClass::addWeightSensor(void) {
     if ( c == -1 ) return false; 
 	
     Params.reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_WEIGHTSENSOR;
-    channel_pin[c].last_val_dbl1 = -1;
-    channelSetDoubleValue(c, channel_pin[c].last_val_dbl1);
+    channel_pin[c].last_val_dbl = -1;
+    channelSetDoubleValue(c, channel_pin[c].last_val_dbl);
     
 }
 
@@ -682,8 +690,8 @@ bool SuplaDeviceClass::addWindSensor(void) {
     if ( c == -1 ) return false; 
 	
     Params.reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_WINDSENSOR;
-    channel_pin[c].last_val_dbl1 = -1;
-    channelSetDoubleValue(c, channel_pin[c].last_val_dbl1);
+    channel_pin[c].last_val_dbl = -1;
+    channelSetDoubleValue(c, channel_pin[c].last_val_dbl);
     
 }
 
@@ -693,8 +701,8 @@ bool SuplaDeviceClass::addRainSensor(void) {
     if ( c == -1 ) return false; 
 	
     Params.reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_RAINSENSOR;
-    channel_pin[c].last_val_dbl1 = -1;
-    channelSetDoubleValue(c, channel_pin[c].last_val_dbl1);
+    channel_pin[c].last_val_dbl = -1;
+    channelSetDoubleValue(c, channel_pin[c].last_val_dbl);
     
 }
 
@@ -843,11 +851,11 @@ void SuplaDeviceClass::iterate_sensor(SuplaChannelPin *pin, TDS_SuplaDeviceChann
                 
                 pin->time_left = 1000;
                 
-                double val = Params.cb.get_distance(channel_number, pin->last_val_dbl1);
+                double val = Params.cb.get_distance(channel_number, pin->last_val_dbl);
                 
-                if ( val != pin->last_val_dbl1 ) {
+                if ( val != pin->last_val_dbl ) {
                     
-                    pin->last_val_dbl1 = val;
+                    pin->last_val_dbl = val;
                     channelDoubleValueChanged(channel_number, val);
                 }
                 
@@ -868,10 +876,10 @@ void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDevice
         if ( pin->time_left <= 0 ) {
             
             pin->time_left = 10000;
-            double val = Params.cb.get_temperature(channel_number, pin->last_val_dbl1);
+            double val = Params.cb.get_temperature(channel_number, pin->last_val_dbl);
             
-            if ( val != pin->last_val_dbl1 ) {
-                pin->last_val_dbl1 = val;
+            if ( val != pin->last_val_dbl ) {
+                pin->last_val_dbl = val;
                 channelDoubleValueChanged(channel_number, val);
             }
             
@@ -881,10 +889,10 @@ void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDevice
 		if ( pin->time_left <= 0 ) {
 
 					pin->time_left = 10000;
-					double val = Params.cb.get_pressure(channel_number, pin->last_val_dbl1);
+					double val = Params.cb.get_pressure(channel_number, pin->last_val_dbl);
 
-					if ( val != pin->last_val_dbl1 ) {
-						pin->last_val_dbl1 = val;
+					if ( val != pin->last_val_dbl ) {
+						pin->last_val_dbl = val;
 						channelDoubleValueChanged(channel_number, val);
 					}
 				}
@@ -894,10 +902,10 @@ void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDevice
 		if ( pin->time_left <= 0 ) {
 
 					pin->time_left = 10000;
-					double val = Params.cb.get_weight(channel_number, pin->last_val_dbl1);
+					double val = Params.cb.get_weight(channel_number, pin->last_val_dbl);
 
-					if ( val != pin->last_val_dbl1 ) {
-						pin->last_val_dbl1 = val;
+					if ( val != pin->last_val_dbl ) {
+						pin->last_val_dbl = val;
 						channelDoubleValueChanged(channel_number, val);
 					}
 				}
@@ -907,10 +915,10 @@ void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDevice
 		if ( pin->time_left <= 0 ) {
 
 					pin->time_left = 10000;
-					double val = Params.cb.get_wind(channel_number, pin->last_val_dbl1);
+					double val = Params.cb.get_wind(channel_number, pin->last_val_dbl);
 
-					if ( val != pin->last_val_dbl1 ) {
-						pin->last_val_dbl1 = val;
+					if ( val != pin->last_val_dbl ) {
+						pin->last_val_dbl = val;
 						channelDoubleValueChanged(channel_number, val);
 					}
 				}
@@ -920,10 +928,10 @@ void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDevice
 		if ( pin->time_left <= 0 ) {
 
 					pin->time_left = 10000;
-					double val = Params.cb.get_rain(channel_number, pin->last_val_dbl1);
+					double val = Params.cb.get_rain(channel_number, pin->last_val_dbl);
 
-					if ( val != pin->last_val_dbl1 ) {
-						pin->last_val_dbl1 = val;
+					if ( val != pin->last_val_dbl ) {
+						pin->last_val_dbl = val;
 						channelDoubleValueChanged(channel_number, val);
 					}
 				}
@@ -938,16 +946,16 @@ void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDevice
             
             pin->time_left = 10000;
             
-            double t = pin->last_val_dbl1;
-            double h = pin->last_val_dbl2;
+            double t;
+            double h;
             
             Params.cb.get_temperature_and_humidity(channel_number, &t, &h);
             
-            if ( t != pin->last_val_dbl1
-                || h != pin->last_val_dbl2 ) {
+            if ( t != pin->last_val_dbl_array[0]
+                || h != pin->last_val_dbl_array[1] ) {
                 
-                pin->last_val_dbl1 = t;
-                pin->last_val_dbl2 = h;
+                pin->last_val_dbl_array[0] = t;
+                pin->last_val_dbl_array[1] = h;
                 
                 channelSetTempAndHumidityValue(channel_number, t, h);
                 srpc_ds_async_channel_value_changed(srpc, channel_number, channel->value);
@@ -957,6 +965,15 @@ void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDevice
     }
     
 };
+
+void SuplaDeviceClass::iterate_impulse_counter(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_number) {
+    if (channel->Type == SUPLA_CHANNELTYPE_IMPULSE_COUNTER && pin->time_left <= 0) {
+        pin->time_left = 5000;
+        _supla_int64_t value = SuplaImpulseCounter::getCounterValue(channel_number);
+        memcpy(channel->value, &value, 8);
+        srpc_ds_async_channel_value_changed(srpc, channel_number, channel->value);
+    }
+}
 
 void SuplaDeviceClass::rs_save_position(SuplaDeviceRollerShutter *rs) {
     if ( impl_rs_save_position ) {
@@ -1354,15 +1371,23 @@ void SuplaDeviceClass::onTimer(void) {
     for(int a=0;a<rs_count;a++) {
         iterate_rollershutter(&roller_shutter[a], &channel_pin[roller_shutter[a].channel_number], &Params.reg_dev.channels[roller_shutter[a].channel_number]);
     }
+    // Iteration over all impulse counters will count incomming impulses. It is after SuplaDevice initialization (because we have to read
+    // stored counter values) and before any other operation like connection to Supla cloud (because we want to count impulses even when
+    // we have connection issues.
+    SuplaImpulseCounter::iterateAll();
+
     
 }
 
 void SuplaDeviceClass::iterate(void) {
 	
-    int a;
+	if ( !isInitialized(false) ) return;
+
     unsigned long _millis = millis();
     unsigned long time_diff = abs(_millis - last_iterate_time);
     
+    SuplaImpulseCounter::updateStorageOccasionally();
+
     if ( wait_for_iterate != 0
          && _millis < wait_for_iterate ) {
     
@@ -1372,8 +1397,6 @@ void SuplaDeviceClass::iterate(void) {
         wait_for_iterate = 0;
     }
     
-	if ( !isInitialized(false) ) return;
-	
 	if ( !Params.cb.svr_connected() ) {
 		
 		status(STATUS_DISCONNECTED, "Not connected");
@@ -1416,11 +1439,11 @@ void SuplaDeviceClass::iterate(void) {
         
         if ( time_diff > 0 ) {
             
-            for(a=0;a<Params.reg_dev.channel_count;a++) {
-                
+            for(int a = 0; a < Params.reg_dev.channel_count; a++) {
                 iterate_relay(&channel_pin[a], &Params.reg_dev.channels[a], time_diff, a);
                 iterate_sensor(&channel_pin[a], &Params.reg_dev.channels[a], time_diff, a);
                 iterate_thermometer(&channel_pin[a], &Params.reg_dev.channels[a], time_diff, a);
+                iterate_impulse_counter(&channel_pin[a], &Params.reg_dev.channels[a], time_diff, a);
                 
             }
             
@@ -1769,6 +1792,18 @@ bool SuplaDeviceClass::rollerShutterMotorIsOn(int channel_number) {
                 || suplaDigitalRead_isHI(channel_number, channel_pin[channel_number].pin2) );
 }
 
+bool SuplaDeviceClass::addImpulseCounter(int impulsePin, int statusLedPin, bool detectLowToHigh, bool inputPullup, unsigned long debounceDelay) {
+	int c = addChannel(0, 0, false, false);
+	if ( c == -1 ) return false; 
+	
+	Params.reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_IMPULSE_COUNTER;
+	channel_pin[c].last_val_int64 = 0;
+    
+    // Init channel value with "0"
+	memcpy(Params.reg_dev.channels[c].value, &channel_pin[c].last_val_int64, 8);
+
+    SuplaImpulseCounter::create(c, impulsePin, statusLedPin, detectLowToHigh, inputPullup, debounceDelay);
+}
 
 
 SuplaDeviceClass SuplaDevice;
