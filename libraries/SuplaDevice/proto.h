@@ -66,7 +66,7 @@ extern "C" {
 #define SUPLA_PROTO_VERSION_MIN 1
 #define SUPLA_TAG_SIZE 5
 #if defined(__AVR__)
-#define SUPLA_MAX_DATA_SIZE 1024
+#define SUPLA_MAX_DATA_SIZE 600
 #define SUPLA_CHANNELGROUP_RELATION_PACK_MAXCOUNT 25
 #elif defined(ESP8266)
 #define SUPLA_MAX_DATA_SIZE 1536
@@ -189,7 +189,7 @@ extern "C" {
 
 #ifdef __AVR__
 #ifdef __AVR_ATmega2560__
-#define SUPLA_CHANNELMAXCOUNT 32
+#define SUPLA_CHANNELMAXCOUNT 16
 #else
 #define SUPLA_CHANNELMAXCOUNT 1
 #endif

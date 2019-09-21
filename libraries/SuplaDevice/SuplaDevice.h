@@ -48,7 +48,6 @@ typedef bool (*_cb_arduino_connect)(const char *server, _supla_int_t port);
 typedef bool (*_cb_arduino_connected)(void);
 typedef void (*_cb_arduino_stop)(void);
 typedef double (*_cb_arduino_get_double)(int channelNumber, double current_value);
-typedef void (*_cb_arduino_get_temperature_and_humidity)(int channelNumber, double *temp, double *humidity);
 typedef void (*_cb_arduino_get_rgbw_value)(int channelNumber, unsigned char *red, unsigned char *green, unsigned char *blue, unsigned char *color_brightness, unsigned char *brightness);
 typedef void (*_cb_arduino_set_rgbw_value)(int channelNumber, unsigned char red, unsigned char green, unsigned char blue, unsigned char color_brightness, unsigned char brightness);
 typedef int (*_impl_arduino_digitalRead)(int channelNumber, uint8_t pin);
@@ -75,7 +74,6 @@ typedef struct SuplaDeviceCallbacks {
 	_cb_arduino_get_double get_weight;
 	_cb_arduino_get_double get_wind;
 	_cb_arduino_get_double get_rain;
-	_cb_arduino_get_temperature_and_humidity get_temperature_and_humidity;
 	_cb_arduino_get_rgbw_value get_rgbw_value;
 	_cb_arduino_set_rgbw_value set_rgbw_value;
 	_cb_arduino_get_double get_distance;
@@ -93,7 +91,7 @@ typedef struct SuplaDeviceParams {
 	
 }SuplaDeviceParams;
 
-typedef struct SuplaChannelPin {
+struct SuplaChannelPin {
 	int pin1;
 	int pin2;
 	bool hiIsLo;
@@ -111,7 +109,7 @@ typedef struct SuplaChannelPin {
 	};
 };
 
-typedef struct SuplaDeviceRollerShutterTask {
+struct SuplaDeviceRollerShutterTask {
     
     byte percent;
     byte direction;
@@ -119,7 +117,7 @@ typedef struct SuplaDeviceRollerShutterTask {
     
 };
 
-typedef struct SuplaDeviceRollerShutterCVR {
+struct SuplaDeviceRollerShutterCVR {
     
     byte active;
     byte value;
@@ -133,7 +131,7 @@ typedef struct {
     unsigned long time;
 }SuplaDeviceRollerShutterButton;
 
-typedef struct SuplaDeviceRollerShutter {
+struct SuplaDeviceRollerShutter {
     
     SuplaDeviceRollerShutterButton btnUp;
     SuplaDeviceRollerShutterButton btnDown;
@@ -172,7 +170,7 @@ protected:
 	void channelSetValue(int channel, char value, _supla_int_t DurationMS);
 	void channelSetDoubleValue(int channelNum, double value);
 	void setDoubleValue(char value[SUPLA_CHANNELVALUE_SIZE], double v);
-	bool addDHT(int Type);
+    bool addDHT(int pin, int type, int dhtType); 
 	void channelSetTempAndHumidityValue(int channelNum, double temp, double humidity);
 	void setRGBWvalue(int channelNum, char value[SUPLA_CHANNELVALUE_SIZE]);
 	void channelSetRGBWvalue(int channel, char value[SUPLA_CHANNELVALUE_SIZE]);
@@ -256,9 +254,9 @@ public:
    bool addSensorNO(int sensorPin, bool pullUp);
    bool addSensorNO(int sensorPin);
    bool addDS18B20Thermometer(void);
-   bool addDHT11(void);
-   bool addDHT22(void);
-   bool addAM2302(void);
+   bool addDHT11(int pin);
+   bool addDHT22(int pin);
+   bool addAM2302(int pin);
    bool addRgbControllerAndDimmer(void);
    bool addRgbController(void);
    bool addDimmer(void);
@@ -286,7 +284,6 @@ public:
    
    SuplaDeviceCallbacks getCallbacks(void);
    void setTemperatureCallback(_cb_arduino_get_double get_temperature);
-   void setTemperatureHumidityCallback(_cb_arduino_get_temperature_and_humidity get_temperature_and_humidity);
    void setRGBWCallbacks(_cb_arduino_get_rgbw_value get_rgbw_value, _cb_arduino_set_rgbw_value set_rgbw_value);
    void setDistanceCallback(_cb_arduino_get_double get_distance);
    void setPressureCallback(_cb_arduino_get_double get_pressure);

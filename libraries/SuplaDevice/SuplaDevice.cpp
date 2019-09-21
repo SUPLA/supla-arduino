@@ -22,6 +22,7 @@
 #include "srpc.h"
 #include "log.h"
 #include "SuplaImpulseCounter.h"
+#include "driver_dht.h"
 
 #define RS_STOP_DELAY   500
 #define RS_START_DELAY  1000
@@ -386,13 +387,15 @@ void SuplaDeviceClass::begin_thermometer(SuplaChannelPin *pin, TDS_SuplaDeviceCh
         pin->last_val_dbl = Params.cb.get_rain(channel_number, pin->last_val_dbl);
         channelSetDoubleValue(channel_number, pin->last_val_dbl);
 			
-    } else if ( ( channel->Type == SUPLA_CHANNELTYPE_DHT11
+    } else if ( channel->Type == SUPLA_CHANNELTYPE_DHT11
                  || channel->Type == SUPLA_CHANNELTYPE_DHT22
-                 || channel->Type == SUPLA_CHANNELTYPE_AM2302 )
-               && Params.cb.get_temperature_and_humidity != NULL ) {
+                 || channel->Type == SUPLA_CHANNELTYPE_AM2302 ) {
 
-        Params.cb.get_temperature_and_humidity(channel_number, &pin->last_val_dbl_array[0], &pin->last_val_dbl_array[1]);
-        channelSetTempAndHumidityValue(channel_number, pin->last_val_dbl_array[0], pin->last_val_dbl_array[1]);
+        DriverDHT * dht = DriverDHT::getDhtByChannel(channel_number);
+        if (dht) {
+            dht->update();
+            channelSetTempAndHumidityValue(channel_number, dht->getTemp(), dht->getHumi());
+        }
     }
     
 };
@@ -422,7 +425,7 @@ int SuplaDeviceClass::addChannel(int pin1, int pin2, bool hiIsLo, bool bistable)
 	channel_pin[Params.reg_dev.channel_count].pin2 = pin2; 
 	channel_pin[Params.reg_dev.channel_count].hiIsLo = hiIsLo;
 	channel_pin[Params.reg_dev.channel_count].bistable = bistable;
-	channel_pin[Params.reg_dev.channel_count].time_left = 0;
+	channel_pin[Params.reg_dev.channel_count].time_left = 100*Params.reg_dev.channel_count;
 	channel_pin[Params.reg_dev.channel_count].vc_time = 0;
 	channel_pin[Params.reg_dev.channel_count].bi_time_left = 0;
 	channel_pin[Params.reg_dev.channel_count].last_val = suplaDigitalRead(Params.reg_dev.channel_count, bistable ? pin2 : pin1);
@@ -553,7 +556,6 @@ void SuplaDeviceClass::channelSetDoubleValue(int channelNum, double value) {
 }
 
 void SuplaDeviceClass::channelSetTempAndHumidityValue(int channelNum, double temp, double humidity) {
-	
 	long t = temp*1000.00;
 	long h = humidity*1000.00;
 	
@@ -595,29 +597,26 @@ bool SuplaDeviceClass::addDS18B20Thermometer(void) {
 
 }
 
-bool SuplaDeviceClass::addDHT(int Type) {
+bool SuplaDeviceClass::addDHT(int pin, int type, int dhtType) {
 	
 	int c = addChannel(0, 0, false, false);
 	if ( c == -1 ) return false; 
 	
-	Params.reg_dev.channels[c].Type = Type;
-	channel_pin[c].last_val_dbl_array[0] = -275;	
-	channel_pin[c].last_val_dbl_array[0] = -1;	
+	Params.reg_dev.channels[c].Type = type;
 	
-	channelSetTempAndHumidityValue(c, channel_pin[c].last_val_dbl_array[0], channel_pin[c].last_val_dbl_array[1]);
-	
+    DriverDHT * dht = DriverDHT::create(c, pin, dhtType);
 }
 
-bool SuplaDeviceClass::addDHT11(void) {
-	return addDHT(SUPLA_CHANNELTYPE_DHT11);
+bool SuplaDeviceClass::addDHT11(int pin) {
+	return addDHT(pin, SUPLA_CHANNELTYPE_DHT11, 11);
 }
 
-bool SuplaDeviceClass::addDHT22(void) {
-	return addDHT(SUPLA_CHANNELTYPE_DHT22);
+bool SuplaDeviceClass::addDHT22(int pin) {
+	return addDHT(pin, SUPLA_CHANNELTYPE_DHT22, 22);
 }
 
-bool SuplaDeviceClass::addAM2302(void) {
-	return addDHT(SUPLA_CHANNELTYPE_AM2302);
+bool SuplaDeviceClass::addAM2302(int pin) {
+	return addDHT(pin, SUPLA_CHANNELTYPE_AM2302, 22);
 }
 
 bool SuplaDeviceClass::addRgbControllerAndDimmer(void) {
@@ -744,10 +743,6 @@ void SuplaDeviceClass::setWindCallback(_cb_arduino_get_double get_wind) {
 
 void SuplaDeviceClass::setRainCallback(_cb_arduino_get_double get_rain) {
     Params.cb.get_rain = get_rain;
-}
-
-void SuplaDeviceClass::setTemperatureHumidityCallback(_cb_arduino_get_temperature_and_humidity get_temperature_and_humidity) {
-	Params.cb.get_temperature_and_humidity = get_temperature_and_humidity;
 }
 
 void SuplaDeviceClass::setRGBWCallbacks(_cb_arduino_get_rgbw_value get_rgbw_value, _cb_arduino_set_rgbw_value set_rgbw_value) {
@@ -936,31 +931,26 @@ void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDevice
 					}
 				}
 	
-    } else if ( ( channel->Type == SUPLA_CHANNELTYPE_DHT11
+    } else if ( channel->Type == SUPLA_CHANNELTYPE_DHT11
                  || channel->Type == SUPLA_CHANNELTYPE_DHT22
-                 || channel->Type == SUPLA_CHANNELTYPE_AM2302 )
-               && Params.cb.get_temperature_and_humidity != NULL ) {
-        
-        
+                 || channel->Type == SUPLA_CHANNELTYPE_AM2302 ) {
         if ( pin->time_left <= 0 ) {
-            
+
             pin->time_left = 10000;
-            
-            double t;
-            double h;
-            
-            Params.cb.get_temperature_and_humidity(channel_number, &t, &h);
-            
-            if ( t != pin->last_val_dbl_array[0]
-                || h != pin->last_val_dbl_array[1] ) {
-                
-                pin->last_val_dbl_array[0] = t;
-                pin->last_val_dbl_array[1] = h;
-                
-                channelSetTempAndHumidityValue(channel_number, t, h);
-                srpc_ds_async_channel_value_changed(srpc, channel_number, channel->value);
+            DriverDHT * dht = DriverDHT::getDhtByChannel(channel_number);
+            if (dht) {
+                dht->update();
+
+                if ( dht->isChanged() ) {
+                    dht->resetIsChanged();
+
+                    channelSetTempAndHumidityValue(channel_number, dht->getTemp(), dht->getHumi());
+                    srpc_ds_async_channel_value_changed(srpc, channel_number, channel->value);
+                }
+            } else {
+                Serial.print("Error! No DriverDHT on channel ");
+                Serial.println(channel_number);
             }
-            
         }
     }
     
@@ -969,9 +959,14 @@ void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDevice
 void SuplaDeviceClass::iterate_impulse_counter(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_number) {
     if (channel->Type == SUPLA_CHANNELTYPE_IMPULSE_COUNTER && pin->time_left <= 0) {
         pin->time_left = 5000;
-        _supla_int64_t value = SuplaImpulseCounter::getCounterValue(channel_number);
-        memcpy(channel->value, &value, 8);
-        srpc_ds_async_channel_value_changed(srpc, channel_number, channel->value);
+        SuplaImpulseCounter *ptr = SuplaImpulseCounter::getCounterByChannel(channel_number);
+        if (ptr && ptr->isChanged()) {
+            _supla_int64_t value = ptr->getCounter();
+            ptr->resetIsChanged();
+            Serial.println("IC send");
+            memcpy(channel->value, &value, 8);
+            srpc_ds_async_channel_value_changed(srpc, channel_number, channel->value);
+        }
     }
 }
 
@@ -1433,6 +1428,7 @@ void SuplaDeviceClass::iterate(void) {
 		} else if ( _millis-last_ping_time >= 1000
 				    && ( (_millis-last_response)/1000 >= (server_activity_timeout-5)
                          || (_millis-last_sent)/1000 >= (server_activity_timeout-5) ) ) {
+            Serial.println("PING");
             last_ping_time = _millis;
 			srpc_dcs_async_ping_server(srpc);
 		}
@@ -1499,6 +1495,8 @@ void SuplaDeviceClass::onRegisterResult(TSD_SuplaRegisterDeviceResult *register_
             
             server_activity_timeout = register_device_result->activity_timeout;
             registered = 1;
+            
+            last_iterate_time = millis();
             
             status(STATUS_REGISTERED_AND_READY, "Registered and ready.");
             

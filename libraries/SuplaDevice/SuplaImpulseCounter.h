@@ -31,7 +31,7 @@ class SuplaImpulseCounter {
         static void iterateAll();
         
         // Returns value of a counter at given Supla channel
-        static _supla_int64_t getCounterValue(int _channel);
+        _supla_int64_t getCounter();
         
         // use to clear internal EEPROM storage value (i.e. to reset counters to 0);
         static void clearStorage(); 
@@ -46,6 +46,9 @@ class SuplaImpulseCounter {
         // Updates counters to EEPROM memory every 2 minutes
         static void updateStorageOccasionally();
 
+        // Returns pointer to counter for a given Supla channel
+        static SuplaImpulseCounter* getCounterByChannel(int channel);
+
         // Print debug value of impulse counter
         void debug();
 
@@ -55,6 +58,9 @@ class SuplaImpulseCounter {
         // Set counter to a given value
         void setCounter(_supla_int64_t value);
 
+        // 
+        bool isChanged();
+        void resetIsChanged();
 
     protected:
         SuplaImpulseCounter(int _channelNumber, int _impulsePin, int _statusLedPin = 0, bool _detectLowToHigh = false, bool inputPullup = true, unsigned long _debounceDelay = 10);
@@ -76,6 +82,7 @@ class SuplaImpulseCounter {
         unsigned long lastImpulseMillis; // Stores timestamp of last impulse (used to ignore changes of state during 10 ms timeframe)
         unsigned long debounceDelay;
         bool detectLowToHigh; // defines if we count raining (LOW to HIGH) or falling (HIGH to LOW) edge
+        bool isValueChanged;
 
         _supla_int64_t counter;      // Actual count of impulses
 

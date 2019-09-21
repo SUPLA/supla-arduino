@@ -57,17 +57,8 @@ void SuplaImpulseCounter::iterateAll() {
 }
 
 
-_supla_int64_t SuplaImpulseCounter::getCounterValue(int _channel) {
-    _supla_int64_t result = 0;
-    SuplaImpulseCounter *ptr = firstCounter;
-    while (ptr != NULL) {
-        if (ptr->getChannelNumber() == _channel) {
-            result = ptr->counter;
-            break;
-        }
-        ptr = ptr->nextCounter;
-    }
-    return result;
+_supla_int64_t SuplaImpulseCounter::getCounter() {
+    return counter;
 }
 
 void SuplaImpulseCounter::clearStorage() {
@@ -81,7 +72,7 @@ void SuplaImpulseCounter::clearStorage() {
 }
 
 void SuplaImpulseCounter::writeToStorage() {
-    Serial.println("Saving counters data to EEPROM");
+//    Serial.println("Saving counters data to EEPROM");
     int address = eepromOffset;
     int countersCount = count();
     // Store 3 copies of counters data in EEPROM
@@ -89,13 +80,13 @@ void SuplaImpulseCounter::writeToStorage() {
         SuplaImpulseCounter *ptr = firstCounter;
         uint16_t crc = 0;
         for (int i = 0; i < countersCount; i++) {
-            Serial.print("Counter id ");
-            Serial.print(i);
-            Serial.print("; value: ");
+//            Serial.print("Counter id ");
+//            Serial.print(i);
+//            Serial.print("; value: ");
             _supla_int64_t value = ptr->counter;
-            Serial.print(static_cast<int>(value));
-            Serial.print("; address ");
-            Serial.println(address);
+//            Serial.print(static_cast<int>(value));
+//            Serial.print("; address ");
+//            Serial.println(address);
             EEPROM.put(address, value);
             address += sizeof(value); // Increment address by 8 bytes (size of counter)
             ptr = ptr->nextCounter;
@@ -187,8 +178,10 @@ SuplaImpulseCounter::SuplaImpulseCounter(int _channelNumber, int _impulsePin, in
     detectLowToHigh = _detectLowToHigh;
     lastImpulseMillis = 0;
     prevState = (detectLowToHigh == true ? LOW : HIGH);
+    counter = 0;
+    isValueChanged = true;
 
-    Serial.print("Initializing SuplaImpulseCounter with: impulsePin(");
+    Serial.print("Creating Impulse Counter: impulsePin(");
     Serial.print(impulsePin);
     Serial.print("), statusLedPin(");
     Serial.print(statusLedPin);
@@ -207,13 +200,11 @@ SuplaImpulseCounter::SuplaImpulseCounter(int _channelNumber, int _impulsePin, in
     }
 
     if (statusLedPin <= 0) {
-        Serial.println("SuplaImpulseCounter - status LED disabled");
+//        Serial.println("SuplaImpulseCounter - status LED disabled");
         statusLedPin = 0;
     } else {
         pinMode(statusLedPin, OUTPUT);
     }
-
-    setCounter(0);
 
 }
 
@@ -229,6 +220,7 @@ void SuplaImpulseCounter::debug() {
 
 void SuplaImpulseCounter::setCounter(_supla_int64_t value) {
     counter = value;
+    isValueChanged = true;
     Serial.print("SuplaImpulseCounter - set counter to ");
     Serial.println(static_cast<int>(counter));
 }
@@ -249,9 +241,28 @@ void SuplaImpulseCounter::iterate() {
 
 void SuplaImpulseCounter::incCounter() {
     counter++;
+    isValueChanged = true;
     debug();
 }
 
 int SuplaImpulseCounter::getChannelNumber() {
     return channelNumber;
+}
+
+SuplaImpulseCounter* SuplaImpulseCounter::getCounterByChannel(int channel) {
+    SuplaImpulseCounter *ptr = firstCounter;
+    while (ptr != NULL) {
+        if (ptr->getChannelNumber() == channel) break;
+        ptr = ptr->nextCounter;
+    }
+
+    return ptr;
+}
+
+bool SuplaImpulseCounter::isChanged() {
+    return isValueChanged;
+}
+
+void SuplaImpulseCounter::resetIsChanged() {
+    isValueChanged = false;
 }
