@@ -17,6 +17,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <SPI.h>
 #include <Ethernet.h>
 #include <SuplaDevice.h>
+#include <SuplaImpulseCounter.h>
 
 /*
  * This example requires DHT sensor library installed. 
@@ -42,36 +43,15 @@ void setup() {
    * Otherwise you will get "Channel conflict!" error.
    */
     
-  // CHANNEL0 - RELAY
-  SuplaDevice.addRelay(44, true);           // ﻿44 - ﻿Pin number where the relay is connected      
-                                      // Call SuplaDevice.addRelay(44, true) with an extra "true" parameter 
-                                      // to enable "port value inversion"
-                                      // where HIGH == LOW, and LOW == HIGH   
-
-  // CHANNEL1 - RELAY
-  SuplaDevice.addRelay(45, true);           // 45 - ﻿﻿Pin number where the relay is connected   
-
-  // CHANNEL3 - TWO RELAYS (Roller shutter operation)
-  SuplaDevice.addRollerShutterRelays(46,     // 46 - ﻿﻿Pin number where the 1st relay is connected   
-                                     47, true);    // 47 - ﻿Pin number where the 2nd relay is connected  
-
-  // CHANNEL4 - Opening sensor (Normal Open)
-  SuplaDevice.addSensorNO(A0); // A0 - ﻿Pin number where the sensor is connected
-                               // Call SuplaDevice.addSensorNO(A0, true) with an extra "true" parameter
-                               // to enable the internal pull-up resistor
-
-
-  // CHANNEL5 - Opening sensor (Normal Open)
-  SuplaDevice.addSensorNO(A1); // A1 - ﻿Pin number where the sensor is connected
-
-
-  // CHANNEL6 - DHT22 Sensor
-  // SuplaDevice.addDHT11();
-  // SuplaDevice.addAM2302();
-  SuplaDevice.addDHT22(24);
+  // CHANNEL0 - Impulse Counter on pin 34, without status LED (it is not implemented yet), counting raising edge (from LOW to HIGH), no pullup on pin, and 10 ms debounce timeout
+  SuplaDevice.addImpulseCounter(34, 0, true, false, 10);
   
-  // CHANNEL7 - second DHT22 sensor
-  SuplaDevice.addDHT22(25);
+  // CHANNEL1 - Impulse Counter on pin 34, without status LED (it is not implemented yet), counting folling edge (from HIGH to LOW), with pullup on pin, and 50 ms debounce timeout
+  SuplaDevice.addImpulseCounter(35, 0, false, true, 50);
+  
+
+  SuplaImpulseCounter::clearStorage();
+
 
   /*
    * SuplaDevice Initialization.
