@@ -38,6 +38,7 @@
 
 #ifdef __AVR__
 #define SRPC_EXCLUDE_CLIENT
+#define SRPC_WITHOUT_OUT_QUEUE
 #endif /*__AVR__*/
 
 #ifdef __cplusplus

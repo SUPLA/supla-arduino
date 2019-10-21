@@ -50,9 +50,9 @@
 
 #elif defined(__AVR__)
 
-#define SRPC_BUFFER_SIZE 1024
-#define SRPC_QUEUE_SIZE 2
-#define SRPC_QUEUE_MIN_ALLOC_COUNT 2
+#define SRPC_BUFFER_SIZE 1
+#define SRPC_QUEUE_SIZE 1
+#define SRPC_QUEUE_MIN_ALLOC_COUNT 1
 #define __EH_DISABLED
 
 #else
@@ -85,7 +85,9 @@ typedef struct {
   TSuplaDataPacket sdp;
 
   Tsrpc_Queue in_queue;
+#ifndef SRPC_WITHOUT_OUT_QUEUE
   Tsrpc_Queue out_queue;
+#endif /*SRPC_WITHOUT_OUT_QUEUE*/
 
   void *lck;
 } Tsrpc;
@@ -135,8 +137,9 @@ void SRPC_ICACHE_FLASH srpc_free(void *_srpc) {
 
     sproto_free(srpc->proto);
     srpc_queue_free(&srpc->in_queue);
+#ifndef SRPC_WITHOUT_OUT_QUEUE
     srpc_queue_free(&srpc->out_queue);
-
+#endif /*SRPC_WITHOUT_OUT_QUEUE*/
     lck_free(srpc->lck);
 
     free(srpc);
@@ -205,13 +208,26 @@ char SRPC_ICACHE_FLASH srpc_in_queue_pop(Tsrpc *srpc, TSuplaDataPacket *sdp,
 }
 
 char SRPC_ICACHE_FLASH srpc_out_queue_push(Tsrpc *srpc, TSuplaDataPacket *sdp) {
+#ifdef SRPC_WITHOUT_OUT_QUEUE
+  unsigned _supla_int_t data_size = sizeof(TSuplaDataPacket);
+  if (sdp->data_size < SUPLA_MAX_DATA_SIZE) {
+    data_size -= SUPLA_MAX_DATA_SIZE - sdp->data_size;
+  }
+  lck_unlock(srpc->lck);
+  srpc->params.data_write((char *)sdp, data_size, srpc->params.user_params);
+  lck_lock(srpc->lck);
+  return 1;
+#else
   return srpc_queue_push(&srpc->out_queue, sdp);
+#endif /*SRPC_WITHOUT_OUT_QUEUE*/
 }
 
+#ifndef SRPC_WITHOUT_OUT_QUEUE
 char SRPC_ICACHE_FLASH srpc_out_queue_pop(Tsrpc *srpc, TSuplaDataPacket *sdp,
                                           unsigned _supla_int_t rr_id) {
   return srpc_queue_pop(&srpc->out_queue, sdp, rr_id);
 }
+#endif /*SRPC_WITHOUT_OUT_QUEUE*/
 
 char SRPC_ICACHE_FLASH srpc_input_dataexists(void *_srpc) {
   int result = SUPLA_RESULT_FALSE;
@@ -276,7 +292,7 @@ char SRPC_ICACHE_FLASH srpc_iterate(void *_srpc) {
   }
 
   // --------- OUT ---------------
-
+#ifndef SRPC_WITHOUT_OUT_QUEUE
   if (srpc_out_queue_pop(srpc, &srpc->sdp, 0) == SUPLA_RESULT_TRUE &&
       SUPLA_RESULT_TRUE !=
           (result = sproto_out_buffer_append(srpc->proto, &srpc->sdp)) &&
@@ -296,9 +312,9 @@ char SRPC_ICACHE_FLASH srpc_iterate(void *_srpc) {
     if (srpc->params.eh != 0 && sproto_out_dataexists(srpc->proto) == 1) {
       eh_raise_event(srpc->params.eh);
     }
-#endif
+#endif /*__EH_DISABLED*/
   }
-
+#endif /*SRPC_WITHOUT_OUT_QUEUE*/
   return lck_unlock_r(srpc->lck, SUPLA_RESULT_TRUE);
 }
 
@@ -606,6 +622,7 @@ char SRPC_ICACHE_FLASH srpc_getdata(void *_srpc, TsrpcReceivedData *rd,
           rd->data.dcs_ping =
               (TDCS_SuplaPingServer *)malloc(sizeof(TDCS_SuplaPingServer));
 
+#ifndef __AVR__
           if (srpc->sdp.data_size == sizeof(TDCS_SuplaPingServer_COMPAT)) {
             TDCS_SuplaPingServer_COMPAT *compat =
                 (TDCS_SuplaPingServer_COMPAT *)srpc->sdp.data;
@@ -614,8 +631,8 @@ char SRPC_ICACHE_FLASH srpc_getdata(void *_srpc, TsrpcReceivedData *rd,
             rd->data.dcs_ping->now.tv_usec = compat->now.tv_usec;
             call_with_no_data = 1;
           }
+#endif
         }
-
         break;
 
       case SUPLA_SDC_CALL_PING_SERVER_RESULT:
@@ -1295,20 +1312,19 @@ _supla_int_t SRPC_ICACHE_FLASH srpc_dcs_async_ping_server(void *_srpc) {
 }
 
 _supla_int_t SRPC_ICACHE_FLASH srpc_sdc_async_ping_server_result(void *_srpc) {
+#if !defined(ESP8266) && !defined(__AVR__)
   TSDC_SuplaPingServerResult ps;
 
-#ifdef ESP8266
-  ps.now.tv_sec = 0;
-  ps.now.tv_usec = 0;
-#else
   struct timeval now;
   gettimeofday(&now, NULL);
   ps.now.tv_sec = now.tv_sec;
   ps.now.tv_usec = now.tv_usec;
-#endif
 
   return srpc_async_call(_srpc, SUPLA_SDC_CALL_PING_SERVER_RESULT, (char *)&ps,
                          sizeof(TSDC_SuplaPingServerResult));
+#else
+  return 0;
+#endif
 }
 
 _supla_int_t SRPC_ICACHE_FLASH srpc_dcs_async_set_activity_timeout(
