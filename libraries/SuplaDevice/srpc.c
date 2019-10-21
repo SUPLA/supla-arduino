@@ -50,7 +50,7 @@
 
 #elif defined(__AVR__)
 
-#define SRPC_BUFFER_SIZE 1
+#define SRPC_BUFFER_SIZE 32
 #define SRPC_QUEUE_SIZE 1
 #define SRPC_QUEUE_MIN_ALLOC_COUNT 1
 #define __EH_DISABLED
@@ -84,7 +84,10 @@ typedef struct {
 
   TSuplaDataPacket sdp;
 
+#ifndef SRPC_WITHOUT_IN_QUEUE
   Tsrpc_Queue in_queue;
+#endif /*SRPC_WITHOUT_IN_QUEUE*/
+
 #ifndef SRPC_WITHOUT_OUT_QUEUE
   Tsrpc_Queue out_queue;
 #endif /*SRPC_WITHOUT_OUT_QUEUE*/
@@ -136,7 +139,11 @@ void SRPC_ICACHE_FLASH srpc_free(void *_srpc) {
     Tsrpc *srpc = (Tsrpc *)_srpc;
 
     sproto_free(srpc->proto);
+
+#ifndef SRPC_WITHOUT_IN_QUEUE
     srpc_queue_free(&srpc->in_queue);
+#endif /*SRPC_WITHOUT_IN_QUEUE*/
+
 #ifndef SRPC_WITHOUT_OUT_QUEUE
     srpc_queue_free(&srpc->out_queue);
 #endif /*SRPC_WITHOUT_OUT_QUEUE*/
@@ -198,14 +205,20 @@ char SRPC_ICACHE_FLASH srpc_queue_pop(Tsrpc_Queue *queue, TSuplaDataPacket *sdp,
   return SUPLA_RESULT_FALSE;
 }
 
+char SRPC_ICACHE_FLASH srpc_in_queue_pop(Tsrpc *srpc, TSuplaDataPacket *sdp,
+                                         unsigned _supla_int_t rr_id) {
+#ifdef SRPC_WITHOUT_IN_QUEUE
+  return 1;
+#else
+  return srpc_queue_pop(&srpc->in_queue, sdp, rr_id);
+#endif /*SRPC_WITHOUT_IN_QUEUE*/
+}
+
+#ifndef SRPC_WITHOUT_IN_QUEUE
 char SRPC_ICACHE_FLASH srpc_in_queue_push(Tsrpc *srpc, TSuplaDataPacket *sdp) {
   return srpc_queue_push(&srpc->in_queue, sdp);
 }
-
-char SRPC_ICACHE_FLASH srpc_in_queue_pop(Tsrpc *srpc, TSuplaDataPacket *sdp,
-                                         unsigned _supla_int_t rr_id) {
-  return srpc_queue_pop(&srpc->in_queue, sdp, rr_id);
-}
+#endif /*SRPC_WITHOUT_IN_QUEUE*/
 
 char SRPC_ICACHE_FLASH srpc_out_queue_push(Tsrpc *srpc, TSuplaDataPacket *sdp) {
 #ifdef SRPC_WITHOUT_OUT_QUEUE
@@ -261,6 +274,15 @@ char SRPC_ICACHE_FLASH srpc_iterate(void *_srpc) {
 
   if (SUPLA_RESULT_TRUE ==
       (result = sproto_pop_in_sdp(srpc->proto, &srpc->sdp))) {
+#ifdef SRPC_WITHOUT_IN_QUEUE
+    if (srpc->params.on_remote_call_received) {
+      lck_unlock(srpc->lck);
+      srpc->params.on_remote_call_received(
+          srpc, srpc->sdp.rr_id, srpc->sdp.call_type, srpc->params.user_params,
+          srpc->sdp.version);
+      lck_lock(srpc->lck);
+    }
+#else
     if (SUPLA_RESULT_TRUE == srpc_in_queue_push(srpc, &srpc->sdp)) {
       if (srpc->params.on_remote_call_received) {
         lck_unlock(srpc->lck);
@@ -274,6 +296,7 @@ char SRPC_ICACHE_FLASH srpc_iterate(void *_srpc) {
       supla_log(LOG_DEBUG, "ssrpc_in_queue_push error");
       return lck_unlock_r(srpc->lck, SUPLA_RESULT_FALSE);
     }
+#endif /*SRPC_WITHOUT_IN_QUEUE*/
 
   } else if (result != SUPLA_RESULT_FALSE) {
     if (result == (char)SUPLA_RESULT_VERSION_ERROR) {
