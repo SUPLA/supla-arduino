@@ -50,7 +50,7 @@
 #define BUFFER_MAX_SIZE 131072
 #endif /*BUFFER_MAX_SIZE*/
 
-static char sproto_tag[SUPLA_TAG_SIZE] = {'S', 'U', 'P', 'L', 'A'};
+char sproto_tag[SUPLA_TAG_SIZE] = {'S', 'U', 'P', 'L', 'A'};
 
 typedef struct {
   unsigned char begin_tag;

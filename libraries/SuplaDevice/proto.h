@@ -76,6 +76,9 @@ struct _supla_timeval {
 extern "C" {
 #endif
 
+#define SUPLA_TAG_SIZE 5
+extern char sproto_tag[SUPLA_TAG_SIZE];
+
 // DCS - device/client -> server
 // SDC - server -> device/client
 // DS  - device -> server
@@ -85,7 +88,6 @@ extern "C" {
 
 #define SUPLA_PROTO_VERSION 11
 #define SUPLA_PROTO_VERSION_MIN 1
-#define SUPLA_TAG_SIZE 5
 #if defined(__AVR__)
 #define SUPLA_MAX_DATA_SIZE 1024
 #define SUPLA_CHANNELGROUP_RELATION_PACK_MAXCOUNT 25
