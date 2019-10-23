@@ -15,7 +15,7 @@
 */
 
 #ifndef SUPLADEVICE_CPP
-	#if defined(UIPETHERNET_H) || defined(ethernet_h)
+	#if defined(UIPETHERNET_H) || defined(ethernet_h) || defined(ethernet_h_)
 		EthernetClient client;
 		
 		long supla_arduino_tcp_read(void *buf, _supla_int_t count) {
