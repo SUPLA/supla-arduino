@@ -1543,7 +1543,7 @@ void SuplaDeviceClass::channelValueChanged(int channel_number, char v, double d,
 		else if ( var == 2 ) 
 			setDoubleValue(value, d);
         
-        supla_log(LOG_DEBUG, "Value changed");
+        supla_log(LOG_DEBUG, "Value changed (channel: %d, value: %d)", channel_number, v);
 
 		srpc_ds_async_channel_value_changed(srpc, channel_number, value);
 	}

@@ -103,11 +103,9 @@ typedef struct SuplaChannelPin {
 	unsigned long bi_time_left;
 	unsigned long vc_time;
 	
-	union {
-		uint8_t last_val;
-		double last_val_dbl1;
-		double last_val_dbl2;
-	};
+    uint8_t last_val;
+    double last_val_dbl1;
+    double last_val_dbl2;
 };
 
 typedef struct SuplaDeviceRollerShutterTask {
