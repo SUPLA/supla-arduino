@@ -299,7 +299,7 @@ public:
    void onVersionError(TSDC_SuplaVersionError *version_error);
    void onRegisterResult(TSD_SuplaRegisterDeviceResult *register_device_result);
    void onSensorInterrupt(void);
-   void channelSetValue(TSD_SuplaChannelNewValue *new_value);
+   void channelSetValueByServer(TSD_SuplaChannelNewValue *new_value);
    void channelSetActivityTimeoutResult(TSDC_SuplaSetActivityTimeoutResult *result);
     
 
