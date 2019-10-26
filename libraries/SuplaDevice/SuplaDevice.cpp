@@ -92,7 +92,7 @@ void SuplaDeviceClass::status(int status, const char *msg) {
     if ( impl_arduino_status != NULL ) {
         impl_arduino_status(status, msg);
     } else {
-        supla_log(LOG_DEBUG, "%s", msg);
+        supla_log(LOG_DEBUG, "Current status: %s", msg);
     }
     
 }
@@ -293,7 +293,7 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
         setString(Params.reg_dev.Name, "ARDUINO", SUPLA_DEVICE_NAME_MAXSIZE);
     }
 	
-	setString(Params.reg_dev.SoftVer, "1.6.1", SUPLA_SOFTVER_MAXSIZE);
+	setString(Params.reg_dev.SoftVer, "1.7.0", SUPLA_SOFTVER_MAXSIZE);
 	
 	Params.cb.eth_setup(Params.mac, Params.use_local_ip ? &Params.local_ip : NULL);
 
@@ -1376,35 +1376,39 @@ void SuplaDeviceClass::iterate(void) {
 	
 	if ( !Params.cb.svr_connected() ) {
 		
+        int port = 2015;
 		status(STATUS_DISCONNECTED, "Not connected");
+        supla_log(LOG_DEBUG, "Establishing connection with: %s (port: %d)", Params.reg_dev.ServerName, port);
+
 	    registered = 0;
 	    last_response = 0;
         last_sent = 0;
 	    last_ping_time = 0;
         
-		if ( !Params.cb.svr_connect(Params.reg_dev.ServerName, 2015) ) {
+		if ( !Params.cb.svr_connect(Params.reg_dev.ServerName, port) ) {
 			
 		    	supla_log(LOG_DEBUG, "Connection fail. Server: %s", Params.reg_dev.ServerName);
 		    	Params.cb.svr_disconnect();
 
                 wait_for_iterate = millis() + 2000;
 				return;
-		}
+		} else {
+            supla_log(LOG_DEBUG, "Connected");
+        }
 
 	}
-
 
 	if ( registered == 0 ) {
 		
 		registered = -1;
-		srpc_ds_async_registerdevice_c(srpc, &Params.reg_dev);
 		status(STATUS_REGISTER_IN_PROGRESS, "Register in progress");
+		srpc_ds_async_registerdevice_c(srpc, &Params.reg_dev);
 		
 	} else if ( registered == 1 ) {
 		// PING
 		if ( (_millis-last_response)/1000 >= (server_activity_timeout+10)  ) {
 			
-			supla_log(LOG_DEBUG, "TIMEOUT");
+			supla_log(LOG_DEBUG, "TIMEOUT - lost connection with server");
 			Params.cb.svr_disconnect();
 
 		} else if ( _millis-last_ping_time >= 1000
@@ -1457,6 +1461,25 @@ void SuplaDeviceClass::onVersionError(TSDC_SuplaVersionError *version_error) {
 void SuplaDeviceClass::onRegisterResult(TSD_SuplaRegisterDeviceResult *register_device_result) {
 
 	switch(register_device_result->result_code) {
+        // OK scenario
+        case SUPLA_RESULTCODE_TRUE:
+            
+            server_activity_timeout = register_device_result->activity_timeout;
+            registered = 1;
+            supla_log(LOG_DEBUG, "Device registered (activity timeout %d s, version: %d, version min: %d)", register_device_result->activity_timeout, 
+                    register_device_result->version, register_device_result->version_min);
+            status(STATUS_REGISTERED_AND_READY, "Registered and ready.");
+            
+            if ( server_activity_timeout != ACTIVITY_TIMEOUT ) {
+                supla_log(LOG_DEBUG, "Changing activity timeout to %d", ACTIVITY_TIMEOUT); 
+                TDCS_SuplaSetActivityTimeout at;
+                at.activity_timeout = ACTIVITY_TIMEOUT;
+                srpc_dcs_async_set_activity_timeout(srpc, &at);
+            }
+            
+            return;
+            
+        // NOK scenarios
         case SUPLA_RESULTCODE_BAD_CREDENTIALS:
             status(STATUS_BAD_CREDENTIALS, "Bad credentials!");
             break;
@@ -1472,23 +1495,6 @@ void SuplaDeviceClass::onRegisterResult(TSD_SuplaRegisterDeviceResult *register_
         case SUPLA_RESULTCODE_CHANNEL_CONFLICT:
             status(STATUS_CHANNEL_CONFLICT, "Channel conflict!");
             break;
-        case SUPLA_RESULTCODE_TRUE:
-            
-            server_activity_timeout = register_device_result->activity_timeout;
-            registered = 1;
-            
-            status(STATUS_REGISTERED_AND_READY, "Registered and ready.");
-            
-            if ( server_activity_timeout != ACTIVITY_TIMEOUT ) {
-                
-                TDCS_SuplaSetActivityTimeout at;
-                at.activity_timeout = ACTIVITY_TIMEOUT;
-                srpc_dcs_async_set_activity_timeout(srpc, &at);
-                
-            }
-            
-            return;
-            
         case SUPLA_RESULTCODE_DEVICE_DISABLED:
             status(STATUS_DEVICE_IS_DISABLED, "Device is disabled!");
             break;
@@ -1741,6 +1747,7 @@ void SuplaDeviceClass::channelSetValue(TSD_SuplaChannelNewValue *new_value) {
 
 void SuplaDeviceClass::channelSetActivityTimeoutResult(TSDC_SuplaSetActivityTimeoutResult *result) {
 	server_activity_timeout = result->activity_timeout;
+    supla_log(LOG_DEBUG, "Activity timeout set to %d s", result->activity_timeout);
 }
 
 bool SuplaDeviceClass::relayOn(int channel_number, _supla_int_t DurationMS) {
