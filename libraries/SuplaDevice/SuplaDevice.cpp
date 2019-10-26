@@ -1418,7 +1418,7 @@ void SuplaDeviceClass::iterate(void) {
 			supla_log(LOG_DEBUG, "TIMEOUT - lost connection with server");
 			Params.cb.svr_disconnect();
 
-		} else if ( _millis-last_ping_time >= 1000
+		} else if ( _millis-last_ping_time >= 5000
 				    && ( (_millis-last_response)/1000 >= (server_activity_timeout-5)
                          || (_millis-last_sent)/1000 >= (server_activity_timeout-5) ) ) {
             last_ping_time = _millis;
