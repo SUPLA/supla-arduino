@@ -103,11 +103,9 @@ typedef struct SuplaChannelPin {
 	unsigned long bi_time_left;
 	unsigned long vc_time;
 	
-	union {
-		uint8_t last_val;
-		double last_val_dbl1;
-		double last_val_dbl2;
-	};
+    uint8_t last_val;
+    double last_val_dbl1;
+    double last_val_dbl2;
 };
 
 typedef struct SuplaDeviceRollerShutterTask {
@@ -301,7 +299,7 @@ public:
    void onVersionError(TSDC_SuplaVersionError *version_error);
    void onRegisterResult(TSD_SuplaRegisterDeviceResult *register_device_result);
    void onSensorInterrupt(void);
-   void channelSetValue(TSD_SuplaChannelNewValue *new_value);
+   void channelSetValueByServer(TSD_SuplaChannelNewValue *new_value);
    void channelSetActivityTimeoutResult(TSDC_SuplaSetActivityTimeoutResult *result);
     
 

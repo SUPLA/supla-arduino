@@ -15,7 +15,7 @@
 */
 
 #ifndef SUPLADEVICE_CPP
-	#if defined(UIPETHERNET_H) || defined(ethernet_h)
+	#if defined(UIPETHERNET_H) || defined(ethernet_h) || defined(ethernet_h_)
 		EthernetClient client;
 		
 		long supla_arduino_tcp_read(void *buf, _supla_int_t count) {
@@ -24,14 +24,31 @@
 		   
 		    if ( size > 0 ) {
 		        if ( size > count ) size = count;
-		        return client.read((uint8_t *)buf, size);
+                long readSize = client.read((uint8_t *)buf, size);
+                Serial.print("Received: [");
+                for (int i = 0; i < readSize; i++) {
+                    Serial.print(static_cast<unsigned char*>(buf)[i], HEX);
+                    Serial.print(" ");
+                }
+                Serial.println("]");
+                return readSize;
 		    };
 		
 		    return -1;
 		};
 		
 		_supla_int_t supla_arduino_tcp_write(void *buf, _supla_int_t count) {
-	     	return client.write((const uint8_t *)buf, count);
+            Serial.print("Sending: [");
+            for (int i = 0; i < count; i++) {
+                Serial.print(static_cast<unsigned char*>(buf)[i], HEX);
+                Serial.print(" ");
+            }
+            Serial.println("]");
+            _supla_int_t writeSize = client.write((const uint8_t *)buf, count);
+//            Serial.print("(");
+//            client.flush();
+//            Serial.println(")");
+            return writeSize;
 		};
 		
 		bool supla_arduino_svr_connect(const char *server, long port) {

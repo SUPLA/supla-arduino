@@ -92,7 +92,7 @@ void SuplaDeviceClass::status(int status, const char *msg) {
     if ( impl_arduino_status != NULL ) {
         impl_arduino_status(status, msg);
     } else {
-        supla_log(LOG_DEBUG, "%s", msg);
+        supla_log(LOG_DEBUG, "Current status: %s", msg);
     }
     
 }
@@ -114,7 +114,7 @@ void supla_arduino_on_remote_call_received(void *_srpc, unsigned _supla_int_t rr
 			((SuplaDeviceClass*)_sdc)->onRegisterResult(rd.data.sd_register_device_result);
 			break;
 		case SUPLA_SD_CALL_CHANNEL_SET_VALUE:
-			((SuplaDeviceClass*)_sdc)->channelSetValue(rd.data.sd_channel_new_value);
+			((SuplaDeviceClass*)_sdc)->channelSetValueByServer(rd.data.sd_channel_new_value);
 			break;
 		case SUPLA_SDC_CALL_SET_ACTIVITY_TIMEOUT_RESULT:
 			((SuplaDeviceClass*)_sdc)->channelSetActivityTimeoutResult(rd.data.sdc_set_activity_timeout_result);
@@ -293,7 +293,7 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
         setString(Params.reg_dev.Name, "ARDUINO", SUPLA_DEVICE_NAME_MAXSIZE);
     }
 	
-	setString(Params.reg_dev.SoftVer, "1.6.1", SUPLA_SOFTVER_MAXSIZE);
+	setString(Params.reg_dev.SoftVer, "1.7.0", SUPLA_SOFTVER_MAXSIZE);
 	
 	Params.cb.eth_setup(Params.mac, Params.use_local_ip ? &Params.local_ip : NULL);
 
@@ -472,8 +472,8 @@ bool SuplaDeviceClass::addRelay(int relayPin, bool hiIsLo) {
                               | SUPLA_BIT_RELAYFUNC_STAIRCASETIMER ) > -1;
 }
 
-bool SuplaDeviceClass::addRelay(int relayPin1) {
-	return addRelay(relayPin1, false) > -1;
+bool SuplaDeviceClass::addRelay(int relayPin) {
+	return addRelay(relayPin, false) > -1;
 }
 
 bool SuplaDeviceClass::addRollerShutterRelays(int relayPin1, int relayPin2, bool hiIsLo) {
@@ -523,8 +523,11 @@ bool SuplaDeviceClass::addSensorNO(int sensorPin, bool pullUp) {
 	if ( c == -1 ) return false; 
 	
 	Params.reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_SENSORNO;
-	pinMode(sensorPin, INPUT); 
-	suplaDigitalWrite(Params.reg_dev.channels[c].Number, sensorPin, pullUp ? HIGH : LOW);
+    if (pullUp) {
+        pinMode(sensorPin, INPUT_PULLUP);
+    } else {
+        pinMode(sensorPin, INPUT); 
+    }
 	
 	Params.reg_dev.channels[c].value[0] = suplaDigitalRead(Params.reg_dev.channels[c].Number, sensorPin) == HIGH ? 1 : 0;
 	return true;
@@ -769,6 +772,7 @@ void SuplaDeviceClass::iterate_relay(SuplaChannelPin *pin, TDS_SuplaDeviceChanne
     if ( pin->bi_time_left != 0 ) {
         if ( time_diff >= pin->bi_time_left ) {
             
+            // switch off bistable relay
             suplaDigitalWrite(channel->Number, pin->pin1, pin->hiIsLo ? HIGH : LOW);
             pin->bi_time_left = 0;
             
@@ -783,6 +787,8 @@ void SuplaDeviceClass::iterate_relay(SuplaChannelPin *pin, TDS_SuplaDeviceChanne
             pin->time_left = 0;
             
             if ( channel->Type == SUPLA_CHANNELTYPE_RELAY )
+                // switch off relay
+                channel->value[0] = 0;
                 channelSetValue(channel_number, 0, 0);
             
         } else if ( pin->time_left > 0 ) {
@@ -790,8 +796,8 @@ void SuplaDeviceClass::iterate_relay(SuplaChannelPin *pin, TDS_SuplaDeviceChanne
         }
     }
     
-    if ( channel->Type == SUPLA_CHANNELTYPE_RELAY
-        && pin->bistable    ) {
+    // if relay type is "bistable relay", then read relay state every 200 ms and update server
+    if ( channel->Type == SUPLA_CHANNELTYPE_RELAY && pin->bistable) {
         
         if ( time_diff >= pin->vc_time ) {
             
@@ -805,6 +811,7 @@ void SuplaDeviceClass::iterate_relay(SuplaChannelPin *pin, TDS_SuplaDeviceChanne
                 
                 pin->last_val = val;
                 pin->vc_time = 200;
+                channel->value[0] = val == HIGH ? 1 : 0;
                 
                 channelValueChanged(channel->Number, val == HIGH ? 1 : 0);
                 
@@ -1376,38 +1383,42 @@ void SuplaDeviceClass::iterate(void) {
 	
 	if ( !Params.cb.svr_connected() ) {
 		
+        int port = 2015;
 		status(STATUS_DISCONNECTED, "Not connected");
+        supla_log(LOG_DEBUG, "Establishing connection with: %s (port: %d)", Params.reg_dev.ServerName, port);
+
 	    registered = 0;
 	    last_response = 0;
         last_sent = 0;
 	    last_ping_time = 0;
         
-		if ( !Params.cb.svr_connect(Params.reg_dev.ServerName, 2015) ) {
+		if ( !Params.cb.svr_connect(Params.reg_dev.ServerName, port) ) {
 			
 		    	supla_log(LOG_DEBUG, "Connection fail. Server: %s", Params.reg_dev.ServerName);
 		    	Params.cb.svr_disconnect();
 
                 wait_for_iterate = millis() + 2000;
 				return;
-		}
+		} else {
+            supla_log(LOG_DEBUG, "Connected");
+        }
 
 	}
-
 
 	if ( registered == 0 ) {
 		
 		registered = -1;
-		srpc_ds_async_registerdevice_c(srpc, &Params.reg_dev);
 		status(STATUS_REGISTER_IN_PROGRESS, "Register in progress");
+		srpc_ds_async_registerdevice_c(srpc, &Params.reg_dev);
 		
 	} else if ( registered == 1 ) {
 		// PING
 		if ( (_millis-last_response)/1000 >= (server_activity_timeout+10)  ) {
 			
-			supla_log(LOG_DEBUG, "TIMEOUT");
+			supla_log(LOG_DEBUG, "TIMEOUT - lost connection with server");
 			Params.cb.svr_disconnect();
 
-		} else if ( _millis-last_ping_time >= 1000
+		} else if ( _millis-last_ping_time >= 5000
 				    && ( (_millis-last_response)/1000 >= (server_activity_timeout-5)
                          || (_millis-last_sent)/1000 >= (server_activity_timeout-5) ) ) {
             last_ping_time = _millis;
@@ -1457,6 +1468,25 @@ void SuplaDeviceClass::onVersionError(TSDC_SuplaVersionError *version_error) {
 void SuplaDeviceClass::onRegisterResult(TSD_SuplaRegisterDeviceResult *register_device_result) {
 
 	switch(register_device_result->result_code) {
+        // OK scenario
+        case SUPLA_RESULTCODE_TRUE:
+            
+            server_activity_timeout = register_device_result->activity_timeout;
+            registered = 1;
+            supla_log(LOG_DEBUG, "Device registered (activity timeout %d s, version: %d, version min: %d)", register_device_result->activity_timeout, 
+                    register_device_result->version, register_device_result->version_min);
+            status(STATUS_REGISTERED_AND_READY, "Registered and ready.");
+            
+            if ( server_activity_timeout != ACTIVITY_TIMEOUT ) {
+                supla_log(LOG_DEBUG, "Changing activity timeout to %d", ACTIVITY_TIMEOUT); 
+                TDCS_SuplaSetActivityTimeout at;
+                at.activity_timeout = ACTIVITY_TIMEOUT;
+                srpc_dcs_async_set_activity_timeout(srpc, &at);
+            }
+            
+            return;
+            
+        // NOK scenarios
         case SUPLA_RESULTCODE_BAD_CREDENTIALS:
             status(STATUS_BAD_CREDENTIALS, "Bad credentials!");
             break;
@@ -1472,23 +1502,6 @@ void SuplaDeviceClass::onRegisterResult(TSD_SuplaRegisterDeviceResult *register_
         case SUPLA_RESULTCODE_CHANNEL_CONFLICT:
             status(STATUS_CHANNEL_CONFLICT, "Channel conflict!");
             break;
-        case SUPLA_RESULTCODE_TRUE:
-            
-            server_activity_timeout = register_device_result->activity_timeout;
-            registered = 1;
-            
-            status(STATUS_REGISTERED_AND_READY, "Registered and ready.");
-            
-            if ( server_activity_timeout != ACTIVITY_TIMEOUT ) {
-                
-                TDCS_SuplaSetActivityTimeout at;
-                at.activity_timeout = ACTIVITY_TIMEOUT;
-                srpc_dcs_async_set_activity_timeout(srpc, &at);
-                
-            }
-            
-            return;
-            
         case SUPLA_RESULTCODE_DEVICE_DISABLED:
             status(STATUS_DEVICE_IS_DISABLED, "Device is disabled!");
             break;
@@ -1543,7 +1556,7 @@ void SuplaDeviceClass::channelValueChanged(int channel_number, char v, double d,
 		else if ( var == 2 ) 
 			setDoubleValue(value, d);
         
-        supla_log(LOG_DEBUG, "Value changed");
+        supla_log(LOG_DEBUG, "Value changed (channel: %d, value: %d)", channel_number, v);
 
 		srpc_ds_async_channel_value_changed(srpc, channel_number, value);
 	}
@@ -1570,52 +1583,49 @@ void SuplaDeviceClass::channelSetValue(int channel, char value, _supla_int_t Dur
 
 	if ( Params.reg_dev.channels[channel].Type == SUPLA_CHANNELTYPE_RELAY ) {
 		
-		if ( channel_pin[channel].bistable ) 
-		   if ( channel_pin[channel].bi_time_left > 0
-				 || suplaDigitalRead(Params.reg_dev.channels[channel].Number, channel_pin[channel].pin2)  == value ) {
+		if ( channel_pin[channel].bistable ) {
+            // ignore change of bistable relay state if we are in the middle of changing its state or it already has target state enabled
+		   if ( channel_pin[channel].bi_time_left > 0 || suplaDigitalRead(Params.reg_dev.channels[channel].Number, channel_pin[channel].pin2)  == value ) {
 			   value = -1;
 		   } else {
+               // set bistable relay controlling pin to "1" for 0.5 s to toggle bistable relay state
 			   value = 1;
 			   channel_pin[channel].bi_time_left = 500;
 		   }
+        }
 		
 		if ( value == 0 ) {
-			
 			if ( channel_pin[channel].pin1 != 0 ) {
 				suplaDigitalWrite(Params.reg_dev.channels[channel].Number, channel_pin[channel].pin1, _LO); 
-				
 				success = suplaDigitalRead(Params.reg_dev.channels[channel].Number, channel_pin[channel].pin1) == _LO;
 			}
-				
 
-			if ( channel_pin[channel].pin2 != 0 
-					&& channel_pin[channel].bistable == false ) {
+			if ( channel_pin[channel].pin2 != 0 && channel_pin[channel].bistable == false ) {
 				suplaDigitalWrite(Params.reg_dev.channels[channel].Number, channel_pin[channel].pin2, _LO); 
-				
-				if ( !success )
+				if ( !success ) {
 					success = suplaDigitalRead(Params.reg_dev.channels[channel].Number, channel_pin[channel].pin2) == _LO;
+                }
 			}
-				
 			
 		} else if ( value == 1 ) {
-			
-			if ( channel_pin[channel].pin2 != 0
-					&& channel_pin[channel].bistable == false ) {
+			if ( channel_pin[channel].pin2 != 0 && channel_pin[channel].bistable == false ) {
 				suplaDigitalWrite(Params.reg_dev.channels[channel].Number, channel_pin[channel].pin2, _LO); 
 				delay(50);
 			}
-			
 			if ( channel_pin[channel].pin1 != 0 ) {
 				suplaDigitalWrite(Params.reg_dev.channels[channel].Number, channel_pin[channel].pin1, _HI); 
-				
-				if ( !success )
+				if ( !success ) {
 					success = suplaDigitalRead(Params.reg_dev.channels[channel].Number, channel_pin[channel].pin1) == _HI;
+                }
 				
-				if ( DurationMS > 0 )
+				if ( DurationMS > 0 ) {
 					channel_pin[channel].time_left = DurationMS;
+                }
 			}
-			
 		}
+        if (success) {
+            Params.reg_dev.channels[channel].value[0] = value;
+        }
 			
 		if ( channel_pin[channel].bistable ) {
 			success = false;
@@ -1666,13 +1676,14 @@ SuplaDeviceRollerShutter *SuplaDeviceClass::rsByChannelNumber(int channel_number
     return NULL;
 }
 
-void SuplaDeviceClass::channelSetValue(TSD_SuplaChannelNewValue *new_value) {
+void SuplaDeviceClass::channelSetValueByServer(TSD_SuplaChannelNewValue *new_value) {
     
-	for(int a=0;a<Params.reg_dev.channel_count;a++) 
+    for (int a = 0; a < Params.reg_dev.channel_count; a++) 
 		if ( new_value->ChannelNumber == Params.reg_dev.channels[a].Number ) {
 			
 			if ( Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_RELAY ) {
 				
+                // Control rollet shutter by server
                 if ( Params.reg_dev.channels[a].FuncList == SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEROLLERSHUTTER ) {
                     
                     SuplaDeviceRollerShutter *rs = rsByChannelNumber(new_value->ChannelNumber);
@@ -1721,11 +1732,13 @@ void SuplaDeviceClass::channelSetValue(TSD_SuplaChannelNewValue *new_value) {
                         }
                         
                     }
-                    
+
+                // Control relay by server    
                 } else {
                    channelSetValue(new_value->ChannelNumber, new_value->value[0], new_value->DurationMS);
                 }
 				
+                // Control dimmer, rgb dimmer, by server
 			} else if ( ( Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_DIMMER
 						   || Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_RGBLEDCONTROLLER
 						   || Params.reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_DIMMERANDRGBLED )
@@ -1741,6 +1754,7 @@ void SuplaDeviceClass::channelSetValue(TSD_SuplaChannelNewValue *new_value) {
 
 void SuplaDeviceClass::channelSetActivityTimeoutResult(TSDC_SuplaSetActivityTimeoutResult *result) {
 	server_activity_timeout = result->activity_timeout;
+    supla_log(LOG_DEBUG, "Activity timeout set to %d s", result->activity_timeout);
 }
 
 bool SuplaDeviceClass::relayOn(int channel_number, _supla_int_t DurationMS) {
