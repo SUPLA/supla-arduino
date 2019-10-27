@@ -305,7 +305,8 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
 	srpc_params.user_params = this;
 	
 	srpc = srpc_init(&srpc_params);
-	
+    srpc_set_proto_version(srpc, 10); // Set Supla protocol interface version to 10
+
     if ( rs_count > 0 || impl_arduino_timer ) {
         
         for(int a=0;a<rs_count;a++) {
