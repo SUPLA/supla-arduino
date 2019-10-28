@@ -242,7 +242,7 @@ bool SuplaDeviceClass::isInitialized(bool msg) {
 }
 
 bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const char *Server,
-	                         int LocationID, const char *LocationPWD) {
+	                         int LocationID, const char *LocationPWD, unsigned char version) {
 
 	unsigned char a;
 	if ( isInitialized(true) ) return false;
@@ -305,7 +305,10 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
 	srpc_params.user_params = this;
 	
 	srpc = srpc_init(&srpc_params);
-    srpc_set_proto_version(srpc, 10); // Set Supla protocol interface version to 10
+    srpc_set_proto_version(srpc, version); // Set Supla protocol interface version
+
+    supla_log(LOG_DEBUG, "Using protocol version %d", version);
+
 
     if ( rs_count > 0 || impl_arduino_timer ) {
         
@@ -346,9 +349,9 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
 }
 
 bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const char *Server,
-	                         int LocationID, const char *LocationPWD) {
+	                         int LocationID, const char *LocationPWD, unsigned char version) {
 	
-	return begin(NULL, GUID, mac, Server, LocationID, LocationPWD);
+	return begin(NULL, GUID, mac, Server, LocationID, LocationPWD, version);
 }
 
 void SuplaDeviceClass::begin_thermometer(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, int channel_number) {
@@ -1474,7 +1477,7 @@ void SuplaDeviceClass::onRegisterResult(TSD_SuplaRegisterDeviceResult *register_
             
             server_activity_timeout = register_device_result->activity_timeout;
             registered = 1;
-            supla_log(LOG_DEBUG, "Device registered (activity timeout %d s, version: %d, version min: %d)", register_device_result->activity_timeout, 
+            supla_log(LOG_DEBUG, "Device registered (activity timeout %d s, server version: %d, server min version: %d)", register_device_result->activity_timeout, 
                     register_device_result->version, register_device_result->version_min);
             status(STATUS_REGISTERED_AND_READY, "Registered and ready.");
             
