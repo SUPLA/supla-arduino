@@ -218,6 +218,7 @@ protected:
     void iterate_sensor(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
     void iterate_thermometer(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_idx);
     void iterate_rollershutter(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel);
+    void iterate_impulse_counter(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_number);
     
     void begin_thermometer(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, int channel_number);
     
@@ -263,6 +264,11 @@ public:
    bool addWeightSensor(void);
    bool addWindSensor(void);
    bool addRainSensor(void);
+   // Adds impulse couner on "impulsePin" pin. "statusLedPin" is not implemented currently. 
+   // "detectLowToHigh" defines if counter counts changes from LOW to HIGH state on impulsePin. With "false" it counts changes from HIGH to LOW
+   // "inputPullup" defines if impulsePin is configured as "INPUT_PULLUP" or "INPUT"
+   // "debounceDelay" defines how many ms is used to filter out bouncing changes between LOW and HIGH during change on pin state
+   bool addImpulseCounter(int impulsePin, int statusLedPin = 0, bool detectLowToHigh = false, bool inputPullup = true, unsigned long debounceDelay = 10);
     
    bool relayOn(int channel_number, _supla_int_t DurationMS);
    bool relayOff(int channel_number);

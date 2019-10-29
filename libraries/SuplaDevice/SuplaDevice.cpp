@@ -21,6 +21,7 @@
 #include "SuplaDevice.h"
 #include "srpc.h"
 #include "log.h"
+#include "SuplaImpulseCounter.h"
 
 #define RS_STOP_DELAY   500
 #define RS_START_DELAY  1000
@@ -310,7 +311,7 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
     supla_log(LOG_DEBUG, "Using protocol version %d", version);
 
 
-    if ( rs_count > 0 || impl_arduino_timer ) {
+    if (rs_count > 0) {
         
         for(int a=0;a<rs_count;a++) {
             rs_load_settings(&roller_shutter[a]);
@@ -318,30 +319,42 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], ui
             
             Params.reg_dev.channels[roller_shutter[a].channel_number].value[0] = (roller_shutter[a].position-100)/100;
         }
-        
-        #ifdef ARDUINO_ARCH_ESP8266
-                os_timer_disarm(&esp_timer);
-                os_timer_setfn(&esp_timer, (os_timer_func_t *)esp_timer_cb, NULL);
-                os_timer_arm(&esp_timer, 10, 1);
-        #else
-                cli(); // disable interrupts
-                TCCR1A = 0;// set entire TCCR1A register to 0
-                TCCR1B = 0;// same for TCCR1B
-                TCNT1  = 0;//initialize counter value to 0
-                // set compare match register for 1hz increments
-                OCR1A = 155;// (16*10^6) / (100*1024) - 1 (must be <65536) == 155.25
-                // turn on CTC mode
-                TCCR1B |= (1 << WGM12);
-                // Set CS12 and CS10 bits for 1024 prescaler
-                TCCR1B |= (1 << CS12) | (1 << CS10);
-                // enable timer compare interrupt
-                TIMSK1 |= (1 << OCIE1A);
-                sei(); // enable interrupts
-        #endif
     }
+
+    // Load counters values from EEPROM storage
+    SuplaImpulseCounter::loadStorage();
     
-    for(a=0;a<Params.reg_dev.channel_count;a++) {
+    // Enable timer if there are Roller Shutters defined, or custom call back to impl_arduino_timer or there are Impulse Counters 
+    if (rs_count > 0 || impl_arduino_timer || SuplaImpulseCounter::count() > 0) {
+#ifdef ARDUINO_ARCH_ESP8266
+        os_timer_disarm(&esp_timer);
+        os_timer_setfn(&esp_timer, (os_timer_func_t *)esp_timer_cb, NULL);
+        os_timer_arm(&esp_timer, 10, 1);
+#else
+        cli(); // disable interrupts
+        TCCR1A = 0;// set entire TCCR1A register to 0
+        TCCR1B = 0;// same for TCCR1B
+        TCNT1  = 0;//initialize counter value to 0
+        // set compare match register for 1hz increments
+        OCR1A = 155;// (16*10^6) / (100*1024) - 1 (must be <65536) == 155.25
+        // turn on CTC mode
+        TCCR1B |= (1 << WGM12);
+        // Set CS12 and CS10 bits for 1024 prescaler
+        TCCR1B |= (1 << CS12) | (1 << CS10);
+        // enable timer compare interrupt
+        TIMSK1 |= (1 << OCIE1A);
+        sei(); // enable interrupts
+#endif
+    }
+        
+    for (a = 0; a < Params.reg_dev.channel_count; a++) {
         begin_thermometer(&channel_pin[a], &Params.reg_dev.channels[a], a);
+        SuplaImpulseCounter *ptr = SuplaImpulseCounter::getCounterByChannel(a);
+        if (ptr) {
+            _supla_int64_t value = ptr->getCounter();
+            ptr->clearIsChanged();
+            memcpy(Params.reg_dev.channels[a].value, &value, 8);
+        }
     }
     
     status(STATUS_INITIALIZED, "SuplaDevice initialized");
@@ -703,6 +716,18 @@ bool SuplaDeviceClass::addRainSensor(void) {
     channel_pin[c].last_val_dbl1 = -1;
     channelSetDoubleValue(c, channel_pin[c].last_val_dbl1);
     
+}
+
+bool SuplaDeviceClass::addImpulseCounter(int impulsePin, int statusLedPin, bool detectLowToHigh, bool inputPullup, unsigned long debounceDelay) {
+	int c = addChannel(0, 0, false, false);
+	if ( c == -1 ) return false; 
+	
+	Params.reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_IMPULSE_COUNTER;
+    
+    // Init channel value with "0"
+	memset(Params.reg_dev.channels[c].value, 0, 8);
+
+    SuplaImpulseCounter::create(c, impulsePin, statusLedPin, detectLowToHigh, inputPullup, debounceDelay);
 }
 
 SuplaDeviceCallbacks SuplaDeviceClass::getCallbacks(void) {
@@ -1356,6 +1381,20 @@ void SuplaDeviceClass::iterate_rollershutter(SuplaDeviceRollerShutter *rs, Supla
     rs_buttons_processing(rs);
 }
 
+void SuplaDeviceClass::iterate_impulse_counter(SuplaChannelPin *pin, TDS_SuplaDeviceChannel_B *channel, unsigned long time_diff, int channel_number) {
+    if (channel->Type == SUPLA_CHANNELTYPE_IMPULSE_COUNTER && pin->time_left <= 0) {
+        pin->time_left = 5000;
+        SuplaImpulseCounter *ptr = SuplaImpulseCounter::getCounterByChannel(channel_number);
+        if (ptr && ptr->isChanged()) {
+            _supla_int64_t value = ptr->getCounter();
+            ptr->clearIsChanged();
+            memcpy(channel->value, &value, 8);
+            srpc_ds_async_channel_value_changed(srpc, channel_number, channel->value);
+        }
+    }
+}
+
+
 void SuplaDeviceClass::onTimer(void) {
 
     if ( impl_arduino_timer ) {
@@ -1365,15 +1404,21 @@ void SuplaDeviceClass::onTimer(void) {
     for(int a=0;a<rs_count;a++) {
         iterate_rollershutter(&roller_shutter[a], &channel_pin[roller_shutter[a].channel_number], &Params.reg_dev.channels[roller_shutter[a].channel_number]);
     }
+    // Iteration over all impulse counters will count incomming impulses. It is after SuplaDevice initialization (because we have to read
+    // stored counter values) and before any other operation like connection to Supla cloud (because we want to count impulses even when
+    // we have connection issues.
+    SuplaImpulseCounter::iterateAll();
     
 }
 
 void SuplaDeviceClass::iterate(void) {
-	
-    int a;
+	if ( !isInitialized(false) ) return;
+
     unsigned long _millis = millis();
     unsigned long time_diff = abs(_millis - last_iterate_time);
     
+    SuplaImpulseCounter::updateStorageOccasionally();
+
     if ( wait_for_iterate != 0
          && _millis < wait_for_iterate ) {
     
@@ -1382,8 +1427,6 @@ void SuplaDeviceClass::iterate(void) {
     } else {
         wait_for_iterate = 0;
     }
-    
-	if ( !isInitialized(false) ) return;
 	
 	if ( !Params.cb.svr_connected() ) {
 		
@@ -1431,11 +1474,12 @@ void SuplaDeviceClass::iterate(void) {
         
         if ( time_diff > 0 ) {
             
-            for(a=0;a<Params.reg_dev.channel_count;a++) {
+            for(int a=0;a<Params.reg_dev.channel_count;a++) {
                 
                 iterate_relay(&channel_pin[a], &Params.reg_dev.channels[a], time_diff, a);
                 iterate_sensor(&channel_pin[a], &Params.reg_dev.channels[a], time_diff, a);
                 iterate_thermometer(&channel_pin[a], &Params.reg_dev.channels[a], time_diff, a);
+                iterate_impulse_counter(&channel_pin[a], &Params.reg_dev.channels[a], time_diff, a);
                 
             }
             
