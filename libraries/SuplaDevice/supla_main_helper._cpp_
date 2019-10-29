@@ -25,12 +25,14 @@
 		    if ( size > 0 ) {
 		        if ( size > count ) size = count;
                 long readSize = client.read((uint8_t *)buf, size);
+#ifdef SUPLA_COMM_DEBUG
                 Serial.print("Received: [");
                 for (int i = 0; i < readSize; i++) {
                     Serial.print(static_cast<unsigned char*>(buf)[i], HEX);
                     Serial.print(" ");
                 }
                 Serial.println("]");
+#endif
                 return readSize;
 		    };
 		
@@ -38,16 +40,15 @@
 		};
 		
 		_supla_int_t supla_arduino_tcp_write(void *buf, _supla_int_t count) {
+#ifdef SUPLA_COMM_DEBUG           
             Serial.print("Sending: [");
             for (int i = 0; i < count; i++) {
                 Serial.print(static_cast<unsigned char*>(buf)[i], HEX);
                 Serial.print(" ");
             }
             Serial.println("]");
+#endif            
             _supla_int_t writeSize = client.write((const uint8_t *)buf, count);
-//            Serial.print("(");
-//            client.flush();
-//            Serial.println(")");
             return writeSize;
 		};
 		

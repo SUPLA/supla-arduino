@@ -235,10 +235,10 @@ public:
    void channelDoubleValueChanged(int channel_number, double v);
     
    bool begin(IPAddress *local_ip, char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const char *Server,
-		      int LocationID, const char *LocationPWD);
+		      int LocationID, const char *LocationPWD, unsigned char version = 8);
    
    bool begin(char GUID[SUPLA_GUID_SIZE], uint8_t mac[6], const char *Server,
-		      int LocationID, const char *LocationPWD);
+		      int LocationID, const char *LocationPWD, unsigned char version = 8);
    
    void setName(const char *Name);
    
