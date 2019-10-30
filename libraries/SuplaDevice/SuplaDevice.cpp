@@ -17,10 +17,11 @@
 #define SUPLADEVICE_CPP
 
 #include <Arduino.h>
-#include "IEEE754tools.h"
+#include "supla-common/IEEE754tools.h"
+#include "supla-common/srpc.h"
+#include "supla-common/log.h"
+
 #include "SuplaDevice.h"
-#include "srpc.h"
-#include "log.h"
 #include "SuplaImpulseCounter.h"
 
 #define RS_STOP_DELAY   500

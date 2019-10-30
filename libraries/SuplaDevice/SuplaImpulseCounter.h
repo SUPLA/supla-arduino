@@ -17,7 +17,7 @@
 #ifndef _supla_impulse_counter_h_
 #define _supla_impulse_counter_h_
 
-#include <proto.h>
+#include "supla-common/proto.h"
 
 class SuplaImpulseCounter {
     public:

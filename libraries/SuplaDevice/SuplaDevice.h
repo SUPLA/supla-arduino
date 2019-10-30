@@ -17,7 +17,7 @@
 #ifndef SUPLADEVICE_H
 #define SUPLADEVICE_H
 
-#include "proto.h"
+#include "supla-common/proto.h"
 #include <IPAddress.h>
 
 #define ACTIVITY_TIMEOUT 30
