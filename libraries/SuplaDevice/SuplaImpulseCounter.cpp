@@ -17,8 +17,9 @@
 #include <Arduino.h>
 #include <SuplaImpulseCounter.h>
 #include <EEPROM.h>
-//#include <util/crc16.h>
+#include "crc16.h"
 #include "supla-common/log.h"
+
 
 const int eepromOffset = 512; // Starting byte where impulse counter data is stored in EEPROM
 
@@ -91,7 +92,7 @@ void SuplaImpulseCounter::writeToStorage() {
             ptr = ptr->nextCounter;
             unsigned char* vptr = (unsigned char*)&value;
             for (int i = 0; i < 8; i++) {
-//                crc = _crc16_update(crc, vptr[i]);
+                crc = crc16_update(crc, vptr[i]);
             }
         }
         EEPROM.put(address, crc); // Store CRC at the end of counters block
@@ -115,7 +116,7 @@ void SuplaImpulseCounter::loadStorage() {
             ptr = ptr->nextCounter;
             unsigned char* vptr = (unsigned char*)&value;
             for (int i = 0; i < 8; i++) {
-//                crc = _crc16_update(crc, vptr[i]);
+                crc = crc16_update(crc, vptr[i]);
             }
         }
         uint16_t eepromcrc;
