@@ -19,6 +19,7 @@
 
 #include "supla-common/proto.h"
 #include <IPAddress.h>
+#include "supla/network/network.h"
 
 #define ACTIVITY_TIMEOUT 30
 
@@ -42,11 +43,6 @@
 #define STATUS_LOCATION_IS_DISABLED    19
 #define STATUS_DEVICE_LIMIT_EXCEEDED   20
 
-typedef _supla_int_t (*_cb_arduino_rw)(void *buf, _supla_int_t count);
-typedef void (*_cb_arduino_eth_setup)(uint8_t mac[6], IPAddress *ip);
-typedef bool (*_cb_arduino_connect)(const char *server, _supla_int_t port);
-typedef bool (*_cb_arduino_connected)(void);
-typedef void (*_cb_arduino_stop)(void);
 typedef double (*_cb_arduino_get_double)(int channelNumber, double current_value);
 typedef void (*_cb_arduino_get_temperature_and_humidity)(int channelNumber, double *temp, double *humidity);
 typedef void (*_cb_arduino_get_rgbw_value)(int channelNumber, unsigned char *red, unsigned char *green, unsigned char *blue, unsigned char *color_brightness, unsigned char *brightness);
@@ -63,13 +59,6 @@ typedef void (*_impl_rs_load_settings)(int channelNumber, unsigned int *full_ope
 typedef void (*_impl_arduino_timer)(void);
 
 typedef struct SuplaDeviceCallbacks {
-	
-	_cb_arduino_rw tcp_read;
-	_cb_arduino_rw tcp_write;
-	_cb_arduino_eth_setup eth_setup;
-	_cb_arduino_connected svr_connected;
-	_cb_arduino_connect svr_connect;
-	_cb_arduino_stop svr_disconnect;
 	_cb_arduino_get_double get_temperature;
 	_cb_arduino_get_double get_pressure;
 	_cb_arduino_get_double get_weight;
