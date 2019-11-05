@@ -15,16 +15,28 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include <SPI.h>
-#include <Ethernet.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <SuplaDevice.h>
+
+// Choose proper network interface for your card:
+// Arduino Mega with EthernetShield W5100:
+#include <supla/network/ethernet_shield.h>
+Supla::EthernetShield ethernet;
+//
+// Arduino Mega with ENC28J60:
+// #include <supla/network/ENC28J60.h>
+// Supla::ENC28J60 ethernet;
+//
+// ESP8266 based board:
+// #include <supla/network/esp_wifi.h>
+// Supla::ESPWifi wifi("your_wifi_ssid", "your_wifi_password");
+
 
 /*
  * This example requires Dallas Temperature Control library installed. 
  * https://github.com/milesburton/Arduino-Temperature-Control-Library
  */
-
  
 // Setup a oneWire instance
 OneWire oneWire(24); // 24 - Pin number
@@ -85,13 +97,13 @@ void setup() {
                                      47, true);    // 47 - ﻿Pin number where the 2nd relay is connected  
 
   // CHANNEL4 - Opening sensor (Normal Open)
-  SuplaDevice.addSensorNO(A0); // A0 - ﻿Pin number where the sensor is connected
+  SuplaDevice.addSensorNO(5); // 5 - ﻿Pin number where the sensor is connected
                                // Call SuplaDevice.addSensorNO(A0, true) with an extra "true" parameter
                                // to enable the internal pull-up resistor
 
 
   // CHANNEL5 - Opening sensor (Normal Open)
-  SuplaDevice.addSensorNO(A1); // A1 - ﻿Pin number where the sensor is connected
+  SuplaDevice.addSensorNO(6); // 6 - ﻿Pin number where the sensor is connected
 
 
   // CHANNEL6 - Thermometer DS18B20

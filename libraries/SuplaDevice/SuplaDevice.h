@@ -300,8 +300,6 @@ public:
 
 };
 
-#include "supla_main_helper._cpp_"			
-			
 extern SuplaDeviceClass SuplaDevice;
 extern SuplaDeviceCallbacks supla_arduino_get_callbacks(void);
 #endif

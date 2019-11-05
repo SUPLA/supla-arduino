@@ -14,23 +14,23 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef ethernet_shield_h__
-#define ethernet_shield_h__
+#ifndef ENC28J60_h_
+#define ENC28J60_h_
 
 #include "../../supla_lib_config.h"
 #include "network.h"
 #include <Arduino.h>
 
-#include <Ethernet.h>
+#include <UIPEthernet.h>
 
 // TODO: change logs to supla_log
 
 namespace Supla {
-    class EthernetShield: public Supla::Network {
+    class ENC28J60: public Supla::Network {
         public:
-            EthernetShield() {
+            ENC28J60() {
                 if (netIntf != NULL) {
-                    Serial.println("EthernetShield: Error - network interface already defined! Overwriting");
+                    Serial.println("ENC28J60: Error - network interface already defined! Overwriting");
                 }
                 netIntf = this;
             }
