@@ -1,8 +1,21 @@
 #include <SPI.h>
-#include <Ethernet.h>
 #include <SuplaDevice.h>
 #include <SuplaSomfy.h>
 #include <EEPROM.h>
+
+// Choose proper network interface for your card:
+// Arduino Mega with EthernetShield W5100:
+#include <supla/network/ethernet_shield.h>
+Supla::EthernetShield ethernet;
+//
+// Arduino Mega with ENC28J60:
+// #include <supla/network/ENC28J60.h>
+// Supla::ENC28J60 ethernet;
+//
+// ESP8266 based board:
+// #include <supla/network/esp_wifi.h>
+// Supla::ESPWifi wifi("your_wifi_ssid", "your_wifi_password");
+
 
 #define RC_COUNT SUPLA_CHANNELMAXCOUNT
 #define BEGIN_PIN 100
@@ -234,4 +247,3 @@ void pushButton(int channelNumber, ControlButtons button) {
   myRemote.PushButton(button);
   saveRollingCode(myRemote.GetRemote(), channelNumber);
 }
-

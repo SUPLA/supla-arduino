@@ -14,25 +14,37 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef ethernet_shield_h__
-#define ethernet_shield_h__
+#ifndef esp_wifi_h__
+#define esp_wifi_h__
 
 #include "../../supla_lib_config.h"
 #include "network.h"
 #include <Arduino.h>
 
-#include <Ethernet.h>
+#include <ESP8266WiFi.h>
+
+#define MAX_SSID_SIZE 32
+#define MAX_WIFI_PASSWORD_SIZE 64
+
 
 // TODO: change logs to supla_log
 
 namespace Supla {
-    class EthernetShield: public Supla::Network {
+    class ESPWifi: public Supla::Network {
         public:
-            EthernetShield() {
+            ESPWifi(const char *wifiSsid, const char *wifiPassword) {
                 if (netIntf != NULL) {
-                    Serial.println("EthernetShield: Error - network interface already defined! Overwriting");
+                    Serial.println("ESPWifi: Error - network interface already defined! Overwriting");
                 }
                 netIntf = this;
+                strcpy(ssid, wifiSsid);
+                strcpy(password, wifiPassword);
+                if (strlen(ssid) == 0 ) {
+                    Serial.println("ESPWifi: Error - Empty SSID");
+                }
+                if (strlen(password) == 0 ) {
+                    Serial.println("ESPWifi: Error - Empty WiFi password");
+                }
             }
 
 
@@ -50,9 +62,9 @@ namespace Supla {
                     }
                     Serial.println("]");
 #endif
-                    return readSize;
-                };
 
+                    return readSize;
+                }
                 return -1;
             }
 
@@ -84,30 +96,40 @@ namespace Supla {
             }
 
             void setup(uint8_t mac[6], IPAddress *ip) {
-                Serial.println("Connecting to network...");
-                if (ip) {
-                    Ethernet.begin(mac, *ip);
-                } else {
-                    Ethernet.begin(mac);
+                Serial.print("Connecting to network: \"");
+                Serial.print(ssid);
+                Serial.println("\"");
+                WiFi.begin(ssid, password);
+
+                // TODO: Change to not blocking
+                while (WiFi.status() != WL_CONNECTED) {
+                    delay(500);
                 }
 
                 Serial.print("localIP: ");
-                Serial.println(Ethernet.localIP());
+                Serial.println(WiFi.localIP());
                 Serial.print("subnetMask: ");
-                Serial.println(Ethernet.subnetMask());
+                Serial.println(WiFi.subnetMask());
                 Serial.print("gatewayIP: ");
-                Serial.println(Ethernet.gatewayIP());
-                Serial.print("dnsServerIP: ");
-                Serial.println(Ethernet.dnsServerIP());
+                Serial.println(WiFi.gatewayIP());
 
             }
 
         protected:
-            EthernetClient client;
+            WiFiClient client;
+
+            char ssid[MAX_SSID_SIZE];
+            char password[MAX_WIFI_PASSWORD_SIZE];
 
     };
 
 };
+
+
+
+
+
+
 
 #endif
 

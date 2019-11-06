@@ -15,9 +15,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include <SPI.h>
-#include <Ethernet.h>
 #include <DHT.h>
 #include <SuplaDevice.h>
+
+// Choose proper network interface for your card:
+// Arduino Mega with EthernetShield W5100:
+#include <supla/network/ethernet_shield.h>
+Supla::EthernetShield ethernet;
+//
+// Arduino Mega with ENC28J60:
+// #include <supla/network/ENC28J60.h>
+// Supla::ENC28J60 ethernet;
+//
+// ESP8266 based board:
+// #include <supla/network/esp_wifi.h>
+// Supla::ESPWifi wifi("your_wifi_ssid", "your_wifi_password");
+
 
 /*
  * This example requires DHT sensor library installed. 
@@ -31,7 +44,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 DHT dht(DHTPIN, DHTTYPE);
 
 
-// DS18B20 Sensor read implementation
+// DHT22 Sensor read implementation
 void get_temperature_and_humidity(int channelNumber, double *temp, double *humidity) {
 
     *temp = dht.readTemperature();

@@ -15,30 +15,118 @@
 */
 
 #include <SPI.h>
-#include <Ethernet.h>
+#include <Adafruit_FRAM_SPI.h>
 #include <SuplaDevice.h>
 
+// Choose proper network interface for your card:
+// Arduino Mega with EthernetShield W5100:
+#include <supla/network/ethernet_shield.h>
+Supla::EthernetShield ethernet;
+//
+// Arduino Mega with ENC28J60:
+// #include <supla/network/ENC28J60.h>
+// Supla::ENC28J60 ethernet;
+//
+// ESP8266 based board:
+// #include <supla/network/esp_wifi.h>
+// Supla::ESPWifi wifi("your_wifi_ssid", "your_wifi_password");
+
+
+char tag[6] = {'S','U','P','L','A','1'};
+
+typedef struct
+{
+  char tag[6];
+  int position;
+  unsigned int full_opening_time;
+  unsigned int full_closing_time;
+}RS_Settings;
+
+RS_Settings settings;
+
+bool FRAM_FOUND = false;
+
+uint8_t FRAM_CS = 9;
+uint8_t FRAM_SCK= 13;
+uint8_t FRAM_MISO = 12;
+uint8_t FRAM_MOSI = 11;
+
+#if defined(ARDUINO_ARCH_SAMD)
+// for Zero, output on USB Serial console, remove line below if using programming port to program the Zero!
+   #define Serial SerialUSB
+#endif
+
+Adafruit_FRAM_SPI fram = Adafruit_FRAM_SPI(FRAM_SCK, FRAM_MISO, FRAM_MOSI, FRAM_CS);
+
+void settings_init(RS_Settings *settings) {
+  memset(settings, 0, sizeof(RS_Settings));
+  memcpy(settings->tag, tag, 6);
+}
+
+bool fram_read(int channelNumber) {
+    memset(&settings, 0, sizeof(RS_Settings));
+      
+    if ( FRAM_FOUND )
+      {
+         fram.read (sizeof(RS_Settings)*channelNumber, (uint8_t *)&settings, sizeof(RS_Settings));
+         if ( memcmp(&settings.tag, tag, 6) == 0 ) 
+           {
+              return true;         
+           }
+      }
+
+      settings_init(&settings);
+
+return false;
+}
+
+void fram_write(int channelNumber) {
+      if ( FRAM_FOUND )
+      {
+         fram.writeEnable(true);
+         fram.write (sizeof(RS_Settings)*channelNumber, (uint8_t *)&settings, sizeof(RS_Settings));
+         fram.writeEnable(false);
+      }
+}
+
 void supla_rs_SavePosition(int channelNumber, int position) {
-    // Save roller shutter position on flash memory.
-    // *Arduino EEPROM is not recommended because of write cycle limits.
+  fram_read(channelNumber);
+  settings.position = position;
+  fram_write(channelNumber);
 }
 
 void supla_rs_LoadPosition(int channelNumber, int *position) {
-    // Load roller shutter position from flash memory
+  if ( fram_read(channelNumber) )
+    {
+       *position = settings.position;
+    }
 }
 
 void supla_rs_SaveSettings(int channelNumber, unsigned int full_opening_time, unsigned int full_closing_time) {
-    // Save roller shutter settings on flash memory.
-    // *Arduino EEPROM is not recommended because of write cycle limits.
+  fram_read(channelNumber);
+  settings.full_opening_time = full_opening_time;
+  settings.full_closing_time = full_closing_time;
+  fram_write(channelNumber);
 }
 
 void supla_rs_LoadSettings(int channelNumber, unsigned int *full_opening_time, unsigned int *full_closing_time) {
-    // Load roller shutter settings from flash memory
+    if ( fram_read(channelNumber) )
+    {
+       *full_opening_time = settings.full_opening_time;
+       *full_closing_time = settings.full_closing_time;
+    }
 }
 
 void setup() {
 
   Serial.begin(9600);
+
+  if (fram.begin()) {
+    Serial.println("Found SPI FRAM");
+    FRAM_FOUND = true;
+  } else {
+    Serial.println("No SPI FRAM found ... check your connections\r\n");
+  }
  
   // ﻿Replace the falowing GUID
   char GUID[SUPLA_GUID_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
