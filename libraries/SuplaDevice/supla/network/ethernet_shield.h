@@ -1,6 +1,6 @@
 /*
  Copyright (C) AC SOFTWARE SP. Z O.O.
- 
+
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
@@ -17,97 +17,92 @@
 #ifndef ethernet_shield_h__
 #define ethernet_shield_h__
 
+#include <Arduino.h>
+#include <Ethernet.h>
+
 #include "../../supla_lib_config.h"
 #include "network.h"
-#include <Arduino.h>
-
-#include <Ethernet.h>
 
 // TODO: change logs to supla_log
 
 namespace Supla {
-    class EthernetShield: public Supla::Network {
-        public:
-            EthernetShield() {
-                if (netIntf != NULL) {
-                    Serial.println("EthernetShield: Error - network interface already defined! Overwriting");
-                }
-                netIntf = this;
-            }
+class EthernetShield : public Supla::Network {
+ public:
+  EthernetShield() {
+    if (netIntf != NULL) {
+      Serial.println(
+          "EthernetShield: Error - network interface already defined! "
+          "Overwriting");
+    }
+    netIntf = this;
+  }
 
-
-            int read(void *buf, int count) {
-                _supla_int_t size = client.available();
-
-                if ( size > 0 ) {
-                    if ( size > count ) size = count;
-                    long readSize = client.read((uint8_t *)buf, size);
+  int read(void *buf, int count) {
+    _supla_int_t size = client.available();
+    if (size > 0) {
+      if (size > count) size = count;
+      long readSize = client.read((uint8_t *)buf, size);
 #ifdef SUPLA_COMM_DEBUG
-                    Serial.print("Received: [");
-                    for (int i = 0; i < readSize; i++) {
-                        Serial.print(static_cast<unsigned char*>(buf)[i], HEX);
-                        Serial.print(" ");
-                    }
-                    Serial.println("]");
+      Serial.print("Received: [");
+      for (int i = 0; i < readSize; i++) {
+        Serial.print(static_cast<unsigned char *>(buf)[i], HEX);
+        Serial.print(" ");
+      }
+      Serial.println("]");
 #endif
-                    return readSize;
-                };
-
-                return -1;
-            }
-
-            int write(void *buf, int count) {
-#ifdef SUPLA_COMM_DEBUG
-                Serial.print("Sending: [");
-                for (int i = 0; i < count; i++) {
-                    Serial.print(static_cast<unsigned char*>(buf)[i], HEX);
-                    Serial.print(" ");
-                }
-                Serial.println("]");
-#endif
-                long sendSize =  client.write((const uint8_t *)buf, count);
-                return sendSize;
-
-            }
-
-            bool connect(const char *server, int port) {
-                return client.connect(server, 2015);
-            }
-
-            bool connected() {
-                return client.connected();
-            }
-
-
-            void disconnect() {
-                client.stop();
-            }
-
-            void setup(uint8_t mac[6], IPAddress *ip) {
-                Serial.println("Connecting to network...");
-                if (ip) {
-                    Ethernet.begin(mac, *ip);
-                } else {
-                    Ethernet.begin(mac);
-                }
-
-                Serial.print("localIP: ");
-                Serial.println(Ethernet.localIP());
-                Serial.print("subnetMask: ");
-                Serial.println(Ethernet.subnetMask());
-                Serial.print("gatewayIP: ");
-                Serial.println(Ethernet.gatewayIP());
-                Serial.print("dnsServerIP: ");
-                Serial.println(Ethernet.dnsServerIP());
-
-            }
-
-        protected:
-            EthernetClient client;
-
+      return readSize;
     };
 
+    return -1;
+  }
+
+  int write(void *buf, int count) {
+#ifdef SUPLA_COMM_DEBUG
+    Serial.print("Sending: [");
+    for (int i = 0; i < count; i++) {
+      Serial.print(static_cast<unsigned char *>(buf)[i], HEX);
+      Serial.print(" ");
+    }
+    Serial.println("]");
+#endif
+    long sendSize = client.write((const uint8_t *)buf, count);
+    return sendSize;
+  }
+
+  bool connect(const char *server, int port) {
+    return client.connect(server, 2015);
+  }
+
+  bool connected() {
+    return client.connected();
+  }
+
+  void disconnect() {
+    client.stop();
+  }
+
+  void setup(uint8_t mac[6], IPAddress *ip) {
+    Serial.println("Connecting to network...");
+    if (ip) {
+      Ethernet.begin(mac, *ip);
+    } else {
+      Ethernet.begin(mac);
+    }
+
+    Serial.print("localIP: ");
+    Serial.println(Ethernet.localIP());
+    Serial.print("subnetMask: ");
+    Serial.println(Ethernet.subnetMask());
+    Serial.print("gatewayIP: ");
+    Serial.println(Ethernet.gatewayIP());
+    Serial.print("dnsServerIP: ");
+    Serial.println(Ethernet.dnsServerIP());
+  }
+
+ protected:
+  EthernetClient client;
 };
 
-#endif
+};  // namespace Supla
 
+#endif

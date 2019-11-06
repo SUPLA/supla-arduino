@@ -1,6 +1,6 @@
 /*
  Copyright (C) AC SOFTWARE SP. Z O.O.
- 
+
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
@@ -20,24 +20,23 @@
 #include <IPAddress.h>
 
 namespace Supla {
-    class Network {
-        public:
-            static Network * Instance() {
-                return netIntf;
-            }
+class Network {
+ public:
+  static Network *Instance() {
+    return netIntf;
+  }
 
-            virtual int read(void *buf, int count) = 0;
-            virtual int write(void *buf, int count) = 0;
-            virtual bool connect(const char *server, int port) = 0;
-            virtual bool connected() = 0;
-            virtual void disconnect() = 0;
-            virtual void setup(uint8_t mac[6], IPAddress *ip) = 0;
+  virtual int read(void *buf, int count) = 0;
+  virtual int write(void *buf, int count) = 0;
+  virtual bool connect(const char *server, int port) = 0;
+  virtual bool connected() = 0;
+  virtual void disconnect() = 0;
+  virtual void setup(uint8_t mac[6], IPAddress *ip) = 0;
 
-        protected:
-            static Network *netIntf; 
-    };
-
+ protected:
+  static Network *netIntf;
 };
 
-#endif
+};  // namespace Supla
 
+#endif
