@@ -97,8 +97,6 @@ typedef struct SuplaDeviceParams {
 
   SuplaDeviceCallbacks cb;
   TDS_SuplaRegisterDevice_C reg_dev;
-  uint8_t mac[6];
-
 } SuplaDeviceParams;
 
 typedef struct SuplaChannelPin {
@@ -178,7 +176,6 @@ class SuplaDeviceClass {
   void channelSetRGBWvalue(int channel, char value[SUPLA_CHANNELVALUE_SIZE]);
 
   SuplaDeviceParams Params;
-  _supla_int_t server_activity_timeout, last_response, last_sent;
   SuplaChannelPin *channel_pin;
 
   int rs_count;
@@ -188,7 +185,6 @@ class SuplaDeviceClass {
 
   unsigned long last_iterate_time;
   unsigned long wait_for_iterate;
-  unsigned long last_ping_time;
 
   _impl_arduino_digitalRead impl_arduino_digitalRead;
   _impl_arduino_digitalWrite impl_arduino_digitalWrite;
@@ -270,14 +266,12 @@ class SuplaDeviceClass {
 
   bool begin(IPAddress *local_ip,
              char GUID[SUPLA_GUID_SIZE],
-             uint8_t mac[6],
              const char *Server,
              int LocationID,
              const char *LocationPWD,
              unsigned char version = 8);
 
   bool begin(char GUID[SUPLA_GUID_SIZE],
-             uint8_t mac[6],
              const char *Server,
              int LocationID,
              const char *LocationPWD,
@@ -358,7 +352,6 @@ class SuplaDeviceClass {
   void setStatusFuncImpl(_impl_arduino_status impl_arduino_status);
   void setTimerFuncImpl(_impl_arduino_timer impl_arduino_timer);
 
-  void onSent(void);
   void onResponse(void);
   void onVersionError(TSDC_SuplaVersionError *version_error);
   void onRegisterResult(TSD_SuplaRegisterDeviceResult *register_device_result);
