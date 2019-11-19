@@ -326,7 +326,10 @@ class SuplaDeviceClass {
   void rollerShutterStop(int channel_number);
   bool rollerShutterMotorIsOn(int channel_number);
 
+  // Timer with 100 Hz frequency (10 ms)
   void onTimer(void);
+  // TImer with 2000 Hz frequency (0.5 ms)
+  void onFastTimer(void);
   void iterate(void);
 
   SuplaDeviceCallbacks getCallbacks(void);

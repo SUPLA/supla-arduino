@@ -37,13 +37,21 @@
 
 #ifdef ARDUINO_ARCH_ESP8266
 ETSTimer esp_timer;
+ETSTimer esp_fastTimer;
 
 void esp_timer_cb(void *timer_arg) {
   SuplaDevice.onTimer();
 }
+
+void esp_fastTimer_cb(void *timer_arg) {
+  SuplaDevice.onFastTimer();
+}
 #else
 ISR(TIMER1_COMPA_vect) {
   SuplaDevice.onTimer();
+}
+ISR(TIMER2_COMPA_vect) {
+  SuplaDevice.onFastTimer();
 }
 #endif
 void float2DoublePacked(float number, byte *bar, int byteOrder = LSBFIRST) {
@@ -209,6 +217,7 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip,
   for (a = 0; a < SUPLA_GUID_SIZE; a++)
     if (Params.reg_dev.GUID[a] != 0) break;
 
+
   if (a == SUPLA_GUID_SIZE) {
     status(STATUS_INVALID_GUID, "Invalid GUID");
     return false;
@@ -267,8 +276,11 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip,
     os_timer_disarm(&esp_timer);
     os_timer_setfn(&esp_timer, (os_timer_func_t *)esp_timer_cb, NULL);
     os_timer_arm(&esp_timer, 10, 1);
+    os_timer_disarm(&esp_fastTimer);
+    os_timer_setfn(&esp_fastTimer, (os_timer_func_t *)esp_fastTimer_cb, NULL);
+    os_timer_arm(&esp_fastTimer, 1, 1);
 #else
-    cli();       // disable interrupts
+    // Timer 1 for interrupt frequency 100 Hz (10 ms)
     TCCR1A = 0;  // set entire TCCR1A register to 0
     TCCR1B = 0;  // same for TCCR1B
     TCNT1 = 0;   // initialize counter value to 0
@@ -281,6 +293,21 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip,
     // enable timer compare interrupt
     TIMSK1 |= (1 << OCIE1A);
     sei();  // enable interrupts
+
+    // TIMER 2 for interrupt frequency 2000 Hz (0.5 ms)
+    cli(); // stop interrupts
+    TCCR2A = 0; // set entire TCCR2A register to 0
+    TCCR2B = 0; // same for TCCR2B
+    TCNT2  = 0; // initialize counter value to 0
+    // set compare match register for 2000 Hz increments
+    OCR2A = 249; // = 16000000 / (32 * 2000) - 1 (must be <256)
+    // turn on CTC mode
+    TCCR2B |= (1 << WGM21);
+    // Set CS22, CS21 and CS20 bits for 32 prescaler
+    TCCR2B |= (0 << CS22) | (1 << CS21) | (1 << CS20);
+    // enable timer compare interrupt
+    TIMSK2 |= (1 << OCIE2A);
+    sei(); // allow interrupts
 #endif
   }
 
@@ -1312,6 +1339,9 @@ void SuplaDeviceClass::onTimer(void) {
         &channel_pin[roller_shutter[a].channel_number],
         &Params.reg_dev.channels[roller_shutter[a].channel_number]);
   }
+}
+
+void SuplaDeviceClass::onFastTimer(void) {
   // Iteration over all impulse counters will count incomming impulses. It is
   // after SuplaDevice initialization (because we have to read stored counter
   // values) and before any other operation like connection to Supla cloud
