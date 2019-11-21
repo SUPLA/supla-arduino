@@ -75,9 +75,6 @@ void setup() {
   // ﻿with GUID that you can retrieve from https://www.supla.org/arduino/get-guid
 
 
-  // Ethernet MAC address
-  uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
-
   /*
    * Having your device already registered at cloud.supla.org,
    * you want to change CHANNEL sequence or remove any of them,
@@ -121,7 +118,6 @@ void setup() {
    */
 
   SuplaDevice.begin(GUID,              // Global Unique Identifier 
-                    mac,               // Ethernet MAC address
                     "svr1.supla.org",  // SUPLA server address
                     0,                 // Location ID 
                     "");               // Location Password

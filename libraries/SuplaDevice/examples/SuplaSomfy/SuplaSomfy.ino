@@ -132,9 +132,6 @@ void setup() {
   char GUID[SUPLA_GUID_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
   // ﻿with GUID that you can retrieve from https://www.supla.org/arduino/get-guid
 
-  // Ethernet MAC address
-  uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
-
   // Generate remote controls
   createRemote(RC_COUNT);
 
@@ -155,7 +152,6 @@ void setup() {
   SuplaDevice.setName("Somfy Remote");
 
   SuplaDevice.begin(GUID,              // Global Unique Identifier
-                    mac,               // Ethernet MAC address
                     "svr1.supla.org",  // SUPLA server address
                     0,                // Location ID
                     "");           // Location Password
