@@ -61,10 +61,6 @@ typedef void (*_cb_arduino_set_rgbw_value)(int channelNumber,
                                            unsigned char blue,
                                            unsigned char color_brightness,
                                            unsigned char brightness);
-typedef int (*_impl_arduino_digitalRead)(int channelNumber, uint8_t pin);
-typedef void (*_impl_arduino_digitalWrite)(int channelNumber,
-                                           uint8_t pin,
-                                           uint8_t val);
 typedef void (*_impl_arduino_status)(int status, const char *msg);
 
 typedef void (*_impl_rs_save_position)(int channelNumber, int position);
@@ -186,8 +182,6 @@ class SuplaDeviceClass {
   unsigned long last_iterate_time;
   unsigned long wait_for_iterate;
 
-  _impl_arduino_digitalRead impl_arduino_digitalRead;
-  _impl_arduino_digitalWrite impl_arduino_digitalWrite;
   _impl_arduino_status impl_arduino_status;
 
   _impl_rs_save_position impl_rs_save_position;
@@ -251,9 +245,7 @@ class SuplaDeviceClass {
                          int channel_number);
 
  private:
-  int suplaDigitalRead(int channelNumber, uint8_t pin);
   bool suplaDigitalRead_isHI(int channelNumber, uint8_t pin);
-  void suplaDigitalWrite(int channelNumber, uint8_t pin, uint8_t val);
   void suplaDigitalWrite_setHI(int channelNumber, uint8_t pin, bool hi);
   void status(int status, const char *msg);
 
@@ -348,10 +340,6 @@ class SuplaDeviceClass {
                                 _impl_rs_save_settings impl_save_settings,
                                 _impl_rs_load_settings impl_load_settings);
 
-  void setDigitalReadFuncImpl(
-      _impl_arduino_digitalRead impl_arduino_digitalRead);
-  void setDigitalWriteFuncImpl(
-      _impl_arduino_digitalWrite impl_arduino_digitalWrite);
   void setStatusFuncImpl(_impl_arduino_status impl_arduino_status);
   void setTimerFuncImpl(_impl_arduino_timer impl_arduino_timer);
 
