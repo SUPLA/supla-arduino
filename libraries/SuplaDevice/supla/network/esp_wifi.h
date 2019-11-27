@@ -81,7 +81,7 @@ class ESPWifi : public Supla::Network {
   }
 
   bool connect(const char *server, int port) {
-    return client.connect(server, 2015);
+    return client.connect(server, port);
   }
 
   bool connected() {
@@ -92,7 +92,7 @@ class ESPWifi : public Supla::Network {
     client.stop();
   }
 
-  void setup(uint8_t mac[6], IPAddress *ip) {
+  void setup(IPAddress *ip) {
     Serial.print("Connecting to network: \"");
     Serial.print(ssid);
     Serial.println("\"");

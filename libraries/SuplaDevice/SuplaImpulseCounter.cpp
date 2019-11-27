@@ -115,6 +115,8 @@ void SuplaImpulseCounter::writeToStorage() {
 }
 
 void SuplaImpulseCounter::loadStorage() {
+  if (firstCounter == NULL) return;
+
   supla_log(LOG_DEBUG, "Loading counters data from EEPROM");
   int address = eepromOffset;
   int countersCount = count();
@@ -157,6 +159,8 @@ void SuplaImpulseCounter::loadStorage() {
 }
 
 void SuplaImpulseCounter::updateStorageOccasionally() {
+  if (firstCounter == NULL) return;
+
   const unsigned long UPDATE_DELAY =
       static_cast<unsigned long>(1000) * 60 *
       1;  // 1000 ms * 60 seconds * 2 min = write every 2 minutes to EEPROM

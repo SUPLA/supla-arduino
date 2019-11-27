@@ -19,6 +19,8 @@
 
 #include <IPAddress.h>
 
+#include "supla-common/proto.h"
+
 namespace Supla {
 class Network {
  public:
@@ -26,16 +28,103 @@ class Network {
     return netIntf;
   }
 
+  static bool Connected() {
+    if (Instance() != NULL) {
+      return Instance()->connected();
+    }
+    return false;
+  }
+
+  static int Read(void *buf, int count) {
+    if (Instance() != NULL) {
+      return Instance()->read(buf, count);
+    }
+    return -1;
+  }
+
+  static int Write(void *buf, int count) {
+    if (Instance() != NULL) {
+      return Instance()->write(buf, count);
+    }
+    return -1;
+  }
+
+  static bool Connect(const char *server, int port) {
+    if (Instance() != NULL) {
+      Instance()->clearTimeCounters();
+      return Instance()->connect(server, port);
+    }
+    return false;
+  }
+
+  static void Disconnect() {
+    if (Instance() != NULL) {
+      return Instance()->disconnect();
+    }
+    return;
+  }
+
+  static void Setup(IPAddress *ip) {
+    if (Instance() != NULL) {
+      return Instance()->setup(ip);
+    }
+    return;
+  }
+
+  static bool Iterate() {
+    if (Instance() != NULL) {
+      return Instance()->iterate();
+    }
+    return false;
+  }
+
+  static void SetSrpc(void *_srpc) {
+    if (Instance() != NULL) {
+      Instance()->setSrpc(_srpc);
+    }
+  }
+
+  static bool Ping() {
+    if (Instance() != NULL) {
+      return Instance()->ping();
+    }
+  }
+
+  Network();
   virtual int read(void *buf, int count) = 0;
   virtual int write(void *buf, int count) = 0;
   virtual bool connect(const char *server, int port) = 0;
   virtual bool connected() = 0;
   virtual void disconnect() = 0;
-  virtual void setup(uint8_t mac[6], IPAddress *ip) = 0;
+  virtual void setup(IPAddress *ip) = 0;
+  virtual bool iterate();
+  virtual bool ping();
+
+  void setSrpc(void *_srpc);
+  void updateLastSent();
+  void updateLastResponse();
+  void clearTimeCounters();
+  void setActivityTimeout(_supla_int_t activityTimeoutSec);
 
  protected:
   static Network *netIntf;
+  _supla_int64_t lastSentMs;
+  _supla_int64_t lastResponseMs;
+  _supla_int64_t lastPingTimeMs;
+  _supla_int_t serverActivityTimeoutS;
+  void *srpc;
 };
+
+// Method passed to SRPC as a callback to read raw data from network interface
+_supla_int_t data_read(void *buf, _supla_int_t count, void *sdc);
+// Method passed to SRPC as a callback to write raw data to network interface
+_supla_int_t data_write(void *buf, _supla_int_t count, void *sdc);
+// Method passed to SRPC as a callback to handle response from Supla server
+void message_received(void *_srpc,
+                      unsigned _supla_int_t rr_id,
+                      unsigned _supla_int_t call_type,
+                      void *_sdc,
+                      unsigned char proto_version);
 
 };  // namespace Supla
 

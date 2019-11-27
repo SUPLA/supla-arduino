@@ -61,10 +61,6 @@ typedef void (*_cb_arduino_set_rgbw_value)(int channelNumber,
                                            unsigned char blue,
                                            unsigned char color_brightness,
                                            unsigned char brightness);
-typedef int (*_impl_arduino_digitalRead)(int channelNumber, uint8_t pin);
-typedef void (*_impl_arduino_digitalWrite)(int channelNumber,
-                                           uint8_t pin,
-                                           uint8_t val);
 typedef void (*_impl_arduino_status)(int status, const char *msg);
 
 typedef void (*_impl_rs_save_position)(int channelNumber, int position);
@@ -97,8 +93,6 @@ typedef struct SuplaDeviceParams {
 
   SuplaDeviceCallbacks cb;
   TDS_SuplaRegisterDevice_C reg_dev;
-  uint8_t mac[6];
-
 } SuplaDeviceParams;
 
 typedef struct SuplaChannelPin {
@@ -178,7 +172,6 @@ class SuplaDeviceClass {
   void channelSetRGBWvalue(int channel, char value[SUPLA_CHANNELVALUE_SIZE]);
 
   SuplaDeviceParams Params;
-  _supla_int_t server_activity_timeout, last_response, last_sent;
   SuplaChannelPin *channel_pin;
 
   int rs_count;
@@ -188,10 +181,7 @@ class SuplaDeviceClass {
 
   unsigned long last_iterate_time;
   unsigned long wait_for_iterate;
-  unsigned long last_ping_time;
 
-  _impl_arduino_digitalRead impl_arduino_digitalRead;
-  _impl_arduino_digitalWrite impl_arduino_digitalWrite;
   _impl_arduino_status impl_arduino_status;
 
   _impl_rs_save_position impl_rs_save_position;
@@ -255,9 +245,7 @@ class SuplaDeviceClass {
                          int channel_number);
 
  private:
-  int suplaDigitalRead(int channelNumber, uint8_t pin);
   bool suplaDigitalRead_isHI(int channelNumber, uint8_t pin);
-  void suplaDigitalWrite(int channelNumber, uint8_t pin, uint8_t val);
   void suplaDigitalWrite_setHI(int channelNumber, uint8_t pin, bool hi);
   void status(int status, const char *msg);
 
@@ -270,14 +258,12 @@ class SuplaDeviceClass {
 
   bool begin(IPAddress *local_ip,
              char GUID[SUPLA_GUID_SIZE],
-             uint8_t mac[6],
              const char *Server,
              int LocationID,
              const char *LocationPWD,
              unsigned char version = 8);
 
   bool begin(char GUID[SUPLA_GUID_SIZE],
-             uint8_t mac[6],
              const char *Server,
              int LocationID,
              const char *LocationPWD,
@@ -332,7 +318,10 @@ class SuplaDeviceClass {
   void rollerShutterStop(int channel_number);
   bool rollerShutterMotorIsOn(int channel_number);
 
+  // Timer with 100 Hz frequency (10 ms)
   void onTimer(void);
+  // TImer with 2000 Hz frequency (0.5 ms)
+  void onFastTimer(void);
   void iterate(void);
 
   SuplaDeviceCallbacks getCallbacks(void);
@@ -351,14 +340,9 @@ class SuplaDeviceClass {
                                 _impl_rs_save_settings impl_save_settings,
                                 _impl_rs_load_settings impl_load_settings);
 
-  void setDigitalReadFuncImpl(
-      _impl_arduino_digitalRead impl_arduino_digitalRead);
-  void setDigitalWriteFuncImpl(
-      _impl_arduino_digitalWrite impl_arduino_digitalWrite);
   void setStatusFuncImpl(_impl_arduino_status impl_arduino_status);
   void setTimerFuncImpl(_impl_arduino_timer impl_arduino_timer);
 
-  void onSent(void);
   void onResponse(void);
   void onVersionError(TSDC_SuplaVersionError *version_error);
   void onRegisterResult(TSD_SuplaRegisterDeviceResult *register_device_result);

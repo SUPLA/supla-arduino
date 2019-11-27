@@ -28,13 +28,14 @@
 namespace Supla {
 class EthernetShield : public Supla::Network {
  public:
-  EthernetShield() {
+  EthernetShield(uint8_t mac[6]) {
     if (netIntf != NULL) {
       Serial.println(
           "EthernetShield: Error - network interface already defined! "
           "Overwriting");
     }
     netIntf = this;
+    memcpy(this->mac, mac, 6);
   }
 
   int read(void *buf, int count) {
@@ -70,7 +71,7 @@ class EthernetShield : public Supla::Network {
   }
 
   bool connect(const char *server, int port) {
-    return client.connect(server, 2015);
+    return client.connect(server, port);
   }
 
   bool connected() {
@@ -81,7 +82,7 @@ class EthernetShield : public Supla::Network {
     client.stop();
   }
 
-  void setup(uint8_t mac[6], IPAddress *ip) {
+  void setup(IPAddress *ip) {
     Serial.println("Connecting to network...");
     if (ip) {
       Ethernet.begin(mac, *ip);
@@ -101,6 +102,7 @@ class EthernetShield : public Supla::Network {
 
  protected:
   EthernetClient client;
+  uint8_t mac[6];
 };
 
 };  // namespace Supla

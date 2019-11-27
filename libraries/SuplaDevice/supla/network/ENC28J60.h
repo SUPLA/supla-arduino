@@ -28,12 +28,13 @@
 namespace Supla {
 class ENC28J60 : public Supla::Network {
  public:
-  ENC28J60() {
+  ENC28J60(uint8_t mac[6]) {
     if (netIntf != NULL) {
       Serial.println(
           "ENC28J60: Error - network interface already defined! Overwriting");
     }
     netIntf = this;
+    memcpy(this->mac, mac, 6);
   }
 
   int read(void *buf, int count) {
@@ -70,7 +71,7 @@ class ENC28J60 : public Supla::Network {
   }
 
   bool connect(const char *server, int port) {
-    return client.connect(server, 2015);
+    return client.connect(server, port);
   }
 
   bool connected() {
@@ -101,6 +102,7 @@ class ENC28J60 : public Supla::Network {
 
  protected:
   EthernetClient client;
+  uint8_t mac[6];
 };
 
 };  // namespace Supla

@@ -23,6 +23,7 @@
 #include "supla-common/IEEE754tools.h"
 #include "supla-common/log.h"
 #include "supla-common/srpc.h"
+#include "io.h"
 
 #define RS_STOP_DELAY  500
 #define RS_START_DELAY 1000
@@ -37,30 +38,23 @@
 
 #ifdef ARDUINO_ARCH_ESP8266
 ETSTimer esp_timer;
+ETSTimer esp_fastTimer;
 
 void esp_timer_cb(void *timer_arg) {
   SuplaDevice.onTimer();
+}
+
+void esp_fastTimer_cb(void *timer_arg) {
+  SuplaDevice.onFastTimer();
 }
 #else
 ISR(TIMER1_COMPA_vect) {
   SuplaDevice.onTimer();
 }
+ISR(TIMER2_COMPA_vect) {
+  SuplaDevice.onFastTimer();
+}
 #endif
-
-_supla_int_t supla_arduino_data_read(void *buf, _supla_int_t count, void *sdc) {
-  return Supla::Network::Instance()->read(buf, count);
-}
-
-_supla_int_t supla_arduino_data_write(void *buf,
-                                      _supla_int_t count,
-                                      void *sdc) {
-  _supla_int_t r = Supla::Network::Instance()->write(buf, count);
-  if (r > 0) {
-    ((SuplaDeviceClass *)sdc)->onSent();
-  }
-  return r;
-}
-
 void float2DoublePacked(float number, byte *bar, int byteOrder = LSBFIRST) {
   _FLOATCONV fl;
   fl.f = number;
@@ -92,42 +86,6 @@ void SuplaDeviceClass::status(int status, const char *msg) {
   }
 }
 
-void supla_arduino_on_remote_call_received(void *_srpc,
-                                           unsigned _supla_int_t rr_id,
-                                           unsigned _supla_int_t call_type,
-                                           void *_sdc,
-                                           unsigned char proto_version) {
-  TsrpcReceivedData rd;
-  char result;
-
-  ((SuplaDeviceClass *)_sdc)->onResponse();
-
-  if (SUPLA_RESULT_TRUE == (result = srpc_getdata(_srpc, &rd, 0))) {
-    switch (rd.call_type) {
-      case SUPLA_SDC_CALL_VERSIONERROR:
-        ((SuplaDeviceClass *)_sdc)->onVersionError(rd.data.sdc_version_error);
-        break;
-      case SUPLA_SD_CALL_REGISTER_DEVICE_RESULT:
-        ((SuplaDeviceClass *)_sdc)
-            ->onRegisterResult(rd.data.sd_register_device_result);
-        break;
-      case SUPLA_SD_CALL_CHANNEL_SET_VALUE:
-        ((SuplaDeviceClass *)_sdc)
-            ->channelSetValueByServer(rd.data.sd_channel_new_value);
-        break;
-      case SUPLA_SDC_CALL_SET_ACTIVITY_TIMEOUT_RESULT:
-        ((SuplaDeviceClass *)_sdc)
-            ->channelSetActivityTimeoutResult(
-                rd.data.sdc_set_activity_timeout_result);
-        break;
-    }
-
-    srpc_rd_free(&rd);
-
-  } else if (result == SUPLA_RESULT_DATA_ERROR) {
-    supla_log(LOG_DEBUG, "DATA ERROR!");
-  }
-}
 
 SuplaDeviceClass::SuplaDeviceClass() {
   char a;
@@ -139,9 +97,6 @@ SuplaDeviceClass::SuplaDeviceClass() {
   roller_shutter = NULL;
   rs_count = 0;
 
-  impl_arduino_digitalRead = NULL;
-  impl_arduino_digitalWrite = NULL;
-
   impl_rs_save_position = NULL;
   impl_rs_load_position = NULL;
   impl_rs_save_settings = NULL;
@@ -150,8 +105,6 @@ SuplaDeviceClass::SuplaDeviceClass() {
   impl_arduino_timer = NULL;
 
   memset(&Params, 0, sizeof(SuplaDeviceParams));
-
-  for (a = 0; a < 6; a++) Params.mac[a] = a;
 
   Params.cb = supla_arduino_get_callbacks();
 }
@@ -170,25 +123,9 @@ SuplaDeviceClass::~SuplaDeviceClass() {
   rs_count = 0;
 }
 
-int SuplaDeviceClass::suplaDigitalRead(int channelNumber, uint8_t pin) {
-  if (impl_arduino_digitalRead != NULL)
-    return impl_arduino_digitalRead(channelNumber, pin);
-
-  return digitalRead(pin);
-}
-
 bool SuplaDeviceClass::suplaDigitalRead_isHI(int channelNumber, uint8_t pin) {
-  return suplaDigitalRead(channelNumber, pin) ==
+  return Supla::Io::digitalRead(channelNumber, pin) ==
          (channel_pin[channelNumber].hiIsLo ? LOW : HIGH);
-}
-
-void SuplaDeviceClass::suplaDigitalWrite(int channelNumber,
-                                         uint8_t pin,
-                                         uint8_t val) {
-  if (impl_arduino_digitalWrite != NULL)
-    return impl_arduino_digitalWrite(channelNumber, pin, val);
-
-  digitalWrite(pin, val);
 }
 
 void SuplaDeviceClass::suplaDigitalWrite_setHI(int channelNumber,
@@ -198,17 +135,7 @@ void SuplaDeviceClass::suplaDigitalWrite_setHI(int channelNumber,
     hi = hi ? LOW : HIGH;
   }
 
-  suplaDigitalWrite(channelNumber, pin, hi);
-}
-
-void SuplaDeviceClass::setDigitalReadFuncImpl(
-    _impl_arduino_digitalRead impl_arduino_digitalRead) {
-  this->impl_arduino_digitalRead = impl_arduino_digitalRead;
-}
-
-void SuplaDeviceClass::setDigitalWriteFuncImpl(
-    _impl_arduino_digitalWrite impl_arduino_digitalWrite) {
-  this->impl_arduino_digitalWrite = impl_arduino_digitalWrite;
+  Supla::Io::digitalWrite(channelNumber, pin, hi);
 }
 
 void SuplaDeviceClass::setStatusFuncImpl(
@@ -234,7 +161,6 @@ bool SuplaDeviceClass::isInitialized(bool msg) {
 
 bool SuplaDeviceClass::begin(IPAddress *local_ip,
                              char GUID[SUPLA_GUID_SIZE],
-                             uint8_t mac[6],
                              const char *Server,
                              int LocationID,
                              const char *LocationPWD,
@@ -255,7 +181,6 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip,
   }
 
   memcpy(Params.reg_dev.GUID, GUID, SUPLA_GUID_SIZE);
-  memcpy(Params.mac, mac, 6);
   Params.reg_dev.LocationID = LocationID;
   setString(
       Params.reg_dev.LocationPWD, LocationPWD, SUPLA_LOCATION_PWD_MAXSIZE);
@@ -263,6 +188,7 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip,
 
   for (a = 0; a < SUPLA_GUID_SIZE; a++)
     if (Params.reg_dev.GUID[a] != 0) break;
+
 
   if (a == SUPLA_GUID_SIZE) {
     status(STATUS_INVALID_GUID, "Invalid GUID");
@@ -285,19 +211,20 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip,
 
   setString(Params.reg_dev.SoftVer, "1.7.0", SUPLA_SOFTVER_MAXSIZE);
 
-  Supla::Network::Instance()->setup(
-      Params.mac, Params.use_local_ip ? &Params.local_ip : NULL);
+  Supla::Network::Setup(Params.use_local_ip ? &Params.local_ip : NULL);
 
   TsrpcParams srpc_params;
   srpc_params_init(&srpc_params);
-  srpc_params.data_read = &supla_arduino_data_read;
-  srpc_params.data_write = &supla_arduino_data_write;
-  srpc_params.on_remote_call_received = &supla_arduino_on_remote_call_received;
+  srpc_params.data_read = &Supla::data_read;
+  srpc_params.data_write = &Supla::data_write;
+  srpc_params.on_remote_call_received = &Supla::message_received;
   srpc_params.user_params = this;
 
   srpc = srpc_init(&srpc_params);
-  srpc_set_proto_version(srpc,
-                         version);  // Set Supla protocol interface version
+  Supla::Network::SetSrpc(srpc);
+
+  // Set Supla protocol interface version
+  srpc_set_proto_version(srpc, version);
 
   supla_log(LOG_DEBUG, "Using protocol version %d", version);
 
@@ -321,8 +248,11 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip,
     os_timer_disarm(&esp_timer);
     os_timer_setfn(&esp_timer, (os_timer_func_t *)esp_timer_cb, NULL);
     os_timer_arm(&esp_timer, 10, 1);
+    os_timer_disarm(&esp_fastTimer);
+    os_timer_setfn(&esp_fastTimer, (os_timer_func_t *)esp_fastTimer_cb, NULL);
+    os_timer_arm(&esp_fastTimer, 1, 1);
 #else
-    cli();       // disable interrupts
+    // Timer 1 for interrupt frequency 100 Hz (10 ms)
     TCCR1A = 0;  // set entire TCCR1A register to 0
     TCCR1B = 0;  // same for TCCR1B
     TCNT1 = 0;   // initialize counter value to 0
@@ -335,6 +265,21 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip,
     // enable timer compare interrupt
     TIMSK1 |= (1 << OCIE1A);
     sei();  // enable interrupts
+
+    // TIMER 2 for interrupt frequency 2000 Hz (0.5 ms)
+    cli(); // stop interrupts
+    TCCR2A = 0; // set entire TCCR2A register to 0
+    TCCR2B = 0; // same for TCCR2B
+    TCNT2  = 0; // initialize counter value to 0
+    // set compare match register for 2000 Hz increments
+    OCR2A = 249; // = 16000000 / (32 * 2000) - 1 (must be <256)
+    // turn on CTC mode
+    TCCR2B |= (1 << WGM21);
+    // Set CS22, CS21 and CS20 bits for 32 prescaler
+    TCCR2B |= (0 << CS22) | (1 << CS21) | (1 << CS20);
+    // enable timer compare interrupt
+    TIMSK2 |= (1 << OCIE2A);
+    sei(); // allow interrupts
 #endif
   }
 
@@ -353,12 +298,11 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip,
 }
 
 bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
-                             uint8_t mac[6],
                              const char *Server,
                              int LocationID,
                              const char *LocationPWD,
                              unsigned char version) {
-  return begin(NULL, GUID, mac, Server, LocationID, LocationPWD, version);
+  return begin(NULL, GUID, Server, LocationID, LocationPWD, version);
 }
 
 void SuplaDeviceClass::begin_thermometer(SuplaChannelPin *pin,
@@ -437,7 +381,7 @@ int SuplaDeviceClass::addChannel(int pin1,
   channel_pin[Params.reg_dev.channel_count].vc_time = 0;
   channel_pin[Params.reg_dev.channel_count].bi_time_left = 0;
   channel_pin[Params.reg_dev.channel_count].last_val =
-      suplaDigitalRead(Params.reg_dev.channel_count, bistable ? pin2 : pin1);
+      Supla::Io::digitalRead(Params.reg_dev.channel_count, bistable ? pin2 : pin1);
 
   Params.reg_dev.channel_count++;
 
@@ -460,12 +404,12 @@ int SuplaDeviceClass::addRelay(int relayPin1,
 
   if (relayPin1 != 0) {
     pinMode(relayPin1, OUTPUT);
-    suplaDigitalWrite(
+    Supla::Io::digitalWrite(
         Params.reg_dev.channels[c].Number, relayPin1, hiIsLo ? HIGH : LOW);
 
     if (bistable == false)
       Params.reg_dev.channels[c].value[0] =
-          suplaDigitalRead(Params.reg_dev.channels[c].Number, relayPin1) == _HI
+          Supla::Io::digitalRead(Params.reg_dev.channels[c].Number, relayPin1) == _HI
               ? 1
               : 0;
   }
@@ -474,17 +418,17 @@ int SuplaDeviceClass::addRelay(int relayPin1,
     if (bistable) {
       pinMode(relayPin2, INPUT);
       Params.reg_dev.channels[c].value[0] =
-          suplaDigitalRead(Params.reg_dev.channels[c].Number, relayPin2) == HIGH
+          Supla::Io::digitalRead(Params.reg_dev.channels[c].Number, relayPin2) == HIGH
               ? 1
               : 0;
 
     } else {
       pinMode(relayPin2, OUTPUT);
-      suplaDigitalWrite(
+      Supla::Io::digitalWrite(
           Params.reg_dev.channels[c].Number, relayPin2, hiIsLo ? HIGH : LOW);
 
       if (Params.reg_dev.channels[c].value[0] == 0 &&
-          suplaDigitalRead(Params.reg_dev.channels[c].Number, relayPin2) == _HI)
+          Supla::Io::digitalRead(Params.reg_dev.channels[c].Number, relayPin2) == _HI)
         Params.reg_dev.channels[c].value[0] = 2;
     }
 
@@ -571,7 +515,7 @@ bool SuplaDeviceClass::addSensorNO(int sensorPin, bool pullUp) {
   }
 
   Params.reg_dev.channels[c].value[0] =
-      suplaDigitalRead(Params.reg_dev.channels[c].Number, sensorPin) == HIGH
+      Supla::Io::digitalRead(Params.reg_dev.channels[c].Number, sensorPin) == HIGH
           ? 1
           : 0;
   return true;
@@ -640,6 +584,8 @@ bool SuplaDeviceClass::addDHT(int Type) {
   if (c == -1) return false;
 
   Params.reg_dev.channels[c].Type = Type;
+  Params.reg_dev.channels[c].Default = SUPLA_CHANNELFNC_HUMIDITYANDTEMPERATURE;
+
   channel_pin[c].last_val_dbl1 = -275;
   channel_pin[c].last_val_dbl2 = -1;
 
@@ -652,7 +598,7 @@ bool SuplaDeviceClass::addDHT11(void) {
 }
 
 bool SuplaDeviceClass::addDHT22(void) {
-  return addDHT(SUPLA_CHANNELTYPE_DHT22);
+  return addDHT(SUPLA_CHANNELTYPE_HUMIDITYANDTEMPSENSOR);
 }
 
 bool SuplaDeviceClass::addAM2302(void) {
@@ -823,7 +769,7 @@ void SuplaDeviceClass::iterate_relay(SuplaChannelPin *pin,
   if (pin->bi_time_left != 0) {
     if (time_diff >= pin->bi_time_left) {
       // switch off bistable relay
-      suplaDigitalWrite(channel->Number, pin->pin1, pin->hiIsLo ? HIGH : LOW);
+      Supla::Io::digitalWrite(channel->Number, pin->pin1, pin->hiIsLo ? HIGH : LOW);
       pin->bi_time_left = 0;
 
     } else if (pin->bi_time_left > 0) {
@@ -852,7 +798,7 @@ void SuplaDeviceClass::iterate_relay(SuplaChannelPin *pin,
       pin->vc_time -= time_diff;
 
     } else {
-      uint8_t val = suplaDigitalRead(channel->Number, pin->pin2);
+      uint8_t val = Supla::Io::digitalRead(channel->Number, pin->pin2);
 
       if (val != pin->last_val) {
         pin->last_val = val;
@@ -870,7 +816,7 @@ void SuplaDeviceClass::iterate_sensor(SuplaChannelPin *pin,
                                       unsigned long time_diff,
                                       int channel_number) {
   if (channel->Type == SUPLA_CHANNELTYPE_SENSORNO) {
-    uint8_t val = suplaDigitalRead(channel->Number, pin->pin1);
+    uint8_t val = Supla::Io::digitalRead(channel->Number, pin->pin1);
 
     if (val != pin->last_val) {
       pin->last_val = val;
@@ -964,6 +910,7 @@ void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin,
     }
 
   } else if ((channel->Type == SUPLA_CHANNELTYPE_DHT11 ||
+              channel->Type == SUPLA_CHANNELTYPE_HUMIDITYANDTEMPSENSOR ||
               channel->Type == SUPLA_CHANNELTYPE_DHT22 ||
               channel->Type == SUPLA_CHANNELTYPE_AM2302) &&
              Params.cb.get_temperature_and_humidity != NULL) {
@@ -1364,6 +1311,9 @@ void SuplaDeviceClass::onTimer(void) {
         &channel_pin[roller_shutter[a].channel_number],
         &Params.reg_dev.channels[roller_shutter[a].channel_number]);
   }
+}
+
+void SuplaDeviceClass::onFastTimer(void) {
   // Iteration over all impulse counters will count incomming impulses. It is
   // after SuplaDevice initialization (because we have to read stored counter
   // values) and before any other operation like connection to Supla cloud
@@ -1386,7 +1336,7 @@ void SuplaDeviceClass::iterate(void) {
     wait_for_iterate = 0;
   }
 
-  if (!Supla::Network::Instance()->connected()) {
+  if (!Supla::Network::Connected()) {
     int port = 2015;
     status(STATUS_DISCONNECTED, "Not connected");
     supla_log(LOG_DEBUG,
@@ -1395,20 +1345,26 @@ void SuplaDeviceClass::iterate(void) {
               port);
 
     registered = 0;
-    last_response = 0;
-    last_sent = 0;
-    last_ping_time = 0;
 
-    if (!Supla::Network::Instance()->connect(Params.reg_dev.ServerName, port)) {
-      supla_log(
-          LOG_DEBUG, "Connection fail. Server: %s", Params.reg_dev.ServerName);
-      Supla::Network::Instance()->disconnect();
+    if (!Supla::Network::Connect(Params.reg_dev.ServerName, port)) {
+      supla_log(LOG_DEBUG, 
+                "Connection fail. Server: %s", 
+                Params.reg_dev.ServerName);
 
+      Supla::Network::Disconnect();
       wait_for_iterate = millis() + 2000;
       return;
     } else {
       supla_log(LOG_DEBUG, "Connected");
     }
+  }
+
+  if (srpc_iterate(srpc) == SUPLA_RESULT_FALSE) {
+    status(STATUS_ITERATE_FAIL, "Iterate fail");
+    Supla::Network::Disconnect();
+
+    wait_for_iterate = millis() + 5000;
+    return;
   }
 
   if (registered == 0) {
@@ -1417,20 +1373,11 @@ void SuplaDeviceClass::iterate(void) {
     srpc_ds_async_registerdevice_c(srpc, &Params.reg_dev);
 
   } else if (registered == 1) {
-    // PING
-    if ((_millis - last_response) / 1000 >= (server_activity_timeout + 10)) {
+    if (Supla::Network::Ping() == false) {
       supla_log(LOG_DEBUG, "TIMEOUT - lost connection with server");
-      Supla::Network::Instance()->disconnect();
-
-    } else if (_millis - last_ping_time >= 5000 &&
-               ((_millis - last_response) / 1000 >=
-                    (server_activity_timeout - 5) ||
-                (_millis - last_sent) / 1000 >=
-                    (server_activity_timeout - 5))) {
-      last_ping_time = _millis;
-      srpc_dcs_async_ping_server(srpc);
+      Supla::Network::Disconnect();
     }
-
+      
     if (time_diff > 0) {
       for (int a = 0; a < Params.reg_dev.channel_count; a++) {
         iterate_relay(
@@ -1447,37 +1394,24 @@ void SuplaDeviceClass::iterate(void) {
     }
   }
 
-  if (srpc_iterate(srpc) == SUPLA_RESULT_FALSE) {
-    status(STATUS_ITERATE_FAIL, "Iterate fail");
-    Supla::Network::Instance()->disconnect();
-
-    wait_for_iterate = millis() + 5000;
-    return;
-  }
-}
-
-void SuplaDeviceClass::onResponse(void) {
-  last_response = millis();
-}
-
-void SuplaDeviceClass::onSent(void) {
-  last_sent = millis();
 }
 
 void SuplaDeviceClass::onVersionError(TSDC_SuplaVersionError *version_error) {
   status(STATUS_PROTOCOL_VERSION_ERROR, "Protocol version error");
-  Supla::Network::Instance()->disconnect();
+  Supla::Network::Disconnect();
 
   wait_for_iterate = millis() + 5000;
 }
 
 void SuplaDeviceClass::onRegisterResult(
     TSD_SuplaRegisterDeviceResult *register_device_result) {
+  _supla_int_t activity_timeout = 0;
+
   switch (register_device_result->result_code) {
     // OK scenario
     case SUPLA_RESULTCODE_TRUE:
-
-      server_activity_timeout = register_device_result->activity_timeout;
+      activity_timeout = register_device_result->activity_timeout;
+      Supla::Network::Instance()->setActivityTimeout(activity_timeout);
       registered = 1;
       supla_log(LOG_DEBUG,
                 "Device registered (activity timeout %d s, server version: %d, "
@@ -1488,7 +1422,7 @@ void SuplaDeviceClass::onRegisterResult(
       last_iterate_time = millis();
       status(STATUS_REGISTERED_AND_READY, "Registered and ready.");
 
-      if (server_activity_timeout != ACTIVITY_TIMEOUT) {
+      if (activity_timeout != ACTIVITY_TIMEOUT) {
         supla_log(
             LOG_DEBUG, "Changing activity timeout to %d", ACTIVITY_TIMEOUT);
         TDCS_SuplaSetActivityTimeout at;
@@ -1553,7 +1487,7 @@ void SuplaDeviceClass::onRegisterResult(
       break;
   }
 
-  Supla::Network::Instance()->disconnect();
+  Supla::Network::Disconnect();
   wait_for_iterate = millis() + 5000;
 }
 
@@ -1598,7 +1532,7 @@ void SuplaDeviceClass::channelSetValue(int channel,
       // ignore change of bistable relay state if we are in the middle of
       // changing its state or it already has target state enabled
       if (channel_pin[channel].bi_time_left > 0 ||
-          suplaDigitalRead(Params.reg_dev.channels[channel].Number,
+          Supla::Io::digitalRead(Params.reg_dev.channels[channel].Number,
                            channel_pin[channel].pin2) == value) {
         value = -1;
       } else {
@@ -1611,20 +1545,20 @@ void SuplaDeviceClass::channelSetValue(int channel,
 
     if (value == 0) {
       if (channel_pin[channel].pin1 != 0) {
-        suplaDigitalWrite(Params.reg_dev.channels[channel].Number,
+        Supla::Io::digitalWrite(Params.reg_dev.channels[channel].Number,
                           channel_pin[channel].pin1,
                           _LO);
-        success = suplaDigitalRead(Params.reg_dev.channels[channel].Number,
+        success = Supla::Io::digitalRead(Params.reg_dev.channels[channel].Number,
                                    channel_pin[channel].pin1) == _LO;
       }
 
       if (channel_pin[channel].pin2 != 0 &&
           channel_pin[channel].bistable == false) {
-        suplaDigitalWrite(Params.reg_dev.channels[channel].Number,
+        Supla::Io::digitalWrite(Params.reg_dev.channels[channel].Number,
                           channel_pin[channel].pin2,
                           _LO);
         if (!success) {
-          success = suplaDigitalRead(Params.reg_dev.channels[channel].Number,
+          success = Supla::Io::digitalRead(Params.reg_dev.channels[channel].Number,
                                      channel_pin[channel].pin2) == _LO;
         }
       }
@@ -1632,17 +1566,17 @@ void SuplaDeviceClass::channelSetValue(int channel,
     } else if (value == 1) {
       if (channel_pin[channel].pin2 != 0 &&
           channel_pin[channel].bistable == false) {
-        suplaDigitalWrite(Params.reg_dev.channels[channel].Number,
+        Supla::Io::digitalWrite(Params.reg_dev.channels[channel].Number,
                           channel_pin[channel].pin2,
                           _LO);
         delay(50);
       }
       if (channel_pin[channel].pin1 != 0) {
-        suplaDigitalWrite(Params.reg_dev.channels[channel].Number,
+        Supla::Io::digitalWrite(Params.reg_dev.channels[channel].Number,
                           channel_pin[channel].pin1,
                           _HI);
         if (!success) {
-          success = suplaDigitalRead(Params.reg_dev.channels[channel].Number,
+          success = Supla::Io::digitalRead(Params.reg_dev.channels[channel].Number,
                                      channel_pin[channel].pin1) == _HI;
         }
 
@@ -1774,7 +1708,7 @@ void SuplaDeviceClass::channelSetValueByServer(
 
 void SuplaDeviceClass::channelSetActivityTimeoutResult(
     TSDC_SuplaSetActivityTimeoutResult *result) {
-  server_activity_timeout = result->activity_timeout;
+  Supla::Network::Instance()->setActivityTimeout(result->activity_timeout);
   supla_log(
       LOG_DEBUG, "Activity timeout set to %d s", result->activity_timeout);
 }
@@ -1824,4 +1758,3 @@ SuplaDeviceCallbacks supla_arduino_get_callbacks(void) {
   return cb;
 }
 
-Supla::Network *Supla::Network::netIntf = NULL;
