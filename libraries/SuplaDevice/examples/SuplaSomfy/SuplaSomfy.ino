@@ -128,9 +128,11 @@ void supla_Timer() {
 void setup() {
   Serial.begin(115200);
 
-  // ﻿Replace the falowing GUID
+  // Replace the falowing GUID
   char GUID[SUPLA_GUID_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
-  // ﻿with GUID that you can retrieve from https://www.supla.org/arduino/get-guid
+  // with GUID that you can retrieve from https://www.supla.org/arduino/get-guid
+  // Use the same link as for GUID and generate AuthKey: 
+  char AUTHKEY[SUPLA_AUTHKEY_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 
   // Generate remote controls
   createRemote(RC_COUNT);
@@ -151,10 +153,10 @@ void setup() {
   SuplaDevice.setDigitalWriteFuncImpl(&supla_DigitalWrite);
   SuplaDevice.setName("Somfy Remote");
 
-  SuplaDevice.begin(GUID,              // Global Unique Identifier
+  SuplaDevice.begin(GUID,              // Global Unique Identifier 
                     "svr1.supla.org",  // SUPLA server address
-                    0,                // Location ID
-                    "");           // Location Password
+                    "email@address",   // Email address used to login to Supla Cloud
+                    AUTHKEY);          // Authorization key
 
   //testRemote();
 }

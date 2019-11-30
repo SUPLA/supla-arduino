@@ -48,16 +48,15 @@ DallasTemperature sensors(&oneWire);
 
 // DS18B20 Sensor read implementation
 double get_temperature(int channelNumber, double last_val) {
-
     double t = -275;
-    
+
     if ( sensors.getDeviceCount() > 0 )
       {
          sensors.requestTemperatures();
          t = sensors.getTempCByIndex(0);
       };
 
-    return t;  
+    return t;
 }
 
 void setup() {
@@ -66,14 +65,15 @@ void setup() {
 
   // Init DS18B20 library 
   sensors.begin();
-  
+
   // Set temperature callback
   SuplaDevice.setTemperatureCallback(&get_temperature);
- 
-  // ﻿Replace the falowing GUID
-  char GUID[SUPLA_GUID_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
-  // ﻿with GUID that you can retrieve from https://www.supla.org/arduino/get-guid
 
+  // Replace the falowing GUID
+  char GUID[SUPLA_GUID_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+  // with GUID that you can retrieve from https://www.supla.org/arduino/get-guid
+  // Use the same link as for GUID and generate AuthKey: 
+  char AUTHKEY[SUPLA_AUTHKEY_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 
   /*
    * Having your device already registered at cloud.supla.org,
@@ -81,7 +81,7 @@ void setup() {
    * then you must also remove the device itself from cloud.supla.org.
    * Otherwise you will get "Channel conflict!" error.
    */
-    
+
   // CHANNEL0 - RELAY
   SuplaDevice.addRelay(44, true);           // ﻿44 - ﻿Pin number where the relay is connected      
                                       // Call SuplaDevice.addRelay(44, true) with an extra "true" parameter 
@@ -119,8 +119,8 @@ void setup() {
 
   SuplaDevice.begin(GUID,              // Global Unique Identifier 
                     "svr1.supla.org",  // SUPLA server address
-                    0,                 // Location ID 
-                    "");               // Location Password
+                    "email@address",   // Email address used to login to Supla Cloud
+                    AUTHKEY);          // Authorization key
     
 }
 
