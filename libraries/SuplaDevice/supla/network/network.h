@@ -64,9 +64,9 @@ class Network {
     return;
   }
 
-  static void Setup(IPAddress *ip) {
+  static void Setup() {
     if (Instance() != NULL) {
-      return Instance()->setup(ip);
+      return Instance()->setup();
     }
     return;
   }
@@ -90,13 +90,13 @@ class Network {
     }
   }
 
-  Network();
+  Network(IPAddress *ip);
   virtual int read(void *buf, int count) = 0;
   virtual int write(void *buf, int count) = 0;
   virtual bool connect(const char *server, int port) = 0;
   virtual bool connected() = 0;
   virtual void disconnect() = 0;
-  virtual void setup(IPAddress *ip) = 0;
+  virtual void setup() = 0;
   virtual bool iterate();
   virtual bool ping();
 
@@ -113,6 +113,9 @@ class Network {
   _supla_int64_t lastPingTimeMs;
   _supla_int_t serverActivityTimeoutS;
   void *srpc;
+
+  bool useLocalIp;
+  IPAddress localIp;
 };
 
 // Method passed to SRPC as a callback to read raw data from network interface

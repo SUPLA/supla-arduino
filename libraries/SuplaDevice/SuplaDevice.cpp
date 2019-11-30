@@ -88,7 +88,6 @@ void SuplaDeviceClass::status(int status, const char *msg) {
 
 
 SuplaDeviceClass::SuplaDeviceClass() {
-  char a;
   srpc = NULL;
   registered = 0;
   last_iterate_time = 0;
@@ -159,13 +158,11 @@ bool SuplaDeviceClass::isInitialized(bool msg) {
   return false;
 }
 
-bool SuplaDeviceClass::begin(IPAddress *local_ip,
-                             char GUID[SUPLA_GUID_SIZE],
+bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
                              const char *Server,
-                             int LocationID,
-                             const char *LocationPWD,
+                             const char *email,
+                             char authkey[SUPLA_AUTHKEY_SIZE],
                              unsigned char version) {
-  unsigned char a;
   if (isInitialized(true)) return false;
 
   if (Supla::Network::Instance() == NULL) {
@@ -173,24 +170,19 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip,
     return false;
   }
 
-  if (local_ip) {
-    Params.local_ip = *local_ip;
-    Params.use_local_ip = true;
-  } else {
-    Params.use_local_ip = false;
-  }
-
   memcpy(Params.reg_dev.GUID, GUID, SUPLA_GUID_SIZE);
-  Params.reg_dev.LocationID = LocationID;
-  setString(
-      Params.reg_dev.LocationPWD, LocationPWD, SUPLA_LOCATION_PWD_MAXSIZE);
+  memcpy(Params.reg_dev.AuthKey, authkey, SUPLA_AUTHKEY_SIZE);
+
+  setString(Params.reg_dev.Email, email, SUPLA_EMAIL_MAXSIZE);
   setString(Params.reg_dev.ServerName, Server, SUPLA_SERVER_NAME_MAXSIZE);
 
-  for (a = 0; a < SUPLA_GUID_SIZE; a++)
-    if (Params.reg_dev.GUID[a] != 0) break;
-
-
-  if (a == SUPLA_GUID_SIZE) {
+  bool emptyGuidDetected = true;
+  for (int i = 0; i < SUPLA_GUID_SIZE; i++) {
+    if (Params.reg_dev.GUID[i] != 0) {
+      emptyGuidDetected = false;
+    }
+  }
+  if (emptyGuidDetected) {
     status(STATUS_INVALID_GUID, "Invalid GUID");
     return false;
   }
@@ -200,18 +192,34 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip,
     return false;
   }
 
-  if (Params.reg_dev.LocationID == 0) {
-    status(STATUS_UNKNOWN_LOCATION_ID, "Unknown LocationID");
+  if (Params.reg_dev.Email[0]  == NULL) {
+//    status(STATUS_MISSING_CREDENTIALS, "Unknown email address");
+    return false;
+  }
+
+  bool emptyAuthKeyDetected = true;
+  for (int i = 0; i < SUPLA_AUTHKEY_SIZE; i++) {
+    if (Params.reg_dev.AuthKey[i] != 0) {
+      emptyAuthKeyDetected = false;
+      break;
+    }
+  }
+  if (emptyAuthKeyDetected) {
+//    status(STATUS_MISSING_CREDENTIALS, "Unknown AuthKey");
     return false;
   }
 
   if (strnlen(Params.reg_dev.Name, SUPLA_DEVICE_NAME_MAXSIZE) == 0) {
+#ifdef ARDUINO_ARCH_ESP8266
+    setString(Params.reg_dev.Name, "ESP8266", SUPLA_DEVICE_NAME_MAXSIZE);
+#else
     setString(Params.reg_dev.Name, "ARDUINO", SUPLA_DEVICE_NAME_MAXSIZE);
+#endif
   }
 
-  setString(Params.reg_dev.SoftVer, "1.7.0", SUPLA_SOFTVER_MAXSIZE);
+  setString(Params.reg_dev.SoftVer, "2.3.0", SUPLA_SOFTVER_MAXSIZE);
 
-  Supla::Network::Setup(Params.use_local_ip ? &Params.local_ip : NULL);
+  Supla::Network::Setup();
 
   TsrpcParams srpc_params;
   srpc_params_init(&srpc_params);
@@ -283,7 +291,7 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip,
 #endif
   }
 
-  for (a = 0; a < Params.reg_dev.channel_count; a++) {
+  for (int a = 0; a < Params.reg_dev.channel_count; a++) {
     begin_thermometer(&channel_pin[a], &Params.reg_dev.channels[a], a);
     SuplaImpulseCounter *ptr = SuplaImpulseCounter::getCounterByChannel(a);
     if (ptr) {
@@ -297,21 +305,12 @@ bool SuplaDeviceClass::begin(IPAddress *local_ip,
   return true;
 }
 
-bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
-                             const char *Server,
-                             int LocationID,
-                             const char *LocationPWD,
-                             unsigned char version) {
-  return begin(NULL, GUID, Server, LocationID, LocationPWD, version);
-}
-
 void SuplaDeviceClass::begin_thermometer(SuplaChannelPin *pin,
                                          TDS_SuplaDeviceChannel_B *channel,
                                          int channel_number) {
   if (channel->Type == SUPLA_CHANNELTYPE_THERMOMETERDS18B20 &&
       Params.cb.get_temperature != NULL) {
-    pin->last_val_dbl1 =
-        Params.cb.get_temperature(channel_number, pin->last_val_dbl1);
+    pin->last_val_dbl1 = Params.cb.get_temperature(channel_number, pin->last_val_dbl1);
     channelSetDoubleValue(channel_number, pin->last_val_dbl1);
 
   } else if (channel->Type == SUPLA_CHANNELTYPE_PRESSURESENSOR &&
@@ -1370,7 +1369,7 @@ void SuplaDeviceClass::iterate(void) {
   if (registered == 0) {
     registered = -1;
     status(STATUS_REGISTER_IN_PROGRESS, "Register in progress");
-    srpc_ds_async_registerdevice_c(srpc, &Params.reg_dev);
+    srpc_ds_async_registerdevice_d(srpc, &Params.reg_dev);
 
   } else if (registered == 1) {
     if (Supla::Network::Ping() == false) {
@@ -1503,6 +1502,7 @@ void SuplaDeviceClass::channelValueChanged(int channel_number,
       value[0] = v;
     else if (var == 2)
       setDoubleValue(value, d);
+    memcpy(Params.reg_dev.channels[channel_number].value, value, 8);
 
     supla_log(
         LOG_DEBUG, "Value changed (channel: %d, value: %d)", channel_number, v);
