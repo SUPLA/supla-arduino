@@ -83,6 +83,7 @@ WiFiClient client;
 You may also remove all WIFI related includes from ino file.
 
 Common instruction for all boards:
+
 If you use local IP address, please provide it in constructor of your network inteface class, i.e.:
 ```
 Supla::EthernetShield ethernet(mac, localIp);
@@ -111,7 +112,7 @@ and authentication key. You can generate your authentication key in the same way
 char AUTHKEY[SUPLA_AUTHKEY_SIZE] =  {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 ```
 
-Next change is for custome digitalWrite and digitalRead methods. Those can be used to create virtual digital pins. Instead of adding custom
+Next change is for custom digitalWrite and digitalRead methods. Those can be used to create virtual digital pins. Instead of adding custom
 callback method that overrides digitalWrite/Read method, you should create a new class which inhertis from Supla::Io base class and define
 your own customDigitalRead/Write methods. Here is short example (you can put this code in ino file, before setup()):
 ```
