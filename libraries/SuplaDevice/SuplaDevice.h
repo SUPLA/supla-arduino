@@ -88,9 +88,6 @@ typedef struct SuplaDeviceCallbacks {
 } SuplaDeviceCallbacks;
 
 typedef struct SuplaDeviceParams {
-  bool use_local_ip;
-  IPAddress local_ip;
-
   SuplaDeviceCallbacks cb;
   TDS_SuplaRegisterDevice_D reg_dev;
 } SuplaDeviceParams;
@@ -336,10 +333,8 @@ class SuplaDeviceClass {
   void setStatusFuncImpl(_impl_arduino_status impl_arduino_status);
   void setTimerFuncImpl(_impl_arduino_timer impl_arduino_timer);
 
-  void onResponse(void);
   void onVersionError(TSDC_SuplaVersionError *version_error);
   void onRegisterResult(TSD_SuplaRegisterDeviceResult *register_device_result);
-  void onSensorInterrupt(void);
   void channelSetValueByServer(TSD_SuplaChannelNewValue *new_value);
   void channelSetActivityTimeoutResult(
       TSDC_SuplaSetActivityTimeoutResult *result);

@@ -116,13 +116,15 @@ Next change is for custom digitalWrite and digitalRead methods. Those can be use
 callback method that overrides digitalWrite/Read method, you should create a new class which inhertis from Supla::Io base class and define
 your own customDigitalRead/Write methods. Here is short example (you can put this code in ino file, before setup()):
 ```
+#include <supla/io.h>
+
 class MyDigitalRead : public Supla::Io {
   public:
     int customDigitalRead(int channelNumber, uint8_t pin) {
       if (channelNumber == MY_EXTRA_VIRTUAL_CHANNEL) {
         return someCustomSourceOfData.getValue();
       } else {
-        return digitalRead(pin);
+        return ::digitalRead(pin);
       }
     }
 }

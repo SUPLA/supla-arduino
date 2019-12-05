@@ -24,6 +24,8 @@ class Status {
    void missingNetworkInterface();
    void invalidGuid();
    void unknownServerAddress();
+   void missingCredentials();
+
 
    
 };
