@@ -171,9 +171,8 @@ void SuplaImpulseCounter::loadStorage() {
 void SuplaImpulseCounter::updateStorageOccasionally() {
   if (firstCounter == NULL) return;
 
-  const unsigned long UPDATE_DELAY =
-      static_cast<unsigned long>(1000) * 60 *
-      1;  // 1000 ms * 60 seconds * 2 min = write every 2 minutes to EEPROM
+  // 1000 ms * 60 seconds * 5 min = write every 5 minutes to EEPROM
+  const unsigned long UPDATE_DELAY = static_cast<unsigned long>(1000) * 60 * 5;
   static unsigned long timeToUpdate = UPDATE_DELAY;
   static unsigned long lastUpdateTime = millis();
 
@@ -283,11 +282,13 @@ int SuplaImpulseCounter::getChannelNumber() {
 SuplaImpulseCounter *SuplaImpulseCounter::getCounterByChannel(int channel) {
   SuplaImpulseCounter *ptr = firstCounter;
   while (ptr != NULL) {
-    if (ptr->getChannelNumber() == channel) break;
+    if (ptr->getChannelNumber() == channel) {
+      return ptr;
+    }
     ptr = ptr->nextCounter;
   }
 
-  return ptr;
+  return NULL;
 }
 
 bool SuplaImpulseCounter::isChanged() {
