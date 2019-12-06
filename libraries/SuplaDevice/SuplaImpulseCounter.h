@@ -66,6 +66,9 @@ class SuplaImpulseCounter {
   // Set counter to a given value
   void setCounter(_supla_int64_t value);
 
+  // Increment the counter by 1
+  void incCounter();
+
   //
   bool isChanged();
   void clearIsChanged();
@@ -110,8 +113,6 @@ class SuplaImpulseCounter {
   // Method check current status of an impulse pin and updates counter
   void iterate();
 
-  // Increment the counter by 1
-  void incCounter();
 };
 
 #endif

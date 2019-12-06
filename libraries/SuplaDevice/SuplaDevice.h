@@ -88,11 +88,8 @@ typedef struct SuplaDeviceCallbacks {
 } SuplaDeviceCallbacks;
 
 typedef struct SuplaDeviceParams {
-  bool use_local_ip;
-  IPAddress local_ip;
-
   SuplaDeviceCallbacks cb;
-  TDS_SuplaRegisterDevice_C reg_dev;
+  TDS_SuplaRegisterDevice_D reg_dev;
 } SuplaDeviceParams;
 
 typedef struct SuplaChannelPin {
@@ -256,17 +253,10 @@ class SuplaDeviceClass {
   void channelValueChanged(int channel_number, char v);
   void channelDoubleValueChanged(int channel_number, double v);
 
-  bool begin(IPAddress *local_ip,
-             char GUID[SUPLA_GUID_SIZE],
-             const char *Server,
-             int LocationID,
-             const char *LocationPWD,
-             unsigned char version = 8);
-
   bool begin(char GUID[SUPLA_GUID_SIZE],
              const char *Server,
-             int LocationID,
-             const char *LocationPWD,
+             const char *email,
+             char authkey[SUPLA_AUTHKEY_SIZE],
              unsigned char version = 8);
 
   void setName(const char *Name);
@@ -343,10 +333,8 @@ class SuplaDeviceClass {
   void setStatusFuncImpl(_impl_arduino_status impl_arduino_status);
   void setTimerFuncImpl(_impl_arduino_timer impl_arduino_timer);
 
-  void onResponse(void);
   void onVersionError(TSDC_SuplaVersionError *version_error);
   void onRegisterResult(TSD_SuplaRegisterDeviceResult *register_device_result);
-  void onSensorInterrupt(void);
   void channelSetValueByServer(TSD_SuplaChannelNewValue *new_value);
   void channelSetActivityTimeoutResult(
       TSDC_SuplaSetActivityTimeoutResult *result);

@@ -31,12 +31,11 @@
 namespace Supla {
 class ESPWifi : public Supla::Network {
  public:
-  ESPWifi(const char *wifiSsid, const char *wifiPassword) {
+  ESPWifi(const char *wifiSsid, const char *wifiPassword, IPAddress *ip = NULL) : Network(ip) {
     if (netIntf != NULL) {
       Serial.println(
           "ESPWifi: Error - network interface already defined! Overwriting");
     }
-    netIntf = this;
     strcpy(ssid, wifiSsid);
     strcpy(password, wifiPassword);
     if (strlen(ssid) == 0) {
@@ -92,7 +91,8 @@ class ESPWifi : public Supla::Network {
     client.stop();
   }
 
-  void setup(IPAddress *ip) {
+  // TODO: add handling of custom local ip
+  void setup() {
     Serial.print("Connecting to network: \"");
     Serial.print(ssid);
     Serial.println("\"");

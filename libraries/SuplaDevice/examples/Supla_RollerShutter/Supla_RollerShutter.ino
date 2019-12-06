@@ -54,11 +54,13 @@ void supla_rs_LoadSettings(int channelNumber, unsigned int *full_opening_time, u
 void setup() {
 
   Serial.begin(9600);
- 
-  // ﻿Replace the falowing GUID
-  char GUID[SUPLA_GUID_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
-  // ﻿with GUID that you can retrieve from https://www.supla.org/arduino/get-guid
 
+  // Replace the falowing GUID
+  char GUID[SUPLA_GUID_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+  // with GUID that you can retrieve from https://www.supla.org/arduino/get-guid
+  // Use the same link as for GUID and generate AuthKey: 
+  char AUTHKEY[SUPLA_AUTHKEY_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+ 
   /*
    * Having your device already registered at cloud.supla.org,
    * you want to change CHANNEL sequence or remove any of them,
@@ -90,8 +92,8 @@ void setup() {
  
   SuplaDevice.begin(GUID,              // Global Unique Identifier 
                     "svr1.supla.org",  // SUPLA server address
-                    0,                // Location ID 
-                    "");           // Location Password
+                    "email@address",   // Email address used to login to Supla Cloud
+                    AUTHKEY);          // Authorization key
     
 }
 

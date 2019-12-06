@@ -83,6 +83,9 @@ void SuplaImpulseCounter::clearStorage() {
   for (int i = eepromOffset; i < eepromOffset + amount; i++) {
     EEPROM.write(i, 0);
   }
+  #ifdef ARDUINO_ARCH_ESP8266
+  EEPROM.commit();
+  #endif
 }
 
 void SuplaImpulseCounter::writeToStorage() {
@@ -112,10 +115,17 @@ void SuplaImpulseCounter::writeToStorage() {
     EEPROM.put(address, crc);  // Store CRC at the end of counters block
     address += sizeof(crc);
   }
+  #ifdef ARDUINO_ARCH_ESP8266
+  EEPROM.commit();
+  #endif
 }
 
 void SuplaImpulseCounter::loadStorage() {
   if (firstCounter == NULL) return;
+
+  #ifdef ARDUINO_ARCH_ESP8266
+  EEPROM.begin(1024);  // ------------------- start eeprom before the first reading ------------------
+  #endif
 
   supla_log(LOG_DEBUG, "Loading counters data from EEPROM");
   int address = eepromOffset;
@@ -161,9 +171,8 @@ void SuplaImpulseCounter::loadStorage() {
 void SuplaImpulseCounter::updateStorageOccasionally() {
   if (firstCounter == NULL) return;
 
-  const unsigned long UPDATE_DELAY =
-      static_cast<unsigned long>(1000) * 60 *
-      1;  // 1000 ms * 60 seconds * 2 min = write every 2 minutes to EEPROM
+  // 1000 ms * 60 seconds * 5 min = write every 5 minutes to EEPROM
+  const unsigned long UPDATE_DELAY = static_cast<unsigned long>(1000) * 60 * 5;
   static unsigned long timeToUpdate = UPDATE_DELAY;
   static unsigned long lastUpdateTime = millis();
 
@@ -273,11 +282,13 @@ int SuplaImpulseCounter::getChannelNumber() {
 SuplaImpulseCounter *SuplaImpulseCounter::getCounterByChannel(int channel) {
   SuplaImpulseCounter *ptr = firstCounter;
   while (ptr != NULL) {
-    if (ptr->getChannelNumber() == channel) break;
+    if (ptr->getChannelNumber() == channel) {
+      return ptr;
+    }
     ptr = ptr->nextCounter;
   }
 
-  return ptr;
+  return NULL;
 }
 
 bool SuplaImpulseCounter::isChanged() {
