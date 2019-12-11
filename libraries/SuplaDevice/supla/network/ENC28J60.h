@@ -77,6 +77,11 @@ class ENC28J60 : public Supla::Network {
     client.stop();
   }
 
+  bool isReady() {
+    return true;
+  }
+
+
   void setup(uint8_t mac[6]) {
     Serial.println("Connecting to network...");
     if (useLocalIp) {

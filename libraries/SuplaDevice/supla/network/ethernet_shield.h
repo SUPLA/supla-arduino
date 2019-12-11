@@ -76,6 +76,10 @@ class EthernetShield : public Supla::Network {
     client.stop();
   }
 
+  bool isReady() {
+    return true;
+  }
+
   void setup() {
     Serial.println("Connecting to network...");
     if (useLocalIp) {

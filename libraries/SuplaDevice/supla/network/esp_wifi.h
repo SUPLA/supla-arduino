@@ -25,13 +25,16 @@
 
 #define MAX_SSID_SIZE          32
 #define MAX_WIFI_PASSWORD_SIZE 64
+
 WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
+
 // TODO: change logs to supla_log
 
 namespace Supla {
 class ESPWifi : public Supla::Network {
  public:
-  ESPWifi(const char *wifiSsid, const char *wifiPassword, IPAddress *ip = NULL) : Network(ip) {
+  ESPWifi(const char *wifiSsid, const char *wifiPassword, IPAddress *ip = NULL)
+      : Network(ip) {
     strcpy(ssid, wifiSsid);
     strcpy(password, wifiPassword);
   }
@@ -77,29 +80,37 @@ class ESPWifi : public Supla::Network {
     return client.connected();
   }
 
+  bool isReady() {
+    return WiFi.status() == WL_CONNECTED;
+  }
+
   void disconnect() {
     client.stop();
   }
 
   // TODO: add handling of custom local ip
   void setup() {
-   gotIpEventHandler = WiFi.onStationModeGotIP([](const WiFiEventStationModeGotIP& event)
-  {
-    Serial.print("local IP: ");
-	   Serial.println(WiFi.localIP());
-	   Serial.print("subnetMask: ");
-	   Serial.println(WiFi.subnetMask());
-	   Serial.print("gatewayIP: ");
-   	Serial.println(WiFi.gatewayIP());
-   	long rssi = WiFi.RSSI();Serial.print("Signal Strength (RSSI): ");
-   	Serial.print(rssi);Serial.println(" dBm");
-  });
-  disconnectedEventHandler = WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected& event)
-  {Serial.println("wifi Station disconnected");});
-  
+    gotIpEventHandler =
+        WiFi.onStationModeGotIP([](const WiFiEventStationModeGotIP &event) {
+          Serial.print("local IP: ");
+          Serial.println(WiFi.localIP());
+          Serial.print("subnetMask: ");
+          Serial.println(WiFi.subnetMask());
+          Serial.print("gatewayIP: ");
+          Serial.println(WiFi.gatewayIP());
+          long rssi = WiFi.RSSI();
+          Serial.print("Signal Strength (RSSI): ");
+          Serial.print(rssi);
+          Serial.println(" dBm");
+        });
+    disconnectedEventHandler = WiFi.onStationModeDisconnected(
+        [](const WiFiEventStationModeDisconnected &event) {
+          Serial.println("wifi Station disconnected");
+        });
+
     WiFi.begin(ssid, password);
-	yield();
-    }
+    yield();
+  }
 
  protected:
   WiFiClient client;
