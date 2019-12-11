@@ -32,18 +32,8 @@ namespace Supla {
 class ESPWifi : public Supla::Network {
  public:
   ESPWifi(const char *wifiSsid, const char *wifiPassword, IPAddress *ip = NULL) : Network(ip) {
-    if (netIntf != NULL) {
-      Serial.println(
-          "ESPWifi: Error - network interface already defined! Overwriting");
-    }
     strcpy(ssid, wifiSsid);
     strcpy(password, wifiPassword);
-    if (strlen(ssid) == 0) {
-      Serial.println("ESPWifi: Error - Empty SSID");
-    }
-    if (strlen(password) == 0) {
-      Serial.println("ESPWifi: Error - Empty WiFi password");
-    }
   }
 
   int read(void *buf, int count) {

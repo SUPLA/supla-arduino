@@ -29,10 +29,6 @@ namespace Supla {
 class ENC28J60 : public Supla::Network {
  public:
   ENC28J60(uint8_t mac[6], IPAddress *ip = NULL) : Network(ip) {
-    if (netIntf != NULL) {
-      Serial.println(
-          "ENC28J60: Error - network interface already defined! Overwriting");
-    }
     memcpy(this->mac, mac, 6);
   }
 

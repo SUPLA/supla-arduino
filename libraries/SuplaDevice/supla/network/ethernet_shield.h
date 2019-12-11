@@ -29,11 +29,6 @@ namespace Supla {
 class EthernetShield : public Supla::Network {
  public:
   EthernetShield(uint8_t mac[6], IPAddress *ip = NULL) : Network(ip) {
-    if (netIntf != NULL) {
-      Serial.println(
-          "EthernetShield: Error - network interface already defined! "
-          "Overwriting");
-    }
     memcpy(this->mac, mac, 6);
   }
 
