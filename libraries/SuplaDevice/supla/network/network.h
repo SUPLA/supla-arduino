@@ -71,6 +71,13 @@ class Network {
     return;
   }
 
+  static bool IsReady() {
+    if (Instance() != NULL) {
+      return Instance()->isReady();
+    }
+    return false;
+  }
+
   static bool Iterate() {
     if (Instance() != NULL) {
       return Instance()->iterate();
@@ -97,6 +104,8 @@ class Network {
   virtual bool connected() = 0;
   virtual void disconnect() = 0;
   virtual void setup() = 0;
+
+  virtual bool isReady() = 0;
   virtual bool iterate();
   virtual bool ping();
 

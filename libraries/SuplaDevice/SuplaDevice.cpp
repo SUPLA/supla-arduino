@@ -1335,6 +1335,11 @@ void SuplaDeviceClass::iterate(void) {
     wait_for_iterate = 0;
   }
 
+  if (!Supla::Network::IsReady()) {
+    wait_for_iterate = millis() + 500;
+    return;
+  }
+
   if (!Supla::Network::Connected()) {
     int port = 2015;
     status(STATUS_DISCONNECTED, "Not connected");

@@ -69,10 +69,10 @@ void setup() {
   // Set temperature/humidity callback
   SuplaDevice.setTemperatureHumidityCallback(&get_temperature_and_humidity);
 
-  // Replace the falowing GUID
+  // Replace the falowing GUID with value that you can retrieve from https://www.supla.org/arduino/get-guid
   char GUID[SUPLA_GUID_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
-  // with GUID that you can retrieve from https://www.supla.org/arduino/get-guid
-  // Use the same link as for GUID and generate AuthKey: 
+
+  // Replace the following AUTHKEY with value that you can retrieve from: https://www.supla.org/arduino/get-authkey
   char AUTHKEY[SUPLA_AUTHKEY_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 
   /*
