@@ -1409,7 +1409,8 @@ _supla_int_t SRPC_ICACHE_FLASH srpc_ds_async_registerdevice(
       (sizeof(TDS_SuplaDeviceChannel) * SUPLA_CHANNELMAXCOUNT) +
       (sizeof(TDS_SuplaDeviceChannel) * registerdevice->channel_count);
 
-  if (size > sizeof(TDS_SuplaRegisterDevice)) return 0;
+  if (size > sizeof(TDS_SuplaRegisterDevice)) return SUPLA_RESULT_DATA_TOO_LARGE;
+  if (size > SUPLA_MAX_DATA_SIZE) return SUPLA_RESULT_DATA_TOO_LARGE;
 
   return srpc_async_call(_srpc, SUPLA_DS_CALL_REGISTER_DEVICE,
                          (char *)registerdevice, size);
@@ -1422,7 +1423,8 @@ _supla_int_t SRPC_ICACHE_FLASH srpc_ds_async_registerdevice_b(
       (sizeof(TDS_SuplaDeviceChannel_B) * SUPLA_CHANNELMAXCOUNT) +
       (sizeof(TDS_SuplaDeviceChannel_B) * registerdevice->channel_count);
 
-  if (size > sizeof(TDS_SuplaRegisterDevice_B)) return 0;
+  if (size > sizeof(TDS_SuplaRegisterDevice_B)) return SUPLA_RESULT_DATA_TOO_LARGE;
+  if (size > SUPLA_MAX_DATA_SIZE) return SUPLA_RESULT_DATA_TOO_LARGE;
 
   return srpc_async_call(_srpc, SUPLA_DS_CALL_REGISTER_DEVICE_B,
                          (char *)registerdevice, size);
@@ -1435,7 +1437,8 @@ _supla_int_t SRPC_ICACHE_FLASH srpc_ds_async_registerdevice_c(
       (sizeof(TDS_SuplaDeviceChannel_B) * SUPLA_CHANNELMAXCOUNT) +
       (sizeof(TDS_SuplaDeviceChannel_B) * registerdevice->channel_count);
 
-  if (size > sizeof(TDS_SuplaRegisterDevice_C)) return 0;
+  if (size > sizeof(TDS_SuplaRegisterDevice_C)) return SUPLA_RESULT_DATA_TOO_LARGE;
+  if (size > SUPLA_MAX_DATA_SIZE) return SUPLA_RESULT_DATA_TOO_LARGE;
 
   return srpc_async_call(_srpc, SUPLA_DS_CALL_REGISTER_DEVICE_C,
                          (char *)registerdevice, size);
@@ -1448,7 +1451,8 @@ _supla_int_t SRPC_ICACHE_FLASH srpc_ds_async_registerdevice_d(
       (sizeof(TDS_SuplaDeviceChannel_B) * SUPLA_CHANNELMAXCOUNT) +
       (sizeof(TDS_SuplaDeviceChannel_B) * registerdevice->channel_count);
 
-  if (size > sizeof(TDS_SuplaRegisterDevice_D)) return 0;
+  if (size > sizeof(TDS_SuplaRegisterDevice_D)) return SUPLA_RESULT_DATA_TOO_LARGE;
+  if (size > SUPLA_MAX_DATA_SIZE) return SUPLA_RESULT_DATA_TOO_LARGE;
 
   return srpc_async_call(_srpc, SUPLA_DS_CALL_REGISTER_DEVICE_D,
                          (char *)registerdevice, size);
@@ -1461,7 +1465,8 @@ _supla_int_t SRPC_ICACHE_FLASH srpc_ds_async_registerdevice_e(
       (sizeof(TDS_SuplaDeviceChannel_C) * SUPLA_CHANNELMAXCOUNT) +
       (sizeof(TDS_SuplaDeviceChannel_C) * registerdevice->channel_count);
 
-  if (size > sizeof(TDS_SuplaRegisterDevice_E)) return 0;
+  if (size > sizeof(TDS_SuplaRegisterDevice_E)) return SUPLA_RESULT_DATA_TOO_LARGE;
+  if (size > SUPLA_MAX_DATA_SIZE) return SUPLA_RESULT_DATA_TOO_LARGE;
 
   return srpc_async_call(_srpc, SUPLA_DS_CALL_REGISTER_DEVICE_E,
                          (char *)registerdevice, size);

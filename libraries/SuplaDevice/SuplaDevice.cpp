@@ -20,10 +20,13 @@
 
 #include "SuplaDevice.h"
 #include "SuplaImpulseCounter.h"
+#include "io.h"
 #include "supla-common/IEEE754tools.h"
 #include "supla-common/log.h"
 #include "supla-common/srpc.h"
-#include "io.h"
+#include "supla/channel.h"
+#include "supla/element.h"
+#include "tools.h"
 
 #define RS_STOP_DELAY  500
 #define RS_START_DELAY 1000
@@ -55,28 +58,6 @@ ISR(TIMER2_COMPA_vect) {
   SuplaDevice.onFastTimer();
 }
 #endif
-void float2DoublePacked(float number, byte *bar, int byteOrder = LSBFIRST) {
-  _FLOATCONV fl;
-  fl.f = number;
-  _DBLCONV dbl;
-  dbl.p.s = fl.p.s;
-  dbl.p.e = fl.p.e - 127 + 1023;  // exponent adjust
-  dbl.p.m = fl.p.m;
-
-#ifdef IEEE754_ENABLE_MSB
-  if (byteOrder == LSBFIRST) {
-#endif
-    for (int i = 0; i < 8; i++) {
-      bar[i] = dbl.b[i];
-    }
-#ifdef IEEE754_ENABLE_MSB
-  } else {
-    for (int i = 0; i < 8; i++) {
-      bar[i] = dbl.b[7 - i];
-    }
-  }
-#endif
-}
 
 void SuplaDeviceClass::status(int status, const char *msg) {
   if (impl_arduino_status != NULL) {
@@ -85,7 +66,6 @@ void SuplaDeviceClass::status(int status, const char *msg) {
     supla_log(LOG_DEBUG, "Current status: %s", msg);
   }
 }
-
 
 SuplaDeviceClass::SuplaDeviceClass() {
   srpc = NULL;
@@ -163,6 +143,7 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
                              const char *email,
                              char authkey[SUPLA_AUTHKEY_SIZE],
                              unsigned char version) {
+  Serial.println("in begin");
   if (isInitialized(true)) return false;
 
   if (Supla::Network::Instance() == NULL) {
@@ -192,8 +173,8 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
     return false;
   }
 
-  if (Params.reg_dev.Email[0]  == NULL) {
-//    status(STATUS_MISSING_CREDENTIALS, "Unknown email address");
+  if (Params.reg_dev.Email[0] == NULL) {
+    //    status(STATUS_MISSING_CREDENTIALS, "Unknown email address");
     return false;
   }
 
@@ -205,7 +186,7 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
     }
   }
   if (emptyAuthKeyDetected) {
-//    status(STATUS_MISSING_CREDENTIALS, "Unknown AuthKey");
+    //    status(STATUS_MISSING_CREDENTIALS, "Unknown AuthKey");
     return false;
   }
 
@@ -246,6 +227,11 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
     }
   }
 
+  // Iterate all elements and load configuration (TODO)
+  for (auto& element : Supla::Elements) {
+    element->onLoadConfig();
+  }
+
   // Load counters values from EEPROM storage
   SuplaImpulseCounter::loadStorage();
 
@@ -275,20 +261,24 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
     sei();  // enable interrupts
 
     // TIMER 2 for interrupt frequency 2000 Hz (0.5 ms)
-    cli(); // stop interrupts
-    TCCR2A = 0; // set entire TCCR2A register to 0
-    TCCR2B = 0; // same for TCCR2B
-    TCNT2  = 0; // initialize counter value to 0
+    cli();       // stop interrupts
+    TCCR2A = 0;  // set entire TCCR2A register to 0
+    TCCR2B = 0;  // same for TCCR2B
+    TCNT2 = 0;   // initialize counter value to 0
     // set compare match register for 2000 Hz increments
-    OCR2A = 249; // = 16000000 / (32 * 2000) - 1 (must be <256)
+    OCR2A = 249;  // = 16000000 / (32 * 2000) - 1 (must be <256)
     // turn on CTC mode
     TCCR2B |= (1 << WGM21);
     // Set CS22, CS21 and CS20 bits for 32 prescaler
     TCCR2B |= (0 << CS22) | (1 << CS21) | (1 << CS20);
     // enable timer compare interrupt
     TIMSK2 |= (1 << OCIE2A);
-    sei(); // allow interrupts
+    sei();  // allow interrupts
 #endif
+  }
+
+  for (auto& element : Supla::Elements) {
+    element->onInit();
   }
 
   for (int a = 0; a < Params.reg_dev.channel_count; a++) {
@@ -310,7 +300,8 @@ void SuplaDeviceClass::begin_thermometer(SuplaChannelPin *pin,
                                          int channel_number) {
   if (channel->Type == SUPLA_CHANNELTYPE_THERMOMETERDS18B20 &&
       Params.cb.get_temperature != NULL) {
-    pin->last_val_dbl1 = Params.cb.get_temperature(channel_number, pin->last_val_dbl1);
+    pin->last_val_dbl1 =
+        Params.cb.get_temperature(channel_number, pin->last_val_dbl1);
     channelSetDoubleValue(channel_number, pin->last_val_dbl1);
 
   } else if (channel->Type == SUPLA_CHANNELTYPE_PRESSURESENSOR &&
@@ -379,8 +370,8 @@ int SuplaDeviceClass::addChannel(int pin1,
       0;  // 100*Params.reg_dev.channel_count;
   channel_pin[Params.reg_dev.channel_count].vc_time = 0;
   channel_pin[Params.reg_dev.channel_count].bi_time_left = 0;
-  channel_pin[Params.reg_dev.channel_count].last_val =
-      Supla::Io::digitalRead(Params.reg_dev.channel_count, bistable ? pin2 : pin1);
+  channel_pin[Params.reg_dev.channel_count].last_val = Supla::Io::digitalRead(
+      Params.reg_dev.channel_count, bistable ? pin2 : pin1);
 
   Params.reg_dev.channel_count++;
 
@@ -408,7 +399,8 @@ int SuplaDeviceClass::addRelay(int relayPin1,
 
     if (bistable == false)
       Params.reg_dev.channels[c].value[0] =
-          Supla::Io::digitalRead(Params.reg_dev.channels[c].Number, relayPin1) == _HI
+          Supla::Io::digitalRead(Params.reg_dev.channels[c].Number,
+                                 relayPin1) == _HI
               ? 1
               : 0;
   }
@@ -417,7 +409,8 @@ int SuplaDeviceClass::addRelay(int relayPin1,
     if (bistable) {
       pinMode(relayPin2, INPUT);
       Params.reg_dev.channels[c].value[0] =
-          Supla::Io::digitalRead(Params.reg_dev.channels[c].Number, relayPin2) == HIGH
+          Supla::Io::digitalRead(Params.reg_dev.channels[c].Number,
+                                 relayPin2) == HIGH
               ? 1
               : 0;
 
@@ -427,7 +420,8 @@ int SuplaDeviceClass::addRelay(int relayPin1,
           Params.reg_dev.channels[c].Number, relayPin2, hiIsLo ? HIGH : LOW);
 
       if (Params.reg_dev.channels[c].value[0] == 0 &&
-          Supla::Io::digitalRead(Params.reg_dev.channels[c].Number, relayPin2) == _HI)
+          Supla::Io::digitalRead(Params.reg_dev.channels[c].Number,
+                                 relayPin2) == _HI)
         Params.reg_dev.channels[c].value[0] = 2;
     }
 
@@ -514,7 +508,8 @@ bool SuplaDeviceClass::addSensorNO(int sensorPin, bool pullUp) {
   }
 
   Params.reg_dev.channels[c].value[0] =
-      Supla::Io::digitalRead(Params.reg_dev.channels[c].Number, sensorPin) == HIGH
+      Supla::Io::digitalRead(Params.reg_dev.channels[c].Number, sensorPin) ==
+              HIGH
           ? 1
           : 0;
   return true;
@@ -768,7 +763,8 @@ void SuplaDeviceClass::iterate_relay(SuplaChannelPin *pin,
   if (pin->bi_time_left != 0) {
     if (time_diff >= pin->bi_time_left) {
       // switch off bistable relay
-      Supla::Io::digitalWrite(channel->Number, pin->pin1, pin->hiIsLo ? HIGH : LOW);
+      Supla::Io::digitalWrite(
+          channel->Number, pin->pin1, pin->hiIsLo ? HIGH : LOW);
       pin->bi_time_left = 0;
 
     } else if (pin->bi_time_left > 0) {
@@ -1326,6 +1322,11 @@ void SuplaDeviceClass::iterate(void) {
   unsigned long _millis = millis();
   unsigned long time_diff = abs(_millis - last_iterate_time);
 
+  // Iterate all elements
+  for (auto& element : Supla::Elements) {
+    element->iterateAlways();
+  }
+
   SuplaImpulseCounter::updateStorageOccasionally();
 
   if (wait_for_iterate != 0 && _millis < wait_for_iterate) {
@@ -1351,9 +1352,8 @@ void SuplaDeviceClass::iterate(void) {
     registered = 0;
 
     if (!Supla::Network::Connect(Params.reg_dev.ServerName, port)) {
-      supla_log(LOG_DEBUG, 
-                "Connection fail. Server: %s", 
-                Params.reg_dev.ServerName);
+      supla_log(
+          LOG_DEBUG, "Connection fail. Server: %s", Params.reg_dev.ServerName);
 
       Supla::Network::Disconnect();
       wait_for_iterate = millis() + 2000;
@@ -1374,15 +1374,23 @@ void SuplaDeviceClass::iterate(void) {
   if (registered == 0) {
     registered = -1;
     status(STATUS_REGISTER_IN_PROGRESS, "Register in progress");
-    srpc_ds_async_registerdevice_d(srpc, &Params.reg_dev);
+    int result = srpc_ds_async_registerdevice_d(srpc, &Params.reg_dev);
+    if (result < 0) {
+      supla_log(LOG_DEBUG, "Fatal SRPC failure! Return code: %d", result);
+    }
 
   } else if (registered == 1) {
     if (Supla::Network::Ping() == false) {
       supla_log(LOG_DEBUG, "TIMEOUT - lost connection with server");
       Supla::Network::Disconnect();
     }
-      
+
     if (time_diff > 0) {
+      // Iterate all elements
+      for (auto& element : Supla::Elements) {
+        element->iterateConnected();
+      }
+
       for (int a = 0; a < Params.reg_dev.channel_count; a++) {
         iterate_relay(
             &channel_pin[a], &Params.reg_dev.channels[a], time_diff, a);
@@ -1394,10 +1402,14 @@ void SuplaDeviceClass::iterate(void) {
             &channel_pin[a], &Params.reg_dev.channels[a], time_diff, a);
       }
 
+      // Iterate all elements
+      for (auto& element : Supla::Elements) {
+        element->iterateConnected();
+      }
+
       last_iterate_time = millis();
     }
   }
-
 }
 
 void SuplaDeviceClass::onVersionError(TSDC_SuplaVersionError *version_error) {
@@ -1538,7 +1550,7 @@ void SuplaDeviceClass::channelSetValue(int channel,
       // changing its state or it already has target state enabled
       if (channel_pin[channel].bi_time_left > 0 ||
           Supla::Io::digitalRead(Params.reg_dev.channels[channel].Number,
-                           channel_pin[channel].pin2) == value) {
+                                 channel_pin[channel].pin2) == value) {
         value = -1;
       } else {
         // set bistable relay controlling pin to "1" for 0.5 s to toggle
@@ -1551,19 +1563,21 @@ void SuplaDeviceClass::channelSetValue(int channel,
     if (value == 0) {
       if (channel_pin[channel].pin1 != 0) {
         Supla::Io::digitalWrite(Params.reg_dev.channels[channel].Number,
-                          channel_pin[channel].pin1,
-                          _LO);
-        success = Supla::Io::digitalRead(Params.reg_dev.channels[channel].Number,
+                                channel_pin[channel].pin1,
+                                _LO);
+        success =
+            Supla::Io::digitalRead(Params.reg_dev.channels[channel].Number,
                                    channel_pin[channel].pin1) == _LO;
       }
 
       if (channel_pin[channel].pin2 != 0 &&
           channel_pin[channel].bistable == false) {
         Supla::Io::digitalWrite(Params.reg_dev.channels[channel].Number,
-                          channel_pin[channel].pin2,
-                          _LO);
+                                channel_pin[channel].pin2,
+                                _LO);
         if (!success) {
-          success = Supla::Io::digitalRead(Params.reg_dev.channels[channel].Number,
+          success =
+              Supla::Io::digitalRead(Params.reg_dev.channels[channel].Number,
                                      channel_pin[channel].pin2) == _LO;
         }
       }
@@ -1572,16 +1586,17 @@ void SuplaDeviceClass::channelSetValue(int channel,
       if (channel_pin[channel].pin2 != 0 &&
           channel_pin[channel].bistable == false) {
         Supla::Io::digitalWrite(Params.reg_dev.channels[channel].Number,
-                          channel_pin[channel].pin2,
-                          _LO);
+                                channel_pin[channel].pin2,
+                                _LO);
         delay(50);
       }
       if (channel_pin[channel].pin1 != 0) {
         Supla::Io::digitalWrite(Params.reg_dev.channels[channel].Number,
-                          channel_pin[channel].pin1,
-                          _HI);
+                                channel_pin[channel].pin1,
+                                _HI);
         if (!success) {
-          success = Supla::Io::digitalRead(Params.reg_dev.channels[channel].Number,
+          success =
+              Supla::Io::digitalRead(Params.reg_dev.channels[channel].Number,
                                      channel_pin[channel].pin1) == _HI;
         }
 
@@ -1762,4 +1777,3 @@ SuplaDeviceCallbacks supla_arduino_get_callbacks(void) {
 
   return cb;
 }
-
