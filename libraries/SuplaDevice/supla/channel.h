@@ -17,40 +17,115 @@
 #ifndef _channel_h
 #define _channel_h
 
-#include <list>
+#include "../supla-common/proto.h"
+#include <Arduino.h>
+#include "tools.h"
 
 namespace Supla {
 
+    /*
 class Channel;
 
-static std::list<Channel*> Channels;
+class ChannelIterator {
+  public:
+    ChannelIterator& operator++() {
+      if (currentPtr) {
+        currentPtr = currentPtr->nextPtr;
+      }
+      return *this;
+    }
+
+    ChannelIterator(Element *ptr) {
+      currentPtr = ptr;
+    }
+
+  protected:
+    Channel *currentPtr;
+}
+     */
 
 class Channel {
   public:
 
     Channel() {
       valueChanged = false;
-      memset(&protoChannel, 0, sizeof(TDS_SuplaDeviceChannel_B));
-      protoChannel.Number = Channels.size();
+      channelNumber = -1;
+      if (reg_dev.channel_count < SUPLA_CHANNELMAXCOUNT) {
+        channelNumber = reg_dev.channel_count;
+        reg_dev.channels[channelNumber].Number = channelNumber;
+        reg_dev.channel_count++;
+      } 
 
-      Channels.push_back(this);
+      if (firstPtr == nullptr) {
+        firstPtr = this;
+      } else {
+        last()->nextPtr = this;
+      }
+      nextPtr = nullptr;
+    }
+
+    static Channel *begin() {
+      return firstPtr;
+    }
+
+    static Channel *last() {
+      Channel *ptr = firstPtr;
+      while (ptr && ptr->nextPtr) {
+        ptr = ptr->nextPtr;
+      }
+      return ptr;
+    }
+
+    static int size() {
+      int count = 0;
+      Channel *ptr = firstPtr;
+      if (ptr) {
+        count++;
+      }
+      while (ptr->nextPtr) {
+        count++;
+        ptr = ptr->nextPtr;
+      }
+      return count;
 
     }
 
     bool isUpdateReady() { return valueChanged; };
     void setNewValue(double dbl) {
+      if (sizeof(double) == 8) {
+        memcpy(&(reg_dev.channels[channelNumber].value), &dbl, 8);
+      } else if (sizeof(double) == 4) {
+        float2DoublePacked(dbl, (byte *)&(reg_dev.channels[channelNumber].value));
+    }
       
     }
     virtual bool isExtended() {
       return false;
     }
 
+    void setType(int type) {
+      if (channelNumber >= 0) {
+        reg_dev.channels[channelNumber].Type = type;
+      }
+    }
+
+    void setDefault(int value) {
+      if (channelNumber >= 0) {
+        reg_dev.channels[channelNumber].Default = value;
+      }
+    }
+
+    static TDS_SuplaRegisterDevice_D reg_dev;
+
   protected:
     void setUpdateReady() { valueChanged = true; };
     void clearUpdateReady() { valueChanged = false; };
 
-    TDS_SuplaDeviceChannel_B protoChannel;
     bool valueChanged;
+    int channelNumber;
+
+    Channel *nextPtr;
+    static Channel *firstPtr;
 };
 
 };  // namespace Supla

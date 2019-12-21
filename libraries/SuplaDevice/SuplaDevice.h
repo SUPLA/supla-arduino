@@ -89,7 +89,6 @@ typedef struct SuplaDeviceCallbacks {
 
 typedef struct SuplaDeviceParams {
   SuplaDeviceCallbacks cb;
-  TDS_SuplaRegisterDevice_D reg_dev;
 } SuplaDeviceParams;
 
 typedef struct SuplaChannelPin {

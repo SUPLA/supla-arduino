@@ -17,23 +17,57 @@
 #ifndef _element_h
 #define _element_h
 
-#include <list>
-
 #ifdef ARDUINO_ARCH_ESP8266
 #include <cstddef>
 #endif
 
 namespace Supla {
-
+/*
 class Element;
 
-static std::list<Element *> Elements;
+class ElementIterator {
+  public:
+    ElementIterator& operator++() {
+      if (currentPtr) {
+        currentPtr = currentPtr->nextPtr;
+      }
+      return *this;
+    }
 
+    ElementIterator(Element *ptr) {
+      currentPtr = ptr;
+    }
+
+  protected:
+    Element *currentPtr;
+}
+*/
 class Element {
   public:
 
     Element() {
-      Elements.push_back(this);
+      if (firstPtr == nullptr) {
+        firstPtr = this;
+      } else {
+        last()->nextPtr = this;
+      }
+      nextPtr = nullptr;
+    }
+
+    static Element *begin() {
+      return firstPtr;
+    }
+
+    static Element *last() {
+      Element *ptr = firstPtr;
+      while (ptr && ptr->nextPtr) {
+        ptr = ptr->nextPtr;
+      }
+      return ptr;
+    }
+
+    Element *next() {
+      return nextPtr;
     }
 
     // method called during SuplaDevice initialization. I.e. load initial state, initialize pins etc.
@@ -46,10 +80,10 @@ class Element {
 
     // method called on each SuplaDevice iteration (before Network layer iteration). When Device is connected,
     // both iterateAlways() and iterateConnected() are called.
-    virtual void iterateAlways();
+    virtual void iterateAlways() {};
 
     // method called on each Supla::Device iteration when Device is connected and registered to Supla server
-    virtual void iterateConnected();
+    virtual void iterateConnected() {};
 
     // method called on timer interupt
     // Include all actions that have to be executed periodically regardless of other SuplaDevice activities
@@ -60,6 +94,8 @@ class Element {
     virtual void onFastTimer() { };
 
   protected:
+    static Element *firstPtr;;
+    Element *nextPtr;
 };
 
 };  // namespace Supla
