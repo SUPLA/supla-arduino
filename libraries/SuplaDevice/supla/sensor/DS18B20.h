@@ -34,7 +34,6 @@ class OneWireBus {
     supla_log(LOG_DEBUG, "Initializing OneWire bus at pin %d", pinNumber);
     sensors.setOneWire(&oneWire);
     sensors.begin();
-
     if (sensors.isParasitePowerMode()) {
       supla_log(LOG_DEBUG, "OneWire(pin %d) Parasite power is ON", pinNumber);
     } else {
@@ -108,6 +107,8 @@ class DS18B20 : public Thermometer {
     OneWireBus *prevBus = nullptr;
     lastReadTime = 0;
     address[0] = 0;
+    lastValidValue = TEMPERATURE_NOT_AVAILABLE;
+    retryCounter = 0;
 
     if (bus) {
       while (bus) {
@@ -150,7 +151,7 @@ class DS18B20 : public Thermometer {
   }
 
   double getValue() {
-      double value = -275;
+      double value = TEMPERATURE_NOT_AVAILABLE;
       if (address[0] == 0) {
         value = myBus->sensors.getTempCByIndex(0);
       } else {
@@ -158,8 +159,21 @@ class DS18B20 : public Thermometer {
       }
 
       if (value == DEVICE_DISCONNECTED_C) {
-        value = -275;
+        value = TEMPERATURE_NOT_AVAILABLE;
       }
+
+      if (value == TEMPERATURE_NOT_AVAILABLE || value == 85.0) {
+        retryCounter++;
+        if (retryCounter > 3) {
+          retryCounter = 0;
+        } else {
+          value = lastValidValue;
+        }
+      } else {
+        retryCounter = 0;
+      }
+      lastValidValue = value;
+
       return value;
   }
 
@@ -179,8 +193,9 @@ class DS18B20 : public Thermometer {
  protected:
   static OneWireBus *oneWireBus;
   OneWireBus *myBus;
-  unsigned long lastReadTime;
   DeviceAddress address;
+  int8_t retryCounter;
+  double lastValidValue;
 };
 
 OneWireBus *DS18B20::oneWireBus = nullptr;

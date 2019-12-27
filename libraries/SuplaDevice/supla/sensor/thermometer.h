@@ -20,6 +20,8 @@
 #include "supla/element.h"
 #include "supla/channel.h"
 
+#define TEMPERATURE_NOT_AVAILABLE -275
+
 namespace Supla {
 namespace Sensor {
 class Thermometer : public Element {
@@ -27,10 +29,21 @@ class Thermometer : public Element {
     Thermometer() {
       channel.setType(SUPLA_CHANNELTYPE_THERMOMETER);
       channel.setDefault(SUPLA_CHANNELFNC_THERMOMETER);
-      channel.setNewValue(-275);
+    }
+
+    double getValue() {
+      return TEMPERATURE_NOT_AVAILABLE;
+    }
+
+    void iterateAlways() {
+      if (lastReadTime + 10000 < millis()) {
+        lastReadTime = millis();
+        channel.setNewValue(getValue());
+      }
     }
 
     protected:
+      unsigned long lastReadTime;
       Channel channel;
 };
 
