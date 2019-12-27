@@ -106,7 +106,7 @@ class DS18B20 : public Thermometer {
   DS18B20(uint8_t pin, uint8_t *deviceAddress = nullptr) {
     OneWireBus *bus = oneWireBus;
     OneWireBus *prevBus = nullptr;
-    iterationComplete = false;
+    lastReadTime = 0;
     address[0] = 0;
 
     if (bus) {
@@ -139,14 +139,13 @@ class DS18B20 : public Thermometer {
   }
 
   void iterateAlways() {
-    if (myBus->lastReadTime + 3000 < millis()) {
+    if (myBus->lastReadTime + 10000 < millis()) {
       myBus->sensors.requestTemperatures();
       myBus->lastReadTime = millis();
-      iterationComplete = false;
     }
-    if (myBus->lastReadTime + 1500 < millis() && !iterationComplete) {
+    if (myBus->lastReadTime + 5000 < millis() && (lastReadTime != myBus->lastReadTime)) {
       channel.setNewValue(getValue());
-      iterationComplete = true;
+      lastReadTime = myBus->lastReadTime;
     }
   }
 
@@ -165,7 +164,8 @@ class DS18B20 : public Thermometer {
   }
 
   bool iterateConnected(void *srpc) {
-    if (channel.isUpdateReady()) {
+    if (channel.isUpdateReady() && channel.nextCommunicationTimeMs < millis()) {
+      channel.nextCommunicationTimeMs = millis() + 100;
       channel.sendUpdate(srpc);
       return false;
     }
@@ -179,7 +179,7 @@ class DS18B20 : public Thermometer {
  protected:
   static OneWireBus *oneWireBus;
   OneWireBus *myBus;
-  bool iterationComplete;
+  unsigned long lastReadTime;
   DeviceAddress address;
 };
 

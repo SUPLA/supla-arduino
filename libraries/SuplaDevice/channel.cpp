@@ -19,6 +19,7 @@
 namespace Supla {
   Channel *Channel::firstPtr = nullptr;
 
+  unsigned long Channel::nextCommunicationTimeMs = 0;
   TDS_SuplaRegisterDevice_D Channel::reg_dev;
   
 

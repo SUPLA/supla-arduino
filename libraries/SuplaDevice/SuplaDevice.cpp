@@ -144,7 +144,6 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
                              const char *email,
                              char authkey[SUPLA_AUTHKEY_SIZE],
                              unsigned char version) {
-  Serial.println("in begin");
   if (isInitialized(true)) return false;
 
   if (Supla::Network::Instance() == NULL) {
@@ -1381,6 +1380,7 @@ void SuplaDeviceClass::iterate(void) {
     if (result < 0) {
       supla_log(LOG_DEBUG, "Fatal SRPC failure! Return code: %d", result);
     }
+    Supla::Channel::clearAllUpdateReady();
 
   } else if (registered == 1) {
     if (Supla::Network::Ping() == false) {

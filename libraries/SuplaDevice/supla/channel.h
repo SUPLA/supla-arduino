@@ -93,16 +93,21 @@ class Channel {
     }
 
     bool isUpdateReady() { return valueChanged; };
+    
     void setNewValue(double dbl) {
-      setUpdateReady();
-      supla_log(LOG_DEBUG, "Channel(%d) value changed to %f", channelNumber, dbl);
+      char newValue[SUPLA_CHANNELVALUE_SIZE];
       if (sizeof(double) == 8) {
-        memcpy(&(reg_dev.channels[channelNumber].value), &dbl, 8);
+        memcpy(newValue, &dbl, 8);
       } else if (sizeof(double) == 4) {
-        float2DoublePacked(dbl, (byte *)&(reg_dev.channels[channelNumber].value));
+        float2DoublePacked(dbl, (byte *)(newValue));
+      }
+      if (memcmp(newValue, reg_dev.channels[channelNumber].value, 8) != 0) {
+        setUpdateReady();
+        memcpy((reg_dev.channels[channelNumber].value), newValue, 8);
+        supla_log(LOG_DEBUG, "Channel(%d) value changed to %f", channelNumber, dbl);
+      }
     }
-      
-    }
+
     virtual bool isExtended() {
       return false;
     }
@@ -119,6 +124,10 @@ class Channel {
       }
     }
 
+    int getChannelNumber() {
+        return channelNumber;
+    }
+
     static TDS_SuplaRegisterDevice_D reg_dev;
     void clearUpdateReady() { valueChanged = false; };
 
@@ -126,6 +135,19 @@ class Channel {
       srpc_ds_async_channel_value_changed(srpc, channelNumber, reg_dev.channels[channelNumber].value);
       clearUpdateReady();
     }
+
+    static void clearAllUpdateReady() {
+        for (auto channel = begin(); channel != nullptr; channel = channel->next()) {
+            channel->clearUpdateReady();
+        }
+
+    }
+
+    Channel *next() {
+      return nextPtr;
+    }
+
+    static unsigned long nextCommunicationTimeMs;
 
   protected:
     void setUpdateReady() { valueChanged = true; };
