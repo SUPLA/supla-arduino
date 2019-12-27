@@ -7,6 +7,6 @@
 #ifndef supla_lib_config_h_
 #define supla_lib_config_h_
 
-#define SUPLA_COMM_DEBUG
+//#define SUPLA_COMM_DEBUG
 
 #endif
