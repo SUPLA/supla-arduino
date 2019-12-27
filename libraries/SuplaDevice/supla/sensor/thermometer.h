@@ -22,7 +22,7 @@
 
 namespace Supla {
 namespace Sensor {
-class Thermometer : Element {
+class Thermometer : public Element {
   public:
     Thermometer() {
       channel.setType(SUPLA_CHANNELTYPE_THERMOMETER);

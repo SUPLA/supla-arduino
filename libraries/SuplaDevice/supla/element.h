@@ -83,7 +83,7 @@ class Element {
     virtual void iterateAlways() {};
 
     // method called on each Supla::Device iteration when Device is connected and registered to Supla server
-    virtual void iterateConnected() {};
+    virtual bool iterateConnected(void *srpc) {};
 
     // method called on timer interupt
     // Include all actions that have to be executed periodically regardless of other SuplaDevice activities

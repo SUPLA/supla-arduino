@@ -169,6 +169,7 @@ class SuplaDeviceClass {
 
   SuplaDeviceParams Params;
   SuplaChannelPin *channel_pin;
+  int channel_pin_count;
 
   int rs_count;
   SuplaDeviceRollerShutter *roller_shutter;

@@ -20,6 +20,8 @@
 #include "../supla-common/proto.h"
 #include <Arduino.h>
 #include "tools.h"
+#include "../supla-common/srpc.h"
+#include "../supla-common/log.h"
 
 namespace Supla {
 
@@ -92,6 +94,8 @@ class Channel {
 
     bool isUpdateReady() { return valueChanged; };
     void setNewValue(double dbl) {
+      setUpdateReady();
+      supla_log(LOG_DEBUG, "Channel(%d) value changed to %f", channelNumber, dbl);
       if (sizeof(double) == 8) {
         memcpy(&(reg_dev.channels[channelNumber].value), &dbl, 8);
       } else if (sizeof(double) == 4) {
@@ -116,10 +120,15 @@ class Channel {
     }
 
     static TDS_SuplaRegisterDevice_D reg_dev;
+    void clearUpdateReady() { valueChanged = false; };
+
+    void sendUpdate(void *srpc) {
+      srpc_ds_async_channel_value_changed(srpc, channelNumber, reg_dev.channels[channelNumber].value);
+      clearUpdateReady();
+    }
 
   protected:
     void setUpdateReady() { valueChanged = true; };
-    void clearUpdateReady() { valueChanged = false; };
 
     bool valueChanged;
     int channelNumber;

@@ -75,6 +75,7 @@ SuplaDeviceClass::SuplaDeviceClass() {
   channel_pin = NULL;
   roller_shutter = NULL;
   rs_count = 0;
+  channel_pin_count = 0;
 
   impl_rs_save_position = NULL;
   impl_rs_load_position = NULL;
@@ -281,7 +282,7 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
     element->onInit();
   }
 
-  for (int a = 0; a < Supla::Channel::reg_dev.channel_count; a++) {
+  for (int a = 0; a < channel_pin_count; a++) {
     begin_thermometer(&channel_pin[a], &Supla::Channel::reg_dev.channels[a], a);
     SuplaImpulseCounter *ptr = SuplaImpulseCounter::getCounterByChannel(a);
     if (ptr) {
@@ -352,6 +353,8 @@ int SuplaDeviceClass::addChannel(int pin1,
     status(STATUS_CHANNEL_LIMIT_EXCEEDED, "Channel limit exceeded");
     return -1;
   }
+
+  channel_pin_count++;
 
   if (bistable && (pin1 == 0 || pin2 == 0)) bistable = false;
 
@@ -1388,10 +1391,12 @@ void SuplaDeviceClass::iterate(void) {
     if (time_diff > 0) {
       // Iterate all elements
       for (auto element = Supla::Element::begin(); element != nullptr; element = element->next()) {
-        element->iterateConnected();
+        if (!element->iterateConnected(srpc)) {
+          break;
+        }
       }
 
-      for (int a = 0; a < Supla::Channel::reg_dev.channel_count; a++) {
+      for (int a = 0; a < channel_pin_count; a++) {
         iterate_relay(
             &channel_pin[a], &Supla::Channel::reg_dev.channels[a], time_diff, a);
         iterate_sensor(
@@ -1400,11 +1405,6 @@ void SuplaDeviceClass::iterate(void) {
             &channel_pin[a], &Supla::Channel::reg_dev.channels[a], time_diff, a);
         iterate_impulse_counter(
             &channel_pin[a], &Supla::Channel::reg_dev.channels[a], time_diff, a);
-      }
-
-      // Iterate all elements
-      for (auto element = Supla::Element::begin(); element != nullptr; element = element->next()) {
-        element->iterateConnected();
       }
 
       last_iterate_time = millis();
