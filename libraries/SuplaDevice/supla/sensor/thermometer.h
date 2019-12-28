@@ -17,34 +17,43 @@
 #ifndef _thermometer_h
 #define _thermometer_h
 
-#include "supla/element.h"
 #include "supla/channel.h"
+#include "supla/element.h"
 
 #define TEMPERATURE_NOT_AVAILABLE -275
 
 namespace Supla {
 namespace Sensor {
 class Thermometer : public Element {
-  public:
-    Thermometer() {
-      channel.setType(SUPLA_CHANNELTYPE_THERMOMETER);
-      channel.setDefault(SUPLA_CHANNELFNC_THERMOMETER);
-    }
+ public:
+  Thermometer() {
+    channel.setType(SUPLA_CHANNELTYPE_THERMOMETER);
+    channel.setDefault(SUPLA_CHANNELFNC_THERMOMETER);
+  }
 
-    double getValue() {
-      return TEMPERATURE_NOT_AVAILABLE;
-    }
+  double getValue() {
+    return TEMPERATURE_NOT_AVAILABLE;
+  }
 
-    void iterateAlways() {
-      if (lastReadTime + 10000 < millis()) {
-        lastReadTime = millis();
-        channel.setNewValue(getValue());
-      }
+  void iterateAlways() {
+    if (lastReadTime + 10000 < millis()) {
+      lastReadTime = millis();
+      channel.setNewValue(getValue());
     }
+  }
 
-    protected:
-      unsigned long lastReadTime;
-      Channel channel;
+  bool iterateConnected(void *srpc) {
+    if (channel.isUpdateReady() && channel.nextCommunicationTimeMs < millis()) {
+      channel.nextCommunicationTimeMs = millis() + 100;
+      channel.sendUpdate(srpc);
+      return false;
+    }
+    return true;
+  }
+
+ protected:
+  unsigned long lastReadTime;
+  Channel channel;
 };
 
 };  // namespace Sensor

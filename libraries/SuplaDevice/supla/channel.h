@@ -101,11 +101,32 @@ class Channel {
       } else if (sizeof(double) == 4) {
         float2DoublePacked(dbl, (byte *)(newValue));
       }
+      if (setNewValue(newValue)) {
+        supla_log(LOG_DEBUG, "Channel(%d) value changed to %f", channelNumber, dbl);
+      }
+    }
+
+    void setNewValue(double temp, double humi) {
+      char newValue[SUPLA_CHANNELVALUE_SIZE];
+      long t = temp * 1000.00;
+      long h = humi * 1000.00;
+
+      memcpy(newValue, &t, 4);
+      memcpy(&(newValue[4]), &h, 4);
+
+      if (setNewValue(newValue)) {
+        supla_log(LOG_DEBUG, "Channel(%d) value changed to temp(%f), humi(%f)", channelNumber, temp, humi);
+      }
+    }
+
+    bool setNewValue(char *newValue) {
       if (memcmp(newValue, reg_dev.channels[channelNumber].value, 8) != 0) {
         setUpdateReady();
         memcpy((reg_dev.channels[channelNumber].value), newValue, 8);
-        supla_log(LOG_DEBUG, "Channel(%d) value changed to %f", channelNumber, dbl);
+        return true;
       }
+      return false;
+
     }
 
     virtual bool isExtended() {

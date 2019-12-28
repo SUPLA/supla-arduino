@@ -17,10 +17,35 @@
 #ifndef _therm_hygro_meter_h
 #define _therm_hygro_meter_h
 
+#include "thermometer.h"
+
+#define HUMIDITY_NOT_AVAILABLE -1
 
 namespace Supla {
 namespace Sensor {
-class ThermHygroMeter {
+class ThermHygroMeter: public Thermometer {
+  public:
+    ThermHygroMeter() {
+      channel.setType(SUPLA_CHANNELTYPE_HUMIDITYANDTEMPSENSOR);
+      channel.setDefault(SUPLA_CHANNELFNC_HUMIDITYANDTEMPERATURE);
+    }
+
+    double getTemp() {
+      return TEMPERATURE_NOT_AVAILABLE;
+    }
+
+    double getHumi() {
+      return HUMIDITY_NOT_AVAILABLE;
+    }
+
+    void iterateAlways() {
+      if (lastReadTime + 10000 < millis()) {
+        lastReadTime = millis();
+        channel.setNewValue(getTemp(), getHumi());
+      }
+    }
+
+    protected:
 };
 
 };  // namespace Sensor

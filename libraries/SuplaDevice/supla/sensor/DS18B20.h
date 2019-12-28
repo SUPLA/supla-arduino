@@ -158,11 +158,11 @@ class DS18B20 : public Thermometer {
         value = myBus->sensors.getTempC(address);
       }
 
-      if (value == DEVICE_DISCONNECTED_C) {
+      if (value == DEVICE_DISCONNECTED_C || value == 85.0) {
         value = TEMPERATURE_NOT_AVAILABLE;
       }
 
-      if (value == TEMPERATURE_NOT_AVAILABLE || value == 85.0) {
+      if (value == TEMPERATURE_NOT_AVAILABLE) {
         retryCounter++;
         if (retryCounter > 3) {
           retryCounter = 0;
@@ -177,14 +177,6 @@ class DS18B20 : public Thermometer {
       return value;
   }
 
-  bool iterateConnected(void *srpc) {
-    if (channel.isUpdateReady() && channel.nextCommunicationTimeMs < millis()) {
-      channel.nextCommunicationTimeMs = millis() + 100;
-      channel.sendUpdate(srpc);
-      return false;
-    }
-    return true;
-  }
 
   void onInit() {
     channel.setNewValue(getValue());
