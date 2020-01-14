@@ -17,10 +17,23 @@
 #ifndef _channel_extended_h
 #define _channel_extended_h
 
+#include "channel.h"
 
 namespace Supla {
 class ChannelExtended : public Channel {
+  public:
     
+    bool isExtended() {
+      return true;
+    }
+
+    TSuplaChannelExtendedValue *getExtValue() {
+      return &extValue;
+    }
+
+    protected:
+      TSuplaChannelExtendedValue extValue;
+      
 };
 
 };  // namespace Supla

@@ -31,7 +31,7 @@ class Thermometer : public Element {
     channel.setDefault(SUPLA_CHANNELFNC_THERMOMETER);
   }
 
-  double getValue() {
+  virtual double getValue() {
     return TEMPERATURE_NOT_AVAILABLE;
   }
 
@@ -42,16 +42,11 @@ class Thermometer : public Element {
     }
   }
 
-  bool iterateConnected(void *srpc) {
-    if (channel.isUpdateReady() && channel.nextCommunicationTimeMs < millis()) {
-      channel.nextCommunicationTimeMs = millis() + 100;
-      channel.sendUpdate(srpc);
-      return false;
-    }
-    return true;
-  }
 
  protected:
+  Channel *getChannel() {
+    return &channel;
+  }
   unsigned long lastReadTime;
   Channel channel;
 };

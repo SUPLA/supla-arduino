@@ -20,6 +20,7 @@
 #ifdef ARDUINO_ARCH_ESP8266
 #include <cstddef>
 #endif
+#include "channel.h"
 
 namespace Supla {
 /*
@@ -83,7 +84,15 @@ class Element {
     virtual void iterateAlways() {};
 
     // method called on each Supla::Device iteration when Device is connected and registered to Supla server
-    virtual bool iterateConnected(void *srpc) {};
+    virtual bool iterateConnected(void *srpc) {
+      Channel *channel = getChannel();
+      if (channel && channel->isUpdateReady() && channel->nextCommunicationTimeMs < millis()) {
+        channel->nextCommunicationTimeMs = millis() + 100;
+        channel->sendUpdate(srpc);
+        return false;
+      }
+      return true;
+    }
 
     // method called on timer interupt
     // Include all actions that have to be executed periodically regardless of other SuplaDevice activities
@@ -94,6 +103,9 @@ class Element {
     virtual void onFastTimer() { };
 
   protected:
+    virtual Channel *getChannel() {
+      return nullptr;
+    }
     static Element *firstPtr;;
     Element *nextPtr;
 };

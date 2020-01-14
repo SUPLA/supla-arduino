@@ -27,6 +27,7 @@ class DHT: public ThermHygroMeter {
   public:
     DHT(int pin, int dhtType) : dht(pin, dhtType) {
       dht.begin();
+      delay(100);
       retryCountTemp = 0;
       retryCountHumi = 0;
       lastValidTemp = TEMPERATURE_NOT_AVAILABLE;

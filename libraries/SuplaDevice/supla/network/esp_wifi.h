@@ -108,6 +108,9 @@ class ESPWifi : public Supla::Network {
           Serial.println("wifi Station disconnected");
         });
 
+    Serial.print("WIFI: establishing connection with SSID: \"");
+    Serial.print(ssid);
+    Serial.println("\"");
     WiFi.begin(ssid, password);
     yield();
   }
