@@ -196,15 +196,12 @@ class Channel {
   };
 
   void sendUpdate(void *srpc) {
-      Serial.print("sendUpdate ");
-      Serial.println(channelNumber);
     srpc_ds_async_channel_value_changed(
         srpc, channelNumber, reg_dev.channels[channelNumber].value);
     
     // returns null for non-extended channels
     TSuplaChannelExtendedValue *extValue = getExtValue();  
     if (extValue) {
-      Serial.println("sendUpdate ext");
       srpc_ds_async_channel_extendedvalue_changed(
           srpc, channelNumber, extValue);
     }
