@@ -1,8 +1,23 @@
 #include <SPI.h>
-#include <Ethernet.h>
 #include <SuplaDevice.h>
 #include <SuplaSomfy.h>
 #include <EEPROM.h>
+
+// Choose proper network interface for your card:
+// Arduino Mega with EthernetShield W5100:
+#include <supla/network/ethernet_shield.h>
+// Ethernet MAC address
+uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
+Supla::EthernetShield ethernet(mac);
+//
+// Arduino Mega with ENC28J60:
+// #include <supla/network/ENC28J60.h>
+// Supla::ENC28J60 ethernet(mac);
+//
+// ESP8266 based board:
+// #include <supla/network/esp_wifi.h>
+// Supla::ESPWifi wifi("your_wifi_ssid", "your_wifi_password");
+
 
 #define RC_COUNT SUPLA_CHANNELMAXCOUNT
 #define BEGIN_PIN 100
@@ -113,12 +128,11 @@ void supla_Timer() {
 void setup() {
   Serial.begin(115200);
 
-  // ﻿Replace the falowing GUID
+  // Replace the falowing GUID with value that you can retrieve from https://www.supla.org/arduino/get-guid
   char GUID[SUPLA_GUID_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
-  // ﻿with GUID that you can retrieve from https://www.supla.org/arduino/get-guid
 
-  // Ethernet MAC address
-  uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
+  // Replace the following AUTHKEY with value that you can retrieve from: https://www.supla.org/arduino/get-authkey
+  char AUTHKEY[SUPLA_AUTHKEY_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 
   // Generate remote controls
   createRemote(RC_COUNT);
@@ -139,11 +153,10 @@ void setup() {
   SuplaDevice.setDigitalWriteFuncImpl(&supla_DigitalWrite);
   SuplaDevice.setName("Somfy Remote");
 
-  SuplaDevice.begin(GUID,              // Global Unique Identifier
-                    mac,               // Ethernet MAC address
+  SuplaDevice.begin(GUID,              // Global Unique Identifier 
                     "svr1.supla.org",  // SUPLA server address
-                    0,                // Location ID
-                    "");           // Location Password
+                    "email@address",   // Email address used to login to Supla Cloud
+                    AUTHKEY);          // Authorization key
 
   //testRemote();
 }
@@ -234,4 +247,3 @@ void pushButton(int channelNumber, ControlButtons button) {
   myRemote.PushButton(button);
   saveRollingCode(myRemote.GetRemote(), channelNumber);
 }
-
