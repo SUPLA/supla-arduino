@@ -435,13 +435,13 @@ bool SuplaDeviceClass::addRelay(int relayPin, bool hiIsLo) {
                   0,
                   hiIsLo,
                   false,
-                  SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEGATEWAYLOCK |
-                      SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEGATE |
-                      SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEGARAGEDOOR |
-                      SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEDOORLOCK |
-                      SUPLA_BIT_RELAYFUNC_POWERSWITCH |
-                      SUPLA_BIT_RELAYFUNC_LIGHTSWITCH |
-                      SUPLA_BIT_RELAYFUNC_STAIRCASETIMER) > -1;
+                  SUPLA_BIT_FUNC_CONTROLLINGTHEGATEWAYLOCK |
+                      SUPLA_BIT_FUNC_CONTROLLINGTHEGATE |
+                      SUPLA_BIT_FUNC_CONTROLLINGTHEGARAGEDOOR |
+                      SUPLA_BIT_FUNC_CONTROLLINGTHEDOORLOCK |
+                      SUPLA_BIT_FUNC_POWERSWITCH |
+                      SUPLA_BIT_FUNC_LIGHTSWITCH |
+                      SUPLA_BIT_FUNC_STAIRCASETIMER) > -1;
 }
 
 bool SuplaDeviceClass::addRelay(int relayPin) {
@@ -456,7 +456,7 @@ bool SuplaDeviceClass::addRollerShutterRelays(int relayPin1,
                relayPin2,
                hiIsLo,
                false,
-               SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEROLLERSHUTTER);
+               SUPLA_BIT_FUNC_CONTROLLINGTHEROLLERSHUTTER);
 
   if (channel_number > -1) {
     roller_shutter = (SuplaDeviceRollerShutter *)realloc(
@@ -1376,9 +1376,8 @@ void SuplaDeviceClass::iterate(void) {
   if (registered == 0) {
     registered = -1;
     status(STATUS_REGISTER_IN_PROGRESS, "Register in progress");
-    int result = srpc_ds_async_registerdevice_d(srpc, &Supla::Channel::reg_dev);
-    if (result < 0) {
-      supla_log(LOG_DEBUG, "Fatal SRPC failure! Return code: %d", result);
+    if (!srpc_ds_async_registerdevice_d(srpc, &Supla::Channel::reg_dev)) {
+      supla_log(LOG_DEBUG, "Fatal SRPC failure!");
     }
     Supla::Channel::clearAllUpdateReady();
 
@@ -1664,7 +1663,7 @@ void SuplaDeviceClass::channelSetValueByServer(
       if (Supla::Channel::reg_dev.channels[a].Type == SUPLA_CHANNELTYPE_RELAY) {
         // Control rollet shutter by server
         if (Supla::Channel::reg_dev.channels[a].FuncList ==
-            SUPLA_BIT_RELAYFUNC_CONTROLLINGTHEROLLERSHUTTER) {
+            SUPLA_BIT_FUNC_CONTROLLINGTHEROLLERSHUTTER) {
           SuplaDeviceRollerShutter *rs =
               rsByChannelNumber(new_value->ChannelNumber);
           if (rs != NULL) {
