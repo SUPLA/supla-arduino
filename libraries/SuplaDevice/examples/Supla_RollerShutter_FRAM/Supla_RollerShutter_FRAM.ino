@@ -32,6 +32,10 @@ Supla::EthernetShield ethernet(mac);
 // ESP8266 based board:
 // #include <supla/network/esp_wifi.h>
 // Supla::ESPWifi wifi("your_wifi_ssid", "your_wifi_password");
+//
+// ESP32 based board:
+// #include <supla/network/esp32_wifi.h>
+// Supla::ESP32Wifi wifi("your_wifi_ssid", "your_wifi_password");
 
 
 char tag[6] = {'S','U','P','L','A','1'};

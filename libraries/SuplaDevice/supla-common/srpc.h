@@ -22,7 +22,9 @@
 #include <stdio.h>
 #include "eh.h"
 #include "proto.h"
+#if defined(ESP32)
 #include <esp8266-compat.h>
+#endif
 
 #ifdef __ANDROID__
 #define SRPC_EXCLUDE_DEVICE
