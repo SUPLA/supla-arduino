@@ -17,7 +17,7 @@
 #ifndef _element_h
 #define _element_h
 
-#ifdef ARDUINO_ARCH_ESP8266
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
 #include <cstddef>
 #endif
 #include "channel.h"
