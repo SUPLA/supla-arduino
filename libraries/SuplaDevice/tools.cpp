@@ -18,7 +18,7 @@
 
 #include "tools.h"
 
-void float2DoublePacked(float number, byte *bar, int byteOrder) {
+void float2DoublePacked(float number, uint8_t *bar, int byteOrder) {
   _FLOATCONV fl;
   fl.f = number;
   _DBLCONV dbl;

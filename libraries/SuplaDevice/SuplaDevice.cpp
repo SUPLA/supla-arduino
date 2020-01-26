@@ -326,7 +326,7 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
 }
 
 void SuplaDeviceClass::begin_thermometer(SuplaChannelPin *pin,
-                                         TDS_SuplaDeviceChannel_B *channel,
+                                         TDS_SuplaDeviceChannel_C *channel,
                                          int channel_number) {
   if (channel->Type == SUPLA_CHANNELTYPE_THERMOMETERDS18B20 &&
       Params.cb.get_temperature != NULL) {
@@ -552,7 +552,7 @@ void SuplaDeviceClass::setDoubleValue(char value[SUPLA_CHANNELVALUE_SIZE],
   if (sizeof(double) == 8) {
     memcpy(value, &v, 8);
   } else if (sizeof(double) == 4) {
-    float2DoublePacked(v, (byte *)value);
+    float2DoublePacked(v, (uint8_t *)value);
   }
 }
 
@@ -789,7 +789,7 @@ void SuplaDeviceClass::setRollerShutterFuncImpl(
 }
 
 void SuplaDeviceClass::iterate_relay(SuplaChannelPin *pin,
-                                     TDS_SuplaDeviceChannel_B *channel,
+                                     TDS_SuplaDeviceChannel_C *channel,
                                      unsigned long time_diff,
                                      int channel_number) {
   if (pin->bi_time_left != 0) {
@@ -839,7 +839,7 @@ void SuplaDeviceClass::iterate_relay(SuplaChannelPin *pin,
 }
 
 void SuplaDeviceClass::iterate_sensor(SuplaChannelPin *pin,
-                                      TDS_SuplaDeviceChannel_B *channel,
+                                      TDS_SuplaDeviceChannel_C *channel,
                                       unsigned long time_diff,
                                       int channel_number) {
   if (channel->Type == SUPLA_CHANNELTYPE_SENSORNO) {
@@ -873,7 +873,7 @@ void SuplaDeviceClass::iterate_sensor(SuplaChannelPin *pin,
 };
 
 void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin,
-                                           TDS_SuplaDeviceChannel_B *channel,
+                                           TDS_SuplaDeviceChannel_C *channel,
                                            unsigned long time_diff,
                                            int channel_number) {
   if (channel->Type == SUPLA_CHANNELTYPE_THERMOMETERDS18B20 &&
@@ -989,7 +989,7 @@ void SuplaDeviceClass::rs_load_settings(SuplaDeviceRollerShutter *rs) {
 
 void SuplaDeviceClass::rs_set_relay(SuplaDeviceRollerShutter *rs,
                                     SuplaChannelPin *pin,
-                                    byte value,
+                                    uint8_t value,
                                     bool cancel_task,
                                     bool stop_delay) {
   if (cancel_task) {
@@ -1039,7 +1039,7 @@ void SuplaDeviceClass::rs_set_relay(SuplaDeviceRollerShutter *rs,
   }
 }
 
-void SuplaDeviceClass::rs_set_relay(int channel_number, byte value) {
+void SuplaDeviceClass::rs_set_relay(int channel_number, uint8_t value) {
   SuplaDeviceRollerShutter *rs = rsByChannelNumber(channel_number);
 
   if (rs) {
@@ -1111,7 +1111,7 @@ void SuplaDeviceClass::rs_move_position(SuplaDeviceRollerShutter *rs,
 
 bool SuplaDeviceClass::rs_time_margin(unsigned long full_time,
                                       unsigned long time,
-                                      byte m) {
+                                      uint8_t m) {
   return (full_time > 0 && (time * 100 / full_time) < m) ? true : false;
 }
 
@@ -1135,7 +1135,7 @@ void SuplaDeviceClass::rs_task_processing(SuplaDeviceRollerShutter *rs,
     return;
   }
 
-  byte percent = (rs->position - 100) / 100;
+  uint8_t percent = (rs->position - 100) / 100;
 
   if (rs->task.direction == RS_DIRECTION_NONE) {
     if (percent > rs->task.percent) {
@@ -1216,7 +1216,7 @@ void SuplaDeviceClass::rs_cvr_processing(SuplaDeviceRollerShutter *rs,
 
 bool SuplaDeviceClass::rs_button_released(SuplaDeviceRollerShutterButton *btn) {
   if (btn->pin > 0) {
-    byte v = digitalRead(btn->pin);
+    uint8_t v = digitalRead(btn->pin);
     if (v != btn->value && millis() - btn->time >= 50) {
       btn->value = v;
       return v == 1;
@@ -1246,7 +1246,7 @@ void SuplaDeviceClass::rs_buttons_processing(SuplaDeviceRollerShutter *rs) {
 void SuplaDeviceClass::iterate_rollershutter(
     SuplaDeviceRollerShutter *rs,
     SuplaChannelPin *pin,
-    TDS_SuplaDeviceChannel_B *channel) {
+    TDS_SuplaDeviceChannel_C *channel) {
   rs_cvr_processing(rs, pin, &rs->cvr1);
   rs_cvr_processing(rs, pin, &rs->cvr2);
 
@@ -1310,7 +1310,7 @@ void SuplaDeviceClass::iterate_rollershutter(
 
 void SuplaDeviceClass::iterate_impulse_counter(
     SuplaChannelPin *pin,
-    TDS_SuplaDeviceChannel_B *channel,
+    TDS_SuplaDeviceChannel_C *channel,
     unsigned long time_diff,
     int channel_number) {
   if (channel->Type == SUPLA_CHANNELTYPE_IMPULSE_COUNTER &&
@@ -1406,7 +1406,7 @@ void SuplaDeviceClass::iterate(void) {
   if (registered == 0) {
     registered = -1;
     status(STATUS_REGISTER_IN_PROGRESS, "Register in progress");
-    if (!srpc_ds_async_registerdevice_d(srpc, &Supla::Channel::reg_dev)) {
+    if (!srpc_ds_async_registerdevice_e(srpc, &Supla::Channel::reg_dev)) {
       supla_log(LOG_DEBUG, "Fatal SRPC failure!");
     }
     Supla::Channel::clearAllUpdateReady();

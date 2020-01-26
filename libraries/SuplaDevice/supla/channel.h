@@ -100,7 +100,7 @@ class Channel {
     if (sizeof(double) == 8) {
       memcpy(newValue, &dbl, 8);
     } else if (sizeof(double) == 4) {
-      float2DoublePacked(dbl, (byte *)(newValue));
+      float2DoublePacked(dbl, (uint8_t *)(newValue));
     }
     if (setNewValue(newValue)) {
       supla_log(
@@ -186,11 +186,17 @@ class Channel {
     }
   }
 
+  void setFlag(int flag) {
+    if (channelNumber >= 0) {
+      reg_dev.channels[channelNumber].Flags |= flag;
+    }
+  }
+
   int getChannelNumber() {
     return channelNumber;
   }
 
-  static TDS_SuplaRegisterDevice_D reg_dev;
+  static TDS_SuplaRegisterDevice_E reg_dev;
   void clearUpdateReady() {
     valueChanged = false;
   };
