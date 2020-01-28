@@ -100,7 +100,7 @@ class Channel {
     if (sizeof(double) == 8) {
       memcpy(newValue, &dbl, 8);
     } else if (sizeof(double) == 4) {
-      float2DoublePacked(dbl, (byte *)(newValue));
+      float2DoublePacked(dbl, (uint8_t *)(newValue));
     }
     if (setNewValue(newValue)) {
       supla_log(
@@ -186,25 +186,28 @@ class Channel {
     }
   }
 
+  void setFlag(int flag) {
+    if (channelNumber >= 0) {
+      reg_dev.channels[channelNumber].Flags |= flag;
+    }
+  }
+
   int getChannelNumber() {
     return channelNumber;
   }
 
-  static TDS_SuplaRegisterDevice_D reg_dev;
+  static TDS_SuplaRegisterDevice_E reg_dev;
   void clearUpdateReady() {
     valueChanged = false;
   };
 
   void sendUpdate(void *srpc) {
-      Serial.print("sendUpdate ");
-      Serial.println(channelNumber);
     srpc_ds_async_channel_value_changed(
         srpc, channelNumber, reg_dev.channels[channelNumber].value);
     
     // returns null for non-extended channels
     TSuplaChannelExtendedValue *extValue = getExtValue();  
     if (extValue) {
-      Serial.println("sendUpdate ext");
       srpc_ds_async_channel_extendedvalue_changed(
           srpc, channelNumber, extValue);
     }

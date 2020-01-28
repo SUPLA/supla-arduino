@@ -24,7 +24,7 @@
 #if defined(_WIN32)
 #include <Windows.h>
 #include <wchar.h>
-#elif defined(ARDUINO_ARCH_ESP8266) || defined(__AVR__)
+#elif defined(ARDUINO_ARCH_ESP8266) || defined(__AVR__) || defined(ARDUINO_ARCH_ESP32)
 #include <Arduino.h>
 #else
 #include <unistd.h>
@@ -36,18 +36,22 @@
 
 #include <string.h>
 
-#ifdef ESP8266
+#if defined(ESP8266) || defined(ESP32)
 
 #include <mem.h>
+#if !defined(ARDUINO_ARCH_ESP32)
 #include <osapi.h>
+#endif
 
-#ifdef ARDUINO_ARCH_ESP8266
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
 #include <Arduino.h>
+#if defined(ARDUINO_ARCH_ESP266)
 #include <ets_sys.h>
+#endif
 #else
 #include <user_interface.h>
 #include "espmissingincludes.h"
-#endif /*ARDUINO_ARCH_ESP8266*/
+#endif /*ARDUINO_ARCH_ESP8266 || ARDUINO_ARCH_ESP8266 */
 
 #else
 
@@ -55,7 +59,7 @@
 #include "cfg.h"
 #endif /*__AVR__*/
 
-#endif /*ESP8266*/
+#endif /*ESP8266 || ESP32 */
 
 #ifdef __ANDROID__
 #include <android/log.h>
@@ -124,9 +128,9 @@ void supla_vlog(int __pri, const char *message) {
   OutputDebugStringW(L"\n");
 }
 
-#elif defined(ESP8266) || defined(__AVR__)
+#elif defined(ESP8266) || defined(__AVR__) || defined(ESP32)
 void supla_vlog(int __pri, const char *message) {
-#if defined(ESP8266) && !defined(ARDUINO_ARCH_ESP8266)
+#if (defined(ESP8266) || defined(ESP32)) && !defined(ARDUINO_ARCH_ESP8266) && !defined(ARDUINO_ARCH_ESP32)
 #ifndef ESP8266_LOG_DISABLED
   os_printf("%s\r\n", message);
 #endif
@@ -166,7 +170,7 @@ void supla_vlog(int __pri, const char *message) {
   struct timeval now;
 #endif
 
-#if defined(ESP8266) || defined(__AVR__)
+#if defined(ESP8266) || defined(__AVR__) || defined(ESP32)
   if (message == NULL) return;
 #else
   if (message == NULL || (debug_mode == 0 && __pri == LOG_DEBUG)) return;
@@ -205,7 +209,7 @@ void supla_vlog(int __pri, const char *message) {
         break;
     }
 
-#if defined(ESP8266) || defined(__AVR__)
+#if defined(ESP8266) || defined(__AVR__) || defined(ESP32)
     os_printf("%s\r\n", message);
 #else
     gettimeofday(&now, NULL);
@@ -226,7 +230,7 @@ void supla_log(int __pri, const char *__fmt, ...) {
   char *buffer = NULL;
   int size = 0;
 
-#if defined(ESP8266) || defined(__AVR__) || defined(_WIN32)
+#if defined(ESP8266) || defined(__AVR__) || defined(_WIN32) || defined(ESP32)
   if (__fmt == NULL) return;
 #else
   if (__fmt == NULL || (debug_mode == 0 && __pri == LOG_DEBUG)) return;
@@ -272,7 +276,7 @@ void supla_write_state_file(const char *file, int __pri, const char *__fmt,
     supla_vlog(__pri, buffer);
   }
 
-#if !defined(ESP8266) && !defined(__AVR__) && !defined(WIN32)
+#if !defined(ESP8266) && !defined(__AVR__) && !defined(WIN32) && !defined(ESP32)
 
   int fd;
 

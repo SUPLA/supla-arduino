@@ -67,6 +67,7 @@ class OneWireBus {
         supla_log(LOG_DEBUG, "Index %d - address %s", i, strAddr);
         sensors.setResolution(address, 12);
       }
+      delay(0);
     }
     sensors.setWaitForConversion(true);
     sensors.requestTemperatures();
