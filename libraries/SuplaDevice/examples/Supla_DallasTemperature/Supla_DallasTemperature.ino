@@ -15,9 +15,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include <SPI.h>
-#include <OneWire.h>
-#include <DallasTemperature.h>
 #include <SuplaDevice.h>
+
+/*
+ * This example requires Dallas Temperature Control library installed. 
+ * https://github.com/milesburton/Arduino-Temperature-Control-Library
+ */
+// Add include to DS sensor
+#include <supla/sensor/DS18B20.h>
+
 
 // Choose proper network interface for your card:
 // Arduino Mega with EthernetShield W5100:
@@ -33,41 +39,14 @@ Supla::EthernetShield ethernet(mac);
 // ESP8266 based board:
 // #include <supla/network/esp_wifi.h>
 // Supla::ESPWifi wifi("your_wifi_ssid", "your_wifi_password");
-
-
-/*
- * This example requires Dallas Temperature Control library installed. 
- * https://github.com/milesburton/Arduino-Temperature-Control-Library
- */
- 
-// Setup a oneWire instance
-OneWire oneWire(24); // 24 - Pin number
-
-// Pass oneWire reference to Dallas Temperature
-DallasTemperature sensors(&oneWire);
-
-// DS18B20 Sensor read implementation
-double get_temperature(int channelNumber, double last_val) {
-    double t = -275;
-
-    if ( sensors.getDeviceCount() > 0 )
-      {
-         sensors.requestTemperatures();
-         t = sensors.getTempCByIndex(0);
-      };
-
-    return t;
-}
+//
+// ESP32 based board:
+// #include <supla/network/esp32_wifi.h>
+// Supla::ESP32Wifi wifi("your_wifi_ssid", "your_wifi_password");
 
 void setup() {
 
   Serial.begin(9600);
-
-  // Init DS18B20 library 
-  sensors.begin();
-
-  // Set temperature callback
-  SuplaDevice.setTemperatureCallback(&get_temperature);
 
   // Replace the falowing GUID with value that you can retrieve from https://www.supla.org/arduino/get-guid
   char GUID[SUPLA_GUID_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
@@ -105,8 +84,17 @@ void setup() {
   SuplaDevice.addSensorNO(6); // 6 - ﻿Pin number where the sensor is connected
 
 
-  // CHANNEL6 - Thermometer DS18B20
-  SuplaDevice.addDS18B20Thermometer();
+  // CHANNEL6-9 - Thermometer DS18B20
+  // 4 DS18B20 thermometers at pin 23. DS address can be omitted when there is only one device at a pin
+  DeviceAddress ds1addr = {0x28, 0xFF, 0xC8, 0xAB, 0x6E, 0x18, 0x01, 0xFC};
+  DeviceAddress ds2addr = {0x28, 0xFF, 0x54, 0x73, 0x6E, 0x18, 0x01, 0x77};
+  DeviceAddress ds3addr = {0x28, 0xFF, 0x55, 0xCA, 0x6B, 0x18, 0x01, 0x8D};
+  DeviceAddress ds4addr = {0x28, 0xFF, 0x4F, 0xAB, 0x6E, 0x18, 0x01, 0x66};
+
+  new Supla::Sensor::DS18B20(23, ds1addr);
+  new Supla::Sensor::DS18B20(23, ds2addr);
+  new Supla::Sensor::DS18B20(23, ds3addr);
+  new Supla::Sensor::DS18B20(23, ds4addr);
 
 
   /*

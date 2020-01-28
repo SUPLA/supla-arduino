@@ -89,7 +89,6 @@ typedef struct SuplaDeviceCallbacks {
 
 typedef struct SuplaDeviceParams {
   SuplaDeviceCallbacks cb;
-  TDS_SuplaRegisterDevice_D reg_dev;
 } SuplaDeviceParams;
 
 typedef struct SuplaChannelPin {
@@ -108,20 +107,20 @@ typedef struct SuplaChannelPin {
 };
 
 typedef struct SuplaDeviceRollerShutterTask {
-  byte percent;
-  byte direction;
+  uint8_t percent;
+  uint8_t direction;
   bool active;
 };
 
 typedef struct SuplaDeviceRollerShutterCVR {
-  byte active;
-  byte value;
+  uint8_t active;
+  uint8_t value;
   unsigned long time;
 };
 
 typedef struct {
   int pin;
-  byte value;
+  uint8_t value;
   unsigned long time;
 } SuplaDeviceRollerShutterButton;
 
@@ -147,7 +146,7 @@ typedef struct SuplaDeviceRollerShutter {
   SuplaDeviceRollerShutterCVR cvr2;
 
   SuplaDeviceRollerShutterTask task;
-  byte save_position;
+  uint8_t save_position;
 };
 
 class SuplaDeviceClass {
@@ -170,6 +169,7 @@ class SuplaDeviceClass {
 
   SuplaDeviceParams Params;
   SuplaChannelPin *channel_pin;
+  int channel_pin_count;
 
   int rs_count;
   SuplaDeviceRollerShutter *roller_shutter;
@@ -197,10 +197,10 @@ class SuplaDeviceClass {
                          SuplaDeviceRollerShutterCVR *cvr);
   void rs_set_relay(SuplaDeviceRollerShutter *rs,
                     SuplaChannelPin *pin,
-                    byte value,
+                    uint8_t value,
                     bool cancel_task,
                     bool stop_delay);
-  void rs_set_relay(int channel_number, byte value);
+  void rs_set_relay(int channel_number, uint8_t value);
   void rs_calibrate(SuplaDeviceRollerShutter *rs,
                     unsigned long full_time,
                     unsigned long time,
@@ -210,7 +210,7 @@ class SuplaDeviceClass {
                         unsigned long full_time,
                         unsigned long *time,
                         bool up);
-  bool rs_time_margin(unsigned long full_time, unsigned long time, byte m);
+  bool rs_time_margin(unsigned long full_time, unsigned long time, uint8_t m);
   void rs_task_processing(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin);
   void rs_add_task(SuplaDeviceRollerShutter *rs, unsigned char percent);
   void rs_cancel_task(SuplaDeviceRollerShutter *rs);
@@ -218,27 +218,27 @@ class SuplaDeviceClass {
   void rs_buttons_processing(SuplaDeviceRollerShutter *rs);
 
   void iterate_relay(SuplaChannelPin *pin,
-                     TDS_SuplaDeviceChannel_B *channel,
+                     TDS_SuplaDeviceChannel_C *channel,
                      unsigned long time_diff,
                      int channel_idx);
   void iterate_sensor(SuplaChannelPin *pin,
-                      TDS_SuplaDeviceChannel_B *channel,
+                      TDS_SuplaDeviceChannel_C *channel,
                       unsigned long time_diff,
                       int channel_idx);
   void iterate_thermometer(SuplaChannelPin *pin,
-                           TDS_SuplaDeviceChannel_B *channel,
+                           TDS_SuplaDeviceChannel_C *channel,
                            unsigned long time_diff,
                            int channel_idx);
   void iterate_rollershutter(SuplaDeviceRollerShutter *rs,
                              SuplaChannelPin *pin,
-                             TDS_SuplaDeviceChannel_B *channel);
+                             TDS_SuplaDeviceChannel_C *channel);
   void iterate_impulse_counter(SuplaChannelPin *pin,
-                               TDS_SuplaDeviceChannel_B *channel,
+                               TDS_SuplaDeviceChannel_C *channel,
                                unsigned long time_diff,
                                int channel_number);
 
   void begin_thermometer(SuplaChannelPin *pin,
-                         TDS_SuplaDeviceChannel_B *channel,
+                         TDS_SuplaDeviceChannel_C *channel,
                          int channel_number);
 
  private:
@@ -257,7 +257,7 @@ class SuplaDeviceClass {
              const char *Server,
              const char *email,
              char authkey[SUPLA_AUTHKEY_SIZE],
-             unsigned char version = 8);
+             unsigned char version = 10);
 
   void setName(const char *Name);
 

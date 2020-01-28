@@ -15,53 +15,29 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-#ifndef EH_H_
-#define EH_H_
 
-#if !defined(ESP8266) && !defined(__AVR__) && !defined(_WIN32) && !defined(ESP32)
-#include <sys/select.h>
+#include "tools.h"
+
+void float2DoublePacked(float number, uint8_t *bar, int byteOrder) {
+  _FLOATCONV fl;
+  fl.f = number;
+  _DBLCONV dbl;
+  dbl.p.s = fl.p.s;
+  dbl.p.e = fl.p.e - 127 + 1023;  // exponent adjust
+  dbl.p.m = fl.p.m;
+
+#ifdef IEEE754_ENABLE_MSB
+  if (byteOrder == LSBFIRST) {
 #endif
-
-#if !defined(__AVR__) && !defined(_WIN32)
-#include <sys/time.h>
+    for (int i = 0; i < 8; i++) {
+      bar[i] = dbl.b[i];
+    }
+#ifdef IEEE754_ENABLE_MSB
+  } else {
+    for (int i = 0; i < 8; i++) {
+      bar[i] = dbl.b[7 - i];
+    }
+  }
 #endif
-
-#ifdef __AVR__
-#include "proto.h"
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef struct {
-  int nfds;
-
-#ifndef _WIN32
-
-#ifdef __linux__
-  int epoll_fd;
-  int fd1;
-#else
-  int fd1[2];
-#endif
-
-  int fd2;
-  int fd3;
-
-  struct timeval tv;
-
-#endif
-} TEventHandler;
-
-TEventHandler *eh_init(void);
-void eh_add_fd(TEventHandler *eh, int fd);
-void eh_raise_event(TEventHandler *eh);
-int eh_wait(TEventHandler *eh, int usec);
-void eh_free(TEventHandler *eh);
-
-#ifdef __cplusplus
 }
-#endif
 
-#endif /* EH_H_ */

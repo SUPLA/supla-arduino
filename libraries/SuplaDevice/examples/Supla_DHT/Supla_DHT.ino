@@ -15,8 +15,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include <SPI.h>
-#include <DHT.h>
 #include <SuplaDevice.h>
+#include <supla/sensor/DHT.h>
 
 // Choose proper network interface for your card:
 // Arduino Mega with EthernetShield W5100:
@@ -32,7 +32,10 @@ Supla::EthernetShield ethernet(mac);
 // ESP8266 based board:
 // #include <supla/network/esp_wifi.h>
 // Supla::ESPWifi wifi("your_wifi_ssid", "your_wifi_password");
-
+//
+// ESP32 based board:
+// #include <supla/network/esp32_wifi.h>
+// Supla::ESP32Wifi wifi("your_wifi_ssid", "your_wifi_password");
 
 /*
  * This example requires DHT sensor library installed. 
@@ -42,32 +45,9 @@ Supla::EthernetShield ethernet(mac);
 #define DHTPIN 24
 #define DHTTYPE DHT22
  
-// Setup a DHT instance
-DHT dht(DHTPIN, DHTTYPE);
-
-
-// DHT22 Sensor read implementation
-void get_temperature_and_humidity(int channelNumber, double *temp, double *humidity) {
-
-    *temp = dht.readTemperature();
-    *humidity = dht.readHumidity();
-
-    if ( isnan(*temp) || isnan(*humidity) ) {
-      *temp = -275;
-      *humidity = -1;
-    }
-
-}
-
 void setup() {
 
   Serial.begin(9600);
-
-  // Init DHT library 
-  dht.begin(); 
-  
-  // Set temperature/humidity callback
-  SuplaDevice.setTemperatureHumidityCallback(&get_temperature_and_humidity);
 
   // Replace the falowing GUID with value that you can retrieve from https://www.supla.org/arduino/get-guid
   char GUID[SUPLA_GUID_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
@@ -106,9 +86,7 @@ void setup() {
 
 
   // CHANNEL6 - DHT22 Sensor
-  // SuplaDevice.addDHT11();
-  // SuplaDevice.addAM2302();
-  SuplaDevice.addDHT22();
+  new Supla::Sensor::DHT(DHTPIN, DHTTYPE);
 
 
   /*

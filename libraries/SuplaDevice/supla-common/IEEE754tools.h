@@ -33,7 +33,7 @@ typedef union _FLOATCONV
 {
     IEEEfloat p;
     float f;
-    byte b[4];
+    uint8_t b[4];
 } _FLOATCONV;
 
 // Arduino UNO double layout: 
@@ -54,7 +54,7 @@ typedef union _DBLCONV
     // IEEEdouble p;
     _DBL p;
     double d;           // !! is a 32bit float for UNO.
-    byte b[4];
+    uint8_t b[4];
 } _DBLCONV;
 
 //
