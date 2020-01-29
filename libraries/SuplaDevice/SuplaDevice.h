@@ -75,15 +75,8 @@ typedef void (*_impl_rs_load_settings)(int channelNumber,
 typedef void (*_impl_arduino_timer)(void);
 
 typedef struct SuplaDeviceCallbacks {
-  _cb_arduino_get_double get_temperature;
-  _cb_arduino_get_double get_pressure;
-  _cb_arduino_get_double get_weight;
-  _cb_arduino_get_double get_wind;
-  _cb_arduino_get_double get_rain;
-  _cb_arduino_get_temperature_and_humidity get_temperature_and_humidity;
   _cb_arduino_get_rgbw_value get_rgbw_value;
   _cb_arduino_set_rgbw_value set_rgbw_value;
-  _cb_arduino_get_double get_distance;
 
 } SuplaDeviceCallbacks;
 
@@ -276,18 +269,9 @@ class SuplaDeviceClass {
                                int btnDownPin);
   bool addSensorNO(int sensorPin, bool pullUp);
   bool addSensorNO(int sensorPin);
-  bool addDS18B20Thermometer(void);
-  bool addDHT11(void);
-  bool addDHT22(void);
-  bool addAM2302(void);
   bool addRgbControllerAndDimmer(void);
   bool addRgbController(void);
   bool addDimmer(void);
-  bool addDistanceSensor(void);
-  bool addPressureSensor(void);
-  bool addWeightSensor(void);
-  bool addWindSensor(void);
-  bool addRainSensor(void);
   // Adds impulse couner on "impulsePin" pin. "statusLedPin" is not implemented
   // currently. "detectLowToHigh" defines if counter counts changes from LOW to
   // HIGH state on impulsePin. With "false" it counts changes from HIGH to LOW
@@ -315,16 +299,8 @@ class SuplaDeviceClass {
   void iterate(void);
 
   SuplaDeviceCallbacks getCallbacks(void);
-  void setTemperatureCallback(_cb_arduino_get_double get_temperature);
-  void setTemperatureHumidityCallback(
-      _cb_arduino_get_temperature_and_humidity get_temperature_and_humidity);
   void setRGBWCallbacks(_cb_arduino_get_rgbw_value get_rgbw_value,
                         _cb_arduino_set_rgbw_value set_rgbw_value);
-  void setDistanceCallback(_cb_arduino_get_double get_distance);
-  void setPressureCallback(_cb_arduino_get_double get_pressure);
-  void setWeightCallback(_cb_arduino_get_double get_weight);
-  void setWindCallback(_cb_arduino_get_double get_wind);
-  void setRainCallback(_cb_arduino_get_double get_rain);
   void setRollerShutterFuncImpl(_impl_rs_save_position impl_save_position,
                                 _impl_rs_load_position impl_load_position,
                                 _impl_rs_save_settings impl_save_settings,
