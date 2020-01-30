@@ -17,14 +17,12 @@
 #ifndef _one_phase_electricity_meter_h
 #define _one_phase_electricity_meter_h
 
-#include "one_phase_electricity_meter.h"
-
-#define MAX_PHASES 3
+#include "electricity_meter.h"
 
 namespace Supla {
 class OnePhaseElectricityMeter : public ElectricityMeter {
  public:
-  ElectricityMeter() {
+  OnePhaseElectricityMeter() {
     extChannel.setFlag(SUPLA_CHANNEL_FLAG_PHASE2_UNSUPPORTED);
     extChannel.setFlag(SUPLA_CHANNEL_FLAG_PHASE3_UNSUPPORTED);
   }
