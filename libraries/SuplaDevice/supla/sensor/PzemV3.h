@@ -40,7 +40,7 @@ class PZEMv3 : public OnePhaseElectricityMeter {
         virtual void readValuesFromDevice() {
         setVoltage(0, pzem.voltage() * 100);  
         setCurrent(0, pzem.current() * 1000);
-        setPowerActive(0,  pzem.power() * 100); 
+        setPowerActive(0,  pzem.power() * 100000); 
         setFwdActEnergy(0, pzem.energy() * 100000); 
         setFreq( pzem.frequency() * 100);
         setPowerFactor(0, pzem.pf() * 1000);
