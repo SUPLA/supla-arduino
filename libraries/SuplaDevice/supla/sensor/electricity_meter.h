@@ -23,6 +23,7 @@
 #define MAX_PHASES 3
 
 namespace Supla {
+namespace Sensor {
 class ElectricityMeter : public Element {
  public:
   ElectricityMeter() : lastReadTime(0), valueChanged(false) {
@@ -243,6 +244,7 @@ class ElectricityMeter : public Element {
   unsigned long lastReadTime;
 };
 
+};  // namespace Sensor
 };  // namespace Supla
 
 #endif
