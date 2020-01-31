@@ -13,26 +13,17 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
    */
+  // this example will work only on esp8266 and esp32 boards. On Arduino mega it will not fly.
+  //dependence: Arduino communication library for Peacefair PZEM-004T Energy monitor  https://github.com/olehs/PZEM004T
 
 #include <SPI.h>
 #include <SuplaDevice.h>
 #include <io.h>
 #include <supla/sensor/PzemV2.h>
 
-// Choose proper network interface for your card:
-// Arduino Mega with EthernetShield W5100:
-#include <supla/network/ethernet_shield.h>
-// Ethernet MAC address
-uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
-Supla::EthernetShield ethernet(mac);
-//
-// Arduino Mega with ENC28J60:
-// #include <supla/network/ENC28J60.h>
-// Supla::ENC28J60 ethernet(mac);
-//
 // ESP8266 based board:
-// #include <supla/network/esp_wifi.h>
-// Supla::ESPWifi wifi("your_wifi_ssid", "your_wifi_password");
+#include <supla/network/esp_wifi.h>
+Supla::ESPWifi wifi("your_wifi_ssid", "your_wifi_password");
 //
 // ESP32 based board:
 // #include <supla/network/esp32_wifi.h>
@@ -60,7 +51,7 @@ void setup() {
 
     /*
      * SuplaDevice Initialization.
-     * Server address, LocationID and LocationPassword are available at https://cloud.supla.org
+     * Server address, are available at https://cloud.supla.org
      * If you do not have an account, you can create it at https://cloud.supla.org/account/create
      * SUPLA and SUPLA CLOUD are free of charge
      *
