@@ -37,13 +37,23 @@ class PZEMv3 : public OnePhaseElectricityMeter {
             updateChannelValues();
         }
 
-        virtual void readValuesFromDevice() {
-        setVoltage(0, pzem.voltage() * 100);  
-        setCurrent(0, pzem.current() * 1000);
-        setPowerActive(0,  pzem.power() * 100000); 
+       virtual void readValuesFromDevice() {
+	      	double current = pzem.current();
+        double voltage = pzem.voltage();
+	      	double active = pzem.power();
+	      	double apparent = (voltage * current);
+      		double reactive;
+	      	if (apparent > active) {reactive = sqrt(apparent * apparent - active * active);}
+    	     else {reactive =  0; }
+		
+        setVoltage(0, voltage * 100);  
+        setCurrent(0, current * 1000);
+        setPowerActive(0,  active * 100000); 
         setFwdActEnergy(0, pzem.energy() * 100000); 
         setFreq( pzem.frequency() * 100);
         setPowerFactor(0, pzem.pf() * 1000);
+      		setPowerApparent(0, apparent * 100000);
+	      	setPowerReactive(0, reactive* 10000);
         }
         
         PZEM004Tv30 pzem;
