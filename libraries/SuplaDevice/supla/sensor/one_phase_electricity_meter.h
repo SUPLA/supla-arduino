@@ -17,7 +17,7 @@
 #ifndef _one_phase_electricity_meter_h
 #define _one_phase_electricity_meter_h
 
-#include "supla/sensor/electricity_meter.h"
+#include "electricity_meter.h"
 
 namespace Supla {
 namespace Sensor {
