@@ -149,11 +149,8 @@ class SuplaDeviceClass {
   bool isInitialized(bool msg);
   void setString(char *dst, const char *src, int max_size);
   int addChannel(int pin1, int pin2, bool hiIsLo, bool bistable);
-  void channelValueChanged(int channel_number, char v, double d, char var);
   void channelSetValue(int channel, char value, _supla_int_t DurationMS);
-  void channelSetDoubleValue(int channelNum, double value);
   void setDoubleValue(char value[SUPLA_CHANNELVALUE_SIZE], double v);
-  bool addDHT(int Type);
   void channelSetTempAndHumidityValue(int channelNum,
                                       double temp,
                                       double humidity);
@@ -244,7 +241,6 @@ class SuplaDeviceClass {
   ~SuplaDeviceClass();
 
   void channelValueChanged(int channel_number, char v);
-  void channelDoubleValueChanged(int channel_number, double v);
 
   bool begin(char GUID[SUPLA_GUID_SIZE],
              const char *Server,

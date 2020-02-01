@@ -513,10 +513,6 @@ void SuplaDeviceClass::setDoubleValue(char value[SUPLA_CHANNELVALUE_SIZE],
   }
 }
 
-void SuplaDeviceClass::channelSetDoubleValue(int channelNum, double value) {
-  setDoubleValue(Supla::Channel::reg_dev.channels[channelNum].value, value);
-}
-
 void SuplaDeviceClass::channelSetTempAndHumidityValue(int channelNum,
                                                       double temp,
                                                       double humidity) {
@@ -1030,7 +1026,7 @@ void SuplaDeviceClass::iterate_rollershutter(
 
     if (rs->last_position != rs->position) {
       rs->last_position = rs->position;
-      channelValueChanged(rs->channel_number, (rs->position - 100) / 100, 0, 1);
+      channelValueChanged(rs->channel_number, (rs->position - 100) / 100);
     }
 
     if (rs->up_time > 600000 || rs->down_time > 600000) {  // 10 min. - timeout
@@ -1275,18 +1271,12 @@ void SuplaDeviceClass::onRegisterResult(
   wait_for_iterate = millis() + 5000;
 }
 
-void SuplaDeviceClass::channelValueChanged(int channel_number,
-                                           char v,
-                                           double d,
-                                           char var) {
+void SuplaDeviceClass::channelValueChanged(int channel_number, char v) {
   if (srpc != NULL && registered == 1) {
     char value[SUPLA_CHANNELVALUE_SIZE];
     memset(value, 0, SUPLA_CHANNELVALUE_SIZE);
 
-    if (var == 1)
-      value[0] = v;
-    else if (var == 2)
-      setDoubleValue(value, d);
+    value[0] = v;
     memcpy(Supla::Channel::reg_dev.channels[channel_number].value, value, 8);
 
     supla_log(
@@ -1294,14 +1284,6 @@ void SuplaDeviceClass::channelValueChanged(int channel_number,
 
     srpc_ds_async_channel_value_changed(srpc, channel_number, value);
   }
-}
-
-void SuplaDeviceClass::channelDoubleValueChanged(int channel_number, double v) {
-  channelValueChanged(channel_number, 0, v, 2);
-}
-
-void SuplaDeviceClass::channelValueChanged(int channel_number, char v) {
-  channelValueChanged(channel_number, v, 0, 1);
 }
 
 void SuplaDeviceClass::channelSetValue(int channel,
