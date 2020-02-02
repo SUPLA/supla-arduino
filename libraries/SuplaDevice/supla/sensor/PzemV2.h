@@ -40,16 +40,16 @@ class PZEMv2 : public OnePhaseElectricityMeter {
         virtual void readValuesFromDevice() {
 		
 	 double current = pzem.current(ip);
-	 double PowerFactor;
+	 double powerFactor;
          double reactive;
          double voltage = pzem.voltage(ip);
 	 double active = pzem.power(ip);
 	 double apparent = (voltage * current);
             if (apparent > active) {reactive = sqrt(apparent * apparent - active * active);}
               else {reactive =  0; }
-	 if (active > apparent) {PowerFactor = 1;}
-              else if (apparent == 0) {PowerFactor = 0;}
-	      else{PowerFactor = (active / apparent);}
+	 if (active > apparent) {powerFactor = 1;}
+              else if (apparent == 0) {powerFactor = 0;}
+	      else{powerFactor = (active / apparent);}
 		
             setVoltage(0, voltage * 100);
             setCurrent(0, current * 1000);
@@ -57,7 +57,7 @@ class PZEMv2 : public OnePhaseElectricityMeter {
             setFwdActEnergy(0, pzem.energy(ip) * 100);
 	    setPowerApparent(0, apparent * 100000);
 	    setPowerReactive(0, reactive * 10000);
-	    setPowerFactor(0, PowerFactor * 1000);
+	    setPowerFactor(0, powerFactor * 1000);
         }
 
 
