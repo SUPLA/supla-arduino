@@ -42,8 +42,10 @@ Supla::EthernetShield ethernet(mac);
  * https://github.com/adafruit/DHT-sensor-library
  */
 
-#define DHTPIN 24
-#define DHTTYPE DHT22
+#define DHT1PIN 24
+#define DHT1TYPE DHT22
+#define DHT2PIN 25
+#define DHT2TYPE DHT22
  
 void setup() {
 
@@ -62,36 +64,17 @@ void setup() {
    * Otherwise you will get "Channel conflict!" error.
    */
     
-  // CHANNEL0 - RELAY
-  SuplaDevice.addRelay(44, true);           // ﻿44 - ﻿Pin number where the relay is connected      
-                                      // Call SuplaDevice.addRelay(44, true) with an extra "true" parameter 
-                                      // to enable "port value inversion"
-                                      // where HIGH == LOW, and LOW == HIGH   
+  // This example adds two DHT22 sensors. 
+  
+  // CHANNEL0 - DHT22 Sensor
+  new Supla::Sensor::DHT(DHT1PIN, DHT1TYPE);
 
-  // CHANNEL1 - RELAY
-  SuplaDevice.addRelay(45, true);           // 45 - ﻿﻿Pin number where the relay is connected   
-
-  // CHANNEL3 - TWO RELAYS (Roller shutter operation)
-  SuplaDevice.addRollerShutterRelays(46,     // 46 - ﻿﻿Pin number where the 1st relay is connected   
-                                     47, true);    // 47 - ﻿Pin number where the 2nd relay is connected  
-
-  // CHANNEL4 - Opening sensor (Normal Open)
-  SuplaDevice.addSensorNO(A0); // A0 - ﻿Pin number where the sensor is connected
-                               // Call SuplaDevice.addSensorNO(A0, true) with an extra "true" parameter
-                               // to enable the internal pull-up resistor
-
-
-  // CHANNEL5 - Opening sensor (Normal Open)
-  SuplaDevice.addSensorNO(A1); // A1 - ﻿Pin number where the sensor is connected
-
-
-  // CHANNEL6 - DHT22 Sensor
-  new Supla::Sensor::DHT(DHTPIN, DHTTYPE);
-
+  // CHANNEL1 - DHT22 Sensor
+  new Supla::Sensor::DHT(DHT2PIN, DHT2TYPE);
 
   /*
    * SuplaDevice Initialization.
-   * Server address, LocationID and LocationPassword are available at https://cloud.supla.org 
+   * Server address is available at https://cloud.supla.org 
    * If you do not have an account, you can create it at https://cloud.supla.org/account/create
    * SUPLA and SUPLA CLOUD are free of charge
    * 

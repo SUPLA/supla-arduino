@@ -14,27 +14,45 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _one_phase_electricity_meter_h
-#define _one_phase_electricity_meter_h
+#ifndef _pressure_h
+#define _pressure_h
 
-#include "electricity_meter.h"
+#include "supla/channel.h"
+#include "supla/element.h"
+
+#define PRESSURE_NOT_AVAILABLE -1
 
 namespace Supla {
-class OnePhaseElectricityMeter : public ElectricityMeter {
+namespace Sensor {
+class Pressure : public Element {
  public:
-  OnePhaseElectricityMeter() {
-    extChannel.setFlag(SUPLA_CHANNEL_FLAG_PHASE2_UNSUPPORTED);
-    extChannel.setFlag(SUPLA_CHANNEL_FLAG_PHASE3_UNSUPPORTED);
+  Pressure() {
+    channel.setType(SUPLA_CHANNELTYPE_PRESSURESENSOR);
+    channel.setDefault(SUPLA_CHANNELFNC_PRESSURESENSOR);
+    channel.setNewValue(PRESSURE_NOT_AVAILABLE);
   }
 
-  virtual void readValuesFromDevice() {
+  virtual double getValue() {
+    return PRESSURE_NOT_AVAILABLE;
   }
 
-  void onInit() {
+  void iterateAlways() {
+    if (lastReadTime + 10000 < millis()) {
+      lastReadTime = millis();
+      channel.setNewValue(getValue());
+    }
   }
 
+
+ protected:
+  Channel *getChannel() {
+    return &channel;
+  }
+  unsigned long lastReadTime;
+  Channel channel;
 };
 
+};  // namespace Sensor
 };  // namespace Supla
 
 #endif

@@ -215,7 +215,7 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
 #endif
   }
 
-  setString(Supla::Channel::reg_dev.SoftVer, "2.3.0", SUPLA_SOFTVER_MAXSIZE);
+  setString(Supla::Channel::reg_dev.SoftVer, "2.3.1", SUPLA_SOFTVER_MAXSIZE);
 
   Supla::Network::Setup();
 
@@ -312,7 +312,6 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
   }
 
   for (int a = 0; a < channel_pin_count; a++) {
-    begin_thermometer(&channel_pin[a], &Supla::Channel::reg_dev.channels[a], a);
     SuplaImpulseCounter *ptr = SuplaImpulseCounter::getCounterByChannel(a);
     if (ptr) {
       _supla_int64_t value = ptr->getCounter();
@@ -324,48 +323,6 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
   status(STATUS_INITIALIZED, "SuplaDevice initialized");
   return true;
 }
-
-void SuplaDeviceClass::begin_thermometer(SuplaChannelPin *pin,
-                                         TDS_SuplaDeviceChannel_C *channel,
-                                         int channel_number) {
-  if (channel->Type == SUPLA_CHANNELTYPE_THERMOMETERDS18B20 &&
-      Params.cb.get_temperature != NULL) {
-    pin->last_val_dbl1 =
-        Params.cb.get_temperature(channel_number, pin->last_val_dbl1);
-    channelSetDoubleValue(channel_number, pin->last_val_dbl1);
-
-  } else if (channel->Type == SUPLA_CHANNELTYPE_PRESSURESENSOR &&
-             Params.cb.get_pressure != NULL) {
-    pin->last_val_dbl1 =
-        Params.cb.get_pressure(channel_number, pin->last_val_dbl1);
-    channelSetDoubleValue(channel_number, pin->last_val_dbl1);
-
-  } else if (channel->Type == SUPLA_CHANNELTYPE_WEIGHTSENSOR &&
-             Params.cb.get_weight != NULL) {
-    pin->last_val_dbl1 =
-        Params.cb.get_weight(channel_number, pin->last_val_dbl1);
-    channelSetDoubleValue(channel_number, pin->last_val_dbl1);
-
-  } else if (channel->Type == SUPLA_CHANNELTYPE_WINDSENSOR &&
-             Params.cb.get_wind != NULL) {
-    pin->last_val_dbl1 = Params.cb.get_wind(channel_number, pin->last_val_dbl1);
-    channelSetDoubleValue(channel_number, pin->last_val_dbl1);
-
-  } else if (channel->Type == SUPLA_CHANNELTYPE_RAINSENSOR &&
-             Params.cb.get_rain != NULL) {
-    pin->last_val_dbl1 = Params.cb.get_rain(channel_number, pin->last_val_dbl1);
-    channelSetDoubleValue(channel_number, pin->last_val_dbl1);
-
-  } else if ((channel->Type == SUPLA_CHANNELTYPE_DHT11 ||
-              channel->Type == SUPLA_CHANNELTYPE_DHT22 ||
-              channel->Type == SUPLA_CHANNELTYPE_AM2302) &&
-             Params.cb.get_temperature_and_humidity != NULL) {
-    Params.cb.get_temperature_and_humidity(
-        channel_number, &pin->last_val_dbl1, &pin->last_val_dbl2);
-    channelSetTempAndHumidityValue(
-        channel_number, pin->last_val_dbl1, pin->last_val_dbl2);
-  }
-};
 
 void SuplaDeviceClass::setName(const char *Name) {
   if (isInitialized(true)) return;
@@ -595,42 +552,6 @@ void SuplaDeviceClass::setRGBWvalue(int channelNum,
   }
 }
 
-bool SuplaDeviceClass::addDS18B20Thermometer(void) {
-  int c = addChannel(0, 0, false, false);
-  if (c == -1) return false;
-
-  Supla::Channel::reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_THERMOMETERDS18B20;
-  channel_pin[c].last_val_dbl1 = -275;
-
-  channelSetDoubleValue(c, channel_pin[c].last_val_dbl1);
-}
-
-bool SuplaDeviceClass::addDHT(int Type) {
-  int c = addChannel(0, 0, false, false);
-  if (c == -1) return false;
-
-  Supla::Channel::reg_dev.channels[c].Type = Type;
-  Supla::Channel::reg_dev.channels[c].Default = SUPLA_CHANNELFNC_HUMIDITYANDTEMPERATURE;
-
-  channel_pin[c].last_val_dbl1 = -275;
-  channel_pin[c].last_val_dbl2 = -1;
-
-  channelSetTempAndHumidityValue(
-      c, channel_pin[c].last_val_dbl1, channel_pin[c].last_val_dbl2);
-}
-
-bool SuplaDeviceClass::addDHT11(void) {
-  return addDHT(SUPLA_CHANNELTYPE_DHT11);
-}
-
-bool SuplaDeviceClass::addDHT22(void) {
-  return addDHT(SUPLA_CHANNELTYPE_HUMIDITYANDTEMPSENSOR);
-}
-
-bool SuplaDeviceClass::addAM2302(void) {
-  return addDHT(SUPLA_CHANNELTYPE_AM2302);
-}
-
 bool SuplaDeviceClass::addRgbControllerAndDimmer(void) {
   int c = addChannel(0, 0, false, false);
   if (c == -1) return false;
@@ -657,51 +578,6 @@ bool SuplaDeviceClass::addDimmer(void) {
 
 bool SuplaDeviceClass::addSensorNO(int sensorPin) {
   return addSensorNO(sensorPin, false);
-}
-
-bool SuplaDeviceClass::addDistanceSensor(void) {
-  int c = addChannel(0, 0, false, false);
-  if (c == -1) return false;
-
-  Supla::Channel::reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_DISTANCESENSOR;
-  channel_pin[c].last_val_dbl1 = -1;
-  channelSetDoubleValue(c, channel_pin[c].last_val_dbl1);
-}
-
-bool SuplaDeviceClass::addPressureSensor(void) {
-  int c = addChannel(0, 0, false, false);
-  if (c == -1) return false;
-
-  Supla::Channel::reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_PRESSURESENSOR;
-  channel_pin[c].last_val_dbl1 = -1;
-  channelSetDoubleValue(c, channel_pin[c].last_val_dbl1);
-}
-
-bool SuplaDeviceClass::addWeightSensor(void) {
-  int c = addChannel(0, 0, false, false);
-  if (c == -1) return false;
-
-  Supla::Channel::reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_WEIGHTSENSOR;
-  channel_pin[c].last_val_dbl1 = -1;
-  channelSetDoubleValue(c, channel_pin[c].last_val_dbl1);
-}
-
-bool SuplaDeviceClass::addWindSensor(void) {
-  int c = addChannel(0, 0, false, false);
-  if (c == -1) return false;
-
-  Supla::Channel::reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_WINDSENSOR;
-  channel_pin[c].last_val_dbl1 = -1;
-  channelSetDoubleValue(c, channel_pin[c].last_val_dbl1);
-}
-
-bool SuplaDeviceClass::addRainSensor(void) {
-  int c = addChannel(0, 0, false, false);
-  if (c == -1) return false;
-
-  Supla::Channel::reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_RAINSENSOR;
-  channel_pin[c].last_val_dbl1 = -1;
-  channelSetDoubleValue(c, channel_pin[c].last_val_dbl1);
 }
 
 bool SuplaDeviceClass::addImpulseCounter(int impulsePin,
@@ -738,43 +614,11 @@ void SuplaDeviceClass::setString(char *dst, const char *src, int max_size) {
   memcpy(dst, src, size);
 }
 
-void SuplaDeviceClass::setTemperatureCallback(
-    _cb_arduino_get_double get_temperature) {
-  Params.cb.get_temperature = get_temperature;
-}
-
-void SuplaDeviceClass::setPressureCallback(
-    _cb_arduino_get_double get_pressure) {
-  Params.cb.get_pressure = get_pressure;
-}
-
-void SuplaDeviceClass::setWeightCallback(_cb_arduino_get_double get_weight) {
-  Params.cb.get_weight = get_weight;
-}
-
-void SuplaDeviceClass::setWindCallback(_cb_arduino_get_double get_wind) {
-  Params.cb.get_wind = get_wind;
-}
-
-void SuplaDeviceClass::setRainCallback(_cb_arduino_get_double get_rain) {
-  Params.cb.get_rain = get_rain;
-}
-
-void SuplaDeviceClass::setTemperatureHumidityCallback(
-    _cb_arduino_get_temperature_and_humidity get_temperature_and_humidity) {
-  Params.cb.get_temperature_and_humidity = get_temperature_and_humidity;
-}
-
 void SuplaDeviceClass::setRGBWCallbacks(
     _cb_arduino_get_rgbw_value get_rgbw_value,
     _cb_arduino_set_rgbw_value set_rgbw_value) {
   Params.cb.get_rgbw_value = get_rgbw_value;
   Params.cb.set_rgbw_value = set_rgbw_value;
-}
-
-void SuplaDeviceClass::setDistanceCallback(
-    _cb_arduino_get_double get_distance) {
-  Params.cb.get_distance = get_distance;
 }
 
 void SuplaDeviceClass::setRollerShutterFuncImpl(
@@ -855,109 +699,6 @@ void SuplaDeviceClass::iterate_sensor(SuplaChannelPin *pin,
       }
     }
 
-  } else if (channel->Type == SUPLA_CHANNELTYPE_DISTANCESENSOR &&
-             Params.cb.get_distance != NULL) {
-    if (pin->time_left <= 0) {
-      if (pin->time_left <= 0) {
-        pin->time_left = 1000;
-
-        double val = Params.cb.get_distance(channel_number, pin->last_val_dbl1);
-
-        if (val != pin->last_val_dbl1) {
-          pin->last_val_dbl1 = val;
-          channelDoubleValueChanged(channel_number, val);
-        }
-      }
-    }
-  }
-};
-
-void SuplaDeviceClass::iterate_thermometer(SuplaChannelPin *pin,
-                                           TDS_SuplaDeviceChannel_C *channel,
-                                           unsigned long time_diff,
-                                           int channel_number) {
-  if (channel->Type == SUPLA_CHANNELTYPE_THERMOMETERDS18B20 &&
-      Params.cb.get_temperature != NULL) {
-    if (pin->time_left <= 0) {
-      pin->time_left = 10000;
-      double val =
-          Params.cb.get_temperature(channel_number, pin->last_val_dbl1);
-
-      if (val != pin->last_val_dbl1) {
-        pin->last_val_dbl1 = val;
-        channelDoubleValueChanged(channel_number, val);
-      }
-    }
-  } else if (channel->Type == SUPLA_CHANNELTYPE_PRESSURESENSOR &&
-             Params.cb.get_pressure != NULL) {
-    if (pin->time_left <= 0) {
-      pin->time_left = 10000;
-      double val = Params.cb.get_pressure(channel_number, pin->last_val_dbl1);
-
-      if (val != pin->last_val_dbl1) {
-        pin->last_val_dbl1 = val;
-        channelDoubleValueChanged(channel_number, val);
-      }
-    }
-
-  } else if (channel->Type == SUPLA_CHANNELTYPE_WEIGHTSENSOR &&
-             Params.cb.get_weight != NULL) {
-    if (pin->time_left <= 0) {
-      pin->time_left = 10000;
-      double val = Params.cb.get_weight(channel_number, pin->last_val_dbl1);
-
-      if (val != pin->last_val_dbl1) {
-        pin->last_val_dbl1 = val;
-        channelDoubleValueChanged(channel_number, val);
-      }
-    }
-
-  } else if (channel->Type == SUPLA_CHANNELTYPE_WINDSENSOR &&
-             Params.cb.get_wind != NULL) {
-    if (pin->time_left <= 0) {
-      pin->time_left = 10000;
-      double val = Params.cb.get_wind(channel_number, pin->last_val_dbl1);
-
-      if (val != pin->last_val_dbl1) {
-        pin->last_val_dbl1 = val;
-        channelDoubleValueChanged(channel_number, val);
-      }
-    }
-
-  } else if (channel->Type == SUPLA_CHANNELTYPE_RAINSENSOR &&
-             Params.cb.get_rain != NULL) {
-    if (pin->time_left <= 0) {
-      pin->time_left = 10000;
-      double val = Params.cb.get_rain(channel_number, pin->last_val_dbl1);
-
-      if (val != pin->last_val_dbl1) {
-        pin->last_val_dbl1 = val;
-        channelDoubleValueChanged(channel_number, val);
-      }
-    }
-
-  } else if ((channel->Type == SUPLA_CHANNELTYPE_DHT11 ||
-              channel->Type == SUPLA_CHANNELTYPE_HUMIDITYANDTEMPSENSOR ||
-              channel->Type == SUPLA_CHANNELTYPE_DHT22 ||
-              channel->Type == SUPLA_CHANNELTYPE_AM2302) &&
-             Params.cb.get_temperature_and_humidity != NULL) {
-    if (pin->time_left <= 0) {
-      pin->time_left = 10000;
-
-      double t = pin->last_val_dbl1;
-      double h = pin->last_val_dbl2;
-
-      Params.cb.get_temperature_and_humidity(channel_number, &t, &h);
-
-      if (t != pin->last_val_dbl1 || h != pin->last_val_dbl2) {
-        pin->last_val_dbl1 = t;
-        pin->last_val_dbl2 = h;
-
-        channelSetTempAndHumidityValue(channel_number, t, h);
-        srpc_ds_async_channel_value_changed(
-            srpc, channel_number, channel->value);
-      }
-    }
   }
 };
 
@@ -1430,8 +1171,6 @@ void SuplaDeviceClass::iterate(void) {
             &channel_pin[a], &Supla::Channel::reg_dev.channels[a], time_diff, a);
         iterate_sensor(
             &channel_pin[a], &Supla::Channel::reg_dev.channels[a], time_diff, a);
-        iterate_thermometer(
-            &channel_pin[a], &Supla::Channel::reg_dev.channels[a], time_diff, a);
         iterate_impulse_counter(
             &channel_pin[a], &Supla::Channel::reg_dev.channels[a], time_diff, a);
       }
@@ -1794,15 +1533,8 @@ SuplaDeviceClass SuplaDevice;
 
 SuplaDeviceCallbacks supla_arduino_get_callbacks(void) {
   SuplaDeviceCallbacks cb;
-  cb.get_temperature = NULL;
-  cb.get_pressure = NULL;
-  cb.get_weight = NULL;
-  cb.get_wind = NULL;
-  cb.get_rain = NULL;
-  cb.get_temperature_and_humidity = NULL;
   cb.get_rgbw_value = NULL;
   cb.set_rgbw_value = NULL;
-  cb.get_distance = NULL;
 
   return cb;
 }
