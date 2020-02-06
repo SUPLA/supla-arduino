@@ -106,7 +106,6 @@ class DS18B20 : public Thermometer {
   DS18B20(uint8_t pin, uint8_t *deviceAddress = nullptr) {
     OneWireBus *bus = oneWireBus;
     OneWireBus *prevBus = nullptr;
-    lastReadTime = 0;
     address[0] = 0;
     lastValidValue = TEMPERATURE_NOT_AVAILABLE;
     retryCounter = 0;

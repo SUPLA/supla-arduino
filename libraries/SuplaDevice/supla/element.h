@@ -46,13 +46,12 @@ class ElementIterator {
 class Element {
   public:
 
-    Element() {
+    Element() : lastReadTime(0), nextPtr(nullptr) {
       if (firstPtr == nullptr) {
         firstPtr = this;
       } else {
         last()->nextPtr = this;
       }
-      nextPtr = nullptr;
     }
 
     static Element *begin() {
@@ -108,6 +107,7 @@ class Element {
     }
     static Element *firstPtr;;
     Element *nextPtr;
+    unsigned long lastReadTime;
 };
 
 };  // namespace Supla

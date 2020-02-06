@@ -30,11 +30,11 @@ class ThermHygroMeter: public Thermometer {
       channel.setDefault(SUPLA_CHANNELFNC_HUMIDITYANDTEMPERATURE);
     }
 
-    double getTemp() {
+    virtual double getTemp() {
       return TEMPERATURE_NOT_AVAILABLE;
     }
 
-    double getHumi() {
+    virtual double getHumi() {
       return HUMIDITY_NOT_AVAILABLE;
     }
 
