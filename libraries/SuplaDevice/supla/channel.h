@@ -125,6 +125,33 @@ class Channel {
     }
   }
 
+  void setNewValue(int value) {
+    char newValue[SUPLA_CHANNELVALUE_SIZE];
+
+    memset(newValue, 0, SUPLA_CHANNELVALUE_SIZE);
+
+    memcpy(newValue, &value, sizeof(int));
+    if (setNewValue(newValue)) {
+      supla_log(LOG_DEBUG,
+                "Channel(%d) value changed to %d",
+                channelNumber,
+                value);
+    }
+  }
+  void setNewValue(bool value) {
+    char newValue[SUPLA_CHANNELVALUE_SIZE];
+
+    memset(newValue, 0, SUPLA_CHANNELVALUE_SIZE);
+
+    newValue[0] = value;
+    if (setNewValue(newValue)) {
+      supla_log(LOG_DEBUG,
+                "Channel(%d) value changed to %d",
+                channelNumber,
+                value);
+    }
+  }
+
   void setNewValue(TElectricityMeter_ExtendedValue &emValue) {
     // Prepare standard channel value
     if (sizeof(TElectricityMeter_Value) <= SUPLA_CHANNELVALUE_SIZE) {
