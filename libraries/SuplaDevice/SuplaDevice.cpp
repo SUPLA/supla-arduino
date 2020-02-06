@@ -485,25 +485,6 @@ void SuplaDeviceClass::setRollerShutterButtons(int channel_number,
   }
 }
 
-bool SuplaDeviceClass::addSensorNO(int sensorPin, bool pullUp) {
-  int c = addChannel(sensorPin, 0, false, false);
-  if (c == -1) return false;
-
-  Supla::Channel::reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_SENSORNO;
-  if (pullUp) {
-    pinMode(sensorPin, INPUT_PULLUP);
-  } else {
-    pinMode(sensorPin, INPUT);
-  }
-
-  Supla::Channel::reg_dev.channels[c].value[0] =
-      Supla::Io::digitalRead(Supla::Channel::reg_dev.channels[c].Number, sensorPin) ==
-              HIGH
-          ? 1
-          : 0;
-  return true;
-}
-
 void SuplaDeviceClass::setDoubleValue(char value[SUPLA_CHANNELVALUE_SIZE],
                                       double v) {
   if (sizeof(double) == 8) {
@@ -570,10 +551,6 @@ bool SuplaDeviceClass::addDimmer(void) {
 
   Supla::Channel::reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_DIMMER;
   setRGBWvalue(c, Supla::Channel::reg_dev.channels[c].value);
-}
-
-bool SuplaDeviceClass::addSensorNO(int sensorPin) {
-  return addSensorNO(sensorPin, false);
 }
 
 bool SuplaDeviceClass::addImpulseCounter(int impulsePin,
@@ -677,26 +654,6 @@ void SuplaDeviceClass::iterate_relay(SuplaChannelPin *pin,
     }
   }
 }
-
-void SuplaDeviceClass::iterate_sensor(SuplaChannelPin *pin,
-                                      TDS_SuplaDeviceChannel_C *channel,
-                                      unsigned long time_diff,
-                                      int channel_number) {
-  if (channel->Type == SUPLA_CHANNELTYPE_SENSORNO) {
-    uint8_t val = Supla::Io::digitalRead(channel->Number, pin->pin1);
-
-    if (val != pin->last_val) {
-      pin->last_val = val;
-      Supla::Channel::reg_dev.channels[channel->Number].value[0] = val;
-
-      if (pin->time_left <= 0) {
-        pin->time_left = 100;
-        channelValueChanged(channel->Number, val == HIGH ? 1 : 0);
-      }
-    }
-
-  }
-};
 
 void SuplaDeviceClass::rs_save_position(SuplaDeviceRollerShutter *rs) {
   if (impl_rs_save_position) {
@@ -1164,8 +1121,6 @@ void SuplaDeviceClass::iterate(void) {
 
       for (int a = 0; a < channel_pin_count; a++) {
         iterate_relay(
-            &channel_pin[a], &Supla::Channel::reg_dev.channels[a], time_diff, a);
-        iterate_sensor(
             &channel_pin[a], &Supla::Channel::reg_dev.channels[a], time_diff, a);
         iterate_impulse_counter(
             &channel_pin[a], &Supla::Channel::reg_dev.channels[a], time_diff, a);

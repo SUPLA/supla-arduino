@@ -211,10 +211,6 @@ class SuplaDeviceClass {
                      TDS_SuplaDeviceChannel_C *channel,
                      unsigned long time_diff,
                      int channel_idx);
-  void iterate_sensor(SuplaChannelPin *pin,
-                      TDS_SuplaDeviceChannel_C *channel,
-                      unsigned long time_diff,
-                      int channel_idx);
   void iterate_thermometer(SuplaChannelPin *pin,
                            TDS_SuplaDeviceChannel_C *channel,
                            unsigned long time_diff,
@@ -263,8 +259,6 @@ class SuplaDeviceClass {
   void setRollerShutterButtons(int channel_number,
                                int btnUpPin,
                                int btnDownPin);
-  bool addSensorNO(int sensorPin, bool pullUp);
-  bool addSensorNO(int sensorPin);
   bool addRgbControllerAndDimmer(void);
   bool addRgbController(void);
   bool addDimmer(void);
