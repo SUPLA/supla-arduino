@@ -485,25 +485,6 @@ void SuplaDeviceClass::setRollerShutterButtons(int channel_number,
   }
 }
 
-void SuplaDeviceClass::setDoubleValue(char value[SUPLA_CHANNELVALUE_SIZE],
-                                      double v) {
-  if (sizeof(double) == 8) {
-    memcpy(value, &v, 8);
-  } else if (sizeof(double) == 4) {
-    float2DoublePacked(v, (uint8_t *)value);
-  }
-}
-
-void SuplaDeviceClass::channelSetTempAndHumidityValue(int channelNum,
-                                                      double temp,
-                                                      double humidity) {
-  long t = temp * 1000.00;
-  long h = humidity * 1000.00;
-
-  memcpy(Supla::Channel::reg_dev.channels[channelNum].value, &t, 4);
-  memcpy(&Supla::Channel::reg_dev.channels[channelNum].value[4], &h, 4);
-}
-
 void SuplaDeviceClass::setRGBWvalue(int channelNum,
                                     char value[SUPLA_CHANNELVALUE_SIZE]) {
   if (Params.cb.get_rgbw_value) {

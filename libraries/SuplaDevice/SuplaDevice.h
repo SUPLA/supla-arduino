@@ -44,11 +44,6 @@
 #define STATUS_LOCATION_IS_DISABLED    19
 #define STATUS_DEVICE_LIMIT_EXCEEDED   20
 
-typedef double (*_cb_arduino_get_double)(int channelNumber,
-                                         double current_value);
-typedef void (*_cb_arduino_get_temperature_and_humidity)(int channelNumber,
-                                                         double *temp,
-                                                         double *humidity);
 typedef void (*_cb_arduino_get_rgbw_value)(int channelNumber,
                                            unsigned char *red,
                                            unsigned char *green,
@@ -150,10 +145,6 @@ class SuplaDeviceClass {
   void setString(char *dst, const char *src, int max_size);
   int addChannel(int pin1, int pin2, bool hiIsLo, bool bistable);
   void channelSetValue(int channel, char value, _supla_int_t DurationMS);
-  void setDoubleValue(char value[SUPLA_CHANNELVALUE_SIZE], double v);
-  void channelSetTempAndHumidityValue(int channelNum,
-                                      double temp,
-                                      double humidity);
   void setRGBWvalue(int channelNum, char value[SUPLA_CHANNELVALUE_SIZE]);
   void channelSetRGBWvalue(int channel, char value[SUPLA_CHANNELVALUE_SIZE]);
 
@@ -211,10 +202,6 @@ class SuplaDeviceClass {
                      TDS_SuplaDeviceChannel_C *channel,
                      unsigned long time_diff,
                      int channel_idx);
-  void iterate_thermometer(SuplaChannelPin *pin,
-                           TDS_SuplaDeviceChannel_C *channel,
-                           unsigned long time_diff,
-                           int channel_idx);
   void iterate_rollershutter(SuplaDeviceRollerShutter *rs,
                              SuplaChannelPin *pin,
                              TDS_SuplaDeviceChannel_C *channel);
@@ -222,10 +209,6 @@ class SuplaDeviceClass {
                                TDS_SuplaDeviceChannel_C *channel,
                                unsigned long time_diff,
                                int channel_number);
-
-  void begin_thermometer(SuplaChannelPin *pin,
-                         TDS_SuplaDeviceChannel_C *channel,
-                         int channel_number);
 
  private:
   bool suplaDigitalRead_isHI(int channelNumber, uint8_t pin);

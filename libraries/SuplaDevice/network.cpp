@@ -19,6 +19,7 @@
 #include "SuplaDevice.h"
 #include "supla-common/log.h"
 #include "supla-common/srpc.h"
+#include "supla/element.h"
 #include "supla/network/network.h"
 
 namespace Supla {
@@ -56,10 +57,25 @@ void message_received(void *_srpc,
         ((SuplaDeviceClass *)_sdc)
             ->onRegisterResult(rd.data.sd_register_device_result);
         break;
-      case SUPLA_SD_CALL_CHANNEL_SET_VALUE:
-        ((SuplaDeviceClass *)_sdc)
-            ->channelSetValueByServer(rd.data.sd_channel_new_value);
+      case SUPLA_SD_CALL_CHANNEL_SET_VALUE: {
+        auto element = Supla::Element::getElementByChannelNumber(
+            rd.data.sd_channel_new_value->ChannelNumber);
+        if (element) {
+          int actionResult =
+              element->handleNewValueFromServer(rd.data.sd_channel_new_value);
+          if (actionResult != -1) {
+            srpc_ds_async_set_channel_result(
+                _srpc,
+                rd.data.sd_channel_new_value->ChannelNumber,
+                rd.data.sd_channel_new_value->SenderID,
+                actionResult);
+          }
+        } else {
+          ((SuplaDeviceClass *)_sdc)
+              ->channelSetValueByServer(rd.data.sd_channel_new_value);
+        }
         break;
+      }
       case SUPLA_SDC_CALL_SET_ACTIVITY_TIMEOUT_RESULT:
         ((SuplaDeviceClass *)_sdc)
             ->channelSetActivityTimeoutResult(

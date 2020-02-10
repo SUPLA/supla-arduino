@@ -219,6 +219,12 @@ class Channel {
     }
   }
 
+  void setFuncList(int functions) {
+    if (channelNumber >= 0) {
+      reg_dev.channels[channelNumber].FuncList = functions;
+    }
+  }
+
   int getChannelNumber() {
     return channelNumber;
   }
