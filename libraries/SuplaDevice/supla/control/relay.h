@@ -15,7 +15,7 @@
 */
 
 #ifndef _relay_h
-#define _relay_h`
+#define _relay_h
 
 #include <Arduino.h>
 
