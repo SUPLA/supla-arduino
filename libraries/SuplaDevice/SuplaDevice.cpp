@@ -177,7 +177,7 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
   
   /* protection from default parameters value mismatch */ 
   /* if someone has used version parameter directly */
-  if (port = version)
+  if (port == version)
 	this->port = 2015;
   else 
 	this->port = port;
