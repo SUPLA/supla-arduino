@@ -235,6 +235,7 @@ class SuplaDeviceClass {
                          int channel_number);
 
  private:
+  int port;
   bool suplaDigitalRead_isHI(int channelNumber, uint8_t pin);
   void suplaDigitalWrite_setHI(int channelNumber, uint8_t pin, bool hi);
   void status(int status, const char *msg);
@@ -250,7 +251,8 @@ class SuplaDeviceClass {
              const char *Server,
              const char *email,
              char authkey[SUPLA_AUTHKEY_SIZE],
-             unsigned char version = 10);
+			 int port = 2015,
+			 unsigned char version = 10);
 
   void setName(const char *Name);
 

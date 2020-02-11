@@ -158,9 +158,12 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
                              const char *Server,
                              const char *email,
                              char authkey[SUPLA_AUTHKEY_SIZE],
+                             int port,
                              unsigned char version) {
+  
   if (isInitialized(true)) return false;
 
+  
   if (Supla::Network::Instance() == NULL) {
     status(STATUS_CB_NOT_ASSIGNED, "Network Interface not defined!");
     return false;
@@ -171,7 +174,14 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
 
   setString(Supla::Channel::reg_dev.Email, email, SUPLA_EMAIL_MAXSIZE);
   setString(Supla::Channel::reg_dev.ServerName, Server, SUPLA_SERVER_NAME_MAXSIZE);
-
+  
+  /* protection from default parameters value mismatch */ 
+  /* if someone has used version parameter directly */
+  if (port = version)
+	this->port = 2015;
+  else 
+	this->port = port;
+  
   bool emptyGuidDetected = true;
   for (int i = 0; i < SUPLA_GUID_SIZE; i++) {
     if (Supla::Channel::reg_dev.GUID[i] != 0) {
@@ -1115,7 +1125,6 @@ void SuplaDeviceClass::iterate(void) {
   }
 
   if (!Supla::Network::Connected()) {
-    int port = 2015;
     status(STATUS_DISCONNECTED, "Not connected");
     supla_log(LOG_DEBUG,
               "Establishing connection with: %s (port: %d)",
@@ -1124,7 +1133,7 @@ void SuplaDeviceClass::iterate(void) {
 
     registered = 0;
 
-    if (!Supla::Network::Connect(Supla::Channel::reg_dev.ServerName, port)) {
+    if (!Supla::Network::Connect(Supla::Channel::reg_dev.ServerName, this->port)) {
       supla_log(
           LOG_DEBUG, "Connection fail. Server: %s", Supla::Channel::reg_dev.ServerName);
 

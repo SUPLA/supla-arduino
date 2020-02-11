@@ -36,6 +36,10 @@ Supla::EthernetShield ethernet(mac);
 // #include <supla/network/ENC28J60.h>
 // Supla::ENC28J60 ethernet(mac);
 //
+//For ESP based boards (ESP8266, ESP32) you can use secure connections via SSL. 
+//To do this, uncomment the following line
+//#define ESP_SSL
+//
 // ESP8266 based board:
 // #include <supla/network/esp_wifi.h>
 // Supla::ESPWifi wifi("your_wifi_ssid", "your_wifi_password");
@@ -43,6 +47,7 @@ Supla::EthernetShield ethernet(mac);
 // ESP32 based board:
 // #include <supla/network/esp32_wifi.h>
 // Supla::ESP32Wifi wifi("your_wifi_ssid", "your_wifi_password");
+ 
 
 void setup() {
 
@@ -96,6 +101,15 @@ void setup() {
   new Supla::Sensor::DS18B20(23, ds3addr);
   new Supla::Sensor::DS18B20(23, ds4addr);
 
+  /* If you are using secure connections over SSL (ESP boards only), uncomment the line below and complete it by entering the fingerprint of the server certificate.
+   * It is already filled with official SUPLA's certificate thumbprint -> change it if you have your own supla-server,
+   * or leave it commented if you don't want to validate server's certificate (less secured but communication will work).
+   * Remember if certificate would change you will need to change that value if uncommented
+   * TIP: You can find the server's certificate by clicking on the padlock icon in the web browser on the SUPLA Cloud website
+   */ 
+   // char fingerprint[MAX_FINGERPRINT_SIZE] = "5E E1 D6 97 53 2C BB DF 79 5F 23 15 90 62 69 9F 81 E7 B2 99"
+
+  
 
   /*
    * SuplaDevice Initialization.
@@ -108,7 +122,8 @@ void setup() {
   SuplaDevice.begin(GUID,              // Global Unique Identifier 
                     "svr1.supla.org",  // SUPLA server address
                     "email@address",   // Email address used to login to Supla Cloud
-                    AUTHKEY);          // Authorization key
+                    AUTHKEY, 		   // Authorization key
+					2015);             // SUPLA server port number (default 2015 and 2016 for SSL)
     
 }
 
