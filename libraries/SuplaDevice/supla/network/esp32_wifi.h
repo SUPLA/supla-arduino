@@ -1,6 +1,5 @@
 /*
  Copyright (C) AC SOFTWARE SP. Z O.O.
-
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
@@ -19,10 +18,6 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
-
-#ifdef ESP_SSL
-#include <WiFiClientSecure.h>
-#endif
  
 
 #include "../../supla_lib_config.h"
@@ -30,10 +25,7 @@
 
 #define MAX_SSID_SIZE          32
 #define MAX_WIFI_PASSWORD_SIZE 64
-
-#ifdef ESP_SSL
-#define MAX_FINGERPRINT_SIZE 60
-#endif
+ 
 
 // TODO: change logs to supla_log
 
@@ -44,23 +36,7 @@ class ESP32Wifi : public Supla::Network {
       : Network(ip) {
     strcpy(ssid, wifiSsid);
     strcpy(password, wifiPassword);
-
-#ifdef ESP_SSL		
-    fingerprint = NULL;
-#endif
   }
-  
-#ifdef ESP_SSL	  
-  void setFingerprint(char* certFingerprint) {
-    if (fingerprint) {
-	  free(fingerprint);
-	  fingerprint = NULL;
-	}
-	
-	if (certFingerprint)
-      fingerprint = strndup(certFingerprint, MAX_FINGERPRINT_SIZE);
-  }
-#endif
 
   int read(void *buf, int count) {
     _supla_int_t size = client.available();
@@ -96,27 +72,7 @@ class ESP32Wifi : public Supla::Network {
   }
 
   bool connect(const char *server, int port) {
-    
-	bool result = client.connect(server, port);
-	
-#ifdef ESP_SSL
-	/* server certificate validation */
-	if (result && fingerprint)	{
-	  if (client.verify(fingerprint, host)) {
-#ifdef SUPLA_COMM_DEBUG
-		Serial.println("certificate matches");
-#endif
-      } else {
-		client.stop();
-		result = false;
-#ifdef SUPLA_COMM_DEBUG
-        Serial.println("certificate doesn't match");
-#endif
-	  }
-	}
-#endif
-	
-	return result;
+    return client.connect(server, port);
   }
 
   bool connected() {
@@ -153,34 +109,20 @@ class ESP32Wifi : public Supla::Network {
         Serial.println("wifi Station disconnected");
     }, WiFiEvent_t::SYSTEM_EVENT_STA_DISCONNECTED);
    	
-#ifdef ESP_SSL
-	if (fingerprint)
-      client.setFingerprint(fingerprint);
-	else
-	  client.insecure();
-	}
-#endif
+    
 
     Serial.print("WIFI: establishing connection with SSID: \"");
     Serial.print(ssid);
     Serial.println("\"");
-	
     WiFi.begin(ssid, password);
     yield();
   }
 
  protected:
-#ifdef ESP_SSL
-   WiFiClientSecure client;
-#else
-   WiFiClient client;
-#endif
+  WiFiClient client;
 
-   char ssid[MAX_SSID_SIZE];
-   char password[MAX_WIFI_PASSWORD_SIZE];
-#ifdef ESP_SSL
-   char* fingerprint;
-#endif
+  char ssid[MAX_SSID_SIZE];
+  char password[MAX_WIFI_PASSWORD_SIZE];
 };
 
 };  // namespace Supla

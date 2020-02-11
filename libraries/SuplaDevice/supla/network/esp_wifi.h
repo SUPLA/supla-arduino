@@ -60,6 +60,7 @@ class ESPWifi : public Supla::Network {
 	
 	if (certFingerprint)
       fingerprint = strndup(certFingerprint, MAX_FINGERPRINT_SIZE);
+   
   }
 #endif
   
@@ -103,7 +104,7 @@ class ESPWifi : public Supla::Network {
 #ifdef ESP_SSL
 	/* server certificate validation */
 	if (result && fingerprint)	{
-	  if (client.verify(fingerprint, host)) {
+	  if (client.verify(fingerprint, server)) {
 #ifdef SUPLA_COMM_DEBUG
 		Serial.println("certificate matches");
 #endif
@@ -153,11 +154,12 @@ class ESPWifi : public Supla::Network {
         });
 	
 #ifdef ESP_SSL
+     
 	if (fingerprint)
       client.setFingerprint(fingerprint);
 	else
-	  client.insecure();
-	}
+	  client.setInsecure();
+	
 #endif
 
     Serial.print("WIFI: establishing connection with SSID: \"");
