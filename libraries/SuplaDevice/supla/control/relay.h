@@ -14,6 +14,11 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+/* Relay class
+ * This class is used to control any type of relay that can be controlled
+ * by setting LOW or HIGH output on selected GPIO.
+ */
+
 #ifndef _relay_h
 #define _relay_h
 

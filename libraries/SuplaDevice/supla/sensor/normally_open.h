@@ -14,46 +14,17 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _binary_h
-#define _binary_h
+#ifndef _normally_open_h
+#define _normally_open_h
 
-#include "../channel.h"
-#include "../element.h"
-#include <Arduino.h>
-#include <io.h>
+#include "binary.h"
 
 namespace Supla {
 namespace Sensor {
-class Binary: public Element {
+class NormallyOpen : public Binary {
  public:
-  Binary(int pin, bool pullUp = false) : pin(pin), pullUp(pullUp) {
-    channel.setType(SUPLA_CHANNELTYPE_SENSORNO);
+  NormallyOpen(int pin, bool pullUp = false) : Binary(pin, pullUp) {
   }
-
-  bool getValue() {
-    return Supla::Io::digitalRead(channel.getChannelNumber(), pin) == LOW ? false : true;
-  }
-
-  void iterateAlways() {
-    if (lastReadTime + 200 < millis()) {
-      lastReadTime = millis();
-      channel.setNewValue(getValue());
-    }
-  }
-
-  void onInit() {
-    pinMode(pin, pullUp ? INPUT_PULLUP : INPUT);
-    channel.setNewValue(getValue());
-  }
-
-
- protected:
-  Channel *getChannel() {
-    return &channel;
-  }
-  Channel channel;
-  int pin;
-  bool pullUp;
 };
 
 };  // namespace Sensor
