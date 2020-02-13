@@ -8,21 +8,35 @@ SuplaDevice is a library for [Arduino IDE](https://www.arduino.cc/en/main/softwa
 
 ## Hardware requirements
 
-SuplaDevice works with Arduino Mega boards. Currently Arduino Uno is not supported.
-It also works with ESP8266 based devices.
+### Arduino Mega
+SuplaDevice works with Arduino Mega boards. Currently Arduino Uno is not supported because RAM limitations. It should work on other Arduino boards with at least 8 kB of RAM.
+Following network interfaces are supported:
+* Ethernet Shield with W5100 chipset
+* ENC28J60 (not recommended - see Supported hardware section)
+
+Warning: WiFi shields are currently not supported
+
+### ESP8266
+ESP8266 boards are supported. Network connection is done via internal WiFi. Tested with ESP8266 boards 2.6.3.
+Most probably it will work with other ESP8266 compatible boards. 
+
+### ESP32
+Experimental support for ESP32 boards is provided. Some issues seen with reconnection to WiFi router which requires further analysis.
 
 ## Installation
 
-1. Download Arduino IDE, run it and configure it. Pplease refer to other tutorials how to start with Arduino IDE.
-2. Make sure that your board is working by uploading example program from Arduino IDE.
-... 
+Before you start, you will need to:
+1. install Arduino IDE,
+2. install support for your board
+3. install driver for your USB to serial converter device (it can be external device, or build in on your board)
+4. make sure that communication over serial interface with your board is working (i.e. check some example Arduino application)
+5. download and install this librarary by copying SuplaDevice folder into your Arduino library folder
+
+Steps 1-4 are standard Arudino IDE setup procedures not related to SuplaDevice library. You can find many tutorials on Internet with detailed instructions. Tutorials doesn't have to be related in any way with Supla. 
+
+After step 5 you should see Supla example applications in Arduino IDE examples. Select one and have fun! Example file requires adjustments before you compile them and upload to your board. Please read all comments in example and make proper adjustments. 
 
 ## Usage
-
-### Supported hardware
-SuplaDevice is created for Arduino Mega boards. Arduino Uno is not working because of RAM limitations. However it should be possible to run on Uno board as well, 
-            if memory usage of library will be reduced.
-Library also works with ESP8266 based boards. It was tested on Wemos D1 R1 board.
 
 ### Network interfaces
 Supported network interfaces for Arduino Mega:
@@ -33,16 +47,44 @@ or some other problem with network, program will stuck on initialization and wil
 Second warning: UIPEthernet library is consuming few hundred of bytes of RAM memory more, compared to standard Ethernet library. 
 
 Supported network interface for ESP8266:
-* There is native WIFI controller. Include `<supla/network/esp_wifi.h>` and add `Supla::ESPWifi wifi(ssid, password);` as a global variable and provide SSID
-and password in constructor.
+* There is native WiFi controller. Include `<supla/network/esp_wifi.h>` and add `Supla::ESPWifi wifi(ssid, password);` as a global variable and provide SSID and password in constructor.
+
+Supported network interface for ESP32:
+* There is native WiFi controller. Include `<supla/network/esp32_wifi.h>` and add `Supla::ESP32Wifi wifi(ssid, password);` as a global variable and provide SSID and password in constructor.
 
 ### Exmaples
 
-Each example can run on Arduino Mega or ESP8266 board. Please read comments in example files and uncomment proper library for your network interface.
+Each example can run on Arduino Mega, ESP8266, or ESP32 board. Please read comments in example files and uncomment proper library for your network interface.
 
 SuplaSomfy, Supla_RollerShutter_FRAM - those examples are not updated yet.
 
-### How to migrate programs written in SuplaDevice libraray versions 1.6 and older
+### Folder structure
+
+* `supla-common` - Supla protocol definitions and structures. There are also methods to handle low level communication with Supla server, like message coding, decoding, sending and receiving. Those files are common with `supla-core` and the same code is run on multiple Supla platforms and services
+* `supla/network` - implementation of network interfaces for supported boards
+* `supla/sensor` - implementation of Supla sensor channels (thermometers, open/close sensors, etc.)
+* `supla/control` - implementation of Supla control channels (various combinations of relays, buttons, action triggers)
+
+Some functions from above folders have dependencies to external libraries. Please check documentation included in header files.
+
+### How does it work?
+
+Everything that is visible in Supla (in Cloud, on API, mobile application) is called "channel". Supla channels are used to control relays, read temperature, check if garage door is open. 
+
+SuplaDevice implements support for channels in `Channel` and `ChannelExtended` classes. Instances of those classes are part of objects called `Element` which are building blocks for any SuplaDevice application.
+
+All sensors, relays, buttons objects inherits from `Element` class. Each instance of such object will automatically register in SuplaDevice and proper virtual methods will be called by SuplaDevice in a specified way.
+
+All elements have to be constructed before `SuplaDevice.begin()` method is called.
+
+Supla channel number is assigned to each elemement with channel in an order of creation of objects. First channel will get number 0, second 1, etc. Supla server will not accept registration of device when order of channels is changed, or some channel is removed. In such case, you should remove device from Supla Cloud and register it again from scratch.
+
+`Element` class defines follwoing virtual methods that are called by SuplaDevice:
+1. `onInit` - called within `SuplaDevice.begin()` method. It should: TODO...
+
+...
+
+## How to migrate programs written in SuplaDevice libraray versions 1.6 and older
 
 For Arduino Mega applications include proper network interface header:
 ```
