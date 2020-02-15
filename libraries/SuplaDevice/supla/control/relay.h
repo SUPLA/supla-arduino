@@ -27,11 +27,14 @@
 #include "../../io.h"
 #include "../channel.h"
 #include "../element.h"
+#include "../triggerable.h"
 
 namespace Supla {
 namespace Control {
-class Relay : public Element {
+class Relay : public Element, public Triggerable {
  public:
+  enum Action { TURN_ON, TURN_OFF, TOGGLE };
+
   Relay(int pin,
         bool highIsOn = true,
         _supla_int_t functions = (0xFF ^
@@ -74,7 +77,7 @@ class Relay : public Element {
     return result;
   }
 
-  virtual void turnOn(_supla_int_t duration) {
+  virtual void turnOn(_supla_int_t duration = 0) {
     if (duration > 0) {
       durationMs = duration + millis();
     }
@@ -83,7 +86,7 @@ class Relay : public Element {
     channel.setNewValue(true);
   }
 
-  virtual void turnOff(_supla_int_t duration) {
+  virtual void turnOff(_supla_int_t duration = 0) {
     durationMs = 0;
     Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOffValue());
 
@@ -107,6 +110,23 @@ class Relay : public Element {
       channel.setNewValue(true);
     } else {
       channel.setNewValue(false);
+    }
+  }
+
+  void trigger(int trigger, int action) {
+    switch (action) {
+      case TURN_ON: {
+        turnOn();
+        break;
+      }
+      case TURN_OFF: {
+        turnOff();
+        break;
+      }
+      case TOGGLE: {
+        toggle();
+        break;
+      }
     }
   }
 

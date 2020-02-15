@@ -14,49 +14,49 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _binary_h
-#define _binary_h
+#ifndef _button_h
+#define _button_h
 
-#include "../channel.h"
-#include "../element.h"
 #include <Arduino.h>
-#include <io.h>
+
+#include "../element.h"
+#include "../will_trigger.h"
 
 namespace Supla {
-namespace Sensor {
-class Binary: public Element {
+namespace Control {
+class Button : public Element, public WillTrigger {
  public:
-  Binary(int pin, bool pullUp = false) : pin(pin), pullUp(pullUp) {
-    channel.setType(SUPLA_CHANNELTYPE_SENSORNO);
-  }
+  enum Event { ON_PRESS, ON_RELEASE };
 
-  bool getValue() {
-    return Supla::Io::digitalRead(channel.getChannelNumber(), pin) == LOW ? false : true;
+  Button(int pin, bool pullUp = false)
+      : pin(pin), pullUp(pullUp), prevStatus(false), debounceTimeMs(0) {
   }
 
   void iterateAlways() {
-    if (lastReadTime + 100 < millis()) {
-      lastReadTime = millis();
-      channel.setNewValue(getValue());
+    bool currentStatus = digitalRead(pin);
+    if (currentStatus != prevStatus && millis() - debounceTimeMs > 50) {
+      debounceTimeMs = millis();
+      prevStatus = currentStatus;
+      if (currentStatus == true) {
+        runTrigger(ON_PRESS);
+      } else {
+        runTrigger(ON_RELEASE);
+      }
     }
   }
 
   void onInit() {
     pinMode(pin, pullUp ? INPUT_PULLUP : INPUT);
-    channel.setNewValue(getValue());
   }
-
 
  protected:
-  Channel *getChannel() {
-    return &channel;
-  }
-  Channel channel;
   int pin;
   bool pullUp;
+  int debounceTimeMs;
+  bool prevStatus;
 };
 
-};  // namespace Sensor
+};  // namespace Control
 };  // namespace Supla
 
 #endif
