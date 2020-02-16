@@ -19,16 +19,13 @@
 
 #include "supla/channel.h"
 #include "supla/element.h"
-
-#define DISTANCE_NOT_AVAILABLE -1
+#include "supla/sensor/distance.h"
 
 namespace Supla {
 namespace Sensor {
-class HC_SR04: public Element {
+class HC_SR04: public Distance {
  public:
   HC_SR04(int8_t trigPin,int8_t echoPin) {
-    channel.setType(SUPLA_CHANNELTYPE_DISTANCESENSOR);
-    channel.setDefault(SUPLA_CHANNELFNC_DISTANCESENSOR);
 	_trigPin = trigPin;
 	_echoPin = echoPin;
   }
@@ -58,13 +55,10 @@ class HC_SR04: public Element {
 
 
  protected:
- int8_t _trigPin;
- int8_t _echoPin;
-  Channel *getChannel() {
-    return &channel;
-  }
+  int8_t _trigPin;
+  int8_t _echoPin;
   unsigned long lastReadTime;
-  Channel channel;
+
 };
 
 };  // namespace Sensor
