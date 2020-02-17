@@ -46,14 +46,6 @@ class HC_SR04: public Distance {
     return duration*0.034/2/100;
   }
 
-  void iterateAlways() {
-    if (lastReadTime + 10000 < millis()) {
-      lastReadTime = millis();
-      channel.setNewValue(getValue());
-    }
-  }
-
-
  protected:
   int8_t _trigPin;
   int8_t _echoPin;
