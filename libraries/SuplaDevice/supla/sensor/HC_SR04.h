@@ -18,54 +18,37 @@
 #define _hc_sr04_h
 
 #include "supla/channel.h"
-#include "supla/element.h"
-
-#define DISTANCE_NOT_AVAILABLE -1
+#include "supla/sensor/distance.h"
 
 namespace Supla {
 namespace Sensor {
-class HC_SR04: public Element {
+class HC_SR04: public Distance {
  public:
   HC_SR04(int8_t trigPin,int8_t echoPin) {
-    channel.setType(SUPLA_CHANNELTYPE_DISTANCESENSOR);
-    channel.setDefault(SUPLA_CHANNELFNC_DISTANCESENSOR);
-    channel.setNewValue(getValue());
 	_trigPin = trigPin;
 	_echoPin = echoPin;
   }
-        void onInit() {
+  void onInit() {
 		pinMode(_trigPin, OUTPUT); 
 		pinMode(_echoPin, INPUT);
-        channel.setNewValue(getValue());
+    channel.setNewValue(getValue());
   }
 		
   virtual double getValue() {
-  		double duration;
-		digitalWrite(_trigPin, LOW);
-		delayMicroseconds(2);
-		digitalWrite(_trigPin, HIGH);
-		delayMicroseconds(10);
-		digitalWrite(_trigPin, LOW);
-		duration = pulseIn(_echoPin, HIGH);
+    double duration;
+    digitalWrite(_trigPin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(_trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(_trigPin, LOW);
+    duration = pulseIn(_echoPin, HIGH);
     return duration*0.034/2/100;
   }
 
-  void iterateAlways() {
-    if (lastReadTime + 10000 < millis()) {
-      lastReadTime = millis();
-      channel.setNewValue(getValue());
-    }
-  }
-
-
  protected:
- int8_t _trigPin;
- int8_t _echoPin;
-  Channel *getChannel() {
-    return &channel;
-  }
-  unsigned long lastReadTime;
-  Channel channel;
+  int8_t _trigPin;
+  int8_t _echoPin;
+
 };
 
 };  // namespace Sensor

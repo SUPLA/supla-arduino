@@ -17,10 +17,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <SPI.h>
 #include <SuplaDevice.h>
 
-/*
- * This example requires Dallas Temperature Control library installed. 
- * https://github.com/milesburton/Arduino-Temperature-Control-Library
- */
 // Add include to HC_SR04 sensor
 #include <supla/sensor/HC_SR04.h>
 
@@ -60,28 +56,6 @@ void setup() {
    * then you must also remove the device itself from cloud.supla.org.
    * Otherwise you will get "Channel conflict!" error.
    */
-
-  // CHANNEL0 - RELAY
-  SuplaDevice.addRelay(44, true);           // ﻿44 - ﻿Pin number where the relay is connected      
-                                      // Call SuplaDevice.addRelay(44, true) with an extra "true" parameter 
-                                      // to enable "port value inversion"
-                                      // where HIGH == LOW, and LOW == HIGH   
-
-  // CHANNEL1 - RELAY
-  SuplaDevice.addRelay(45, true);           // 45 - ﻿﻿Pin number where the relay is connected   
-
-  // CHANNEL3 - TWO RELAYS (Roller shutter operation)
-  SuplaDevice.addRollerShutterRelays(46,     // 46 - ﻿﻿Pin number where the 1st relay is connected   
-                                     47, true);    // 47 - ﻿Pin number where the 2nd relay is connected  
-
-  // CHANNEL4 - Opening sensor (Normal Open)
-  SuplaDevice.addSensorNO(5); // 5 - ﻿Pin number where the sensor is connected
-                               // Call SuplaDevice.addSensorNO(A0, true) with an extra "true" parameter
-                               // to enable the internal pull-up resistor
-
-
-  // CHANNEL5 - Opening sensor (Normal Open)
-  SuplaDevice.addSensorNO(6); // 6 - ﻿Pin number where the sensor is connected
 
 
   new Supla::Sensor::HC_SR04(12,13);//(trigPin, echoPin)
