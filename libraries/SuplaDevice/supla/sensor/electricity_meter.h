@@ -23,6 +23,7 @@
 #define MAX_PHASES 3
 
 namespace Supla {
+namespace Sensor {
 class ElectricityMeter : public Element {
  public:
   ElectricityMeter() : lastReadTime(0), valueChanged(false) {
@@ -205,10 +206,19 @@ class ElectricityMeter : public Element {
     }
   }
 
+  // Please implement this class for reading value from elecricity meter device.
+  // It will be called every 5 s. Use set methods defined above in order to
+  // set values on channel. Don't use any other method to modify channel values.
   virtual void readValuesFromDevice() {
-      setFwdActEnergy(0, millis());
+
   }
 
+  // Put here initialization code for electricity meter device.
+  // It will be called within SuplaDevce.begin method. 
+  // It should also read first data set, so at the end it should call those two
+  // methods:
+  // readValuesFromDevice();
+  // updateChannelValues();
   void onInit() {
 
   }
@@ -234,6 +244,7 @@ class ElectricityMeter : public Element {
   unsigned long lastReadTime;
 };
 
+};  // namespace Sensor
 };  // namespace Supla
 
 #endif

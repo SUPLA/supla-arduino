@@ -14,41 +14,42 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _hc_sr04_h
-#define _hc_sr04_h
+#ifndef _distance_h
+#define _distance_h
 
 #include "supla/channel.h"
-#include "supla/sensor/distance.h"
+#include "supla/element.h"
+
+#define DISTANCE_NOT_AVAILABLE -1
 
 namespace Supla {
 namespace Sensor {
-class HC_SR04: public Distance {
+class Distance: public Element {
  public:
-  HC_SR04(int8_t trigPin,int8_t echoPin) {
-	_trigPin = trigPin;
-	_echoPin = echoPin;
+  Distance() {
+    channel.setType(SUPLA_CHANNELTYPE_DISTANCESENSOR);
+    channel.setDefault(SUPLA_CHANNELFNC_DISTANCESENSOR);
+    channel.setNewValue(DISTANCE_NOT_AVAILABLE);
   }
-  void onInit() {
-		pinMode(_trigPin, OUTPUT); 
-		pinMode(_echoPin, INPUT);
-    channel.setNewValue(getValue());
-  }
-		
+
   virtual double getValue() {
-    double duration;
-    digitalWrite(_trigPin, LOW);
-    delayMicroseconds(2);
-    digitalWrite(_trigPin, HIGH);
-    delayMicroseconds(10);
-    digitalWrite(_trigPin, LOW);
-    duration = pulseIn(_echoPin, HIGH);
-    return duration*0.034/2/100;
+    return DISTANCE_NOT_AVAILABLE;
   }
+
+  void iterateAlways() {
+    if (lastReadTime + 10000 < millis()) {
+      lastReadTime = millis();
+      channel.setNewValue(getValue());
+    }
+  }
+
 
  protected:
-  int8_t _trigPin;
-  int8_t _echoPin;
-
+  Channel *getChannel() {
+    return &channel;
+  }
+  unsigned long lastReadTime;
+  Channel channel;
 };
 
 };  // namespace Sensor
