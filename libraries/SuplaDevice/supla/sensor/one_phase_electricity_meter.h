@@ -20,6 +20,7 @@
 #include "electricity_meter.h"
 
 namespace Supla {
+namespace Sensor {
 class OnePhaseElectricityMeter : public ElectricityMeter {
  public:
   OnePhaseElectricityMeter() {
@@ -35,6 +36,7 @@ class OnePhaseElectricityMeter : public ElectricityMeter {
 
 };
 
+};  // namespace Sensor
 };  // namespace Supla
 
 #endif
