@@ -26,34 +26,86 @@ namespace Supla {
 namespace Control {
 class Button : public Element, public WillTrigger {
  public:
-  enum Event { ON_PRESS, ON_RELEASE };
+  enum Event {
+    ON_PRESS,    // Triggered on transition to valueOnPress()
+    ON_RELEASE,  // Triggered on transition from valueOnPress()
+    ON_CHANGE    // Triggered on all transitions
+  };
 
-  Button(int pin, bool pullUp = false)
-      : pin(pin), pullUp(pullUp), prevStatus(false), debounceTimeMs(0) {
+  Button(int pin, bool pullUp = false, bool invertLogic = false)
+      : pin(pin),
+        pullUp(pullUp),
+        prevStatus(LOW),
+        newStatusCandidate(LOW),
+        debounceTimeMs(0),
+        filterTimeMs(0),
+        debounceDelayMs(50),
+        swNoiseFilterDelayMs(20),
+        invertLogic(invertLogic) {
   }
 
   void iterateAlways() {
-    bool currentStatus = digitalRead(pin);
-    if (currentStatus != prevStatus && millis() - debounceTimeMs > 50) {
-      debounceTimeMs = millis();
-      prevStatus = currentStatus;
-      if (currentStatus == true) {
-        runTrigger(ON_PRESS);
+    // Ignore anything that happen within debounceDelayMs ms since last state
+    // change
+    if (millis() - debounceTimeMs > debounceDelayMs) {
+      int currentStatus = digitalRead(pin);
+      if (currentStatus != prevStatus) {
+        // If status is changed, then make sure that it will be kept at
+        // least swNoiseFilterDelayMs ms to avoid noise
+        if (currentStatus != newStatusCandidate) {
+          newStatusCandidate = currentStatus;
+          filterTimeMs = millis();
+          return;
+        }
+        // If new status is kept at least swNoiseFilterDelayMs ms, then apply
+        // change of status
+        if (millis() - filterTimeMs > swNoiseFilterDelayMs) {
+          debounceTimeMs = millis();
+          prevStatus = currentStatus;
+          if (currentStatus == valueOnPress()) {
+            runTrigger(ON_PRESS);
+            runTrigger(ON_CHANGE);
+          } else {
+            runTrigger(ON_RELEASE);
+            runTrigger(ON_CHANGE);
+          }
+        }
       } else {
-        runTrigger(ON_RELEASE);
+        // If current status is the same as prevStatus, then reset
+        // new status candidate
+        newStatusCandidate = prevStatus;
       }
     }
   }
 
   void onInit() {
     pinMode(pin, pullUp ? INPUT_PULLUP : INPUT);
+    prevStatus = digitalRead(pin);
+    newStatusCandidate = prevStatus;
+  }
+
+  int valueOnPress() {
+    return invertLogic ? LOW : HIGH;
+  }
+
+  void setSwNoiseFilterDelay(int newDelayMs) {
+    swNoiseFilterDelayMs = newDelayMs;
+  }
+
+  void setDebounceDelay(int newDelayMs) {
+    debounceDelayMs = newDelayMs;
   }
 
  protected:
   int pin;
   bool pullUp;
-  int debounceTimeMs;
-  bool prevStatus;
+  unsigned long debounceTimeMs;
+  unsigned long filterTimeMs;
+  int debounceDelayMs;
+  int swNoiseFilterDelayMs;
+  int prevStatus;
+  int newStatusCandidate;
+  bool invertLogic;
 };
 
 };  // namespace Control
