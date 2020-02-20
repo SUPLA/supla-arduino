@@ -23,6 +23,7 @@
 #define MAX_PHASES 3
 
 namespace Supla {
+namespace Sensor {
 class ElectricityMeter : public Element {
  public:
   ElectricityMeter() : valueChanged(false) {
@@ -242,6 +243,7 @@ class ElectricityMeter : public Element {
   bool currentMeasurementAvailable;
 };
 
+};  // namespace Sensor
 };  // namespace Supla
 
 #endif

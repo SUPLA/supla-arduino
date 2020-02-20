@@ -14,25 +14,40 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _one_phase_electricity_meter_h
-#define _one_phase_electricity_meter_h
+#ifndef _hc_sr04_h
+#define _hc_sr04_h
 
-#include "electricity_meter.h"
+#include "supla/channel.h"
+#include "supla/sensor/distance.h"
 
 namespace Supla {
 namespace Sensor {
-class OnePhaseElectricityMeter : public ElectricityMeter {
+class HC_SR04: public Distance {
  public:
-  OnePhaseElectricityMeter() {
-    extChannel.setFlag(SUPLA_CHANNEL_FLAG_PHASE2_UNSUPPORTED);
-    extChannel.setFlag(SUPLA_CHANNEL_FLAG_PHASE3_UNSUPPORTED);
+  HC_SR04(int8_t trigPin,int8_t echoPin) {
+	_trigPin = trigPin;
+	_echoPin = echoPin;
   }
-
-  virtual void readValuesFromDevice() {
-  }
-
   void onInit() {
+		pinMode(_trigPin, OUTPUT); 
+		pinMode(_echoPin, INPUT);
+    channel.setNewValue(getValue());
   }
+		
+  virtual double getValue() {
+    double duration;
+    digitalWrite(_trigPin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(_trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(_trigPin, LOW);
+    duration = pulseIn(_echoPin, HIGH);
+    return duration*0.034/2/100;
+  }
+
+ protected:
+  int8_t _trigPin;
+  int8_t _echoPin;
 
 };
 
