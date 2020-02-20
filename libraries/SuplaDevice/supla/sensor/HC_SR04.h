@@ -49,7 +49,6 @@ class HC_SR04: public Distance {
  protected:
   int8_t _trigPin;
   int8_t _echoPin;
-  unsigned long lastReadTime;
 
 };
 
