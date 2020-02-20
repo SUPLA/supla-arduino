@@ -40,4 +40,3 @@ void float2DoublePacked(float number, uint8_t *bar, int byteOrder) {
   }
 #endif
 }
-

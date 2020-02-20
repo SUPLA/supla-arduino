@@ -19,21 +19,21 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
- 
 
 #include "../../supla_lib_config.h"
 #include "network.h"
 
 #define MAX_SSID_SIZE          32
 #define MAX_WIFI_PASSWORD_SIZE 64
- 
 
 // TODO: change logs to supla_log
 
 namespace Supla {
 class ESP32Wifi : public Supla::Network {
  public:
-  ESP32Wifi(const char *wifiSsid, const char *wifiPassword, IPAddress *ip = NULL)
+  ESP32Wifi(const char *wifiSsid,
+            const char *wifiPassword,
+            IPAddress *ip = NULL)
       : Network(ip) {
     strcpy(ssid, wifiSsid);
     strcpy(password, wifiPassword);
@@ -73,6 +73,8 @@ class ESP32Wifi : public Supla::Network {
   }
 
   bool connect(const char *server, int port) {
+    supla_log(
+        LOG_DEBUG, "Establishing connection with: %s (port: %d)", server, port);
     return client.connect(server, port);
   }
 
@@ -87,30 +89,29 @@ class ESP32Wifi : public Supla::Network {
   void disconnect() {
     client.stop();
   }
- 
+
   // TODO: add handling of custom local ip
   void setup() {
-    		
-	 
-    
-	WiFiEventId_t event_gotIP = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info){
-       Serial.print("local IP: ");
-	   Serial.println(WiFi.localIP());
-       Serial.print("subnetMask: ");
-       Serial.println(WiFi.subnetMask());
-       Serial.print("gatewayIP: ");
-       Serial.println(WiFi.gatewayIP());
-       long rssi = WiFi.RSSI();
-       Serial.print("Signal Strength (RSSI): ");
-       Serial.print(rssi);
-       Serial.println(" dBm");
-    }, WiFiEvent_t::SYSTEM_EVENT_STA_GOT_IP);
-	
-    WiFiEventId_t event_disconnected = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info){
-        Serial.println("wifi Station disconnected");
-    }, WiFiEvent_t::SYSTEM_EVENT_STA_DISCONNECTED);
-   	
-    
+    WiFiEventId_t event_gotIP = WiFi.onEvent(
+        [](WiFiEvent_t event, WiFiEventInfo_t info) {
+          Serial.print("local IP: ");
+          Serial.println(WiFi.localIP());
+          Serial.print("subnetMask: ");
+          Serial.println(WiFi.subnetMask());
+          Serial.print("gatewayIP: ");
+          Serial.println(WiFi.gatewayIP());
+          long rssi = WiFi.RSSI();
+          Serial.print("Signal Strength (RSSI): ");
+          Serial.print(rssi);
+          Serial.println(" dBm");
+        },
+        WiFiEvent_t::SYSTEM_EVENT_STA_GOT_IP);
+
+    WiFiEventId_t event_disconnected = WiFi.onEvent(
+        [](WiFiEvent_t event, WiFiEventInfo_t info) {
+          Serial.println("wifi Station disconnected");
+        },
+        WiFiEvent_t::SYSTEM_EVENT_STA_DISCONNECTED);
 
     Serial.print("WIFI: establishing connection with SSID: \"");
     Serial.print(ssid);

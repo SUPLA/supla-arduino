@@ -65,6 +65,9 @@ class EthernetShield : public Supla::Network {
   }
 
   bool connect(const char *server, int port) {
+    supla_log(
+        LOG_DEBUG, "Establishing connection with: %s (port: %d)", server, port);
+
     return client.connect(server, port);
   }
 

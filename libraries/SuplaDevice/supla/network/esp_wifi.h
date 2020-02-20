@@ -19,6 +19,7 @@
 
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
+#include <WiFiClientSecure.h>
 
 #include "../../supla_lib_config.h"
 #include "network.h"
@@ -35,16 +36,21 @@ class ESPWifi : public Supla::Network {
  public:
   ESPWifi(const char *wifiSsid, const char *wifiPassword, IPAddress *ip = NULL)
       : Network(ip) {
+    client = nullptr;
+
+    isSecured = true;
+    this->port = 2016;
+
     strcpy(ssid, wifiSsid);
     strcpy(password, wifiPassword);
   }
 
   int read(void *buf, int count) {
-    _supla_int_t size = client.available();
+    _supla_int_t size = client->available();
 
     if (size > 0) {
       if (size > count) size = count;
-      long readSize = client.read((uint8_t *)buf, size);
+      long readSize = client->read((uint8_t *)buf, size);
 #ifdef SUPLA_COMM_DEBUG
       Serial.print("Received: [");
       for (int i = 0; i < readSize; i++) {
@@ -68,16 +74,50 @@ class ESPWifi : public Supla::Network {
     }
     Serial.println("]");
 #endif
-    long sendSize = client.write((const uint8_t *)buf, count);
+    long sendSize = client->write((const uint8_t *)buf, count);
     return sendSize;
   }
 
   bool connect(const char *server, int port) {
-    return client.connect(server, port);
+    String message;
+    if (client == NULL) {
+      if (isSecured) {
+        message = "secured connection";
+        client = new WiFiClientSecure();
+        if (fingerprint.length() > 0) {
+          message += " with certificate matching";
+          ((WiFiClientSecure *)client)->setFingerprint(fingerprint.c_str());
+        } else {
+          message += " without certificate matching";
+          ((WiFiClientSecure *)client)->setInsecure();
+        }
+      } else {
+        message = "unsecured connection";
+        client = new WiFiClient();
+      }
+    }
+
+    supla_log(LOG_DEBUG,
+              "Establishing %s with: %s (port: %d)",
+              message.c_str(),
+              server,
+              this->port);
+
+    bool result = client->connect(server, this->port);
+
+    if (result && isSecured) {
+      if (!((WiFiClientSecure *)client)->verify(fingerprint.c_str(), server)) {
+        supla_log(LOG_DEBUG, "Provided certificates doesn't match!");
+        client->stop();
+        return false;
+      }
+    };
+
+    return result;
   }
 
   bool connected() {
-    return client.connected();
+    return (client != NULL) && client->connected();
   }
 
   bool isReady() {
@@ -85,7 +125,9 @@ class ESPWifi : public Supla::Network {
   }
 
   void disconnect() {
-    client.stop();
+    if (client != nullptr) {
+      client->stop();
+    }
   }
 
   // TODO: add handling of custom local ip
@@ -112,12 +154,27 @@ class ESPWifi : public Supla::Network {
     Serial.print(ssid);
     Serial.println("\"");
     WiFi.begin(ssid, password);
+
     yield();
   }
 
- protected:
-  WiFiClient client;
+  void enableSSL(bool value) {
+    this->isSecured = value;
+  }
 
+  void setServerPort(int value) {
+    this->port = value;
+  }
+
+  void setServersCertFingerprint(String value) {
+    this->fingerprint = value;
+  }
+
+ protected:
+  WiFiClient *client = NULL;
+  bool isSecured;
+  int port;
+  String fingerprint;
   char ssid[MAX_SSID_SIZE];
   char password[MAX_WIFI_PASSWORD_SIZE];
 };
