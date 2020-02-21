@@ -17,25 +17,8 @@
 #include <SPI.h>
 #include <SuplaDevice.h>
 
-// Choose proper network interface for your card:
-// Arduino Mega with EthernetShield W5100:
-#include <supla/network/ethernet_shield.h>
-// Ethernet MAC address
-uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
-Supla::EthernetShield ethernet(mac);
-//
-// Arduino Mega with ENC28J60:
-// #include <supla/network/ENC28J60.h>
-// Supla::ENC28J60 ethernet(mac);
-//
-// ESP8266 based board:
-// #include <supla/network/esp_wifi.h>
-// Supla::ESPWifi wifi("your_wifi_ssid", "your_wifi_password");
-//
-// ESP32 based board:
-// #include <supla/network/esp32_wifi.h>
-// Supla::ESP32Wifi wifi("your_wifi_ssid", "your_wifi_password");
-
+#include <supla/network/esp_wifi.h>
+Supla::ESPWifi wifi("your_wifi_ssid", "your_wifi_password");
 
 void supla_rs_SavePosition(int channelNumber, int position) {
     // Save roller shutter position on flash memory.
@@ -89,6 +72,7 @@ void setup() {
   /*
    * SSL certificate verification. this SuplaDevice library by default uses secured connection.
    * If you specify SUPLA's server certificate thumbprint there will be additional verification proceeded.
+   * Otherwise you should comment below line.
    * Works only with ESP8266 boards!
    */
 
@@ -96,7 +80,6 @@ void setup() {
   
   /*
    * SuplaDevice Initialization.
-   * Server address, LocationID and LocationPassword are available at https://cloud.supla.org 
    * If you do not have an account, you can create it at https://cloud.supla.org/account/create
    * SUPLA and SUPLA CLOUD are free of charge
    * 
