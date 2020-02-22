@@ -17,11 +17,9 @@
 #include "supla/channel.h"
 
 namespace Supla {
-  Channel *Channel::firstPtr = nullptr;
+Channel *Channel::firstPtr = nullptr;
 
-  unsigned long Channel::nextCommunicationTimeMs = 0;
-  TDS_SuplaRegisterDevice_E Channel::reg_dev;
-  
+unsigned long Channel::nextCommunicationTimeMs = 0;
+TDS_SuplaRegisterDevice_E Channel::reg_dev;
 
 };  // namespace Supla
-

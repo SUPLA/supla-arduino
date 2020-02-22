@@ -83,9 +83,9 @@ void SuplaImpulseCounter::clearStorage() {
   for (int i = eepromOffset; i < eepromOffset + amount; i++) {
     EEPROM.write(i, 0);
   }
-  #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
   EEPROM.commit();
-  #endif
+#endif
 }
 
 void SuplaImpulseCounter::writeToStorage() {
@@ -115,17 +115,18 @@ void SuplaImpulseCounter::writeToStorage() {
     EEPROM.put(address, crc);  // Store CRC at the end of counters block
     address += sizeof(crc);
   }
-  #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
   EEPROM.commit();
-  #endif
+#endif
 }
 
 void SuplaImpulseCounter::loadStorage() {
   if (firstCounter == NULL) return;
 
-  #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
-  EEPROM.begin(1024);  // ------------------- start eeprom before the first reading ------------------
-  #endif
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+  EEPROM.begin(1024);  // ------------------- start eeprom before the first
+                       // reading ------------------
+#endif
 
   supla_log(LOG_DEBUG, "Loading counters data from EEPROM");
   int address = eepromOffset;

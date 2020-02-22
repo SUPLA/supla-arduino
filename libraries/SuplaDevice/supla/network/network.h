@@ -19,6 +19,7 @@
 
 #include <IPAddress.h>
 
+#include "supla-common/log.h"
 #include "supla-common/proto.h"
 
 namespace Supla {
