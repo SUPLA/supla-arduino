@@ -14,12 +14,13 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#include "supla/network/network.h"
+
 #include <Arduino.h>
 
 #include "SuplaDevice.h"
 #include "supla-common/log.h"
 #include "supla-common/srpc.h"
-#include "supla/network/network.h"
 
 namespace Supla {
 
