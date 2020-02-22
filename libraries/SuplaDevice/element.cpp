@@ -17,7 +17,6 @@
 #include "supla/element.h"
 
 namespace Supla {
-    Element *Element::firstPtr = nullptr;
+Element *Element::firstPtr = nullptr;
 
 };  // namespace Supla
-
