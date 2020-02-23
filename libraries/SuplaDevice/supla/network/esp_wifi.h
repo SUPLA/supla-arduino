@@ -39,7 +39,6 @@ class ESPWifi : public Supla::Network {
     client = nullptr;
 
     isSecured = true;
-    this->port = 2016;
 
     strcpy(ssid, wifiSsid);
     strcpy(password, wifiPassword);
@@ -78,7 +77,7 @@ class ESPWifi : public Supla::Network {
     return sendSize;
   }
 
-  bool connect(const char *server, int port) {
+  bool connect(const char *server, int port = -1) {
     String message;
     if (client == NULL) {
       if (isSecured) {
@@ -97,13 +96,18 @@ class ESPWifi : public Supla::Network {
       }
     }
 
+    int connectionPort = (isSecured ? 2016 : 2015);
+    if (port != -1) {
+      connectionPort = port;
+    }
+
     supla_log(LOG_DEBUG,
               "Establishing %s with: %s (port: %d)",
               message.c_str(),
               server,
-              this->port);
+              connectionPort);
 
-    bool result = client->connect(server, this->port);
+    bool result = client->connect(server, connectionPort);
 
     if (result && isSecured) {
       if (!((WiFiClientSecure *)client)->verify(fingerprint.c_str(), server)) {
@@ -159,21 +163,16 @@ class ESPWifi : public Supla::Network {
   }
 
   void enableSSL(bool value) {
-    this->isSecured = value;
-  }
-
-  void setServerPort(int value) {
-    this->port = value;
+    isSecured = value;
   }
 
   void setServersCertFingerprint(String value) {
-    this->fingerprint = value;
+    fingerprint = value;
   }
 
  protected:
   WiFiClient *client = NULL;
   bool isSecured;
-  int port;
   String fingerprint;
   char ssid[MAX_SSID_SIZE];
   char password[MAX_WIFI_PASSWORD_SIZE];

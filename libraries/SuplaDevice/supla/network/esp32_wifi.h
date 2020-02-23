@@ -72,10 +72,11 @@ class ESP32Wifi : public Supla::Network {
     return sendSize;
   }
 
-  bool connect(const char *server, int port) {
+  bool connect(const char *server, int port = -1) {
+    int connectionPort = (port == -1 ? 2015 : port);
     supla_log(
-        LOG_DEBUG, "Establishing connection with: %s (port: %d)", server, port);
-    return client.connect(server, port);
+        LOG_DEBUG, "Establishing connection with: %s (port: %d)", server, connectionPort);
+    return client.connect(server, connectionPort);
   }
 
   bool connected() {

@@ -151,6 +151,7 @@ class SuplaDeviceClass {
   SuplaDeviceParams Params;
   SuplaChannelPin *channel_pin;
   int channel_pin_count;
+  int port;
 
   int rs_count;
   SuplaDeviceRollerShutter *roller_shutter;
@@ -281,6 +282,7 @@ class SuplaDeviceClass {
 
   void setStatusFuncImpl(_impl_arduino_status impl_arduino_status);
   void setTimerFuncImpl(_impl_arduino_timer impl_arduino_timer);
+  void setServerPort(int value);
 
   void onVersionError(TSDC_SuplaVersionError *version_error);
   void onRegisterResult(TSD_SuplaRegisterDeviceResult *register_device_result);

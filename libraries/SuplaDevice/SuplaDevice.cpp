@@ -81,7 +81,7 @@ void SuplaDeviceClass::status(int status, const char *msg) {
   }
 }
 
-SuplaDeviceClass::SuplaDeviceClass() {
+SuplaDeviceClass::SuplaDeviceClass() : port(-1) {
   srpc = NULL;
   registered = 0;
   last_iterate_time = 0;
@@ -1058,7 +1058,6 @@ void SuplaDeviceClass::iterate(void) {
   }
 
   if (!Supla::Network::Connected()) {
-    int port = 2015; /* deprecated in ESP8266 */
     status(STATUS_DISCONNECTED, "Not connected");
 
     registered = 0;
@@ -1465,6 +1464,10 @@ bool SuplaDeviceClass::rollerShutterMotorIsOn(int channel_number) {
                                 channel_pin[channel_number].pin1) ||
           suplaDigitalRead_isHI(channel_number,
                                 channel_pin[channel_number].pin2));
+}
+
+void SuplaDeviceClass::setServerPort(int value) {
+  port = value;
 }
 
 SuplaDeviceClass SuplaDevice;
