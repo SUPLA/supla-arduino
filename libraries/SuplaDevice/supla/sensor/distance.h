@@ -37,7 +37,7 @@ class Distance: public Element {
   }
 
   void iterateAlways() {
-    if (lastReadTime + 10000 < millis()) {
+    if (lastReadTime + 500 < millis()) {
       lastReadTime = millis();
       channel.setNewValue(getValue());
     }
@@ -48,7 +48,6 @@ class Distance: public Element {
   Channel *getChannel() {
     return &channel;
   }
-  unsigned long lastReadTime;
   Channel channel;
 };
 

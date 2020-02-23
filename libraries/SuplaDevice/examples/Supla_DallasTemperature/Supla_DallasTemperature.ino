@@ -74,15 +74,6 @@ void setup() {
   SuplaDevice.addRollerShutterRelays(46,     // 46 - ﻿﻿Pin number where the 1st relay is connected   
                                      47, true);    // 47 - ﻿Pin number where the 2nd relay is connected  
 
-  // CHANNEL4 - Opening sensor (Normal Open)
-  SuplaDevice.addSensorNO(5); // 5 - ﻿Pin number where the sensor is connected
-                               // Call SuplaDevice.addSensorNO(A0, true) with an extra "true" parameter
-                               // to enable the internal pull-up resistor
-
-
-  // CHANNEL5 - Opening sensor (Normal Open)
-  SuplaDevice.addSensorNO(6); // 6 - ﻿Pin number where the sensor is connected
-
 
   // CHANNEL6-9 - Thermometer DS18B20
   // 4 DS18B20 thermometers at pin 23. DS address can be omitted when there is only one device at a pin

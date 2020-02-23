@@ -26,7 +26,7 @@ namespace Supla {
 namespace Sensor {
 class ElectricityMeter : public Element {
  public:
-  ElectricityMeter() : lastReadTime(0), valueChanged(false) {
+  ElectricityMeter() : valueChanged(false) {
     extChannel.setType(SUPLA_CHANNELTYPE_ELECTRICITY_METER);
     extChannel.setDefault(SUPLA_CHANNELFNC_ELECTRICITY_METER);
     memset(&emValue, 0, sizeof(emValue));
@@ -241,7 +241,6 @@ class ElectricityMeter : public Element {
   _supla_int_t rawCurrent[MAX_PHASES];
   bool valueChanged;
   bool currentMeasurementAvailable;
-  unsigned long lastReadTime;
 };
 
 };  // namespace Sensor

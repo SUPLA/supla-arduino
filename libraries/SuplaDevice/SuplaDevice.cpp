@@ -16,10 +16,9 @@
 
 #define SUPLADEVICE_CPP
 
-#include "SuplaDevice.h"
-
 #include <Arduino.h>
 
+#include "SuplaDevice.h"
 #include "SuplaImpulseCounter.h"
 #include "io.h"
 #include "supla-common/IEEE754tools.h"
@@ -82,7 +81,7 @@ void SuplaDeviceClass::status(int status, const char *msg) {
   }
 }
 
-SuplaDeviceClass::SuplaDeviceClass() {
+SuplaDeviceClass::SuplaDeviceClass() : port(-1) {
   srpc = NULL;
   registered = 0;
   last_iterate_time = 0;
@@ -493,48 +492,6 @@ void SuplaDeviceClass::setRollerShutterButtons(int channel_number,
   }
 }
 
-bool SuplaDeviceClass::addSensorNO(int sensorPin, bool pullUp) {
-  int c = addChannel(sensorPin, 0, false, false);
-  if (c == -1) return false;
-
-  Supla::Channel::reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_SENSORNO;
-  if (pullUp) {
-    pinMode(sensorPin, INPUT_PULLUP);
-  } else {
-    pinMode(sensorPin, INPUT);
-  }
-
-  Supla::Channel::reg_dev.channels[c].value[0] =
-      Supla::Io::digitalRead(Supla::Channel::reg_dev.channels[c].Number,
-                             sensorPin) == HIGH
-          ? 1
-          : 0;
-  return true;
-}
-
-void SuplaDeviceClass::setDoubleValue(char value[SUPLA_CHANNELVALUE_SIZE],
-                                      double v) {
-  if (sizeof(double) == 8) {
-    memcpy(value, &v, 8);
-  } else if (sizeof(double) == 4) {
-    float2DoublePacked(v, (uint8_t *)value);
-  }
-}
-
-void SuplaDeviceClass::channelSetDoubleValue(int channelNum, double value) {
-  setDoubleValue(Supla::Channel::reg_dev.channels[channelNum].value, value);
-}
-
-void SuplaDeviceClass::channelSetTempAndHumidityValue(int channelNum,
-                                                      double temp,
-                                                      double humidity) {
-  long t = temp * 1000.00;
-  long h = humidity * 1000.00;
-
-  memcpy(Supla::Channel::reg_dev.channels[channelNum].value, &t, 4);
-  memcpy(&Supla::Channel::reg_dev.channels[channelNum].value[4], &h, 4);
-}
-
 void SuplaDeviceClass::setRGBWvalue(int channelNum,
                                     char value[SUPLA_CHANNELVALUE_SIZE]) {
   if (Params.cb.get_rgbw_value) {
@@ -583,10 +540,6 @@ bool SuplaDeviceClass::addDimmer(void) {
 
   Supla::Channel::reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_DIMMER;
   setRGBWvalue(c, Supla::Channel::reg_dev.channels[c].value);
-}
-
-bool SuplaDeviceClass::addSensorNO(int sensorPin) {
-  return addSensorNO(sensorPin, false);
 }
 
 bool SuplaDeviceClass::addImpulseCounter(int impulsePin,
@@ -690,25 +643,6 @@ void SuplaDeviceClass::iterate_relay(SuplaChannelPin *pin,
     }
   }
 }
-
-void SuplaDeviceClass::iterate_sensor(SuplaChannelPin *pin,
-                                      TDS_SuplaDeviceChannel_C *channel,
-                                      unsigned long time_diff,
-                                      int channel_number) {
-  if (channel->Type == SUPLA_CHANNELTYPE_SENSORNO) {
-    uint8_t val = Supla::Io::digitalRead(channel->Number, pin->pin1);
-
-    if (val != pin->last_val) {
-      pin->last_val = val;
-      Supla::Channel::reg_dev.channels[channel->Number].value[0] = val;
-
-      if (pin->time_left <= 0) {
-        pin->time_left = 100;
-        channelValueChanged(channel->Number, val == HIGH ? 1 : 0);
-      }
-    }
-  }
-};
 
 void SuplaDeviceClass::rs_save_position(SuplaDeviceRollerShutter *rs) {
   if (impl_rs_save_position) {
@@ -1038,7 +972,7 @@ void SuplaDeviceClass::iterate_rollershutter(
 
     if (rs->last_position != rs->position) {
       rs->last_position = rs->position;
-      channelValueChanged(rs->channel_number, (rs->position - 100) / 100, 0, 1);
+      channelValueChanged(rs->channel_number, (rs->position - 100) / 100);
     }
 
     if (rs->up_time > 600000 || rs->down_time > 600000) {  // 10 min. - timeout
@@ -1124,7 +1058,6 @@ void SuplaDeviceClass::iterate(void) {
   }
 
   if (!Supla::Network::Connected()) {
-    int port = 2015; /* deprecated in ESP8266 */
     status(STATUS_DISCONNECTED, "Not connected");
 
     registered = 0;
@@ -1178,10 +1111,6 @@ void SuplaDeviceClass::iterate(void) {
                       &Supla::Channel::reg_dev.channels[a],
                       time_diff,
                       a);
-        iterate_sensor(&channel_pin[a],
-                       &Supla::Channel::reg_dev.channels[a],
-                       time_diff,
-                       a);
         iterate_impulse_counter(&channel_pin[a],
                                 &Supla::Channel::reg_dev.channels[a],
                                 time_diff,
@@ -1288,18 +1217,12 @@ void SuplaDeviceClass::onRegisterResult(
   wait_for_iterate = millis() + 5000;
 }
 
-void SuplaDeviceClass::channelValueChanged(int channel_number,
-                                           char v,
-                                           double d,
-                                           char var) {
+void SuplaDeviceClass::channelValueChanged(int channel_number, char v) {
   if (srpc != NULL && registered == 1) {
     char value[SUPLA_CHANNELVALUE_SIZE];
     memset(value, 0, SUPLA_CHANNELVALUE_SIZE);
 
-    if (var == 1)
-      value[0] = v;
-    else if (var == 2)
-      setDoubleValue(value, d);
+    value[0] = v;
     memcpy(Supla::Channel::reg_dev.channels[channel_number].value, value, 8);
 
     supla_log(
@@ -1307,14 +1230,6 @@ void SuplaDeviceClass::channelValueChanged(int channel_number,
 
     srpc_ds_async_channel_value_changed(srpc, channel_number, value);
   }
-}
-
-void SuplaDeviceClass::channelDoubleValueChanged(int channel_number, double v) {
-  channelValueChanged(channel_number, 0, v, 2);
-}
-
-void SuplaDeviceClass::channelValueChanged(int channel_number, char v) {
-  channelValueChanged(channel_number, v, 0, 1);
 }
 
 void SuplaDeviceClass::channelSetValue(int channel,
@@ -1549,6 +1464,10 @@ bool SuplaDeviceClass::rollerShutterMotorIsOn(int channel_number) {
                                 channel_pin[channel_number].pin1) ||
           suplaDigitalRead_isHI(channel_number,
                                 channel_pin[channel_number].pin2));
+}
+
+void SuplaDeviceClass::setServerPort(int value) {
+  port = value;
 }
 
 SuplaDeviceClass SuplaDevice;

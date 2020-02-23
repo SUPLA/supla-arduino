@@ -14,41 +14,53 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _therm_hygro_meter_h
-#define _therm_hygro_meter_h
+#ifndef _virtual_relay_h
+#define _virtual_relay_h
 
-#include "thermometer.h"
-
-#define HUMIDITY_NOT_AVAILABLE -1
+#include "relay.h"
 
 namespace Supla {
-namespace Sensor {
-class ThermHygroMeter: public Thermometer {
-  public:
-    ThermHygroMeter() {
-      channel.setType(SUPLA_CHANNELTYPE_HUMIDITYANDTEMPSENSOR);
-      channel.setDefault(SUPLA_CHANNELFNC_HUMIDITYANDTEMPERATURE);
-    }
+namespace Control {
+class VirtualRelay : public Relay {
+ public:
+  VirtualRelay(_supla_int_t functions = (0xFF ^ SUPLA_BIT_FUNC_CONTROLLINGTHEROLLERSHUTTER)) : Relay(-1, true, functions), state(false) {
+  }
 
-    virtual double getTemp() {
-      return TEMPERATURE_NOT_AVAILABLE;
-    }
+  void onInit() {
+  }
 
-    virtual double getHumi() {
-      return HUMIDITY_NOT_AVAILABLE;
+  void turnOn(_supla_int_t duration) {
+    if (duration > 0) {
+      durationMs = duration + millis();
     }
+    state = true;
 
-    void iterateAlways() {
-      if (lastReadTime + 10000 < millis()) {
-        lastReadTime = millis();
-        channel.setNewValue(getTemp(), getHumi());
-      }
-    }
+    channel.setNewValue(state);
+  }
 
-    protected:
+  virtual void turnOff(_supla_int_t duration) {
+    durationMs = 0;
+    state = false;
+
+    channel.setNewValue(state);
+  }
+
+  virtual bool isOn() {
+    return state;
+  }
+
+  virtual void toggle() {
+    durationMs = 0;
+    state = !state;
+
+    channel.setNewValue(isOn());
+  }
+
+ protected:
+  bool state;
 };
 
-};  // namespace Sensor
+};  // namespace Control
 };  // namespace Supla
 
 #endif

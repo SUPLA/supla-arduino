@@ -48,7 +48,6 @@ class Wind: public Element {
   Channel *getChannel() {
     return &channel;
   }
-  unsigned long lastReadTime;
   Channel channel;
 };
 

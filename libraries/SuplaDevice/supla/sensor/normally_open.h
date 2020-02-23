@@ -14,38 +14,17 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _therm_hygro_meter_h
-#define _therm_hygro_meter_h
+#ifndef _normally_open_h
+#define _normally_open_h
 
-#include "thermometer.h"
-
-#define HUMIDITY_NOT_AVAILABLE -1
+#include "binary.h"
 
 namespace Supla {
 namespace Sensor {
-class ThermHygroMeter: public Thermometer {
-  public:
-    ThermHygroMeter() {
-      channel.setType(SUPLA_CHANNELTYPE_HUMIDITYANDTEMPSENSOR);
-      channel.setDefault(SUPLA_CHANNELFNC_HUMIDITYANDTEMPERATURE);
-    }
-
-    virtual double getTemp() {
-      return TEMPERATURE_NOT_AVAILABLE;
-    }
-
-    virtual double getHumi() {
-      return HUMIDITY_NOT_AVAILABLE;
-    }
-
-    void iterateAlways() {
-      if (lastReadTime + 10000 < millis()) {
-        lastReadTime = millis();
-        channel.setNewValue(getTemp(), getHumi());
-      }
-    }
-
-    protected:
+class NormallyOpen : public Binary {
+ public:
+  NormallyOpen(int pin, bool pullUp = false) : Binary(pin, pullUp) {
+  }
 };
 
 };  // namespace Sensor

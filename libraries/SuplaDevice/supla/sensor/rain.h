@@ -48,7 +48,6 @@ class Rain: public Element {
   Channel *getChannel() {
     return &channel;
   }
-  unsigned long lastReadTime;
   Channel channel;
 };
 

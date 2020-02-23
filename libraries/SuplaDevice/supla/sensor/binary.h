@@ -14,38 +14,46 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _therm_hygro_meter_h
-#define _therm_hygro_meter_h
+#ifndef _binary_h
+#define _binary_h
 
-#include "thermometer.h"
-
-#define HUMIDITY_NOT_AVAILABLE -1
+#include "../channel.h"
+#include "../element.h"
+#include <Arduino.h>
+#include <io.h>
 
 namespace Supla {
 namespace Sensor {
-class ThermHygroMeter: public Thermometer {
-  public:
-    ThermHygroMeter() {
-      channel.setType(SUPLA_CHANNELTYPE_HUMIDITYANDTEMPSENSOR);
-      channel.setDefault(SUPLA_CHANNELFNC_HUMIDITYANDTEMPERATURE);
-    }
+class Binary: public Element {
+ public:
+  Binary(int pin, bool pullUp = false) : pin(pin), pullUp(pullUp) {
+    channel.setType(SUPLA_CHANNELTYPE_SENSORNO);
+  }
 
-    virtual double getTemp() {
-      return TEMPERATURE_NOT_AVAILABLE;
-    }
+  bool getValue() {
+    return Supla::Io::digitalRead(channel.getChannelNumber(), pin) == LOW ? false : true;
+  }
 
-    virtual double getHumi() {
-      return HUMIDITY_NOT_AVAILABLE;
+  void iterateAlways() {
+    if (lastReadTime + 100 < millis()) {
+      lastReadTime = millis();
+      channel.setNewValue(getValue());
     }
+  }
 
-    void iterateAlways() {
-      if (lastReadTime + 10000 < millis()) {
-        lastReadTime = millis();
-        channel.setNewValue(getTemp(), getHumi());
-      }
-    }
+  void onInit() {
+    pinMode(pin, pullUp ? INPUT_PULLUP : INPUT);
+    channel.setNewValue(getValue());
+  }
 
-    protected:
+
+ protected:
+  Channel *getChannel() {
+    return &channel;
+  }
+  Channel channel;
+  int pin;
+  bool pullUp;
 };
 
 };  // namespace Sensor

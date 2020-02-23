@@ -44,11 +44,6 @@
 #define STATUS_LOCATION_IS_DISABLED    19
 #define STATUS_DEVICE_LIMIT_EXCEEDED   20
 
-typedef double (*_cb_arduino_get_double)(int channelNumber,
-                                         double current_value);
-typedef void (*_cb_arduino_get_temperature_and_humidity)(int channelNumber,
-                                                         double *temp,
-                                                         double *humidity);
 typedef void (*_cb_arduino_get_rgbw_value)(int channelNumber,
                                            unsigned char *red,
                                            unsigned char *green,
@@ -149,20 +144,14 @@ class SuplaDeviceClass {
   bool isInitialized(bool msg);
   void setString(char *dst, const char *src, int max_size);
   int addChannel(int pin1, int pin2, bool hiIsLo, bool bistable);
-  void channelValueChanged(int channel_number, char v, double d, char var);
   void channelSetValue(int channel, char value, _supla_int_t DurationMS);
-  void channelSetDoubleValue(int channelNum, double value);
-  void setDoubleValue(char value[SUPLA_CHANNELVALUE_SIZE], double v);
-  bool addDHT(int Type);
-  void channelSetTempAndHumidityValue(int channelNum,
-                                      double temp,
-                                      double humidity);
   void setRGBWvalue(int channelNum, char value[SUPLA_CHANNELVALUE_SIZE]);
   void channelSetRGBWvalue(int channel, char value[SUPLA_CHANNELVALUE_SIZE]);
 
   SuplaDeviceParams Params;
   SuplaChannelPin *channel_pin;
   int channel_pin_count;
+  int port;
 
   int rs_count;
   SuplaDeviceRollerShutter *roller_shutter;
@@ -214,14 +203,6 @@ class SuplaDeviceClass {
                      TDS_SuplaDeviceChannel_C *channel,
                      unsigned long time_diff,
                      int channel_idx);
-  void iterate_sensor(SuplaChannelPin *pin,
-                      TDS_SuplaDeviceChannel_C *channel,
-                      unsigned long time_diff,
-                      int channel_idx);
-  void iterate_thermometer(SuplaChannelPin *pin,
-                           TDS_SuplaDeviceChannel_C *channel,
-                           unsigned long time_diff,
-                           int channel_idx);
   void iterate_rollershutter(SuplaDeviceRollerShutter *rs,
                              SuplaChannelPin *pin,
                              TDS_SuplaDeviceChannel_C *channel);
@@ -229,10 +210,6 @@ class SuplaDeviceClass {
                                TDS_SuplaDeviceChannel_C *channel,
                                unsigned long time_diff,
                                int channel_number);
-
-  void begin_thermometer(SuplaChannelPin *pin,
-                         TDS_SuplaDeviceChannel_C *channel,
-                         int channel_number);
 
  private:
   bool suplaDigitalRead_isHI(int channelNumber, uint8_t pin);
@@ -244,7 +221,6 @@ class SuplaDeviceClass {
   ~SuplaDeviceClass();
 
   void channelValueChanged(int channel_number, char v);
-  void channelDoubleValueChanged(int channel_number, double v);
 
   bool begin(char GUID[SUPLA_GUID_SIZE],
              const char *Server,
@@ -267,8 +243,6 @@ class SuplaDeviceClass {
   void setRollerShutterButtons(int channel_number,
                                int btnUpPin,
                                int btnDownPin);
-  bool addSensorNO(int sensorPin, bool pullUp);
-  bool addSensorNO(int sensorPin);
   bool addRgbControllerAndDimmer(void);
   bool addRgbController(void);
   bool addDimmer(void);
@@ -308,6 +282,7 @@ class SuplaDeviceClass {
 
   void setStatusFuncImpl(_impl_arduino_status impl_arduino_status);
   void setTimerFuncImpl(_impl_arduino_timer impl_arduino_timer);
+  void setServerPort(int value);
 
   void onVersionError(TSDC_SuplaVersionError *version_error);
   void onRegisterResult(TSD_SuplaRegisterDeviceResult *register_device_result);
