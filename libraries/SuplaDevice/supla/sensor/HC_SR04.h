@@ -20,35 +20,50 @@
 #include "supla/channel.h"
 #include "supla/sensor/distance.h"
 
+#define DURATION_COUNT 2
+
 namespace Supla {
 namespace Sensor {
-class HC_SR04: public Distance {
+class HC_SR04 : public Distance {
  public:
-  HC_SR04(int8_t trigPin,int8_t echoPin) {
-	_trigPin = trigPin;
-	_echoPin = echoPin;
+  HC_SR04(int8_t trigPin, int8_t echoPin)
+      : failCount(0), lastDuration(0) {
+    _trigPin = trigPin;
+    _echoPin = echoPin;
   }
   void onInit() {
-		pinMode(_trigPin, OUTPUT); 
-		pinMode(_echoPin, INPUT);
-    channel.setNewValue(getValue());
-  }
-		
-  virtual double getValue() {
-    double duration;
+    pinMode(_trigPin, OUTPUT);
+    pinMode(_echoPin, INPUT);
     digitalWrite(_trigPin, LOW);
     delayMicroseconds(2);
+
+    channel.setNewValue(getValue());
+    channel.setNewValue(getValue());
+  }
+
+  virtual double getValue() {
     digitalWrite(_trigPin, HIGH);
     delayMicroseconds(10);
     digitalWrite(_trigPin, LOW);
-    duration = pulseIn(_echoPin, HIGH);
-    return duration*0.034/2/100;
+    unsigned long duration = pulseIn(_echoPin, HIGH, 60000);
+    if (duration > 50) {
+      lastDuration = duration;
+      failCount = 0;
+    } else {
+      duration = lastDuration;
+      failCount++;
+    }
+
+    return failCount <= 3 ? duration * 0.034 / 2 / 100
+                 : DISTANCE_NOT_AVAILABLE;
   }
 
  protected:
   int8_t _trigPin;
   int8_t _echoPin;
-
+  char failCount;
+  bool ready;
+  unsigned long lastDuration;
 };
 
 };  // namespace Sensor
