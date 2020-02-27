@@ -17,6 +17,8 @@
 #ifndef _electricity_meter_h
 #define _electricity_meter_h
 
+#include <cstring>
+
 #include "../channel_extended.h"
 #include "../element.h"
 
@@ -150,8 +152,8 @@ class ElectricityMeter : public Element {
     emValue.m[0].freq = freq;
     emValue.measured_values |= EM_VAR_FREQ;
   }
- 
-  // power in 0.00001 kW 
+
+  // power in 0.00001 kW
   void setPowerActive(char phase, _supla_int_t power) {
     if (phase >= 0 && phase < MAX_PHASES) {
       if (emValue.m[0].power_active[phase] != power) {
@@ -162,7 +164,7 @@ class ElectricityMeter : public Element {
     }
   }
 
-  // power in 0.00001 kvar 
+  // power in 0.00001 kvar
   void setPowerReactive(char phase, _supla_int_t power) {
     if (phase >= 0 && phase < MAX_PHASES) {
       if (emValue.m[0].power_reactive[phase] != power) {
@@ -173,7 +175,7 @@ class ElectricityMeter : public Element {
     }
   }
 
-  // power in 0.00001 kVA 
+  // power in 0.00001 kVA
   void setPowerApparent(char phase, _supla_int_t power) {
     if (phase >= 0 && phase < MAX_PHASES) {
       if (emValue.m[0].power_apparent[phase] != power) {
@@ -206,23 +208,28 @@ class ElectricityMeter : public Element {
     }
   }
 
+  void resetReadParameters() {
+    if (emValue.measured_values != 0) {
+      emValue.measured_values = 0;
+      memset(&emValue.m[0], 0, sizeof(TElectricityMeter_Measurement));
+      valueChanged = true;
+    }
+  }
+
   // Please implement this class for reading value from elecricity meter device.
   // It will be called every 5 s. Use set methods defined above in order to
   // set values on channel. Don't use any other method to modify channel values.
   virtual void readValuesFromDevice() {
-
   }
 
   // Put here initialization code for electricity meter device.
-  // It will be called within SuplaDevce.begin method. 
+  // It will be called within SuplaDevce.begin method.
   // It should also read first data set, so at the end it should call those two
   // methods:
   // readValuesFromDevice();
   // updateChannelValues();
   void onInit() {
-
   }
-
 
   void iterateAlways() {
     if (lastReadTime + 5000 < millis()) {
@@ -230,6 +237,11 @@ class ElectricityMeter : public Element {
       readValuesFromDevice();
       updateChannelValues();
     }
+  }
+
+  // Implement this method to reset stored energy value (i.e. to set energy
+  // counter back to 0 kWh
+  virtual void resetStorage() {
   }
 
  protected:
