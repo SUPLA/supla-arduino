@@ -186,5 +186,6 @@ Version 2.3.0
 
 ## License
 
+
 Please check it [here](https://github.com/SUPLA/supla-cloud/blob/master/LICENSE).
 
