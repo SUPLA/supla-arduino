@@ -34,14 +34,13 @@ WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
 namespace Supla {
 class ESPWifi : public Supla::Network {
  public:
-  ESPWifi(const char *wifiSsid, const char *wifiPassword, IPAddress *ip = NULL)
-      : Network(ip) {
-    client = nullptr;
+  ESPWifi(const char *wifiSsid = nullptr, const char *wifiPassword = nullptr, IPAddress *ip = nullptr)
+      : Network(ip), client(nullptr), isSecured(true) {
 
-    isSecured = true;
-
-    strcpy(ssid, wifiSsid);
-    strcpy(password, wifiPassword);
+    ssid[0] = '\0';    
+    password[0] = '\0';    
+    setSsid(wifiSsid);
+    setPassword(wifiPassword);
   }
 
   int read(void *buf, int count) {
@@ -168,6 +167,18 @@ class ESPWifi : public Supla::Network {
 
   void setServersCertFingerprint(String value) {
     fingerprint = value;
+  }
+
+  void setSsid(const char* wifiSsid) {
+    if (wifiSsid) {
+      strncpy(ssid, wifiSsid, MAX_SSID_SIZE);
+    }
+  }
+
+  void setPassword(const char* wifiPassword) {
+    if (wifiPassword) {
+      strncpy(password, wifiPassword, MAX_WIFI_PASSWORD_SIZE);
+    }
   }
 
  protected:
