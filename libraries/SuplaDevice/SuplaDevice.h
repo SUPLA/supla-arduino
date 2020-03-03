@@ -24,6 +24,7 @@
 
 #define ACTIVITY_TIMEOUT 30
 
+#define STATUS_UNKNOWN                 -1
 #define STATUS_ALREADY_INITIALIZED     2
 #define STATUS_CB_NOT_ASSIGNED         3
 #define STATUS_INVALID_GUID            4
@@ -43,6 +44,7 @@
 #define STATUS_DEVICE_IS_DISABLED      18
 #define STATUS_LOCATION_IS_DISABLED    19
 #define STATUS_DEVICE_LIMIT_EXCEEDED   20
+#define STATUS_NETWORK_DISCONNECTED    21
 
 typedef void (*_cb_arduino_get_rgbw_value)(int channelNumber,
                                            unsigned char *red,

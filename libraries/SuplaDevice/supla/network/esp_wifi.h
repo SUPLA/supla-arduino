@@ -80,7 +80,7 @@ class ESPWifi : public Supla::Network {
     String message;
     if (client == NULL) {
       if (isSecured) {
-        message = "secured connection";
+        message = "Secured connection";
         client = new WiFiClientSecure();
         if (fingerprint.length() > 0) {
           message += " with certificate matching";
@@ -144,16 +144,16 @@ class ESPWifi : public Supla::Network {
           Serial.print("gatewayIP: ");
           Serial.println(WiFi.gatewayIP());
           long rssi = WiFi.RSSI();
-          Serial.print("Signal Strength (RSSI): ");
+          Serial.print("Signal strength (RSSI): ");
           Serial.print(rssi);
           Serial.println(" dBm");
         });
     disconnectedEventHandler = WiFi.onStationModeDisconnected(
         [](const WiFiEventStationModeDisconnected &event) {
-          Serial.println("wifi Station disconnected");
+          Serial.println("WiFi station disconnected");
         });
 
-    Serial.print("WIFI: establishing connection with SSID: \"");
+    Serial.print("WiFi: establishing connection with SSID: \"");
     Serial.print(ssid);
     Serial.println("\"");
     WiFi.begin(ssid, password);

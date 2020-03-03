@@ -74,10 +74,14 @@ ISR(TIMER2_COMPA_vect) {
 #endif
 
 void SuplaDeviceClass::status(int status, const char *msg) {
+  static int currentStatus = STATUS_UNKNOWN;
   if (impl_arduino_status != NULL) {
     impl_arduino_status(status, msg);
   } else {
-    supla_log(LOG_DEBUG, "Current status: %s", msg);
+    if (currentStatus != status) {
+      currentStatus = status;
+      supla_log(LOG_DEBUG, "Current status: [%d] %s", status, msg);
+    }
   }
 }
 
@@ -234,7 +238,7 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
   // Set Supla protocol interface version
   srpc_set_proto_version(srpc, version);
 
-  supla_log(LOG_DEBUG, "Using protocol version %d", version);
+  supla_log(LOG_DEBUG, "Using Supla protocol version %d", version);
 
   if (rs_count > 0) {
     for (int a = 0; a < rs_count; a++) {
@@ -1054,11 +1058,12 @@ void SuplaDeviceClass::iterate(void) {
 
   if (!Supla::Network::IsReady()) {
     wait_for_iterate = millis() + 500;
+    status(STATUS_NETWORK_DISCONNECTED, "No connection to network");
     return;
   }
 
   if (!Supla::Network::Connected()) {
-    status(STATUS_DISCONNECTED, "Not connected");
+    status(STATUS_DISCONNECTED, "Not connected to Supla server");
 
     registered = 0;
 
@@ -1071,7 +1076,7 @@ void SuplaDeviceClass::iterate(void) {
       wait_for_iterate = millis() + 2000;
       return;
     } else {
-      supla_log(LOG_DEBUG, "Connected");
+      supla_log(LOG_DEBUG, "Connected to Supla Server");
     }
   }
 
