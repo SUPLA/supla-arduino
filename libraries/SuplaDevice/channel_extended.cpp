@@ -14,21 +14,15 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _channel_extended_h
-#define _channel_extended_h
-
-#include "channel.h"
+#include "supla/channel_extended.h"
 
 namespace Supla {
-class ChannelExtended : public Channel {
- public:
-  bool isExtended();
-  TSuplaChannelExtendedValue *getExtValue();
+bool ChannelExtended::isExtended() {
+  return true;
+}
 
- protected:
-  TSuplaChannelExtendedValue extValue;
-};
+TSuplaChannelExtendedValue *ChannelExtended::getExtValue() {
+  return &extValue;
+}
 
 };  // namespace Supla
-
-#endif
