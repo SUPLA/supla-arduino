@@ -19,4 +19,74 @@
 namespace Supla {
 Element *Element::firstPtr = nullptr;
 
+Element::Element() : lastReadTime(0), nextPtr(nullptr) {
+  if (firstPtr == nullptr) {
+    firstPtr = this;
+  } else {
+    last()->nextPtr = this;
+  }
+}
+
+Element *Element::begin() {
+  return firstPtr;
+}
+
+Element *Element::last() {
+  Element *ptr = firstPtr;
+  while (ptr && ptr->nextPtr) {
+    ptr = ptr->nextPtr;
+  }
+  return ptr;
+}
+
+Element *Element::getElementByChannelNumber(int channelNumber) {
+  Element *element = begin();
+  while (element != nullptr && element->getChannelNumber() != channelNumber) {
+    element = element->next();
+  }
+
+  return element;
+}
+
+Element *Element::next() {
+  return nextPtr;
+}
+
+void Element::onInit(){};
+
+void Element::onLoadConfig(){};
+
+void Element::iterateAlways(){};
+
+bool Element::iterateConnected(void *srpc) {
+  Channel *channel = getChannel();
+  if (channel && channel->isUpdateReady() &&
+      channel->nextCommunicationTimeMs < millis()) {
+    channel->nextCommunicationTimeMs = millis() + 100;
+    channel->sendUpdate(srpc);
+    return false;
+  }
+  return true;
+}
+
+void Element::onTimer(){};
+
+void Element::onFastTimer(){};
+
+int Element::handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue) {
+  return -1;
+}
+
+int Element::getChannelNumber() {
+  int result = -1;
+  Channel *channel = getChannel();
+  if (channel) {
+    result = channel->getChannelNumber();
+  }
+  return result;
+}
+
+Channel *Element::getChannel() {
+  return nullptr;
+}
 };  // namespace Supla

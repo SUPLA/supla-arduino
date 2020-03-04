@@ -14,35 +14,29 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _will_trigger_h
-#define _will_trigger_h
-
-#include "triggerable.h"
-
-#define MAX_TRIGGERABLE_CLIENTS 10
+#include "supla/will_trigger.h"
 
 namespace Supla {
 
-class TriggerableClient {
- public:
-  Triggerable *client;
-  int onEvent;
-  int action;
-};
+WillTrigger::WillTrigger() : registeredClientsCount(0) {
+}
 
-class WillTrigger {
- public:
-  WillTrigger();
+void WillTrigger::willTrigger(Triggerable &client, int event, int action) {
+  if (registeredClientsCount < MAX_TRIGGERABLE_CLIENTS) {
+    clients[registeredClientsCount].client = &client;
+    clients[registeredClientsCount].onEvent = event;
+    clients[registeredClientsCount].action = action;
+    registeredClientsCount++;
+  }
+}
 
-  virtual void willTrigger(Triggerable &client, int event, int action);
+void WillTrigger::runTrigger(int event) {
+  for (int i = 0; i < registeredClientsCount; i++) {
+    if (clients[i].onEvent == event) {
+      clients[i].client->trigger(event, clients[i].action);
+    }
+  }
+}
 
-  virtual void runTrigger(int event);
+};  // namespace Supla
 
- protected:
-  TriggerableClient clients[MAX_TRIGGERABLE_CLIENTS];
-  int registeredClientsCount;
-};
-
-};
-
-#endif

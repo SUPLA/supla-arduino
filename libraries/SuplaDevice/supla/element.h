@@ -23,121 +23,54 @@
 #include "channel.h"
 
 namespace Supla {
-/*
-class Element;
 
-class ElementIterator {
-  public:
-    ElementIterator& operator++() {
-      if (currentPtr) {
-        currentPtr = currentPtr->nextPtr;
-      }
-      return *this;
-    }
-
-    ElementIterator(Element *ptr) {
-      currentPtr = ptr;
-    }
-
-  protected:
-    Element *currentPtr;
-}
-*/
 class Element {
  public:
-  Element() : lastReadTime(0), nextPtr(nullptr) {
-    if (firstPtr == nullptr) {
-      firstPtr = this;
-    } else {
-      last()->nextPtr = this;
-    }
-  }
-
-  static Element *begin() {
-    return firstPtr;
-  }
-
-  static Element *last() {
-    Element *ptr = firstPtr;
-    while (ptr && ptr->nextPtr) {
-      ptr = ptr->nextPtr;
-    }
-    return ptr;
-  }
-
-  static Element *getElementByChannelNumber(int channelNumber) {
-    Element *element = begin();
-    while (element != nullptr && element->getChannelNumber() != channelNumber) {
-      element = element->next();
-    }
-
-    return element;
-  }
-
-  Element *next() {
-    return nextPtr;
-  }
+  Element();
+  static Element *begin();
+  static Element *last();
+  static Element *getElementByChannelNumber(int channelNumber);
+  Element *next();
 
   // method called during SuplaDevice initialization. I.e. load initial state,
   // initialize pins etc.
-  virtual void onInit(){};
+  virtual void onInit();
 
   // TODO:
   // method called during Config initialization (i.e. read from EEPROM, FRAM).
   // Called only if Config module is configured
-  virtual void onLoadConfig(){};
+  virtual void onLoadConfig();
 
   // method called on each SuplaDevice iteration (before Network layer
   // iteration). When Device is connected, both iterateAlways() and
   // iterateConnected() are called.
-  virtual void iterateAlways(){};
+  virtual void iterateAlways();
 
   // method called on each Supla::Device iteration when Device is connected and
   // registered to Supla server
-  virtual bool iterateConnected(void *srpc) {
-    Channel *channel = getChannel();
-    if (channel && channel->isUpdateReady() &&
-        channel->nextCommunicationTimeMs < millis()) {
-      channel->nextCommunicationTimeMs = millis() + 100;
-      channel->sendUpdate(srpc);
-      return false;
-    }
-    return true;
-  }
+  virtual bool iterateConnected(void *srpc);
 
   // method called on timer interupt
   // Include all actions that have to be executed periodically regardless of
   // other SuplaDevice activities
-  virtual void onTimer(){};
+  virtual void onTimer();
 
   // method called on fast timer interupt
   // Include all actions that have to be executed periodically regardless of
   // other SuplaDevice activities
-  virtual void onFastTimer(){};
+  virtual void onFastTimer();
 
   // return value:
   //  -1 - don't send reply to server
   //  0 - success==false
   //  1 - success==true
-  virtual int handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue) {
-    return -1;
-  }
+  virtual int handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue);
 
-  int getChannelNumber() {
-    int result = -1;
-    Channel *channel = getChannel();
-    if (channel) {
-      result = channel->getChannelNumber();
-    }
-    return result;
-  }
+  int getChannelNumber();
 
  protected:
-  virtual Channel *getChannel() {
-    return nullptr;
-  }
+  virtual Channel *getChannel();
   static Element *firstPtr;
-  ;
   Element *nextPtr;
   unsigned long lastReadTime;
 };
