@@ -89,7 +89,10 @@ class EthernetShield : public Supla::Network {
     if (useLocalIp) {
       Ethernet.begin(mac, localIp);
     } else {
-      Ethernet.begin(mac);
+      int result = false;
+      result = Ethernet.begin(mac, 10000, 4000);
+      Serial.print("DHCP connection result: ");
+      Serial.println(result);
     }
 
     Serial.print("localIP: ");
@@ -100,6 +103,11 @@ class EthernetShield : public Supla::Network {
     Serial.println(Ethernet.gatewayIP());
     Serial.print("dnsServerIP: ");
     Serial.println(Ethernet.dnsServerIP());
+  }
+
+  bool iterate() {
+    Ethernet.maintain();
+    return true;
   }
 
  protected:

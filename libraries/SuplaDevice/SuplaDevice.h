@@ -154,7 +154,7 @@ class SuplaDeviceClass {
   SuplaChannelPin *channel_pin;
   int channel_pin_count;
   int port;
-
+  int connectionFailCounter;
   int rs_count;
   SuplaDeviceRollerShutter *roller_shutter;
 
