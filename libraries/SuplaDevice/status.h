@@ -20,12 +20,35 @@
 namespace Supla {
 class Status {
  public:
+   void notInitialized();
+   void initialized();
+
    void alreadyInitialized();
+   void channelLimitExceeded();
    void missingNetworkInterface();
    void invalidGuid();
-   void unknownServerAddress();
    void missingCredentials();
+   void unknownServerAddress();
 
+   void connectingToNetworkInterface();
+   void connectingToSuplaServer();
+   void registerInProgress();
+   void registeredAndReady();
+
+   void networkDisconnected();
+   void serverDisconnected();
+
+
+   void iterateFail();
+   void protocolVersionError();
+   void badCredentials();
+   void temporarilyUnavailable();
+   void locationConflict();
+   void channelConflict();
+   void deviceIsDisabled();
+   void locationIsDisabled();
+   void deviceLimitExceeded();
+   void registrationDisabled();
 
    
 };

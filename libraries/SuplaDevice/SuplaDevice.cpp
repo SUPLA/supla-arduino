@@ -165,7 +165,7 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
   if (isInitialized(true)) return false;
 
   if (Supla::Network::Instance() == NULL) {
-    status(STATUS_CB_NOT_ASSIGNED, "Network Interface not defined!");
+    status(STATUS_MISSING_NETWORK_INTERFACE, "Network Interface not defined!");
     return false;
   }
 
@@ -193,7 +193,7 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
   }
 
   if (Supla::Channel::reg_dev.Email[0] == NULL) {
-    //    status(STATUS_MISSING_CREDENTIALS, "Unknown email address");
+    status(STATUS_MISSING_CREDENTIALS, "Unknown email address");
     return false;
   }
 
@@ -205,7 +205,7 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
     }
   }
   if (emptyAuthKeyDetected) {
-    //    status(STATUS_MISSING_CREDENTIALS, "Unknown AuthKey");
+    status(STATUS_MISSING_CREDENTIALS, "Unknown AuthKey");
     return false;
   }
 
@@ -1063,7 +1063,7 @@ void SuplaDeviceClass::iterate(void) {
   }
 
   if (!Supla::Network::Connected()) {
-    status(STATUS_DISCONNECTED, "Not connected to Supla server");
+    status(STATUS_SERVER_DISCONNECTED, "Not connected to Supla server");
 
     registered = 0;
 

@@ -17,12 +17,8 @@
 #ifndef _channel_h
 #define _channel_h
 
-#include <Arduino.h>
 
-#include "../supla-common/log.h"
 #include "../supla-common/proto.h"
-#include "../supla-common/srpc.h"
-#include "tools.h"
 
 namespace Supla {
 

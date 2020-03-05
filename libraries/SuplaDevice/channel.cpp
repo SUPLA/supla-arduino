@@ -15,6 +15,9 @@
 */
 
 #include "supla/channel.h"
+#include "supla-common/log.h"
+#include "supla-common/srpc.h"
+#include "tools.h"
 
 namespace Supla {
 Channel *Channel::firstPtr = nullptr;
@@ -29,6 +32,8 @@ Channel::Channel() {
     channelNumber = reg_dev.channel_count;
     reg_dev.channels[channelNumber].Number = channelNumber;
     reg_dev.channel_count++;
+  } else {
+// TODO: add status CHANNEL_LIMIT_EXCEEDED
   }
 
   if (firstPtr == nullptr) {
