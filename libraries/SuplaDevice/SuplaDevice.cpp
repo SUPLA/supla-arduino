@@ -1067,12 +1067,13 @@ void SuplaDeviceClass::iterate(void) {
 
     registered = 0;
 
-    if (Supla::Network::Connect(Supla::Channel::reg_dev.ServerName, port)) {
+    int result = Supla::Network::Connect(Supla::Channel::reg_dev.ServerName, port);
+    if (1 == result) {
       connectionFailCounter = 0;
       supla_log(LOG_DEBUG, "Connected to Supla Server");
     } else {
       supla_log(LOG_DEBUG,
-                "Connection fail. Server: %s",
+                "Connection fail (%d). Server: %s", result,
                 Supla::Channel::reg_dev.ServerName);
 
       Supla::Network::Disconnect();

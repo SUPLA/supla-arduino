@@ -76,7 +76,7 @@ class ESPWifi : public Supla::Network {
     return sendSize;
   }
 
-  bool connect(const char *server, int port = -1) {
+  int connect(const char *server, int port = -1) {
     String message;
     if (client == NULL) {
       if (isSecured) {
@@ -105,6 +105,8 @@ class ESPWifi : public Supla::Network {
               message.c_str(),
               server,
               connectionPort);
+
+//    static_cast<WiFiClientSecure*>(client)->setBufferSizes(512, 512); // EXPERIMENTAL
 
     bool result = client->connect(server, connectionPort);
 
