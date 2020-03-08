@@ -50,7 +50,7 @@ class Network {
     return -1;
   }
 
-  static bool Connect(const char *server, int port = -1) {
+  static int Connect(const char *server, int port = -1) {
     if (Instance() != NULL) {
       Instance()->clearTimeCounters();
       return Instance()->connect(server, port);
@@ -101,7 +101,7 @@ class Network {
   Network(IPAddress *ip);
   virtual int read(void *buf, int count) = 0;
   virtual int write(void *buf, int count) = 0;
-  virtual bool connect(const char *server, int port = -1) = 0;
+  virtual int connect(const char *server, int port = -1) = 0;
   virtual bool connected() = 0;
   virtual void disconnect() = 0;
   virtual void setup() = 0;

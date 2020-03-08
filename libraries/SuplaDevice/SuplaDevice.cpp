@@ -85,7 +85,8 @@ void SuplaDeviceClass::status(int status, const char *msg) {
   }
 }
 
-SuplaDeviceClass::SuplaDeviceClass() : port(-1), connectionFailCounter(0) {
+SuplaDeviceClass::SuplaDeviceClass()
+    : port(-1), connectionFailCounter(0), networkIsNotReadyCounter(0) {
   srpc = NULL;
   registered = 0;
   last_iterate_time = 0;
@@ -1056,37 +1057,47 @@ void SuplaDeviceClass::iterate(void) {
     wait_for_iterate = 0;
   }
 
-  if (!Supla::Network::IsReady()) {
-    wait_for_iterate = millis() + 500;
-    status(STATUS_NETWORK_DISCONNECTED, "No connection to network");
+  // Restart network after >1 min of failed connection attempts
+  if (connectionFailCounter > 30) {
+    connectionFailCounter = 0;
+    supla_log(LOG_DEBUG,
+              "Connection fail counter overflow. Trying to setup network "
+              "interface again");
+    Supla::Network::Setup();
     return;
   }
+
+  if (!Supla::Network::IsReady()) {
+    wait_for_iterate = millis() + 100;
+    status(STATUS_NETWORK_DISCONNECTED, "No connection to network");
+    networkIsNotReadyCounter++;
+    if (networkIsNotReadyCounter > 20) {
+      networkIsNotReadyCounter = 0;
+      connectionFailCounter++;
+    }
+    return;
+  }
+  networkIsNotReadyCounter = 0;
 
   if (!Supla::Network::Connected()) {
     status(STATUS_SERVER_DISCONNECTED, "Not connected to Supla server");
 
     registered = 0;
 
-    int result = Supla::Network::Connect(Supla::Channel::reg_dev.ServerName, port);
+    int result =
+        Supla::Network::Connect(Supla::Channel::reg_dev.ServerName, port);
     if (1 == result) {
       connectionFailCounter = 0;
       supla_log(LOG_DEBUG, "Connected to Supla Server");
     } else {
       supla_log(LOG_DEBUG,
-                "Connection fail (%d). Server: %s", result,
+                "Connection fail (%d). Server: %s",
+                result,
                 Supla::Channel::reg_dev.ServerName);
 
       Supla::Network::Disconnect();
       wait_for_iterate = millis() + 2000;
       connectionFailCounter++;
-      // Restart network after >1 min of failed connection attempts
-      if (connectionFailCounter > 30) {
-        supla_log(LOG_DEBUG,
-                  "Connection fail counter overflow. Trying to setup network "
-                  "interface again");
-        connectionFailCounter = 0;
-        Supla::Network::Setup();
-      }
       return;
     }
   }
@@ -1176,7 +1187,7 @@ void SuplaDeviceClass::onRegisterResult(
 
       return;
 
-    // NOK scenarios
+      // NOK scenarios
     case SUPLA_RESULTCODE_BAD_CREDENTIALS:
       status(STATUS_BAD_CREDENTIALS, "Bad credentials!");
       break;

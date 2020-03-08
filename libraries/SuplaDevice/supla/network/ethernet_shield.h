@@ -28,7 +28,7 @@
 namespace Supla {
 class EthernetShield : public Supla::Network {
  public:
-  EthernetShield(uint8_t mac[6], IPAddress *ip = NULL) : Network(ip) {
+  EthernetShield(uint8_t mac[6], IPAddress *ip = NULL) : Network(ip), isDeviceReady(false) {
     memcpy(this->mac, mac, 6);
   }
 
@@ -81,18 +81,20 @@ class EthernetShield : public Supla::Network {
   }
 
   bool isReady() {
-    return true;
+    return isDeviceReady;
   }
 
   void setup() {
     Serial.println("Connecting to network...");
     if (useLocalIp) {
       Ethernet.begin(mac, localIp);
+      isDeviceReady = true;
     } else {
       int result = false;
       result = Ethernet.begin(mac, 10000, 4000);
       Serial.print("DHCP connection result: ");
       Serial.println(result);
+      isDeviceReady = result == 1 ? true : false;
     }
 
     Serial.print("localIP: ");
@@ -113,6 +115,7 @@ class EthernetShield : public Supla::Network {
  protected:
   EthernetClient client;
   uint8_t mac[6];
+  bool isDeviceReady;
 };
 
 };  // namespace Supla
