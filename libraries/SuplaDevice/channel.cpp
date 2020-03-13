@@ -240,4 +240,21 @@ bool Channel::isExtended() {
   return false;
 }
 
+void Channel::setNewValue(uint8_t red,
+                   uint8_t green,
+                   uint8_t blue,
+                   uint8_t colorBrightness,
+                   uint8_t brightness) {
+  char newValue[SUPLA_CHANNELVALUE_SIZE];
+  memset(newValue, 0, SUPLA_CHANNELVALUE_SIZE);
+  newValue[0] = brightness;
+  newValue[1] = colorBrightness;
+  newValue[2] = blue;
+  newValue[3] = green;
+  newValue[4] = red;
+  if (setNewValue(newValue)) {
+    supla_log(LOG_DEBUG, "Channel(%d) value changed to RGB(%d, %d, %d), colBr(%d), bright(%d)", channelNumber, red, green, blue, colorBrightness, brightness);
+  }
+}
+
 };  // namespace Supla

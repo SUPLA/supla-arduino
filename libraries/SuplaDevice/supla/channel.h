@@ -17,6 +17,7 @@
 #ifndef _channel_h
 #define _channel_h
 
+#include <stdint.h>
 
 #include "../supla-common/proto.h"
 
@@ -35,6 +36,11 @@ class Channel {
   void setNewValue(int value);
   void setNewValue(bool value);
   void setNewValue(TElectricityMeter_ExtendedValue &emValue);
+  void setNewValue(uint8_t red,
+                   uint8_t green,
+                   uint8_t blue,
+                   uint8_t colorBrightness,
+                   uint8_t brightness);
   bool setNewValue(char *newValue);
 
   virtual bool isExtended();
