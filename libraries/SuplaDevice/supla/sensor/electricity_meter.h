@@ -21,6 +21,7 @@
 
 #include "../channel_extended.h"
 #include "../element.h"
+#include <supla-common/srpc.h>
 
 #define MAX_PHASES 3
 
