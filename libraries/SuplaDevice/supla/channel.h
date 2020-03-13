@@ -45,11 +45,13 @@ class Channel {
 
   virtual bool isExtended();
   bool isUpdateReady();
+  int getChannelNumber();
+  int getChannelType();
+
   void setType(int type);
   void setDefault(int value);
   void setFlag(int flag);
   void setFuncList(int functions);
-  int getChannelNumber();
   void clearUpdateReady();
   void sendUpdate(void *srpc);
   virtual TSuplaChannelExtendedValue *getExtValue();

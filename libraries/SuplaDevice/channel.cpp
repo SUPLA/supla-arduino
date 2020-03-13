@@ -257,4 +257,11 @@ void Channel::setNewValue(uint8_t red,
   }
 }
 
+int Channel::getChannelType() {
+  if (channelNumber >= 0) {
+    return reg_dev.channels[channelNumber].Type;
+  }
+  return -1;
+}
+
 };  // namespace Supla
