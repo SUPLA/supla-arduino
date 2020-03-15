@@ -33,6 +33,9 @@ class PZEMv3 : public OnePhaseElectricityMeter {
   PZEMv3(int8_t pinRX, int8_t pinTX) : pzem(pinRX, pinTX) {
   }
 
+  PZEMv3(HardwareSerial *serial) : pzem(serial) {
+  }
+
   void onInit() {
     readValuesFromDevice();
     updateChannelValues();

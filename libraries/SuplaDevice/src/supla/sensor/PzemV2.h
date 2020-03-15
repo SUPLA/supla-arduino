@@ -33,6 +33,9 @@ class PZEMv2 : public OnePhaseElectricityMeter {
   PZEMv2(int8_t pinRX, int8_t pinTX) : pzem(pinRX, pinTX), ip(192, 168, 1, 1) {
   }
 
+  PZEMv2(HardwareSerial *serial) : pzem(serial), ip(192, 168, 1, 1) {
+  }
+
   void onInit() {
     pzem.setAddress(ip);
     readValuesFromDevice();

@@ -28,9 +28,7 @@ class GeneralPurposeMeasurementBase : public Element {
      channel.setType(SUPLA_CHANNELTYPE_GENERAL_PURPOSE_MEASUREMENT);
    }
 
-  virtual double getValue() {
-    return 42;
-  }
+  virtual double getValue() = 0;
 
   void iterateAlways() {
     if (lastReadTime + 1000 < millis()) {

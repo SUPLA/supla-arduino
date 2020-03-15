@@ -31,70 +31,78 @@ namespace Sensor {
 class ThreePhasePZEMv3 : public ElectricityMeter {
  public:
   ThreePhasePZEMv3(int8_t pinRX1,
-         int8_t pinTX1,
-         int8_t pinRX2,
-         int8_t pinTX2,
-         int8_t pinRX3,
-         int8_t pinTX3)
-      : pzem {
-    PZEM004Tv30(pinRX1, pinTX1), PZEM004Tv30(pinRX2, pinTX2),
-        PZEM004Tv30(pinRX3, pinTX3)} 
-  { }
+                   int8_t pinTX1,
+                   int8_t pinRX2,
+                   int8_t pinTX2,
+                   int8_t pinRX3,
+                   int8_t pinTX3)
+      : pzem{PZEM004Tv30(pinRX1, pinTX1),
+             PZEM004Tv30(pinRX2, pinTX2),
+             PZEM004Tv30(pinRX3, pinTX3)} {
+  }
 
-    void onInit() {
-      readValuesFromDevice();
-      updateChannelValues();
-    }
+  ThreePhasePZEMv3(HardwareSerial *serial1,
+                   HardwareSerial *serial2,
+                   HardwareSerial *serial3)
+      : pzem{PZEM004Tv30(serial1),
+             PZEM004Tv30(serial2),
+             PZEM004Tv30(serial3)} {
+  }
 
-    virtual void readValuesFromDevice() {
-      bool atLeatOnePzemWasRead = false;
-      for (int i = 0; i < 3; i++) {
-        float current = pzem[i].current();
-        // If current reading is NAN, we assume that PZEM there is no valid
-        // communication with PZEM. Sensor shouldn't show any data
-        if (isnan(current)) {
-          continue;
-        }
+  void onInit() {
+    readValuesFromDevice();
+    updateChannelValues();
+  }
 
-        atLeatOnePzemWasRead = true;
-
-        float voltage = pzem[i].voltage();
-        float active = pzem[i].power();
-        float apparent = (voltage * current);
-        float reactive = 0;
-        if (apparent > active) {
-          reactive = sqrt(apparent * apparent - active * active);
-        } else {
-          reactive = 0;
-        }
-
-        setVoltage(i, voltage * 100);
-        setCurrent(i, current * 1000);
-        setPowerActive(i, active * 100000);
-        setFwdActEnergy(i, pzem[i].energy() * 100000);
-        setPowerFactor(i, pzem[i].pf() * 1000);
-        setPowerApparent(i, apparent * 100000);
-        setPowerReactive(i, reactive * 10000);
-
-        setFreq(pzem[i].frequency() * 100);
+  virtual void readValuesFromDevice() {
+    bool atLeatOnePzemWasRead = false;
+    for (int i = 0; i < 3; i++) {
+      float current = pzem[i].current();
+      // If current reading is NAN, we assume that PZEM there is no valid
+      // communication with PZEM. Sensor shouldn't show any data
+      if (isnan(current)) {
+        continue;
       }
 
-      if (!atLeatOnePzemWasRead) {
-        resetReadParameters();
+      atLeatOnePzemWasRead = true;
+
+      float voltage = pzem[i].voltage();
+      float active = pzem[i].power();
+      float apparent = (voltage * current);
+      float reactive = 0;
+      if (apparent > active) {
+        reactive = sqrt(apparent * apparent - active * active);
+      } else {
+        reactive = 0;
       }
+
+      setVoltage(i, voltage * 100);
+      setCurrent(i, current * 1000);
+      setPowerActive(i, active * 100000);
+      setFwdActEnergy(i, pzem[i].energy() * 100000);
+      setPowerFactor(i, pzem[i].pf() * 1000);
+      setPowerApparent(i, apparent * 100000);
+      setPowerReactive(i, reactive * 10000);
+
+      setFreq(pzem[i].frequency() * 100);
     }
 
-    void resetStorage() {
-      for (int i = 0; i < 3; i++) {
-        pzem[i].resetEnergy();
-      }
+    if (!atLeatOnePzemWasRead) {
+      resetReadParameters();
     }
+  }
 
-   protected:
-    PZEM004Tv30 pzem[3];
-  };
+  void resetStorage() {
+    for (int i = 0; i < 3; i++) {
+      pzem[i].resetEnergy();
+    }
+  }
+
+ protected:
+  PZEM004Tv30 pzem[3];
+};
 
 };  // namespace Sensor
-};  // namespace Sensor
+};  // namespace Supla
 
 #endif
