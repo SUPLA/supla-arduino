@@ -20,13 +20,12 @@
 
 #include "SuplaDevice.h"
 #include "SuplaImpulseCounter.h"
-#include "io.h"
+#include "supla/io.h"
 #include "supla-common/IEEE754tools.h"
 #include "supla-common/log.h"
 #include "supla-common/srpc.h"
 #include "supla/channel.h"
 #include "supla/element.h"
-#include "tools.h"
 #if defined(ARDUINO_ARCH_ESP32)
 #include <esp_timer.h>
 #endif

@@ -20,7 +20,6 @@
 #include <Arduino.h>
 #include <stdint.h>
 
-#include "../../io.h"
 #include "../channel.h"
 #include "../element.h"
 #include "../triggerable.h"

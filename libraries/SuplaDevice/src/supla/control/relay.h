@@ -24,7 +24,7 @@
 
 #include <Arduino.h>
 
-#include "../../io.h"
+#include "../io.h"
 #include "../channel.h"
 #include "../element.h"
 #include "../triggerable.h"

@@ -19,8 +19,8 @@
 
 #include "../channel.h"
 #include "../element.h"
+#include "../io.h"
 #include <Arduino.h>
-#include <io.h>
 
 namespace Supla {
 namespace Sensor {
