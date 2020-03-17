@@ -21,7 +21,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
 
-#include "../../supla_lib_config.h"
+#include "../supla_lib_config.h"
 #include "network.h"
 
 #define MAX_SSID_SIZE          32

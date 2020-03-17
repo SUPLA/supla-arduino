@@ -20,7 +20,7 @@
 #include <Arduino.h>
 #include <Ethernet.h>
 
-#include "../../supla_lib_config.h"
+#include "../supla_lib_config.h"
 #include "network.h"
 
 // TODO: change logs to supla_log

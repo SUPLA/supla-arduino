@@ -17,10 +17,8 @@
 #ifndef _supla_timer_h
 #define _supla_timer_h
 
-#include <stdint.h>
-
 namespace Supla {
-
-};  // namespace Supla
+  void initTimers();
+};
 
 #endif

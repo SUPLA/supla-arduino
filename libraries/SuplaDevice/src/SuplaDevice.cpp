@@ -26,9 +26,7 @@
 #include "supla-common/srpc.h"
 #include "supla/channel.h"
 #include "supla/element.h"
-#if defined(ARDUINO_ARCH_ESP32)
-#include <esp_timer.h>
-#endif
+#include "timer.h"
 
 #define RS_STOP_DELAY  500
 #define RS_START_DELAY 1000
@@ -41,36 +39,6 @@
 #define RS_DIRECTION_UP   2
 #define RS_DIRECTION_DOWN 1
 
-#if defined(ARDUINO_ARCH_ESP8266)
-ETSTimer esp_timer;
-ETSTimer esp_fastTimer;
-
-void esp_timer_cb(void *timer_arg) {
-  SuplaDevice.onTimer();
-}
-
-void esp_fastTimer_cb(void *timer_arg) {
-  SuplaDevice.onFastTimer();
-}
-#elif defined(ARDUINO_ARCH_ESP32)
-hw_timer_t *esp_timer = NULL;
-hw_timer_t *esp_fastTimer = NULL;
-
-void IRAM_ATTR esp_timer_cb() {
-  SuplaDevice.onTimer();
-}
-
-void IRAM_ATTR esp_fastTimer_cb() {
-  SuplaDevice.onFastTimer();
-}
-#else
-ISR(TIMER1_COMPA_vect) {
-  SuplaDevice.onTimer();
-}
-ISR(TIMER2_COMPA_vect) {
-  SuplaDevice.onFastTimer();
-}
-#endif
 
 void SuplaDeviceClass::status(int status, const char *msg) {
   static int currentStatus = STATUS_UNKNOWN;
@@ -99,8 +67,6 @@ SuplaDeviceClass::SuplaDeviceClass()
   impl_rs_load_position = NULL;
   impl_rs_save_settings = NULL;
   impl_rs_load_settings = NULL;
-
-  impl_arduino_timer = NULL;
 
   memset(&Params, 0, sizeof(SuplaDeviceParams));
 
@@ -139,11 +105,6 @@ void SuplaDeviceClass::suplaDigitalWrite_setHI(int channelNumber,
 void SuplaDeviceClass::setStatusFuncImpl(
     _impl_arduino_status impl_arduino_status) {
   this->impl_arduino_status = impl_arduino_status;
-}
-
-void SuplaDeviceClass::setTimerFuncImpl(
-    _impl_arduino_timer impl_arduino_timer) {
-  this->impl_arduino_timer = impl_arduino_timer;
 }
 
 bool SuplaDeviceClass::isInitialized(bool msg) {
@@ -259,61 +220,9 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
   // Load counters values from EEPROM storage
   SuplaImpulseCounter::loadStorage();
 
-  // Enable timer if there are Roller Shutters defined, or custom call back to
-  // impl_arduino_timer or there are Impulse Counters
-  if (rs_count > 0 || impl_arduino_timer || SuplaImpulseCounter::count() > 0) {
-#if defined(ARDUINO_ARCH_ESP8266)
-
-    os_timer_disarm(&esp_timer);
-    os_timer_setfn(&esp_timer, (os_timer_func_t *)esp_timer_cb, NULL);
-    os_timer_arm(&esp_timer, 10, 1);
-
-    os_timer_disarm(&esp_fastTimer);
-    os_timer_setfn(&esp_fastTimer, (os_timer_func_t *)esp_fastTimer_cb, NULL);
-    os_timer_arm(&esp_fastTimer, 1, 1);
-
-#elif defined(ARDUINO_ARCH_ESP32)
-    esp_timer = timerBegin(0, 80, true);                   // timer 0, div 80
-    timerAttachInterrupt(esp_timer, &esp_timer_cb, true);  // attach callback
-    timerAlarmWrite(esp_timer, 10 * 1000, false);          // set time in us
-    timerAlarmEnable(esp_timer);                           // enable interrupt
-
-    esp_fastTimer = timerBegin(1, 80, true);
-    timerAttachInterrupt(esp_fastTimer,
-                         &esp_fastTimer_cb,
-                         true);                       // attach callback
-    timerAlarmWrite(esp_fastTimer, 1 * 1000, false);  // set time in us
-    timerAlarmEnable(esp_fastTimer);                  // enable interrupt
-#else
-    // Timer 1 for interrupt frequency 100 Hz (10 ms)
-    TCCR1A = 0;  // set entire TCCR1A register to 0
-    TCCR1B = 0;  // same for TCCR1B
-    TCNT1 = 0;   // initialize counter value to 0
-    // set compare match register for 1hz increments
-    OCR1A = 155;  // (16*10^6) / (100*1024) - 1 (must be <65536) == 155.25
-    // turn on CTC mode
-    TCCR1B |= (1 << WGM12);
-    // Set CS12 and CS10 bits for 1024 prescaler
-    TCCR1B |= (1 << CS12) | (1 << CS10);
-    // enable timer compare interrupt
-    TIMSK1 |= (1 << OCIE1A);
-    sei();  // enable interrupts
-
-    // TIMER 2 for interrupt frequency 2000 Hz (0.5 ms)
-    cli();       // stop interrupts
-    TCCR2A = 0;  // set entire TCCR2A register to 0
-    TCCR2B = 0;  // same for TCCR2B
-    TCNT2 = 0;   // initialize counter value to 0
-    // set compare match register for 2000 Hz increments
-    OCR2A = 249;  // = 16000000 / (32 * 2000) - 1 (must be <256)
-    // turn on CTC mode
-    TCCR2B |= (1 << WGM21);
-    // Set CS22, CS21 and CS20 bits for 32 prescaler
-    TCCR2B |= (0 << CS22) | (1 << CS21) | (1 << CS20);
-    // enable timer compare interrupt
-    TIMSK2 |= (1 << OCIE2A);
-    sei();  // allow interrupts
-#endif
+  // Enable timer if there are Roller Shutters defined or there are Impulse Counters
+  if (rs_count > 0 || SuplaImpulseCounter::count() > 0) {
+    Supla::initTimers();
   }
 
   for (auto element = Supla::Element::begin(); element != nullptr;
@@ -1015,10 +924,6 @@ void SuplaDeviceClass::iterate_impulse_counter(
 }
 
 void SuplaDeviceClass::onTimer(void) {
-  if (impl_arduino_timer) {
-    impl_arduino_timer();
-  }
-
   for (int a = 0; a < rs_count; a++) {
     iterate_rollershutter(
         &roller_shutter[a],
