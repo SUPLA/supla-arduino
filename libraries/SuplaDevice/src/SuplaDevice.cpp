@@ -26,7 +26,7 @@
 #include "supla-common/srpc.h"
 #include "supla/channel.h"
 #include "supla/element.h"
-#include "timer.h"
+#include "supla/timer.h"
 
 #define RS_STOP_DELAY  500
 #define RS_START_DELAY 1000
