@@ -220,10 +220,8 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
   // Load counters values from EEPROM storage
   SuplaImpulseCounter::loadStorage();
 
-  // Enable timer if there are Roller Shutters defined or there are Impulse Counters
-  if (rs_count > 0 || SuplaImpulseCounter::count() > 0) {
-    Supla::initTimers();
-  }
+  // Enable timers
+  Supla::initTimers();
 
   for (auto element = Supla::Element::begin(); element != nullptr;
        element = element->next()) {
@@ -930,6 +928,10 @@ void SuplaDeviceClass::onTimer(void) {
         &channel_pin[roller_shutter[a].channel_number],
         &Supla::Channel::reg_dev.channels[roller_shutter[a].channel_number]);
   }
+  for (auto element = Supla::Element::begin(); element != nullptr;
+       element = element->next()) {
+    element->onTimer();
+  }
 }
 
 void SuplaDeviceClass::onFastTimer(void) {
@@ -938,6 +940,10 @@ void SuplaDeviceClass::onFastTimer(void) {
   // values) and before any other operation like connection to Supla cloud
   // (because we want to count impulses even when we have connection issues.
   SuplaImpulseCounter::iterateAll();
+  for (auto element = Supla::Element::begin(); element != nullptr;
+       element = element->next()) {
+    element->onFastTimer();
+  }
 }
 
 void SuplaDeviceClass::iterate(void) {
