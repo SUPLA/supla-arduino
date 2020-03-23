@@ -2,21 +2,22 @@
 #include <SuplaDevice.h>
 #include <SuplaSomfy.h>
 #include <EEPROM.h>
+#include <supla/io.h>
 
 // Choose proper network interface for your card:
 // Arduino Mega with EthernetShield W5100:
-#include <supla/network/ethernet_shield.h>
+//#include <supla/network/ethernet_shield.h>
 // Ethernet MAC address
-uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
-Supla::EthernetShield ethernet(mac);
+//uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
+//Supla::EthernetShield ethernet(mac);
 //
 // Arduino Mega with ENC28J60:
 // #include <supla/network/ENC28J60.h>
 // Supla::ENC28J60 ethernet(mac);
 //
 // ESP8266 based board:
-// #include <supla/network/esp_wifi.h>
-// Supla::ESPWifi wifi("your_wifi_ssid", "your_wifi_password");
+#include <supla/network/esp_wifi.h>
+Supla::ESPWifi wifi("your_wifi_ssid", "your_wifi_password");
 //
 // ESP32 based board:
 // #include <supla/network/esp32_wifi.h>
@@ -83,9 +84,9 @@ void createRemote(uint8_t count) {
       saveRemote(remote, i);
       remote.remoteControl.ivalue++;
     }
-    EEPROM.write(0, "C");
-    EEPROM.write(1, "F");
-    EEPROM.write(2, "G");
+    EEPROM.write(0, 'C');
+    EEPROM.write(1, 'F');
+    EEPROM.write(2, 'G');
   }
 }
 
@@ -128,10 +129,54 @@ void supla_Timer() {
   
 }
 
+class SomfyDigitalIo : public Supla::Io {
+  public:
+  int customDigitalRead(int channelNumber, uint8_t pin) {
+    Serial.println("");
+    Serial.println(">DigitalRead<");
+    Serial.print("Chanel:"); Serial.println(channelNumber);
+    Serial.print("Pin:"); Serial.println(pin);
+
+    uint8_t vpin = pinChanel(channelNumber);
+
+    if (pin == vpin) {
+      Serial.print("Value:"); Serial.println(pinState[channelNumber][0]);
+      return pinState[channelNumber][0];
+    }
+
+    if (pin == vpin + 1) {
+      Serial.print("Value:"); Serial.println(pinState[channelNumber][1]);
+      return pinState[channelNumber][1];
+    }
+  }
+
+  void customDigitalWrite(int channelNumber, uint8_t pin, uint8_t val) {
+    Serial.println("");
+  Serial.println(">DigitalWrite<");
+  Serial.print("Chanel:"); Serial.println(channelNumber);
+  Serial.print("Pin:"); Serial.println(pin);
+  Serial.print("Value:"); Serial.println(val);
+
+  uint8_t vpin = pinChanel(channelNumber);
+
+  if (pin == vpin) {
+    // Sterowanie Somfy po 433
+    pinState[channelNumber][0] = val;
+  }
+
+  if (pin == vpin + 1) {
+    // Sterowanie Somfy po 433
+    pinState[channelNumber][1] = val;
+  }
+
+  somfy(channelNumber);
+  }
+};
 
 void setup() {
   Serial.begin(115200);
 
+  new SomfyDigitalIo;
   // Replace the falowing GUID with value that you can retrieve from https://www.supla.org/arduino/get-guid
   char GUID[SUPLA_GUID_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 
@@ -152,9 +197,6 @@ void setup() {
                                        pin + 1);    // 101 - ﻿Pin number where the 2nd relay is connected
   }
 
-  SuplaDevice.setTimerFuncImpl(&supla_Timer);
-  SuplaDevice.setDigitalReadFuncImpl(&supla_DigitalRead);
-  SuplaDevice.setDigitalWriteFuncImpl(&supla_DigitalWrite);
   SuplaDevice.setName("Somfy Remote");
 
   SuplaDevice.begin(GUID,              // Global Unique Identifier 
@@ -173,61 +215,21 @@ void testRemote() {
   somfy_remote_t remote;
   remote.rollingCode.svalue = {0x00, 0x01};
   remote.remoteControl.svalue = {0xAB, 0xCD, 0xEF};
-  Serial.print("Rolling Code:"); myRemote.PrintHex8(remote.rollingCode.ivalue, 2);
-  Serial.print("Remote SN:"); myRemote.PrintHex8(remote.remoteControl.ivalue, 3);
+  Serial.print("Rolling Code:"); myRemote.PrintHex8(remote.rollingCode.tvalue, 2);
+  Serial.print("Remote SN:"); myRemote.PrintHex8(remote.remoteControl.tvalue, 3);
   myRemote.SetRemote(remote);
   myRemote.PushButton(UP);
-  Serial.print("Rolling Code:"); myRemote.PrintHex8(remote.rollingCode.ivalue, 2);
-  Serial.print("Remote SN:"); myRemote.PrintHex8(remote.remoteControl.ivalue, 3);
+  Serial.print("Rolling Code:"); myRemote.PrintHex8(remote.rollingCode.tvalue, 2);
+  Serial.print("Remote SN:"); myRemote.PrintHex8(remote.remoteControl.tvalue, 3);
   remote = myRemote.GetRemote();
-  Serial.print("Rolling Code:"); myRemote.PrintHex8(remote.rollingCode.ivalue, 2);
-  Serial.print("Remote SN:"); myRemote.PrintHex8(remote.remoteControl.ivalue, 3);
+  Serial.print("Rolling Code:"); myRemote.PrintHex8(remote.rollingCode.tvalue, 2);
+  Serial.print("Remote SN:"); myRemote.PrintHex8(remote.remoteControl.tvalue, 3);
 
   Serial.println("");
   Serial.print("Size remote:"); Serial.println(sizeof(remote));
   //Serial.print("Remote:"); myRemote.PrintHex8(&remote, sizeof(remote));
 }
 
-int supla_DigitalRead(int channelNumber, uint8_t pin) {
-  Serial.println("");
-  Serial.println(">DigitalRead<");
-  Serial.print("Chanel:"); Serial.println(channelNumber);
-  Serial.print("Pin:"); Serial.println(pin);
-
-  uint8_t vpin = pinChanel(channelNumber);
-
-  if (pin == vpin) {
-    Serial.print("Value:"); Serial.println(pinState[channelNumber][0]);
-    return pinState[channelNumber][0];
-  }
-
-  if (pin == vpin + 1) {
-    Serial.print("Value:"); Serial.println(pinState[channelNumber][1]);
-    return pinState[channelNumber][1];
-  }
-}
-
-void supla_DigitalWrite(int channelNumber, uint8_t pin, uint8_t val) {
-  Serial.println("");
-  Serial.println(">DigitalWrite<");
-  Serial.print("Chanel:"); Serial.println(channelNumber);
-  Serial.print("Pin:"); Serial.println(pin);
-  Serial.print("Value:"); Serial.println(val);
-
-  uint8_t vpin = pinChanel(channelNumber);
-
-  if (pin == vpin) {
-    // Sterowanie Somfy po 433
-    pinState[channelNumber][0] = val;
-  }
-
-  if (pin == vpin + 1) {
-    // Sterowanie Somfy po 433
-    pinState[channelNumber][1] = val;
-  }
-
-  somfy(channelNumber);
-}
 
 void somfy(uint8_t channelNumber) {
   if (pinState[channelNumber][0] == 0 && pinState[channelNumber][1] == 1) {
