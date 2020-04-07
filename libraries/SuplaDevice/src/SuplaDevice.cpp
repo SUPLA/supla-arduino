@@ -68,9 +68,6 @@ SuplaDeviceClass::SuplaDeviceClass()
   impl_rs_save_settings = NULL;
   impl_rs_load_settings = NULL;
 
-  memset(&Params, 0, sizeof(SuplaDeviceParams));
-
-  Params.cb = supla_arduino_get_callbacks();
 }
 
 SuplaDeviceClass::~SuplaDeviceClass() {
@@ -403,56 +400,6 @@ void SuplaDeviceClass::setRollerShutterButtons(int channel_number,
   }
 }
 
-void SuplaDeviceClass::setRGBWvalue(int channelNum,
-                                    char value[SUPLA_CHANNELVALUE_SIZE]) {
-  if (Params.cb.get_rgbw_value) {
-    unsigned char red = 0;
-    unsigned char green = 0xFF;
-    unsigned char blue = 0;
-    unsigned char color_brightness = 0;
-    unsigned char brightness = 0;
-
-    Params.cb.get_rgbw_value(
-        Supla::Channel::reg_dev.channels[channelNum].Number,
-        &red,
-        &green,
-        &blue,
-        &color_brightness,
-        &brightness);
-
-    value[0] = brightness;
-    value[1] = color_brightness;
-
-    value[2] = blue;
-    value[3] = green;
-    value[4] = red;
-  }
-}
-
-bool SuplaDeviceClass::addRgbControllerAndDimmer(void) {
-  int c = addChannel(0, 0, false, false);
-  if (c == -1) return false;
-
-  Supla::Channel::reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_DIMMERANDRGBLED;
-  setRGBWvalue(c, Supla::Channel::reg_dev.channels[c].value);
-}
-
-bool SuplaDeviceClass::addRgbController(void) {
-  int c = addChannel(0, 0, false, false);
-  if (c == -1) return false;
-
-  Supla::Channel::reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_RGBLEDCONTROLLER;
-  setRGBWvalue(c, Supla::Channel::reg_dev.channels[c].value);
-}
-
-bool SuplaDeviceClass::addDimmer(void) {
-  int c = addChannel(0, 0, false, false);
-  if (c == -1) return false;
-
-  Supla::Channel::reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_DIMMER;
-  setRGBWvalue(c, Supla::Channel::reg_dev.channels[c].value);
-}
-
 bool SuplaDeviceClass::addImpulseCounter(int impulsePin,
                                          int statusLedPin,
                                          bool detectLowToHigh,
@@ -470,10 +417,6 @@ bool SuplaDeviceClass::addImpulseCounter(int impulsePin,
       c, impulsePin, statusLedPin, detectLowToHigh, inputPullup, debounceDelay);
 }
 
-SuplaDeviceCallbacks SuplaDeviceClass::getCallbacks(void) {
-  return Params.cb;
-}
-
 void SuplaDeviceClass::setString(char *dst, const char *src, int max_size) {
   if (src == NULL) {
     dst[0] = 0;
@@ -485,13 +428,6 @@ void SuplaDeviceClass::setString(char *dst, const char *src, int max_size) {
   if (size + 1 > max_size) size = max_size - 1;
 
   memcpy(dst, src, size);
-}
-
-void SuplaDeviceClass::setRGBWCallbacks(
-    _cb_arduino_get_rgbw_value get_rgbw_value,
-    _cb_arduino_set_rgbw_value set_rgbw_value) {
-  Params.cb.get_rgbw_value = get_rgbw_value;
-  Params.cb.set_rgbw_value = set_rgbw_value;
 }
 
 void SuplaDeviceClass::setRollerShutterFuncImpl(
@@ -1262,32 +1198,6 @@ void SuplaDeviceClass::channelSetValue(int channel,
   }
 }
 
-void SuplaDeviceClass::channelSetRGBWvalue(
-    int channel, char value[SUPLA_CHANNELVALUE_SIZE]) {
-  unsigned char red = (unsigned char)value[4];
-  unsigned char green = (unsigned char)value[3];
-  unsigned char blue = (unsigned char)value[2];
-  char color_brightness = (unsigned char)value[1];
-  char brightness = (unsigned char)value[0];
-
-  Params.cb.set_rgbw_value(Supla::Channel::reg_dev.channels[channel].Number,
-                           red,
-                           green,
-                           blue,
-                           color_brightness,
-                           brightness);
-
-  if (srpc != NULL && registered == 1) {
-    char value[SUPLA_CHANNELVALUE_SIZE];
-    memset(value, 0, SUPLA_CHANNELVALUE_SIZE);
-
-    setRGBWvalue(channel, value);
-
-    srpc_ds_async_channel_value_changed(
-        srpc, Supla::Channel::reg_dev.channels[channel].Number, value);
-  }
-}
-
 SuplaDeviceRollerShutter *SuplaDeviceClass::rsByChannelNumber(
     int channel_number) {
   for (int a = 0; a < rs_count; a++) {
@@ -1356,16 +1266,7 @@ void SuplaDeviceClass::channelSetValueByServer(
                           new_value->DurationMS);
         }
 
-        // Control dimmer, rgb dimmer, by server
-      } else if ((Supla::Channel::reg_dev.channels[a].Type ==
-                      SUPLA_CHANNELTYPE_DIMMER ||
-                  Supla::Channel::reg_dev.channels[a].Type ==
-                      SUPLA_CHANNELTYPE_RGBLEDCONTROLLER ||
-                  Supla::Channel::reg_dev.channels[a].Type ==
-                      SUPLA_CHANNELTYPE_DIMMERANDRGBLED) &&
-                 Params.cb.set_rgbw_value) {
-        channelSetRGBWvalue(a, new_value->value);
-      };
+      } 
       break;
     }
 }
@@ -1411,10 +1312,3 @@ void SuplaDeviceClass::setServerPort(int value) {
 
 SuplaDeviceClass SuplaDevice;
 
-SuplaDeviceCallbacks supla_arduino_get_callbacks(void) {
-  SuplaDeviceCallbacks cb;
-  cb.get_rgbw_value = NULL;
-  cb.set_rgbw_value = NULL;
-
-  return cb;
-}

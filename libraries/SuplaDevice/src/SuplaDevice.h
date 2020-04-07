@@ -48,18 +48,6 @@
 #define STATUS_REGISTRATION_DISABLED     22
 #define STATUS_MISSING_CREDENTIALS       23
 
-typedef void (*_cb_arduino_get_rgbw_value)(int channelNumber,
-                                           unsigned char *red,
-                                           unsigned char *green,
-                                           unsigned char *blue,
-                                           unsigned char *color_brightness,
-                                           unsigned char *brightness);
-typedef void (*_cb_arduino_set_rgbw_value)(int channelNumber,
-                                           unsigned char red,
-                                           unsigned char green,
-                                           unsigned char blue,
-                                           unsigned char color_brightness,
-                                           unsigned char brightness);
 typedef void (*_impl_arduino_status)(int status, const char *msg);
 
 typedef void (*_impl_rs_save_position)(int channelNumber, int position);
@@ -72,16 +60,6 @@ typedef void (*_impl_rs_load_settings)(int channelNumber,
                                        unsigned int *full_closing_time);
 
 typedef void (*_impl_arduino_timer)(void);
-
-typedef struct SuplaDeviceCallbacks {
-  _cb_arduino_get_rgbw_value get_rgbw_value;
-  _cb_arduino_set_rgbw_value set_rgbw_value;
-
-} SuplaDeviceCallbacks;
-
-typedef struct SuplaDeviceParams {
-  SuplaDeviceCallbacks cb;
-} SuplaDeviceParams;
 
 typedef struct SuplaChannelPin {
   int pin1;
@@ -149,10 +127,7 @@ class SuplaDeviceClass {
   void setString(char *dst, const char *src, int max_size);
   int addChannel(int pin1, int pin2, bool hiIsLo, bool bistable);
   void channelSetValue(int channel, char value, _supla_int_t DurationMS);
-  void setRGBWvalue(int channelNum, char value[SUPLA_CHANNELVALUE_SIZE]);
-  void channelSetRGBWvalue(int channel, char value[SUPLA_CHANNELVALUE_SIZE]);
 
-  SuplaDeviceParams Params;
   SuplaChannelPin *channel_pin;
   int channel_pin_count;
   int port;
@@ -248,9 +223,6 @@ class SuplaDeviceClass {
   void setRollerShutterButtons(int channel_number,
                                int btnUpPin,
                                int btnDownPin);
-  bool addRgbControllerAndDimmer(void);
-  bool addRgbController(void);
-  bool addDimmer(void);
   // Adds impulse couner on "impulsePin" pin. "statusLedPin" is not implemented
   // currently. "detectLowToHigh" defines if counter counts changes from LOW to
   // HIGH state on impulsePin. With "false" it counts changes from HIGH to LOW
@@ -277,9 +249,6 @@ class SuplaDeviceClass {
   void onFastTimer(void);
   void iterate(void);
 
-  SuplaDeviceCallbacks getCallbacks(void);
-  void setRGBWCallbacks(_cb_arduino_get_rgbw_value get_rgbw_value,
-                        _cb_arduino_set_rgbw_value set_rgbw_value);
   void setRollerShutterFuncImpl(_impl_rs_save_position impl_save_position,
                                 _impl_rs_load_position impl_load_position,
                                 _impl_rs_save_settings impl_save_settings,
@@ -297,5 +266,4 @@ class SuplaDeviceClass {
 };
 
 extern SuplaDeviceClass SuplaDevice;
-extern SuplaDeviceCallbacks supla_arduino_get_callbacks(void);
 #endif
