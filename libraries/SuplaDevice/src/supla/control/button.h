@@ -21,16 +21,12 @@
 
 #include "../element.h"
 #include "../will_trigger.h"
+#include "../events.h"
 
 namespace Supla {
 namespace Control {
 class Button : public Element, public WillTrigger {
  public:
-  enum Event {
-    ON_PRESS,    // Triggered on transition to valueOnPress()
-    ON_RELEASE,  // Triggered on transition from valueOnPress()
-    ON_CHANGE    // Triggered on all transitions
-  };
 
   Button(int pin, bool pullUp = false, bool invertLogic = false)
       : pin(pin),

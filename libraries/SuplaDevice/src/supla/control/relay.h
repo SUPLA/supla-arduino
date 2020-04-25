@@ -28,13 +28,12 @@
 #include "../channel.h"
 #include "../element.h"
 #include "../triggerable.h"
+#include "../actions.h"
 
 namespace Supla {
 namespace Control {
 class Relay : public Element, public Triggerable {
  public:
-  enum Action { TURN_ON, TURN_OFF, TOGGLE };
-
   Relay(int pin,
         bool highIsOn = true,
         _supla_int_t functions = (0xFF ^

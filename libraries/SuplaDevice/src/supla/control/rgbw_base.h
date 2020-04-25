@@ -23,41 +23,12 @@
 #include "../channel.h"
 #include "../element.h"
 #include "../triggerable.h"
+#include "../actions.h"
 
 namespace Supla {
 namespace Control {
 class RGBWBase : public Element, public Triggerable {
  public:
-  enum Action {
-    TURN_ON,
-    TURN_OFF,
-    TOGGLE,
-    BRIGHTEN_ALL,
-    DIM_ALL,
-    BRIGHTEN_R,
-    BRIGHTEN_G,
-    BRIGHTEN_B,
-    BRIGHTEN_W,
-    BRIGHTEN_RGB,
-    DIM_R,
-    DIM_G,
-    DIM_B,
-    DIM_W,
-    DIM_RGB,
-    TURN_ON_RGB,
-    TURN_OFF_RGB,
-    TOGGLE_RGB,
-    TURN_ON_W,
-    TURN_OFF_W,
-    TOGGLE_W,
-    TURN_ON_RGB_DIMMED,
-    TURN_ON_W_DIMMED,
-    TURN_ON_ALL_DIMMED,
-    ITERATE_DIM_RGB,
-    ITERATE_DIM_W,
-    ITERATE_DIM_ALL
-  };
-
   RGBWBase();
 
   virtual void setRGBWValueOnDevice(uint8_t red,

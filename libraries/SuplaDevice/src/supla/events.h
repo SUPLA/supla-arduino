@@ -14,33 +14,17 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _virtual_binary_h
-#define _virtual_binary_h
-
-#include <Arduino.h>
-
-#include "../channel.h"
-#include "../element.h"
-#include "../triggerable.h"
-#include "../actions.h"
+#ifndef _events_h
+#define _events_h
 
 namespace Supla {
-namespace Sensor {
-class VirtualBinary : public Element, public Triggerable {
- public:
-  VirtualBinary();
-  bool getValue();
-  void iterateAlways();
-  void onInit();
-  void trigger(int trigger, int action);
 
- protected:
-  Channel *getChannel();
-  Channel channel;
-  bool state;
+enum Event {
+  ON_PRESS,    // Triggered on transition to valueOnPress()
+  ON_RELEASE,  // Triggered on transition from valueOnPress()
+  ON_CHANGE    // Triggered on all transitions
 };
 
-};  // namespace Sensor
-};  // namespace Supla
+};
 
 #endif
