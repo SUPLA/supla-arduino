@@ -43,6 +43,6 @@ class WillTrigger {
   int registeredClientsCount;
 };
 
-};
+};  // namespace Supla
 
 #endif

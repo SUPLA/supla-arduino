@@ -63,8 +63,8 @@ void Element::iterateAlways(){};
 bool Element::iterateConnected(void *srpc) {
   Channel *channel = getChannel();
   if (channel && channel->isUpdateReady() &&
-      channel->nextCommunicationTimeMs < millis()) {
-    channel->nextCommunicationTimeMs = millis() + 100;
+      millis() - channel->lastCommunicationTimeMs > 100) {
+    channel->lastCommunicationTimeMs = millis();
     channel->sendUpdate(srpc);
     return false;
   }

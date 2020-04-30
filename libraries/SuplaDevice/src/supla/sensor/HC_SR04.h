@@ -26,8 +26,7 @@ namespace Supla {
 namespace Sensor {
 class HC_SR04 : public Distance {
  public:
-  HC_SR04(int8_t trigPin, int8_t echoPin)
-      : failCount(0), lastDuration(0) {
+  HC_SR04(int8_t trigPin, int8_t echoPin) : failCount(0), lastDuration(0) {
     _trigPin = trigPin;
     _echoPin = echoPin;
   }
@@ -54,8 +53,7 @@ class HC_SR04 : public Distance {
       failCount++;
     }
 
-    return failCount <= 3 ? duration * 0.034 / 2 / 100
-                 : DISTANCE_NOT_AVAILABLE;
+    return failCount <= 3 ? duration * 0.034 / 2 / 100 : DISTANCE_NOT_AVAILABLE;
   }
 
  protected:

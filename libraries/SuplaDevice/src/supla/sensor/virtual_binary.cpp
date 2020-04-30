@@ -61,4 +61,3 @@ Channel *VirtualBinary::getChannel() {
 
 };  // namespace Sensor
 };  // namespace Supla
-

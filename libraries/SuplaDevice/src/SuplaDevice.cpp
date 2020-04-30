@@ -20,12 +20,12 @@
 
 #include "SuplaDevice.h"
 #include "SuplaImpulseCounter.h"
-#include "supla/io.h"
 #include "supla-common/IEEE754tools.h"
 #include "supla-common/log.h"
 #include "supla-common/srpc.h"
 #include "supla/channel.h"
 #include "supla/element.h"
+#include "supla/io.h"
 #include "supla/timer.h"
 
 #define RS_STOP_DELAY  500
@@ -38,7 +38,6 @@
 #define RS_DIRECTION_NONE 0
 #define RS_DIRECTION_UP   2
 #define RS_DIRECTION_DOWN 1
-
 
 void SuplaDeviceClass::status(int status, const char *msg) {
   static int currentStatus = STATUS_UNKNOWN;
@@ -67,7 +66,6 @@ SuplaDeviceClass::SuplaDeviceClass()
   impl_rs_load_position = NULL;
   impl_rs_save_settings = NULL;
   impl_rs_load_settings = NULL;
-
 }
 
 SuplaDeviceClass::~SuplaDeviceClass() {
@@ -1265,8 +1263,7 @@ void SuplaDeviceClass::channelSetValueByServer(
                           new_value->value[0],
                           new_value->DurationMS);
         }
-
-      } 
+      }
       break;
     }
 }
@@ -1311,4 +1308,3 @@ void SuplaDeviceClass::setServerPort(int value) {
 }
 
 SuplaDeviceClass SuplaDevice;
-

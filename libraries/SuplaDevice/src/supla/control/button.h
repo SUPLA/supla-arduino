@@ -20,14 +20,13 @@
 #include <Arduino.h>
 
 #include "../element.h"
-#include "../will_trigger.h"
 #include "../events.h"
+#include "../will_trigger.h"
 
 namespace Supla {
 namespace Control {
 class Button : public Element, public WillTrigger {
  public:
-
   Button(int pin, bool pullUp = false, bool invertLogic = false)
       : pin(pin),
         pullUp(pullUp),

@@ -23,9 +23,12 @@ namespace Supla {
 namespace Sensor {
 class EspFreeHeap : public Thermometer {
  public:
+  void onInit() {
+    channel.setNewValue(getValue());
+  }
 
-  virtual double getValue() {
-    return ESP.getFreeHeap();
+  double getValue() {
+    return ESP.getFreeHeap() / 1024.0;
   }
 
  protected:

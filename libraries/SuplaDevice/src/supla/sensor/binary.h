@@ -17,21 +17,24 @@
 #ifndef _binary_h
 #define _binary_h
 
+#include <Arduino.h>
+
 #include "../channel.h"
 #include "../element.h"
 #include "../io.h"
-#include <Arduino.h>
 
 namespace Supla {
 namespace Sensor {
-class Binary: public Element {
+class Binary : public Element {
  public:
   Binary(int pin, bool pullUp = false) : pin(pin), pullUp(pullUp) {
     channel.setType(SUPLA_CHANNELTYPE_SENSORNO);
   }
 
   bool getValue() {
-    return Supla::Io::digitalRead(channel.getChannelNumber(), pin) == LOW ? false : true;
+    return Supla::Io::digitalRead(channel.getChannelNumber(), pin) == LOW
+               ? false
+               : true;
   }
 
   void iterateAlways() {
@@ -45,7 +48,6 @@ class Binary: public Element {
     pinMode(pin, pullUp ? INPUT_PULLUP : INPUT);
     channel.setNewValue(getValue());
   }
-
 
  protected:
   Channel *getChannel() {

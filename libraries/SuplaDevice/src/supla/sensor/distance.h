@@ -24,7 +24,7 @@
 
 namespace Supla {
 namespace Sensor {
-class Distance: public Element {
+class Distance : public Element {
  public:
   Distance() {
     channel.setType(SUPLA_CHANNELTYPE_DISTANCESENSOR);
@@ -42,7 +42,6 @@ class Distance: public Element {
       channel.setNewValue(getValue());
     }
   }
-
 
  protected:
   Channel *getChannel() {

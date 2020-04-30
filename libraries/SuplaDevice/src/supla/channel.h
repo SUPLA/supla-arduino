@@ -58,7 +58,7 @@ class Channel {
   static void clearAllUpdateReady();
   Channel *next();
 
-  static unsigned long nextCommunicationTimeMs;
+  static unsigned long lastCommunicationTimeMs;
   static TDS_SuplaRegisterDevice_E reg_dev;
 
  protected:
