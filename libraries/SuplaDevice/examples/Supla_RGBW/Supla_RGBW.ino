@@ -53,13 +53,13 @@ class RgbwLeds : public Supla::Control::RGBWBase {
   RgbwLeds(int redPin,
            int greenPin,
            int bluePin,
-           int brightnessPin,
-           int colorBrightnessPin)
+           int colorBrightnessPin,
+           int brightnessPin)
       : redPin(redPin),
         greenPin(greenPin),
         bluePin(bluePin),
-        brightnessPin(brightnessPin),
-        colorBrightnessPin(colorBrightnessPin) {
+        colorBrightnessPin(colorBrightnessPin),
+        brightnessPin(brightnessPin) {
   }
 
   void setRGBWValueOnDevice(uint8_t red,
@@ -104,8 +104,8 @@ void setup() {
 
   /*
    * SuplaDevice Initialization.
-   * Server address, LocationID and LocationPassword are available at
-   * https://cloud.supla.org If you do not have an account, you can create it at
+   * Server address is available at https://cloud.supla.org 
+   * If you do not have an account, you can create it at
    * https://cloud.supla.org/account/create SUPLA and SUPLA CLOUD are free of
    * charge
    *
