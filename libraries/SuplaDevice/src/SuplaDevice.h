@@ -191,6 +191,7 @@ class SuplaDeviceClass {
                                unsigned long time_diff,
                                int channel_number);
 
+
  private:
   bool suplaDigitalRead_isHI(int channelNumber, uint8_t pin);
   void suplaDigitalWrite_setHI(int channelNumber, uint8_t pin, bool hi);
@@ -263,6 +264,8 @@ class SuplaDeviceClass {
   void channelSetValueByServer(TSD_SuplaChannelNewValue *new_value);
   void channelSetActivityTimeoutResult(
       TSDC_SuplaSetActivityTimeoutResult *result);
+
+  void setSwVersion(const char *);
 };
 
 extern SuplaDeviceClass SuplaDevice;

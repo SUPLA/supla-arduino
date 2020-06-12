@@ -177,7 +177,9 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
 #endif
   }
 
-  setString(Supla::Channel::reg_dev.SoftVer, "2.3.1", SUPLA_SOFTVER_MAXSIZE);
+  if (strnlen(Supla::Channel::reg_dev.SoftVer, SUPLA_SOFTVER_MAXSIZE) == 0) {
+    setString(Supla::Channel::reg_dev.SoftVer, "User SW, lib 2.3.2", SUPLA_SOFTVER_MAXSIZE);
+  }
 
   Supla::Network::Setup();
 
@@ -1305,6 +1307,10 @@ bool SuplaDeviceClass::rollerShutterMotorIsOn(int channel_number) {
 
 void SuplaDeviceClass::setServerPort(int value) {
   port = value;
+}
+
+void SuplaDeviceClass::setSwVersion(const char *swVersion) {
+  setString(Supla::Channel::reg_dev.SoftVer, swVersion, SUPLA_SOFTVER_MAXSIZE);
 }
 
 SuplaDeviceClass SuplaDevice;
