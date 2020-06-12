@@ -142,6 +142,7 @@ class SuplaDeviceClass {
   unsigned long wait_for_iterate;
 
   _impl_arduino_status impl_arduino_status;
+  int currentStatus;
 
   _impl_rs_save_position impl_rs_save_position;
   _impl_rs_load_position impl_rs_load_position;
@@ -266,6 +267,7 @@ class SuplaDeviceClass {
       TSDC_SuplaSetActivityTimeoutResult *result);
 
   void setSwVersion(const char *);
+  int getCurrentStatus();
 };
 
 extern SuplaDeviceClass SuplaDevice;

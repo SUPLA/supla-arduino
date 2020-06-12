@@ -40,7 +40,6 @@
 #define RS_DIRECTION_DOWN 1
 
 void SuplaDeviceClass::status(int status, const char *msg) {
-  static int currentStatus = STATUS_UNKNOWN;
   if (impl_arduino_status != NULL) {
     impl_arduino_status(status, msg);
   } else {
@@ -52,7 +51,7 @@ void SuplaDeviceClass::status(int status, const char *msg) {
 }
 
 SuplaDeviceClass::SuplaDeviceClass()
-    : port(-1), connectionFailCounter(0), networkIsNotReadyCounter(0) {
+    : port(-1), connectionFailCounter(0), networkIsNotReadyCounter(0), currentStatus(STATUS_UNKNOWN) {
   srpc = NULL;
   registered = 0;
   last_iterate_time = 0;
@@ -1311,6 +1310,10 @@ void SuplaDeviceClass::setServerPort(int value) {
 
 void SuplaDeviceClass::setSwVersion(const char *swVersion) {
   setString(Supla::Channel::reg_dev.SoftVer, swVersion, SUPLA_SOFTVER_MAXSIZE);
+}
+
+int SuplaDeviceClass::getCurrentStatus() {
+  return currentStatus;
 }
 
 SuplaDeviceClass SuplaDevice;
