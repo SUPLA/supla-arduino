@@ -16,6 +16,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <SPI.h>
 #include <SuplaDevice.h>
+#include <supla/control/rgbw_base.h>
 
 // Choose proper network interface for your card:
 // Arduino Mega with EthernetShield W5100:
@@ -37,64 +38,52 @@ Supla::EthernetShield ethernet(mac);
 // Supla::ESP32Wifi wifi("your_wifi_ssid", "your_wifi_password");
 
 /*
-* Youtube: https://youtu.be/FE9tqzTjmA4
-*/
+ * Youtube: https://youtu.be/FE9tqzTjmA4
+ * Youtube example was done on older version of SuplaDevice library
+ */
 
+#define RED_PIN              44
+#define GREEN_PIN            45
+#define BLUE_PIN             46
+#define BRIGHTNESS_PIN       7
+#define COLOR_BRIGHTNESS_PIN 8
 
- #define RED_PIN    44
- #define GREEN_PIN  45
- #define BLUE_PIN   46
- #define BRIGHTNESS_PIN        7
- #define COLOR_BRIGHTNESS_PIN  8
+class RgbwLeds : public Supla::Control::RGBWBase {
+ public:
+  RgbwLeds(int redPin,
+           int greenPin,
+           int bluePin,
+           int colorBrightnessPin,
+           int brightnessPin)
+      : redPin(redPin),
+        greenPin(greenPin),
+        bluePin(bluePin),
+        colorBrightnessPin(colorBrightnessPin),
+        brightnessPin(brightnessPin) {
+  }
 
- unsigned char _red = 0;
- unsigned char _green = 255;
- unsigned char _blue = 0;
- unsigned char _color_brightness = 0;
- unsigned char _brightness = 0;
+  void setRGBWValueOnDevice(uint8_t red,
+                            uint8_t green,
+                            uint8_t blue,
+                            uint8_t colorBrightness,
+                            uint8_t brightness) {
+    analogWrite(brightnessPin, (brightness * 255) / 100);
+    analogWrite(colorBrightnessPin, (colorBrightness * 255) / 100);
+    analogWrite(redPin, red);
+    analogWrite(greenPin, green);
+    analogWrite(bluePin, blue);
+  }
 
-void get_rgbw_value(int channelNumber, unsigned char *red, unsigned char *green, unsigned char *blue, unsigned char *color_brightness, unsigned char *brightness) {
-
-  *brightness = _brightness;
-  *color_brightness= _color_brightness;
-
-  *red = _red;
-  *green = _green;
-  *blue = _blue;
-
-}
-
-void set_rgbw() {
-    
-    analogWrite(BRIGHTNESS_PIN, (_brightness * 255) / 100);
-    analogWrite(COLOR_BRIGHTNESS_PIN, (_color_brightness * 255) / 100);
-    analogWrite(RED_PIN, _red);
-    analogWrite(GREEN_PIN, _green);
-    analogWrite(BLUE_PIN, _blue);
-}
-
-void set_rgbw_value(int channelNumber, unsigned char red, unsigned char green, unsigned char blue, unsigned char color_brightness, unsigned char brightness) {
-
-    _brightness = brightness;
-    _color_brightness= color_brightness;
-  
-    _red = red;
-    _green = green;
-    _blue = blue;  
-    
-    set_rgbw();
-  
-}
-
+ protected:
+  int redPin;
+  int greenPin;
+  int bluePin;
+  int brightnessPin;
+  int colorBrightnessPin;
+};
 
 void setup() {
-
   Serial.begin(9600);
-
-  set_rgbw();
-  
-  // Set RGBW callbacks
-  SuplaDevice.setRGBWCallbacks(&get_rgbw_value, &set_rgbw_value);
 
   // Replace the falowing GUID with value that you can retrieve from https://www.supla.org/arduino/get-guid
   char GUID[SUPLA_GUID_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
@@ -108,25 +97,25 @@ void setup() {
    * then you must also remove the device itself from cloud.supla.org.
    * Otherwise you will get "Channel conflict!" error.
    */
-    
-  // CHANNEL0 - RGB controller and dimmer (RGBW)
-  SuplaDevice.addRgbControllerAndDimmer();    
 
-  // SuplaDevice.addRgbController(); 
-  // SuplaDevice.addDimmer(); 
+  // CHANNEL0 - RGB controller and dimmer (RGBW)
+  new RgbwLeds(
+      RED_PIN, GREEN_PIN, BLUE_PIN, COLOR_BRIGHTNESS_PIN, BRIGHTNESS_PIN);
 
   /*
    * SuplaDevice Initialization.
-   * Server address, LocationID and LocationPassword are available at https://cloud.supla.org 
-   * If you do not have an account, you can create it at https://cloud.supla.org/account/create
-   * SUPLA and SUPLA CLOUD are free of charge
-   * 
+   * Server address is available at https://cloud.supla.org 
+   * If you do not have an account, you can create it at
+   * https://cloud.supla.org/account/create SUPLA and SUPLA CLOUD are free of
+   * charge
+   *
    */
 
-  SuplaDevice.begin(GUID,              // Global Unique Identifier 
-                    "svr1.supla.org",  // SUPLA server address
-                    "email@address",   // Email address used to login to Supla Cloud
-                    AUTHKEY);          // Authorization key
+  SuplaDevice.begin(
+      GUID,              // Global Unique Identifier
+      "svr1.supla.org",  // SUPLA server address
+      "email@address",   // Email address used to login to Supla Cloud
+      AUTHKEY);          // Authorization key
 }
 
 void loop() {
