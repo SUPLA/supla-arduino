@@ -249,7 +249,7 @@ class ElectricityMeter : public Element {
   Channel *getChannel() {
     return &extChannel;
   }
-  TElectricityMeter_ExtendedValue emValue;
+  TElectricityMeter_ExtendedValue_V2 emValue;
   ChannelExtended extChannel;
   _supla_int_t rawCurrent[MAX_PHASES];
   bool valueChanged;

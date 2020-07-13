@@ -35,7 +35,7 @@ class Channel {
   void setNewValue(double temp, double humi);
   void setNewValue(int value);
   void setNewValue(bool value);
-  void setNewValue(TElectricityMeter_ExtendedValue &emValue);
+  void setNewValue(TElectricityMeter_ExtendedValue_V2 &emValue);
   void setNewValue(uint8_t red,
                    uint8_t green,
                    uint8_t blue,

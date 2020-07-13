@@ -122,7 +122,7 @@ void Channel::setNewValue(bool value) {
   }
 }
 
-void Channel::setNewValue(TElectricityMeter_ExtendedValue &emValue) {
+void Channel::setNewValue(TElectricityMeter_ExtendedValue_V2 &emValue) {
   // Prepare standard channel value
   if (sizeof(TElectricityMeter_Value) <= SUPLA_CHANNELVALUE_SIZE) {
     TElectricityMeter_Measurement *m = nullptr;
