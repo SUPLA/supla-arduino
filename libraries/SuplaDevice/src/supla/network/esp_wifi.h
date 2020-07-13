@@ -183,6 +183,12 @@ class ESPWifi : public Supla::Network {
     }
   }
 
+  void setTimeout(int timeoutMs) {
+    if (client) {
+      client->setTimeout(timeoutMs);
+    }
+  }
+
  protected:
   WiFiClient *client = NULL;
   bool isSecured;

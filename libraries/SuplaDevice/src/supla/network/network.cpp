@@ -13,7 +13,6 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
-
 #include <Arduino.h>
 
 #include "SuplaDevice.h"
@@ -147,6 +146,10 @@ void Network::clearTimeCounters() {
 
 void Network::setActivityTimeout(_supla_int_t activityTimeoutSec) {
   serverActivityTimeoutS = activityTimeoutSec;
+}
+
+void Network::setTimeout(int timeoutMs) {
+  supla_log(LOG_DEBUG, "setTimeout is not implemented for this interface");
 }
 
 };  // namespace Supla
