@@ -34,11 +34,12 @@ WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
 namespace Supla {
 class ESPWifi : public Supla::Network {
  public:
-  ESPWifi(const char *wifiSsid = nullptr, const char *wifiPassword = nullptr, IPAddress *ip = nullptr)
+  ESPWifi(const char *wifiSsid = nullptr,
+          const char *wifiPassword = nullptr,
+          IPAddress *ip = nullptr)
       : Network(ip), client(nullptr), isSecured(true) {
-
-    ssid[0] = '\0';    
-    password[0] = '\0';    
+    ssid[0] = '\0';
+    password[0] = '\0';
     setSsid(wifiSsid);
     setPassword(wifiPassword);
   }
@@ -106,7 +107,8 @@ class ESPWifi : public Supla::Network {
               server,
               connectionPort);
 
-//    static_cast<WiFiClientSecure*>(client)->setBufferSizes(512, 512); // EXPERIMENTAL
+    //    static_cast<WiFiClientSecure*>(client)->setBufferSizes(512, 512); //
+    //    EXPERIMENTAL
 
     bool result = client->connect(server, connectionPort);
 
@@ -171,13 +173,13 @@ class ESPWifi : public Supla::Network {
     fingerprint = value;
   }
 
-  void setSsid(const char* wifiSsid) {
+  void setSsid(const char *wifiSsid) {
     if (wifiSsid) {
       strncpy(ssid, wifiSsid, MAX_SSID_SIZE);
     }
   }
 
-  void setPassword(const char* wifiPassword) {
+  void setPassword(const char *wifiPassword) {
     if (wifiPassword) {
       strncpy(password, wifiPassword, MAX_WIFI_PASSWORD_SIZE);
     }
@@ -186,6 +188,24 @@ class ESPWifi : public Supla::Network {
   void setTimeout(int timeoutMs) {
     if (client) {
       client->setTimeout(timeoutMs);
+    }
+  }
+
+  void fillStateData(TDSC_ChannelState &channelState) {
+    channelState.Fields |= SUPLA_CHANNELSTATE_FIELD_IPV4 |
+                           SUPLA_CHANNELSTATE_FIELD_MAC |
+                           SUPLA_CHANNELSTATE_FIELD_WIFIRSSI |
+                           SUPLA_CHANNELSTATE_FIELD_WIFISIGNALSTRENGTH;
+    channelState.IPv4 = WiFi.localIP();
+    WiFi.macAddress(channelState.MAC);
+    int rssi = WiFi.RSSI();
+    channelState.WiFiRSSI = rssi;
+    if (rssi > -50) {
+      channelState.WiFiSignalStrength = 100;
+    } else if (rssi <= -100) {
+      channelState.WiFiSignalStrength = 0;
+    } else {
+      channelState.WiFiSignalStrength = 2 * (rssi + 100);
     }
   }
 

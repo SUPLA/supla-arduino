@@ -42,6 +42,7 @@ Channel::Channel() {
     last()->nextPtr = this;
   }
   nextPtr = nullptr;
+  setFlag(SUPLA_CHANNEL_FLAG_CHANNELSTATE);
 }
 
 Channel *Channel::begin() {

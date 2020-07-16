@@ -51,7 +51,10 @@ void SuplaDeviceClass::status(int status, const char *msg) {
 }
 
 SuplaDeviceClass::SuplaDeviceClass()
-    : port(-1), connectionFailCounter(0), networkIsNotReadyCounter(0), currentStatus(STATUS_UNKNOWN) {
+    : port(-1),
+      connectionFailCounter(0),
+      networkIsNotReadyCounter(0),
+      currentStatus(STATUS_UNKNOWN) {
   srpc = NULL;
   registered = 0;
   last_iterate_time = 0;
@@ -177,7 +180,9 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
   }
 
   if (strnlen(Supla::Channel::reg_dev.SoftVer, SUPLA_SOFTVER_MAXSIZE) == 0) {
-    setString(Supla::Channel::reg_dev.SoftVer, "User SW, lib 2.3.2", SUPLA_SOFTVER_MAXSIZE);
+    setString(Supla::Channel::reg_dev.SoftVer,
+              "User SW, lib 2.3.2",
+              SUPLA_SOFTVER_MAXSIZE);
   }
 
   Supla::Network::Setup();
@@ -887,6 +892,8 @@ void SuplaDeviceClass::iterate(void) {
   unsigned long _millis = millis();
   unsigned long time_diff = abs(_millis - last_iterate_time);
 
+  uptime.iterate(_millis);
+
   // Iterate all elements
   for (auto element = Supla::Element::begin(); element != nullptr;
        element = element->next()) {
@@ -913,6 +920,7 @@ void SuplaDeviceClass::iterate(void) {
   }
 
   if (!Supla::Network::IsReady()) {
+    uptime.setConnectionLostCause(SUPLA_LASTCONNECTIONRESETCAUSE_WIFI_CONNECTION_LOST);
     wait_for_iterate = millis() + 100;
     status(STATUS_NETWORK_DISCONNECTED, "No connection to network");
     networkIsNotReadyCounter++;
@@ -927,11 +935,14 @@ void SuplaDeviceClass::iterate(void) {
   if (!Supla::Network::Connected()) {
     status(STATUS_SERVER_DISCONNECTED, "Not connected to Supla server");
 
+    uptime.setConnectionLostCause(SUPLA_LASTCONNECTIONRESETCAUSE_SERVER_CONNECTION_LOST);
+
     registered = 0;
 
     int result =
         Supla::Network::Connect(Supla::Channel::reg_dev.ServerName, port);
     if (1 == result) {
+      uptime.resetConnectionUptime();
       connectionFailCounter = 0;
       supla_log(LOG_DEBUG, "Connected to Supla Server");
     } else {
@@ -967,6 +978,7 @@ void SuplaDeviceClass::iterate(void) {
 
   } else if (registered == 1) {
     if (Supla::Network::Ping() == false) {
+      uptime.setConnectionLostCause(SUPLA_LASTCONNECTIONRESETCAUSE_ACTIVITY_TIMEOUT);
       supla_log(LOG_DEBUG, "TIMEOUT - lost connection with server");
       Supla::Network::Disconnect();
     }
@@ -1314,6 +1326,16 @@ void SuplaDeviceClass::setSwVersion(const char *swVersion) {
 
 int SuplaDeviceClass::getCurrentStatus() {
   return currentStatus;
+}
+
+void SuplaDeviceClass::fillStateData(TDSC_ChannelState &channelState) {
+  channelState.Fields |= SUPLA_CHANNELSTATE_FIELD_UPTIME |
+                  SUPLA_CHANNELSTATE_FIELD_CONNECTIONUPTIME |
+                  SUPLA_CHANNELSTATE_FIELD_LASTCONNECTIONRESETCAUSE;
+
+  channelState.Uptime = uptime.getUptime();
+  channelState.ConnectionUptime = uptime.getConnectionUptime();
+  channelState.LastConnectionResetCause = uptime.getLastResetCause();
 }
 
 SuplaDeviceClass SuplaDevice;

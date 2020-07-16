@@ -111,6 +111,8 @@ class Network {
   virtual bool iterate();
   virtual bool ping();
 
+  virtual void fillStateData(TDSC_ChannelState &channelState);
+
   void setSrpc(void *_srpc);
   void updateLastSent();
   void updateLastResponse();

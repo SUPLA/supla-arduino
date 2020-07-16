@@ -80,6 +80,27 @@ void message_received(void *_srpc,
             ->channelSetActivityTimeoutResult(
                 rd.data.sdc_set_activity_timeout_result);
         break;
+      case SUPLA_CSD_CALL_GET_CHANNEL_STATE: {
+        TDSC_ChannelState state;
+        memset(&state, 0, sizeof(TDSC_ChannelState));
+        state.ReceiverID = rd.data.csd_channel_state_request->SenderID;
+        state.ChannelNumber = rd.data.csd_channel_state_request->ChannelNumber;
+        Network::Instance()->fillStateData(state);
+        ((SuplaDeviceClass *)_sdc)->fillStateData(state);
+        auto element = Supla::Element::getElementByChannelNumber(
+            rd.data.csd_channel_state_request->ChannelNumber);
+        if (element) {
+          element->handleGetChannelState(state);
+        }
+        srpc_csd_async_channel_state_result(_srpc, &state);
+        break;
+      }
+      case SUPLA_SDC_CALL_PING_SERVER_RESULT:
+        break;
+
+      default:
+        supla_log(LOG_DEBUG, "Received unknown message from server!");
+        break;
     }
 
     srpc_rd_free(&rd);
@@ -150,6 +171,10 @@ void Network::setActivityTimeout(_supla_int_t activityTimeoutSec) {
 
 void Network::setTimeout(int timeoutMs) {
   supla_log(LOG_DEBUG, "setTimeout is not implemented for this interface");
+}
+
+void Network::fillStateData(TDSC_ChannelState &channelState) {
+  supla_log(LOG_DEBUG, "fillStateData is not implemented for this interface");
 }
 
 };  // namespace Supla

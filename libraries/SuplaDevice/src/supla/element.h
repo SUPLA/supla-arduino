@@ -66,6 +66,10 @@ class Element {
   //  1 - success==true
   virtual int handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue);
 
+  // Handles "get channel state" request from server
+  // channelState is prefilled with network and device status informations
+  virtual void handleGetChannelState(TDSC_ChannelState &channelState);
+
   int getChannelNumber();
 
  protected:

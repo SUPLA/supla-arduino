@@ -21,6 +21,7 @@
 
 #include "supla-common/proto.h"
 #include "supla/network/network.h"
+#include "supla/uptime.h"
 
 #define ACTIVITY_TIMEOUT 30
 
@@ -123,11 +124,6 @@ class SuplaDeviceClass {
  protected:
   void *srpc;
   char registered;
-  bool isInitialized(bool msg);
-  void setString(char *dst, const char *src, int max_size);
-  int addChannel(int pin1, int pin2, bool hiIsLo, bool bistable);
-  void channelSetValue(int channel, char value, _supla_int_t DurationMS);
-
   SuplaChannelPin *channel_pin;
   int channel_pin_count;
   int port;
@@ -136,13 +132,13 @@ class SuplaDeviceClass {
   int rs_count;
   SuplaDeviceRollerShutter *roller_shutter;
 
-  SuplaDeviceRollerShutter *rsByChannelNumber(int channel_number);
-
   unsigned long last_iterate_time;
   unsigned long wait_for_iterate;
 
   _impl_arduino_status impl_arduino_status;
   int currentStatus;
+
+  Supla::Uptime uptime;
 
   _impl_rs_save_position impl_rs_save_position;
   _impl_rs_load_position impl_rs_load_position;
@@ -150,6 +146,15 @@ class SuplaDeviceClass {
   _impl_rs_load_settings impl_rs_load_settings;
 
   _impl_arduino_timer impl_arduino_timer;
+
+
+  bool isInitialized(bool msg);
+  void setString(char *dst, const char *src, int max_size);
+  int addChannel(int pin1, int pin2, bool hiIsLo, bool bistable);
+  void channelSetValue(int channel, char value, _supla_int_t DurationMS);
+
+
+  SuplaDeviceRollerShutter *rsByChannelNumber(int channel_number);
 
   void rs_save_position(SuplaDeviceRollerShutter *rs);
   void rs_load_position(SuplaDeviceRollerShutter *rs);
@@ -203,6 +208,7 @@ class SuplaDeviceClass {
   ~SuplaDeviceClass();
 
   void channelValueChanged(int channel_number, char v);
+  void fillStateData(TDSC_ChannelState &channelState);
 
   bool begin(char GUID[SUPLA_GUID_SIZE],
              const char *Server,

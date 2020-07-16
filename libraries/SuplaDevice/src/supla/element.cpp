@@ -91,4 +91,9 @@ int Element::getChannelNumber() {
 Channel *Element::getChannel() {
   return nullptr;
 }
+
+void Element::handleGetChannelState(TDSC_ChannelState &channelState) {
+  return;
+}
+
 };  // namespace Supla

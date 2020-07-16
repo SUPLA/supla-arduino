@@ -31,7 +31,7 @@
 #define BUFFER_MIN_SIZE 512
 #define BUFFER_MAX_SIZE 2048
 
-#if  !defined(ARDUINO_ARCH_ESP8266) && !defined(ARDUINO_ARCH_ESP32)
+#if !defined(ARDUINO_ARCH_ESP8266) && !defined(ARDUINO_ARCH_ESP32)
 #include <user_interface.h>
 #include "espmissingincludes.h"
 #endif
@@ -213,12 +213,16 @@ unsigned _supla_int_t sproto_pop_out_data(void *spd_ptr, char *buffer,
 
   return (buffer_size);
 }
+#endif /*SPROTO_WITHOUT_OUT_BUFFER*/
 
 char sproto_out_dataexists(void *spd_ptr) {
+#ifdef SPROTO_WITHOUT_OUT_BUFFER
+  return SUPLA_RESULT_FALSE;
+#else
   return ((TSuplaProtoData *)spd_ptr)->out.data_size > 0 ? SUPLA_RESULT_TRUE
                                                          : SUPLA_RESULT_FALSE;
+#endif
 }
-#endif /*SPROTO_WITHOUT_OUT_BUFFER*/
 
 char sproto_in_dataexists(void *spd_ptr) {
   return ((TSuplaProtoData *)spd_ptr)->in.data_size > 0 ? SUPLA_RESULT_TRUE
@@ -354,7 +358,8 @@ void sproto_sdp_free(TSuplaDataPacket *sdp) { free(sdp); }
 char sproto_set_data(TSuplaDataPacket *sdp, char *data,
                      unsigned _supla_int_t data_size,
                      unsigned _supla_int_t call_type) {
-  if (data_size > SUPLA_MAX_DATA_SIZE) return SUPLA_RESULT_FALSE;
+  if (data_size > SUPLA_MAX_DATA_SIZE || (data_size > 0 && data == 0))
+    return SUPLA_RESULT_FALSE;
 
   if (data_size > 0) memcpy(sdp->data, data, data_size);
 
@@ -384,8 +389,8 @@ void sproto_log_summary(void *spd_ptr) {
 
 void sproto_buffer_dump(void *spd_ptr, unsigned char in) {
   _supla_int_t a;
-  char *buffer;
-  _supla_int_t size;
+  char *buffer = NULL;
+  _supla_int_t size = 0;
 
   TSuplaProtoData *spd = (TSuplaProtoData *)spd_ptr;
 
