@@ -9,7 +9,7 @@ SuplaDevice is a library for [Arduino IDE](https://www.arduino.cc/en/main/softwa
 ## Hardware requirements
 
 ### Arduino Mega
-SuplaDevice works with Arduino Mega boards. Currently Arduino Uno is not supported because RAM limitations. It should work on other Arduino boards with at least 8 kB of RAM.
+SuplaDevice works with Arduino Mega boards. Currently Arduino Uno is not supported because of RAM limitations. It should work on other Arduino boards with at least 8 kB of RAM.
 Following network interfaces are supported:
 * Ethernet Shield with W5100 chipset
 * ENC28J60 (not recommended - see Supported hardware section)
@@ -47,10 +47,10 @@ or some other problem with network, program will stuck on initialization and wil
 Second warning: UIPEthernet library is consuming few hundred of bytes of RAM memory more, compared to standard Ethernet library. 
 
 Supported network interface for ESP8266:
-* There is native WiFi controller. Include `<supla/network/esp_wifi.h>` and add `Supla::ESPWifi wifi(ssid, password);` as a global variable and provide SSID and password in constructor.
+* There is a native WiFi controller. Include `<supla/network/esp_wifi.h>` and add `Supla::ESPWifi wifi(ssid, password);` as a global variable and provide SSID and password in constructor.
 
 Supported network interface for ESP32:
-* There is native WiFi controller. Include `<supla/network/esp32_wifi.h>` and add `Supla::ESP32Wifi wifi(ssid, password);` as a global variable and provide SSID and password in constructor.
+* There is a native WiFi controller. Include `<supla/network/esp32_wifi.h>` and add `Supla::ESP32Wifi wifi(ssid, password);` as a global variable and provide SSID and password in constructor.
 
 ### Exmaples
 
@@ -80,9 +80,12 @@ All elements have to be constructed before `SuplaDevice.begin()` method is calle
 Supla channel number is assigned to each elemement with channel in an order of creation of objects. First channel will get number 0, second 1, etc. Supla server will not accept registration of device when order of channels is changed, or some channel is removed. In such case, you should remove device from Supla Cloud and register it again from scratch.
 
 `Element` class defines follwoing virtual methods that are called by SuplaDevice:
-1. `onInit` - called within `SuplaDevice.begin()` method. It should: TODO...
-
-...
+1. `onInit` - called first within `SuplaDevice.begin()` method. It should initialize your element.
+2. `onLoadConfig` - called second within `SuplaDevice.begin()` method. It should read configuration data from persistent memory. This functionality is not implemented yet in library.
+3. `iterateAlways` - called on each iteration of `SuplaDevice.iterate()` method, regardless of network/connection status. Be careful - some other methods called in `SuplaDevice.iterate()` method may block program execution for some time (even few seconds) - i.e. trying to establish connection with Supla server is blocking - in case server is not accessible, it will iterfere with `iterateAlways` method. So time critical functions should not be put here.
+4. `iterateConnected` - called on each iterateion of `SuplaDevice.iterate()` method when device is connected and properly registered in Supla server. This method usually checks if there is some new data to be send to server (i.e. new temperature reading) and sends it. 
+5. `onTimer` - called every 10 ms after enabling in `SuplaDevice.begin()`
+6. `onFastTimer` - called every 1 ms (0.5 ms in case of Arudino Mega) after enabling in `SuplaDevice.begin()`
 
 ## How to migrate programs written in SuplaDevice libraray versions 1.6 and older
 
@@ -150,7 +153,7 @@ What is different? Well, GUID and Supla server address it the same as previously
 MAC address was moved to network interface class. Location ID and password were replaced with new authentication method - via email address
 and authentication key. You can generate your authentication key in the same way as GUID (it is actually in exactly the same format):
 ```
-// Generate AUTHKEY from https://www.supla.org/arduino/get-guid
+// Generate AUTHKEY from https://www.supla.org/arduino/get-authkey
 char AUTHKEY[SUPLA_AUTHKEY_SIZE] =  {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 ```
 
@@ -174,7 +177,15 @@ class MyDigitalRead : public Supla::Io {
 MyDigitalRead instanceMyDigitalRead;
 ```
 
+All channels from old version of library should be removed and created again in a new format. Please check instructions below how to add each type of channel.
 
+## Supported channels
+### Sensors
+Sensor category is for all elements/channels that reads something and provides data to Supla serwer.
+
+
+### Control 
+Control category is for all elements/channels that are used to control something, i.e. relays, buttons, RGBW.
 
 ## History
 
