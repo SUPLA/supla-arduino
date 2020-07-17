@@ -168,25 +168,25 @@ bool Channel::setNewValue(char *newValue) {
   return false;
 }
 
-void Channel::setType(int type) {
+void Channel::setType(_supla_int_t type) {
   if (channelNumber >= 0) {
     reg_dev.channels[channelNumber].Type = type;
   }
 }
 
-void Channel::setDefault(int value) {
+void Channel::setDefault(_supla_int_t value) {
   if (channelNumber >= 0) {
     reg_dev.channels[channelNumber].Default = value;
   }
 }
 
-void Channel::setFlag(int flag) {
+void Channel::setFlag(_supla_int_t flag) {
   if (channelNumber >= 0) {
     reg_dev.channels[channelNumber].Flags |= flag;
   }
 }
 
-void Channel::setFuncList(int functions) {
+void Channel::setFuncList(_supla_int_t functions) {
   if (channelNumber >= 0) {
     reg_dev.channels[channelNumber].FuncList = functions;
   }
@@ -258,7 +258,7 @@ void Channel::setNewValue(uint8_t red,
   }
 }
 
-int Channel::getChannelType() {
+_supla_int_t Channel::getChannelType() {
   if (channelNumber >= 0) {
     return reg_dev.channels[channelNumber].Type;
   }

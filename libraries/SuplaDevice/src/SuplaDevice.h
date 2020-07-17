@@ -214,7 +214,7 @@ class SuplaDeviceClass {
              const char *Server,
              const char *email,
              char authkey[SUPLA_AUTHKEY_SIZE],
-             unsigned char version = 10);
+             unsigned char version = 12);
 
   void setName(const char *Name);
 

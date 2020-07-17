@@ -1330,12 +1330,14 @@ int SuplaDeviceClass::getCurrentStatus() {
 
 void SuplaDeviceClass::fillStateData(TDSC_ChannelState &channelState) {
   channelState.Fields |= SUPLA_CHANNELSTATE_FIELD_UPTIME |
-                  SUPLA_CHANNELSTATE_FIELD_CONNECTIONUPTIME |
-                  SUPLA_CHANNELSTATE_FIELD_LASTCONNECTIONRESETCAUSE;
+                  SUPLA_CHANNELSTATE_FIELD_CONNECTIONUPTIME;
 
   channelState.Uptime = uptime.getUptime();
   channelState.ConnectionUptime = uptime.getConnectionUptime();
-  channelState.LastConnectionResetCause = uptime.getLastResetCause();
+  if (uptime.getLastResetCause() > 0) {
+    channelState.Fields |= SUPLA_CHANNELSTATE_FIELD_LASTCONNECTIONRESETCAUSE;
+    channelState.LastConnectionResetCause = uptime.getLastResetCause();
+  }
 }
 
 SuplaDeviceClass SuplaDevice;
