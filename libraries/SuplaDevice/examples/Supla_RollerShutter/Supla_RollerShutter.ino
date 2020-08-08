@@ -16,6 +16,7 @@
 
 #include <SPI.h>
 #include <SuplaDevice.h>
+#include <supla/control/roller_shutter.h>
 
 // Choose proper network interface for your card:
 // Arduino Mega with EthernetShield W5100:
@@ -37,24 +38,6 @@ Supla::EthernetShield ethernet(mac);
 // Supla::ESP32Wifi wifi("your_wifi_ssid", "your_wifi_password");
 
 
-void supla_rs_SavePosition(int channelNumber, int position) {
-    // Save roller shutter position on flash memory.
-    // *Arduino EEPROM is not recommended because of write cycle limits.
-}
-
-void supla_rs_LoadPosition(int channelNumber, int *position) {
-    // Load roller shutter position from flash memory
-}
-
-void supla_rs_SaveSettings(int channelNumber, unsigned int full_opening_time, unsigned int full_closing_time) {
-    // Save roller shutter settings on flash memory.
-    // *Arduino EEPROM is not recommended because of write cycle limits.
-}
-
-void supla_rs_LoadSettings(int channelNumber, unsigned int *full_opening_time, unsigned int *full_closing_time) {
-    // Load roller shutter settings from flash memory
-}
-
 void setup() {
 
   Serial.begin(9600);
@@ -72,23 +55,16 @@ void setup() {
    * Otherwise you will get "Channel conflict!" error.
    */
     
+  Supla::Control::RollerShutter *rs = new Supla::Control::RollerShutter(30, 31, false);
+  Supla::Control::Button *buttonOpen = new Supla::Control::Button(28, true, true);
+  Supla::Control::Button *buttonClose = new Supla::Control::Button(29, true, true);
 
-  // CHANNEL0 - TWO RELAYS (Roller shutter operation)
-  SuplaDevice.addRollerShutterRelays(47,     // 46 - ﻿﻿Pin number where the 1st relay is connected   
-                                     46);    // 47 - ﻿Pin number where the 2nd relay is connected  
-
-
-  SuplaDevice.setRollerShutterButtons(0,    // 0 - Channel Number
-                                      20,   // 20 - Pin where the 1st button is connected
-                                      21);  // 21 - Pin where the 2nd button is connected
-
-
-  
-  SuplaDevice.setRollerShutterFuncImpl(&supla_rs_SavePosition, &supla_rs_LoadPosition, &supla_rs_SaveSettings, &supla_rs_LoadSettings);
-  
+  buttonOpen->willTrigger(*rs, ON_PRESS, OPEN_OR_STOP);
+  buttonClose->willTrigger(*rs, ON_PRESS, CLOSE_OR_STOP);
+ 
   /*
    * SuplaDevice Initialization.
-   * Server address, LocationID and LocationPassword are available at https://cloud.supla.org 
+   * Server address is available at https://cloud.supla.org 
    * If you do not have an account, you can create it at https://cloud.supla.org/account/create
    * SUPLA and SUPLA CLOUD are free of charge
    * 

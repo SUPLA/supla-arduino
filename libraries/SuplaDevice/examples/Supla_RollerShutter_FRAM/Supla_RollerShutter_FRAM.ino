@@ -147,19 +147,12 @@ void setup() {
    * Otherwise you will get "Channel conflict!" error.
    */
     
+  Supla::Control::RollerShutter *rs = new Supla::Control::RollerShutter(30, 31, false);
+  Supla::Control::Button *buttonOpen = new Supla::Control::Button(28, true, true);
+  Supla::Control::Button *buttonClose = new Supla::Control::Button(29, true, true);
 
-  // CHANNEL0 - TWO RELAYS (Roller shutter operation)
-  SuplaDevice.addRollerShutterRelays(47,     // 46 - ﻿﻿Pin number where the 1st relay is connected   
-                                     46);    // 47 - ﻿Pin number where the 2nd relay is connected  
-
-
-  SuplaDevice.setRollerShutterButtons(0,    // 0 - Channel Number
-                                      20,   // 20 - Pin where the 1st button is connected
-                                      21);  // 21 - Pin where the 2nd button is connected
-
-
-  
-  SuplaDevice.setRollerShutterFuncImpl(&supla_rs_SavePosition, &supla_rs_LoadPosition, &supla_rs_SaveSettings, &supla_rs_LoadSettings);
+  buttonOpen->willTrigger(*rs, ON_PRESS, OPEN_OR_STOP);
+  buttonClose->willTrigger(*rs, ON_PRESS, CLOSE_OR_STOP);
   
   /*
    * SuplaDevice Initialization.

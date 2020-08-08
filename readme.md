@@ -48,6 +48,17 @@ Second warning: UIPEthernet library is consuming few hundred of bytes of RAM mem
 
 Supported network interface for ESP8266:
 * There is a native WiFi controller. Include `<supla/network/esp_wifi.h>` and add `Supla::ESPWifi wifi(ssid, password);` as a global variable and provide SSID and password in constructor.
+Warning: by default connection with Supla server is encrypted. Default settings of SSL consumes big amount of RAM. 
+To disable SSL connection, use:
+  `wifi.enableSSL(false);`
+
+
+
+SSL certificate verification.
+If you specify Supla's server certificate thumbprint there will be additional verification proceeded. Please use this method to configure fingerprint for validation:
+  `wifi.setServersCertFingerprint("9ba818295ec60652f8221500e15288d7a611177");'
+
+
 
 Supported network interface for ESP32:
 * There is a native WiFi controller. Include `<supla/network/esp32_wifi.h>` and add `Supla::ESP32Wifi wifi(ssid, password);` as a global variable and provide SSID and password in constructor.

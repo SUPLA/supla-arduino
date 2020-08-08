@@ -70,8 +70,9 @@ void message_received(void *_srpc,
                 actionResult);
           }
         } else {
-          ((SuplaDeviceClass *)_sdc)
-              ->channelSetValueByServer(rd.data.sd_channel_new_value);
+          Serial.print("Error: couldn't find element for a requested channel [");
+          Serial.print(rd.data.sd_channel_new_value->ChannelNumber);
+          Serial.println("]");
         }
         break;
       }
