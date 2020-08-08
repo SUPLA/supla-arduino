@@ -161,8 +161,8 @@ void Channel::setNewValue(TElectricityMeter_ExtendedValue_V2 &emValue) {
 
 bool Channel::setNewValue(char *newValue) {
   if (memcmp(newValue, reg_dev.channels[channelNumber].value, 8) != 0) {
-    setUpdateReady();
     memcpy(reg_dev.channels[channelNumber].value, newValue, 8);
+    setUpdateReady();
     return true;
   }
   return false;
@@ -201,6 +201,7 @@ void Channel::clearUpdateReady() {
 };
 
 void Channel::sendUpdate(void *srpc) {
+  clearUpdateReady();
   srpc_ds_async_channel_value_changed(
       srpc, channelNumber, reg_dev.channels[channelNumber].value);
 
@@ -210,7 +211,6 @@ void Channel::sendUpdate(void *srpc) {
     srpc_ds_async_channel_extendedvalue_changed(srpc, channelNumber, extValue);
   }
 
-  clearUpdateReady();
 }
 
 TSuplaChannelExtendedValue *Channel::getExtValue() {
