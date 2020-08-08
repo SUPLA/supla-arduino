@@ -18,7 +18,6 @@
 
 #include <SPI.h>
 #include <SuplaDevice.h>
-#include <io.h>
 #include <supla/sensor/PzemV2.h>
 
 // ESP8266 based board:

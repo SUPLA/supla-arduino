@@ -17,6 +17,8 @@
 #include <SPI.h>
 #include <Adafruit_FRAM_SPI.h>
 #include <SuplaDevice.h>
+#include <supla/control/roller_shutter.h>
+#include <supla/control/button.h>
 
 // Choose proper network interface for your card:
 // Arduino Mega with EthernetShield W5100:
@@ -151,8 +153,8 @@ void setup() {
   Supla::Control::Button *buttonOpen = new Supla::Control::Button(28, true, true);
   Supla::Control::Button *buttonClose = new Supla::Control::Button(29, true, true);
 
-  buttonOpen->willTrigger(*rs, ON_PRESS, OPEN_OR_STOP);
-  buttonClose->willTrigger(*rs, ON_PRESS, CLOSE_OR_STOP);
+  buttonOpen->willTrigger(*rs, Supla::ON_PRESS, Supla::OPEN_OR_STOP);
+  buttonClose->willTrigger(*rs, Supla::ON_PRESS, Supla::CLOSE_OR_STOP);
   
   /*
    * SuplaDevice Initialization.

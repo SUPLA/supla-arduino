@@ -23,6 +23,7 @@
 #include "../channel.h"
 #include "../element.h"
 #include "../triggerable.h"
+#include "../actions.h"
 
 #define UNKNOWN_POSITION    -1
 #define STOP_POSITION       -2
