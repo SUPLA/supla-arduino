@@ -214,7 +214,7 @@ void RGBWBase::trigger(int trigger, int action) {
       break;
     }
     case TOGGLE_W: {
-      setRGBW(-1, -1, -1, -1, curBrightness > 0 ? 0 : lastColorBrightness);
+      setRGBW(-1, -1, -1, -1, curBrightness > 0 ? 0 : lastBrightness);
       break;
     }
     case TURN_ON_RGB_DIMMED: {
