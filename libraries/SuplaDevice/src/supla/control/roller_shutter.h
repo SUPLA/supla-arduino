@@ -55,6 +55,8 @@ class RollerShutter : public Element, public Triggerable {
 
   void onInit();
   void onTimer();
+  void onLoadState();
+  void onSaveState();
 
  protected:
   virtual void stopMovement();

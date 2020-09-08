@@ -162,7 +162,13 @@ class SuplaDeviceClass {
              char authkey[SUPLA_AUTHKEY_SIZE],
              unsigned char version = 12);
 
+  bool begin(unsigned char version = 12);
+
   void setName(const char *Name);
+  void setGUID(char GUID[SUPLA_GUID_SIZE]);
+  void setAuthKey(char authkey[SUPLA_AUTHKEY_SIZE]);
+  void setEmail(const char *email);
+  void setServer(const char *server);
 
   // Adds impulse couner on "impulsePin" pin. "statusLedPin" is not implemented
   // currently. "detectLowToHigh" defines if counter counts changes from LOW to

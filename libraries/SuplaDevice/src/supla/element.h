@@ -36,10 +36,13 @@ class Element {
   // initialize pins etc.
   virtual void onInit();
 
-  // TODO:
   // method called during Config initialization (i.e. read from EEPROM, FRAM).
-  // Called only if Config module is configured
-  virtual void onLoadConfig();
+  // Called only if Storage class is configured
+  virtual void onLoadState();
+
+  // method called during periodically during SuplaDevice iteration
+  // Called only if Storage class is configured
+  virtual void onSaveState();
 
   // method called on each SuplaDevice iteration (before Network layer
   // iteration). When Device is connected, both iterateAlways() and

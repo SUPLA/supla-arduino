@@ -26,6 +26,7 @@
 #include "supla/channel.h"
 #include "supla/element.h"
 #include "supla/io.h"
+#include "supla/storage/storage.h"
 #include "supla/timer.h"
 
 void SuplaDeviceClass::status(int status, const char *msg) {
@@ -80,19 +81,28 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
                              const char *email,
                              char authkey[SUPLA_AUTHKEY_SIZE],
                              unsigned char version) {
+  setGUID(GUID);
+  setServer(Server);
+  setEmail(email);
+  setAuthKey(authkey);
+
+  return begin(version);
+}
+
+bool SuplaDeviceClass::begin(unsigned char version) {
   if (isInitialized(true)) return false;
+  supla_log(LOG_DEBUG, "Supla - starting initialization");
+
+  Supla::Storage::Init();
 
   if (Supla::Network::Instance() == NULL) {
     status(STATUS_MISSING_NETWORK_INTERFACE, "Network Interface not defined!");
     return false;
   }
 
-  memcpy(Supla::Channel::reg_dev.GUID, GUID, SUPLA_GUID_SIZE);
-  memcpy(Supla::Channel::reg_dev.AuthKey, authkey, SUPLA_AUTHKEY_SIZE);
-
-  setString(Supla::Channel::reg_dev.Email, email, SUPLA_EMAIL_MAXSIZE);
-  setString(
-      Supla::Channel::reg_dev.ServerName, Server, SUPLA_SERVER_NAME_MAXSIZE);
+  // Supla::Storage::LoadDeviceConfig();
+  // Supla::Storage::LoadElementConfig();
+  //
 
   bool emptyGuidDetected = true;
   for (int i = 0; i < SUPLA_GUID_SIZE; i++) {
@@ -162,10 +172,11 @@ bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
 
   supla_log(LOG_DEBUG, "Using Supla protocol version %d", version);
 
-  // Iterate all elements and load configuration (TODO)
+  // Iterate all elements and load state (TODO)
+  Supla::Storage::PrepareState();
   for (auto element = Supla::Element::begin(); element != nullptr;
        element = element->next()) {
-    element->onLoadConfig();
+    element->onLoadState();
   }
 
   // Load counters values from EEPROM storage
@@ -319,6 +330,15 @@ void SuplaDeviceClass::iterate(void) {
   }
 
   SuplaImpulseCounter::updateStorageOccasionally();
+  // Iterate all elements and saves state
+  if (Supla::Storage::SaveStateAllowed(_millis)) {
+    Supla::Storage::PrepareState();
+    for (auto element = Supla::Element::begin(); element != nullptr;
+         element = element->next()) {
+      element->onSaveState();
+    }
+    Supla::Storage::FinalizeSaveState();
+  }
 
   if (wait_for_iterate != 0 && _millis < wait_for_iterate) {
     return;
@@ -338,7 +358,8 @@ void SuplaDeviceClass::iterate(void) {
   }
 
   if (!Supla::Network::IsReady()) {
-    uptime.setConnectionLostCause(SUPLA_LASTCONNECTIONRESETCAUSE_WIFI_CONNECTION_LOST);
+    uptime.setConnectionLostCause(
+        SUPLA_LASTCONNECTIONRESETCAUSE_WIFI_CONNECTION_LOST);
     wait_for_iterate = millis() + 100;
     status(STATUS_NETWORK_DISCONNECTED, "No connection to network");
     networkIsNotReadyCounter++;
@@ -353,7 +374,8 @@ void SuplaDeviceClass::iterate(void) {
   if (!Supla::Network::Connected()) {
     status(STATUS_SERVER_DISCONNECTED, "Not connected to Supla server");
 
-    uptime.setConnectionLostCause(SUPLA_LASTCONNECTIONRESETCAUSE_SERVER_CONNECTION_LOST);
+    uptime.setConnectionLostCause(
+        SUPLA_LASTCONNECTIONRESETCAUSE_SERVER_CONNECTION_LOST);
 
     registered = 0;
 
@@ -396,7 +418,8 @@ void SuplaDeviceClass::iterate(void) {
 
   } else if (registered == 1) {
     if (Supla::Network::Ping() == false) {
-      uptime.setConnectionLostCause(SUPLA_LASTCONNECTIONRESETCAUSE_ACTIVITY_TIMEOUT);
+      uptime.setConnectionLostCause(
+          SUPLA_LASTCONNECTIONRESETCAUSE_ACTIVITY_TIMEOUT);
       supla_log(LOG_DEBUG, "TIMEOUT - lost connection with server");
       Supla::Network::Disconnect();
     }
@@ -538,7 +561,7 @@ int SuplaDeviceClass::getCurrentStatus() {
 
 void SuplaDeviceClass::fillStateData(TDSC_ChannelState &channelState) {
   channelState.Fields |= SUPLA_CHANNELSTATE_FIELD_UPTIME |
-                  SUPLA_CHANNELSTATE_FIELD_CONNECTIONUPTIME;
+                         SUPLA_CHANNELSTATE_FIELD_CONNECTIONUPTIME;
 
   channelState.Uptime = uptime.getUptime();
   channelState.ConnectionUptime = uptime.getConnectionUptime();
@@ -546,6 +569,23 @@ void SuplaDeviceClass::fillStateData(TDSC_ChannelState &channelState) {
     channelState.Fields |= SUPLA_CHANNELSTATE_FIELD_LASTCONNECTIONRESETCAUSE;
     channelState.LastConnectionResetCause = uptime.getLastResetCause();
   }
+}
+
+void SuplaDeviceClass::setGUID(char GUID[SUPLA_GUID_SIZE]) {
+  memcpy(Supla::Channel::reg_dev.GUID, GUID, SUPLA_GUID_SIZE);
+}
+
+void SuplaDeviceClass::setAuthKey(char authkey[SUPLA_AUTHKEY_SIZE]) {
+  memcpy(Supla::Channel::reg_dev.AuthKey, authkey, SUPLA_AUTHKEY_SIZE);
+}
+
+void SuplaDeviceClass::setEmail(const char *email) {
+  setString(Supla::Channel::reg_dev.Email, email, SUPLA_EMAIL_MAXSIZE);
+}
+
+void SuplaDeviceClass::setServer(const char *server) {
+  setString(
+      Supla::Channel::reg_dev.ServerName, server, SUPLA_SERVER_NAME_MAXSIZE);
 }
 
 SuplaDeviceClass SuplaDevice;

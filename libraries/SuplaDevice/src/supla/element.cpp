@@ -56,7 +56,9 @@ Element *Element::next() {
 
 void Element::onInit(){};
 
-void Element::onLoadConfig(){};
+void Element::onLoadState(){};
+
+void Element::onSaveState(){};
 
 void Element::iterateAlways(){};
 

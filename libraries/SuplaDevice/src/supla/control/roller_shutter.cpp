@@ -15,14 +15,20 @@
 */
 
 #include "roller_shutter.h"
+#include "supla/storage/storage.h"
 
 namespace Supla {
 namespace Control {
 
+#pragma pack(push, 1)
+struct RollerShutterStateData {
+  uint32_t closingTimeMs;
+  uint32_t openingTimeMs;
+  int8_t currentPosition;  // 0 - closed; 100 - opened
+};
+#pragma pop
 
-RollerShutter::RollerShutter(int pinUp,
-                             int pinDown,
-                             bool highIsOn)
+RollerShutter::RollerShutter(int pinUp, int pinDown, bool highIsOn)
     : highIsOn(highIsOn),
       pinUp(pinUp),
       pinDown(pinDown),
@@ -70,7 +76,7 @@ int RollerShutter::handleNewValueFromServer(
     TSD_SuplaChannelNewValue *newValue) {
   uint32_t newClosingTime = (newValue->DurationMS & 0xFFFF) * 100;
   uint32_t newOpeningTime = ((newValue->DurationMS >> 16) & 0xFFFF) * 100;
- 
+
   setOpenCloseTime(newClosingTime, newOpeningTime);
 
   char task = newValue->value[0];
@@ -94,7 +100,8 @@ int RollerShutter::handleNewValueFromServer(
   return -1;
 }
 
-void RollerShutter::setOpenCloseTime(uint32_t newClosingTimeMs, uint32_t newOpeningTimeMs) {
+void RollerShutter::setOpenCloseTime(uint32_t newClosingTimeMs,
+                                     uint32_t newOpeningTimeMs) {
   if (newClosingTimeMs == 0) {
     newClosingTimeMs = closingTimeMs;
   }
@@ -115,7 +122,6 @@ void RollerShutter::setOpenCloseTime(uint32_t newClosingTimeMs, uint32_t newOpen
     Serial.print(closingTimeMs);
     Serial.println(" ms. Starting calibration...");
   }
-
 }
 
 void RollerShutter::trigger(int trigger, int action) {
@@ -266,9 +272,10 @@ void RollerShutter::switchOffRelays() {
 }
 
 void RollerShutter::onTimer() {
-  if (millis() - doNothingTime < 300) {  // doNothingTime time is used when we change
-                                   // direction of roller - to stop for a moment
-                                   // before enabling opposite direction
+  if (millis() - doNothingTime <
+      300) {  // doNothingTime time is used when we change
+              // direction of roller - to stop for a moment
+              // before enabling opposite direction
     return;
   }
 
@@ -282,7 +289,8 @@ void RollerShutter::onTimer() {
   } else if (calibrate) {
     // If calibrationTime is not set, then it means we should start calibration
     if (calibrationTime == 0) {
-      if (operationTimeout != 0 && millis() - lastMovementStartTime > operationTimeout) {
+      if (operationTimeout != 0 &&
+          millis() - lastMovementStartTime > operationTimeout) {
         setTargetPosition(STOP_POSITION);
         operationTimeout = 0;
       }
@@ -322,7 +330,8 @@ void RollerShutter::onTimer() {
       }
     }
 
-    if (calibrationTime != 0 && millis() - lastMovementStartTime > calibrationTime) {
+    if (calibrationTime != 0 &&
+        millis() - lastMovementStartTime > calibrationTime) {
       Serial.println("Calibration done");
       calibrationTime = 0;
       calibrate = false;
@@ -341,22 +350,26 @@ void RollerShutter::onTimer() {
     if (currentDirection == UP && currentPosition > 0) {
       int movementDistance = lastPositionBeforeMovement;
       int timeRequired = (1.0 * openingTimeMs * movementDistance / 100.0);
-      float fractionOfMovemendDone = (1.0 * (millis() - lastMovementStartTime) / timeRequired);
+      float fractionOfMovemendDone =
+          (1.0 * (millis() - lastMovementStartTime) / timeRequired);
       if (fractionOfMovemendDone > 1) {
         fractionOfMovemendDone = 1;
       }
-      currentPosition = lastPositionBeforeMovement - movementDistance * fractionOfMovemendDone;
+      currentPosition = lastPositionBeforeMovement -
+                        movementDistance * fractionOfMovemendDone;
       if (targetPosition >= 0 && currentPosition <= targetPosition) {
         stopMovement();
       }
     } else if (currentDirection == DOWN && currentPosition < 100) {
       int movementDistance = 100 - lastPositionBeforeMovement;
       int timeRequired = (1.0 * closingTimeMs * movementDistance / 100.0);
-      float fractionOfMovemendDone = (1.0 * (millis() - lastMovementStartTime) / timeRequired);
+      float fractionOfMovemendDone =
+          (1.0 * (millis() - lastMovementStartTime) / timeRequired);
       if (fractionOfMovemendDone > 1) {
         fractionOfMovemendDone = 1;
       }
-      currentPosition = lastPositionBeforeMovement + movementDistance * fractionOfMovemendDone;
+      currentPosition = lastPositionBeforeMovement +
+                        movementDistance * fractionOfMovemendDone;
       if (targetPosition >= 0 && currentPosition >= targetPosition) {
         stopMovement();
       }
@@ -381,7 +394,7 @@ void RollerShutter::onTimer() {
       // 20 = 30 (move up 30%), etc
       if (newMovementValue > 0) {
         newDirection = DOWN;  // move down
-      } else if (newMovementValue < 0) {                                                      
+      } else if (newMovementValue < 0) {
         newDirection = UP;  // move up
       }
     }
@@ -427,5 +440,34 @@ void RollerShutter::configComfortDownValue(uint8_t position) {
   }
 }
 
-}; 
+void RollerShutter::onLoadState() {
+  RollerShutterStateData data;
+  if (Supla::Storage::ReadState((unsigned char *)&data, sizeof(data))) {
+    closingTimeMs = data.closingTimeMs;
+    openingTimeMs = data.openingTimeMs;
+    currentPosition = data.currentPosition;
+    if (currentPosition >= 0) {
+      calibrate = false;
+    }
+    Serial.print("RollerShutter[");
+    Serial.print(channel.getChannelNumber());
+    Serial.print("] settings restored from storage. Opening time: ");
+    Serial.print(openingTimeMs);
+    Serial.print(" ms; closing time: ");
+    Serial.print(closingTimeMs);
+    Serial.print(" ms. Position: ");
+    Serial.println(currentPosition);
+  }
+}
+
+void RollerShutter::onSaveState() {
+  RollerShutterStateData data;
+  data.closingTimeMs = closingTimeMs;
+  data.openingTimeMs = openingTimeMs;
+  data.currentPosition = currentPosition;
+
+  Supla::Storage::WriteState((unsigned char *)&data, sizeof(data));
+}
+
+};  // namespace Control
 };  // namespace Supla

@@ -56,6 +56,7 @@ void BistableRollerShutter::relayUpOff() {
   activeBiRelay = false;
   digitalWrite(pinUp, highIsOn ? LOW : HIGH);
 }
+
 void BistableRollerShutter::onTimer() {
   if (activeBiRelay && millis() - toggleTime > 200) {
     switchOffRelays();
