@@ -14,6 +14,11 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
    */
 
+/*
+ * This extension depends on Adafruit FRAM SPI library
+ * Please install it from librarary manager in Arduino
+ */
+
 #ifndef _supla_fram_spi_h
 #define _supla_fram_spi_h
 
