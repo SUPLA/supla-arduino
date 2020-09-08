@@ -89,7 +89,7 @@ class FramSpi : public Storage {
 
   int writeStorage(int offset, const unsigned char *buf, int size) {
     fram.writeEnable(true);
-    fram.write(offset, buf, size);
+    fram.write(offset, const_cast<uint8_t*>(buf), size);
     fram.writeEnable(false);
     Serial.print("Wrote ");
     Serial.print(size);
