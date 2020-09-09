@@ -26,7 +26,7 @@ namespace Supla {
 namespace Sensor {
 class Thermometer : public Element {
  public:
-  Thermometer() {
+  Thermometer() : lastReadTime(0) {
     channel.setType(SUPLA_CHANNELTYPE_THERMOMETER);
     channel.setDefault(SUPLA_CHANNELFNC_THERMOMETER);
   }
@@ -34,8 +34,7 @@ class Thermometer : public Element {
   virtual double getValue() {
     return TEMPERATURE_NOT_AVAILABLE;
   }
-
-  void iterateAlways() {
+void iterateAlways() {
     if (lastReadTime + 10000 < millis()) {
       lastReadTime = millis();
       channel.setNewValue(getValue());
@@ -48,6 +47,7 @@ class Thermometer : public Element {
     return &channel;
   }
   Channel channel;
+  unsigned long lastReadTime;
 };
 
 };  // namespace Sensor

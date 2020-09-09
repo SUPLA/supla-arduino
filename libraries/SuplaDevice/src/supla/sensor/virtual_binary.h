@@ -38,6 +38,7 @@ class VirtualBinary : public Element, public Triggerable {
   Channel *getChannel();
   Channel channel;
   bool state;
+  unsigned long lastReadTime;
 };
 
 };  // namespace Sensor

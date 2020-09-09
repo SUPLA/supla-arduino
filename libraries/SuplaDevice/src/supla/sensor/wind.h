@@ -26,7 +26,7 @@ namespace Supla {
 namespace Sensor {
 class Wind: public Element {
  public:
-  Wind() {
+  Wind() : lastReadTime(0) {
     channel.setType(SUPLA_CHANNELTYPE_WINDSENSOR);
     channel.setDefault(SUPLA_CHANNELFNC_WINDSENSOR);
     channel.setNewValue(WIND_NOT_AVAILABLE);
@@ -49,6 +49,7 @@ class Wind: public Element {
     return &channel;
   }
   Channel channel;
+  unsigned long lastReadTime;
 };
 
 };  // namespace Sensor

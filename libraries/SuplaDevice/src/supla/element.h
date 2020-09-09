@@ -79,7 +79,6 @@ class Element {
   virtual Channel *getChannel();
   static Element *firstPtr;
   Element *nextPtr;
-  unsigned long lastReadTime;
 };
 
 };  // namespace Supla

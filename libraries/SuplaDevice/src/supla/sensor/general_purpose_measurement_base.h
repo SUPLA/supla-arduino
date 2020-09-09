@@ -24,7 +24,7 @@ namespace Supla {
 namespace Sensor {
 class GeneralPurposeMeasurementBase : public Element {
  public:
-   GeneralPurposeMeasurementBase() {
+   GeneralPurposeMeasurementBase() : lastReadTime(0) {
      channel.setType(SUPLA_CHANNELTYPE_GENERAL_PURPOSE_MEASUREMENT);
    }
 
@@ -42,6 +42,7 @@ class GeneralPurposeMeasurementBase : public Element {
     return &channel;
   }
   Channel channel;
+  unsigned long lastReadTime;
 };
 
 };  // namespace Sensor

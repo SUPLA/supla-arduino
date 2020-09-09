@@ -35,6 +35,7 @@ enum Action {
   // Roller shutters
   OPEN,
   CLOSE,
+  STOP,
   OPEN_OR_STOP,
   CLOSE_OR_STOP,
   COMFORT_UP_POSITION,

@@ -26,7 +26,7 @@ namespace Supla {
 namespace Sensor {
 class Pressure : public Element {
  public:
-  Pressure() {
+  Pressure() : lastReadTime(0) {
     channel.setType(SUPLA_CHANNELTYPE_PRESSURESENSOR);
     channel.setDefault(SUPLA_CHANNELFNC_PRESSURESENSOR);
     channel.setNewValue(PRESSURE_NOT_AVAILABLE);
@@ -49,6 +49,7 @@ class Pressure : public Element {
     return &channel;
   }
   Channel channel;
+  unsigned long lastReadTime;
 };
 
 };  // namespace Sensor

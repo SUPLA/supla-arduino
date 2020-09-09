@@ -26,12 +26,12 @@ BistableRollerShutter::BistableRollerShutter(int pinUp, int pinDown, bool highIs
 }
 
 void BistableRollerShutter::stopMovement() {
-  if (currentDirection == UP) {
+  if (currentDirection == UP_DIR) {
     relayUpOn();
-  } else if (currentDirection == DOWN) {
+  } else if (currentDirection == DOWN_DIR) {
     relayDownOn();
   }
-  currentDirection = STOP;
+  currentDirection = STOP_DIR;
   doNothingTime = millis();
 }
 

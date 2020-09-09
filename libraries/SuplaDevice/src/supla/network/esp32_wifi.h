@@ -46,12 +46,12 @@ class ESP32Wifi : public Supla::Network {
       if (size > count) size = count;
       long readSize = client.read((uint8_t *)buf, size);
 #ifdef SUPLA_COMM_DEBUG
-      Serial.print("Received: [");
+      Serial.print(F("Received: ["));
       for (int i = 0; i < readSize; i++) {
         Serial.print(static_cast<unsigned char *>(buf)[i], HEX);
-        Serial.print(" ");
+        Serial.print(F(" "));
       }
-      Serial.println("]");
+      Serial.println(F("]"));
 #endif
 
       return readSize;
@@ -61,12 +61,12 @@ class ESP32Wifi : public Supla::Network {
 
   int write(void *buf, int count) {
 #ifdef SUPLA_COMM_DEBUG
-    Serial.print("Sending: [");
+    Serial.print(F("Sending: ["));
     for (int i = 0; i < count; i++) {
       Serial.print(static_cast<unsigned char *>(buf)[i], HEX);
-      Serial.print(" ");
+      Serial.print(F(" "));
     }
-    Serial.println("]");
+    Serial.println(F("]"));
 #endif
     long sendSize = client.write((const uint8_t *)buf, count);
     return sendSize;
@@ -95,28 +95,28 @@ class ESP32Wifi : public Supla::Network {
   void setup() {
     WiFiEventId_t event_gotIP = WiFi.onEvent(
         [](WiFiEvent_t event, WiFiEventInfo_t info) {
-          Serial.print("local IP: ");
+          Serial.print(F("local IP: "));
           Serial.println(WiFi.localIP());
-          Serial.print("subnetMask: ");
+          Serial.print(F("subnetMask: "));
           Serial.println(WiFi.subnetMask());
-          Serial.print("gatewayIP: ");
+          Serial.print(F("gatewayIP: "));
           Serial.println(WiFi.gatewayIP());
           long rssi = WiFi.RSSI();
-          Serial.print("Signal Strength (RSSI): ");
+          Serial.print(F("Signal Strength (RSSI): "));
           Serial.print(rssi);
-          Serial.println(" dBm");
+          Serial.println(F(" dBm"));
         },
         WiFiEvent_t::SYSTEM_EVENT_STA_GOT_IP);
 
     WiFiEventId_t event_disconnected = WiFi.onEvent(
         [](WiFiEvent_t event, WiFiEventInfo_t info) {
-          Serial.println("wifi Station disconnected");
+          Serial.println(F("wifi Station disconnected"));
         },
         WiFiEvent_t::SYSTEM_EVENT_STA_DISCONNECTED);
 
-    Serial.print("WIFI: establishing connection with SSID: \"");
+    Serial.print(F("WIFI: establishing connection with SSID: \""));
     Serial.print(ssid);
-    Serial.println("\"");
+    Serial.println(F("\""));
     WiFi.begin(ssid, password);
     yield();
   }

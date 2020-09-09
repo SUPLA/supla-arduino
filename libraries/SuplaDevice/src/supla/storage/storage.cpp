@@ -103,7 +103,7 @@ void Storage::prepareState() {
 bool Storage::readState(unsigned char *buf, int size) {
   if (elementStateOffset + sizeof(SectionPreamble) + elementStateSize <
       currentStateOffset + size) {
-    Serial.println("Warning! Attempt to read state outside of section size");
+    Serial.println(F("Warning! Attempt to read state outside of section size"));
     return false;
   }
   currentStateOffset += readStorage(currentStateOffset, buf, size);
@@ -118,9 +118,9 @@ bool Storage::writeState(const unsigned char *buf, int size) {
   if (elementStateSize > 0 &&
       elementStateOffset + sizeof(SectionPreamble) + elementStateSize <
           currentStateOffset + size) {
-    Serial.println("Warning! Attempt to write state outside of section size.");
+    Serial.println(F("Warning! Attempt to write state outside of section size."));
     Serial.println(
-        "Storage: rewriting element state section. All data will be lost.");
+        F("Storage: rewriting element state section. All data will be lost."));
     elementStateSize = 0;
     elementStateOffset = 0;
     return false;
@@ -128,7 +128,7 @@ bool Storage::writeState(const unsigned char *buf, int size) {
 
   // Calculation of offset for section data - in case sector is missing
   if (elementStateOffset == 0) {
-    Serial.print("Initialization of elementStateOffset: ");
+    Serial.print(F("Initialization of elementStateOffset: "));
     elementStateOffset = storageStartingOffset + sizeof(Preamble);
     if (deviceConfigOffset != 0) {
       elementStateOffset += sizeof(SectionPreamble) + deviceConfigSize;
@@ -143,7 +143,7 @@ bool Storage::writeState(const unsigned char *buf, int size) {
     sectionsCount++;
 
     // Update Storage preamble with new section count
-    Serial.println("Update Storage preamble");
+    Serial.println(F("Update Storage preamble"));
     unsigned char suplaTag[] = {'S', 'U', 'P', 'L', 'A'};
     Preamble preamble;
     memcpy(preamble.suplaTag, suplaTag, 5);
@@ -177,7 +177,7 @@ void Storage::finalizeSaveState() {
 }
 
 bool Storage::init() {
-  Serial.println("Storage initialization");
+  Serial.println(F("Storage initialization"));
   int currentOffset = storageStartingOffset;
   Preamble preamble;
   currentOffset +=
@@ -186,7 +186,7 @@ bool Storage::init() {
   unsigned char suplaTag[] = {'S', 'U', 'P', 'L', 'A'};
 
   if (memcmp(suplaTag, preamble.suplaTag, 5)) {
-    Serial.println("Storage: missing Supla tag. Rewriting...");
+    Serial.println(F("Storage: missing Supla tag. Rewriting..."));
 
     memcpy(preamble.suplaTag, suplaTag, 5);
     preamble.version = SUPLA_STORAGE_VERSION;
@@ -197,12 +197,12 @@ bool Storage::init() {
     commit();
 
   } else if (preamble.version != SUPLA_STORAGE_VERSION) {
-    Serial.print("Storage: storage version [");
+    Serial.print(F("Storage: storage version ["));
     Serial.print(preamble.version);
-    Serial.println("] is not supported. Storage not initialized");
+    Serial.println(F("] is not supported. Storage not initialized"));
     return false;
   } else {
-    Serial.print("Storage: Number of sections ");
+    Serial.print(F("Storage: Number of sections "));
     Serial.println(preamble.sectionsCount);
   }
 
@@ -211,22 +211,22 @@ bool Storage::init() {
   }
 
   for (int i = 0; i < preamble.sectionsCount; i++) {
-    Serial.print("Reading section: ");
+    Serial.print(F("Reading section: "));
     Serial.println(i);
     SectionPreamble section;
     int sectionOffset = currentOffset;
     currentOffset +=
         readStorage(currentOffset, (unsigned char *)&section, sizeof(section));
 
-    Serial.print("Section type: ");
+    Serial.print(F("Section type: "));
     Serial.print(static_cast<int>(section.type));
-    Serial.print("; size: ");
+    Serial.print(F("; size: "));
     Serial.println(section.size);
 
     if (section.crc1 != section.crc2) {
       Serial.println(
-          "Warning! CRC copies on section doesn't match. Please check your "
-          "storage hardware");
+          F("Warning! CRC copies on section doesn't match. Please check your "
+          "storage hardware"));
     }
 
     switch (section.type) {
@@ -246,7 +246,7 @@ bool Storage::init() {
         break;
       }
       default: {
-        Serial.println("Warning! Unknown section type");
+        Serial.println(F("Warning! Unknown section type"));
         break;
       }
     }

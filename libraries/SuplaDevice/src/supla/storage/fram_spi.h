@@ -49,9 +49,9 @@ class FramSpi : public Storage {
 
   bool init() {
     if (fram.begin()) {
-      Serial.println("Storage: FRAM found");
+      Serial.println(F("Storage: FRAM found"));
     } else {
-      Serial.println("Storage: FRAM not found");
+      Serial.println(F("Storage: FRAM not found"));
     }
 
     return Storage::init();
@@ -70,19 +70,19 @@ class FramSpi : public Storage {
  protected:
   int readStorage(int offset, unsigned char *buf, int size, bool logs) {
     if (logs) {
-      Serial.print("readStorage: ");
+      Serial.print(F("readStorage: "));
       Serial.print(size);
-      Serial.print("; Read: [");
+      Serial.print(F("; Read: ["));
     }
     for (int i = 0; i < size; i++) {
       buf[i] = fram.read8(offset + i);
       if (logs) {
         Serial.print(static_cast<unsigned char *>(buf)[i], HEX);
-        Serial.print(" ");
+        Serial.print(F(" "));
       }
     }
     if (logs) {
-      Serial.println("]");
+      Serial.println(F("]"));
     }
     return size;
   }
@@ -91,9 +91,9 @@ class FramSpi : public Storage {
     fram.writeEnable(true);
     fram.write(offset, const_cast<uint8_t*>(buf), size);
     fram.writeEnable(false);
-    Serial.print("Wrote ");
+    Serial.print(F("Wrote "));
     Serial.print(size);
-    Serial.println(" bytes to storage");
+    Serial.println(F(" bytes to storage"));
     return size;
   }
 

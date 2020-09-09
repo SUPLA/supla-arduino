@@ -30,8 +30,10 @@ Eeprom::Eeprom(unsigned int storageStartingOffset)
 }
 
 bool Eeprom::init() {
-#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO_ARCH_ESP8266) 
   EEPROM.begin(1024);
+#elif defined(ARDUINO_ARCH_ESP32)
+  EEPROM.begin(512)
 #endif
   delay(15);
 
@@ -40,19 +42,19 @@ bool Eeprom::init() {
 
 int Eeprom::readStorage(int offset, unsigned char *buf, int size, bool logs) {
   if (logs) {
-    Serial.print("readStorage: ");
+    Serial.print(F("readStorage: "));
     Serial.print(size);
-    Serial.print("; Read: [");
+    Serial.print(F("; Read: ["));
   }
   for (int i = 0; i < size; i++) {
     buf[i] = EEPROM.read(offset + i);
     if (logs) {
       Serial.print(static_cast<unsigned char *>(buf)[i], HEX);
-      Serial.print(" ");
+      Serial.print(F(" "));
     }
   }
   if (logs) {
-    Serial.println("]");
+    Serial.println(F("]"));
   }
   return size;
 }
@@ -62,9 +64,9 @@ int Eeprom::writeStorage(int offset, const unsigned char *buf, int size) {
   for (int i = 0; i < size; i++) {
     EEPROM.write(offset + i, buf[i]);
   }
-  Serial.print("Wrote ");
+  Serial.print(F("Wrote "));
   Serial.print(size);
-  Serial.println(" bytes to storage");
+  Serial.println(F(" bytes to storage"));
   return size;
 }
 
@@ -80,7 +82,7 @@ void Eeprom::commit() {
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
   if (dataChanged) {
     EEPROM.commit();
-    Serial.println("Commit");
+    Serial.println(F("Commit"));
   }
 #endif
   dataChanged = false;

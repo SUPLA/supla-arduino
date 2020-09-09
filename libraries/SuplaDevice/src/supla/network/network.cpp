@@ -70,9 +70,9 @@ void message_received(void *_srpc,
                 actionResult);
           }
         } else {
-          Serial.print("Error: couldn't find element for a requested channel [");
+          Serial.print(F("Error: couldn't find element for a requested channel ["));
           Serial.print(rd.data.sd_channel_new_value->ChannelNumber);
-          Serial.println("]");
+          Serial.println(F("]"));
         }
         break;
       }

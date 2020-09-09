@@ -93,13 +93,13 @@ class Button : public Element, public WillTrigger {
 
  protected:
   int pin;
-  bool pullUp;
   unsigned long debounceTimeMs;
   unsigned long filterTimeMs;
   int debounceDelayMs;
   int swNoiseFilterDelayMs;
-  int prevStatus;
-  int newStatusCandidate;
+  bool pullUp;
+  int8_t prevStatus;
+  int8_t newStatusCandidate;
   bool invertLogic;
 };
 

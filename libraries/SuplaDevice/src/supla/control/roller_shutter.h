@@ -33,7 +33,7 @@
 namespace Supla {
 namespace Control {
 
-enum Directions { STOP, DOWN, UP };
+enum Directions { STOP_DIR, DOWN_DIR, UP_DIR };
 
 class RollerShutter : public Element, public Triggerable {
  public:
@@ -86,8 +86,6 @@ class RollerShutter : public Element, public Triggerable {
 
   bool newTargetPositionAvailable;
 
-  bool fullControl; // true if only Supla controls it, false otherwise
-
   bool highIsOn;
 
   uint8_t currentDirection; // stop, up, down 
@@ -100,13 +98,10 @@ class RollerShutter : public Element, public Triggerable {
   int pinUp;
   int pinDown;
 
-
   unsigned long lastMovementStartTime;
   unsigned long doNothingTime;
   unsigned long calibrationTime;
   unsigned long operationTimeout;
-
-
 };
 
 };  // namespace Control

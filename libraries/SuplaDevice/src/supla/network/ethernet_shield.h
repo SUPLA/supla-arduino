@@ -38,12 +38,12 @@ class EthernetShield : public Supla::Network {
       if (size > count) size = count;
       long readSize = client.read((uint8_t *)buf, size);
 #ifdef SUPLA_COMM_DEBUG
-      Serial.print("Received: [");
+      Serial.print(F("Received: ["));
       for (int i = 0; i < readSize; i++) {
         Serial.print(static_cast<unsigned char *>(buf)[i], HEX);
-        Serial.print(" ");
+        Serial.print(F(" "));
       }
-      Serial.println("]");
+      Serial.println(F("]"));
 #endif
       return readSize;
     };
@@ -53,12 +53,12 @@ class EthernetShield : public Supla::Network {
 
   int write(void *buf, int count) {
 #ifdef SUPLA_COMM_DEBUG
-    Serial.print("Sending: [");
+    Serial.print(F("Sending: ["));
     for (int i = 0; i < count; i++) {
       Serial.print(static_cast<unsigned char *>(buf)[i], HEX);
-      Serial.print(" ");
+      Serial.print(F(" "));
     }
-    Serial.println("]");
+    Serial.println(F("]"));
 #endif
     long sendSize = client.write((const uint8_t *)buf, count);
     return sendSize;
@@ -85,25 +85,25 @@ class EthernetShield : public Supla::Network {
   }
 
   void setup() {
-    Serial.println("Connecting to network...");
+    Serial.println(F("Connecting to network..."));
     if (useLocalIp) {
       Ethernet.begin(mac, localIp);
       isDeviceReady = true;
     } else {
       int result = false;
       result = Ethernet.begin(mac, 10000, 4000);
-      Serial.print("DHCP connection result: ");
+      Serial.print(F("DHCP connection result: "));
       Serial.println(result);
       isDeviceReady = result == 1 ? true : false;
     }
 
-    Serial.print("localIP: ");
+    Serial.print(F("localIP: "));
     Serial.println(Ethernet.localIP());
-    Serial.print("subnetMask: ");
+    Serial.print(F("subnetMask: "));
     Serial.println(Ethernet.subnetMask());
-    Serial.print("gatewayIP: ");
+    Serial.print(F("gatewayIP: "));
     Serial.println(Ethernet.gatewayIP());
-    Serial.print("dnsServerIP: ");
+    Serial.print(F("dnsServerIP: "));
     Serial.println(Ethernet.dnsServerIP());
   }
 

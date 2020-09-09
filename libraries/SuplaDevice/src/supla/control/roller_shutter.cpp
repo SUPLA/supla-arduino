@@ -38,9 +38,8 @@ RollerShutter::RollerShutter(int pinUp, int pinDown, bool highIsOn)
       comfortDownValue(20),
       comfortUpValue(80),
       newTargetPositionAvailable(false),
-      fullControl(true),
-      currentDirection(STOP),
-      lastDirection(STOP),
+      currentDirection(STOP_DIR),
+      lastDirection(STOP_DIR),
       currentPosition(UNKNOWN_POSITION),
       lastMovementStartTime(0),
       doNothingTime(0),
@@ -80,17 +79,17 @@ int RollerShutter::handleNewValueFromServer(
   setOpenCloseTime(newClosingTime, newOpeningTime);
 
   char task = newValue->value[0];
-  Serial.print("RollerShutter[");
+  Serial.print(F("RollerShutter["));
   Serial.print(channel.getChannelNumber());
-  Serial.print("] new value from server: ");
+  Serial.print(F("] new value from server: "));
   if (task == 0) {
-    Serial.println("STOP");
+    Serial.println(F("STOP"));
     stop();
   } else if (task == 1) {
-    Serial.println("CLOSE");
+    Serial.println(F("CLOSE"));
     moveDown();
   } else if (task == 2) {
-    Serial.println("OPEN");
+    Serial.println(F("OPEN"));
     moveUp();
   } else if (task >= 10 && task <= 110) {
     setTargetPosition(task - 10);
@@ -114,13 +113,13 @@ void RollerShutter::setOpenCloseTime(uint32_t newClosingTimeMs,
     openingTimeMs = newOpeningTimeMs;
     calibrate = true;
     currentPosition = UNKNOWN_POSITION;
-    Serial.print("RollerShutter[");
+    Serial.print(F("RollerShutter["));
     Serial.print(channel.getChannelNumber());
-    Serial.print("] new time settings received. Opening time: ");
+    Serial.print(F("] new time settings received. Opening time: "));
     Serial.print(openingTimeMs);
-    Serial.print(" ms; closing time: ");
+    Serial.print(F(" ms; closing time: "));
     Serial.print(closingTimeMs);
-    Serial.println(" ms. Starting calibration...");
+    Serial.println(F(" ms. Starting calibration..."));
   }
 }
 
@@ -208,33 +207,33 @@ void RollerShutter::setTargetPosition(int newPosition) {
   // Negative targetPosition is either unknown or stop command, so we
   // ignore it
   if (targetPosition == MOVE_UP_POSITION) {
-    lastDirection = UP;
+    lastDirection = UP_DIR;
   } else if (targetPosition == MOVE_DOWN_POSITION) {
-    lastDirection = DOWN;
+    lastDirection = DOWN_DIR;
   } else if (targetPosition >= 0) {
     if (targetPosition < currentPosition) {
-      lastDirection = UP;
+      lastDirection = UP_DIR;
     } else if (targetPosition > currentPosition) {
-      lastDirection = DOWN;
+      lastDirection = DOWN_DIR;
     }
   }
 }
 
 bool RollerShutter::lastDirectionWasOpen() {
-  return lastDirection == UP;
+  return lastDirection == UP_DIR;
 }
 
 bool RollerShutter::lastDirectionWasClose() {
-  return lastDirection == DOWN;
+  return lastDirection == DOWN_DIR;
 }
 
 bool RollerShutter::inMove() {
-  return currentDirection != STOP;
+  return currentDirection != STOP_DIR;
 }
 
 void RollerShutter::stopMovement() {
   switchOffRelays();
-  currentDirection = STOP;
+  currentDirection = STOP_DIR;
   doNothingTime = millis();
 }
 
@@ -255,13 +254,13 @@ void RollerShutter::relayUpOff() {
 }
 
 void RollerShutter::startClosing() {
-  currentDirection = DOWN;
+  currentDirection = DOWN_DIR;
   relayUpOff();  // just to make sure
   relayDownOn();
 }
 
 void RollerShutter::startOpening() {
-  currentDirection = UP;
+  currentDirection = UP_DIR;
   relayDownOff();  // just to make sure
   relayUpOn();
 }
@@ -297,10 +296,10 @@ void RollerShutter::onTimer() {
       // If roller shutter wasn't in move when calibration is requested, we
       // select direction based on requested targetPosition
       if (targetPosition > 50 || targetPosition == MOVE_DOWN_POSITION) {
-        if (currentDirection == UP) {
+        if (currentDirection == UP_DIR) {
           stopMovement();
-        } else if (currentDirection == STOP) {
-          Serial.println("Calibration: closing");
+        } else if (currentDirection == STOP_DIR) {
+          Serial.println(F("Calibration: closing"));
           calibrationTime = closingTimeMs;
           lastMovementStartTime = millis();
           if (calibrationTime == 0) {
@@ -309,10 +308,10 @@ void RollerShutter::onTimer() {
           startClosing();
         }
       } else {
-        if (currentDirection == DOWN) {
+        if (currentDirection == DOWN_DIR) {
           stopMovement();
-        } else if (currentDirection == STOP) {
-          Serial.println("Calibration: opening");
+        } else if (currentDirection == STOP_DIR) {
+          Serial.println(F("Calibration: opening"));
           calibrationTime = openingTimeMs;
           lastMovementStartTime = millis();
           if (calibrationTime == 0) {
@@ -325,17 +324,17 @@ void RollerShutter::onTimer() {
       // Time used for calibaration is 10% higher then requested by user
       calibrationTime *= 1.1;
       if (calibrationTime > 0) {
-        Serial.print("Calibration time: ");
+        Serial.print(F("Calibration time: "));
         Serial.println(calibrationTime);
       }
     }
 
     if (calibrationTime != 0 &&
         millis() - lastMovementStartTime > calibrationTime) {
-      Serial.println("Calibration done");
+      Serial.println(F("Calibration done"));
       calibrationTime = 0;
       calibrate = false;
-      if (currentDirection == UP) {
+      if (currentDirection == UP_DIR) {
         currentPosition = 0;
       } else {
         currentPosition = 100;
@@ -345,9 +344,9 @@ void RollerShutter::onTimer() {
 
   } else if (!newTargetPositionAvailable &&
              currentDirection !=
-                 STOP) {  // no new command available and it is moving,
+                 STOP_DIR) {  // no new command available and it is moving,
                           // just handle roller movement/status
-    if (currentDirection == UP && currentPosition > 0) {
+    if (currentDirection == UP_DIR && currentPosition > 0) {
       int movementDistance = lastPositionBeforeMovement;
       int timeRequired = (1.0 * openingTimeMs * movementDistance / 100.0);
       float fractionOfMovemendDone =
@@ -360,7 +359,7 @@ void RollerShutter::onTimer() {
       if (targetPosition >= 0 && currentPosition <= targetPosition) {
         stopMovement();
       }
-    } else if (currentDirection == DOWN && currentPosition < 100) {
+    } else if (currentDirection == DOWN_DIR && currentPosition < 100) {
       int movementDistance = 100 - lastPositionBeforeMovement;
       int timeRequired = (1.0 * closingTimeMs * movementDistance / 100.0);
       float fractionOfMovemendDone =
@@ -383,29 +382,29 @@ void RollerShutter::onTimer() {
 
   } else if (newTargetPositionAvailable && targetPosition != STOP_POSITION) {
     // new target state was set, let's handle it
-    int newDirection = STOP;
+    int newDirection = STOP_DIR;
     if (targetPosition == MOVE_UP_POSITION) {
-      newDirection = UP;
+      newDirection = UP_DIR;
     } else if (targetPosition == MOVE_DOWN_POSITION) {
-      newDirection = DOWN;
+      newDirection = DOWN_DIR;
     } else {
       int newMovementValue = targetPosition - currentPosition;
       // 0 - 100 = -100 (move down); 50 -
       // 20 = 30 (move up 30%), etc
       if (newMovementValue > 0) {
-        newDirection = DOWN;  // move down
+        newDirection = DOWN_DIR;  // move down
       } else if (newMovementValue < 0) {
-        newDirection = UP;  // move up
+        newDirection = UP_DIR;  // move up
       }
     }
     // If new direction is the same as current move, then keep movin`
     if (newDirection == currentDirection) {
       newTargetPositionAvailable = false;
-    } else if (currentDirection == STOP) {  // else start moving
+    } else if (currentDirection == STOP_DIR) {  // else start moving
       newTargetPositionAvailable = false;
       lastPositionBeforeMovement = currentPosition;
       lastMovementStartTime = millis();
-      if (newDirection == DOWN) {
+      if (newDirection == DOWN_DIR) {
         startClosing();
       } else {
         startOpening();
@@ -449,13 +448,13 @@ void RollerShutter::onLoadState() {
     if (currentPosition >= 0) {
       calibrate = false;
     }
-    Serial.print("RollerShutter[");
+    Serial.print(F("RollerShutter["));
     Serial.print(channel.getChannelNumber());
-    Serial.print("] settings restored from storage. Opening time: ");
+    Serial.print(F("] settings restored from storage. Opening time: "));
     Serial.print(openingTimeMs);
-    Serial.print(" ms; closing time: ");
+    Serial.print(F(" ms; closing time: "));
     Serial.print(closingTimeMs);
-    Serial.print(" ms. Position: ");
+    Serial.print(F(" ms. Position: "));
     Serial.println(currentPosition);
   }
 }

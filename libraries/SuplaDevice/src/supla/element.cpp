@@ -21,7 +21,7 @@
 namespace Supla {
 Element *Element::firstPtr = nullptr;
 
-Element::Element() : lastReadTime(0), nextPtr(nullptr) {
+Element::Element() : nextPtr(nullptr) {
   if (firstPtr == nullptr) {
     firstPtr = this;
   } else {
