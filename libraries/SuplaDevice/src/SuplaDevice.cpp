@@ -48,15 +48,9 @@ SuplaDeviceClass::SuplaDeviceClass()
   registered = 0;
   last_iterate_time = 0;
   wait_for_iterate = 0;
-  channel_pin = NULL;
-  channel_pin_count = 0;
 }
 
 SuplaDeviceClass::~SuplaDeviceClass() {
-  if (channel_pin != NULL) {
-    free(channel_pin);
-    channel_pin = NULL;
-  }
 }
 
 void SuplaDeviceClass::setStatusFuncImpl(

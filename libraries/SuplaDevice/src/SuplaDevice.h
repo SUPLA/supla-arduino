@@ -51,76 +51,13 @@
 
 typedef void (*_impl_arduino_status)(int status, const char *msg);
 
-typedef void (*_impl_arduino_timer)(void);
-
-typedef struct SuplaChannelPin {
-  int pin1;
-  int pin2;
-  bool hiIsLo;
-  bool bistable;
-
-  unsigned long time_left;
-  unsigned long bi_time_left;
-  unsigned long vc_time;
-
-  uint8_t last_val;
-  double last_val_dbl1;
-  double last_val_dbl2;
-};
-
-typedef struct SuplaDeviceRollerShutterTask {
-  uint8_t percent;
-  uint8_t direction;
-  bool active;
-};
-
-typedef struct SuplaDeviceRollerShutterCVR {
-  uint8_t active;
-  uint8_t value;
-  unsigned long time;
-};
-
-typedef struct {
-  int pin;
-  uint8_t value;
-  unsigned long time;
-} SuplaDeviceRollerShutterButton;
-
-typedef struct SuplaDeviceRollerShutter {
-  SuplaDeviceRollerShutterButton btnUp;
-  SuplaDeviceRollerShutterButton btnDown;
-
-  int position;
-  int last_position;
-  int channel_number;
-  unsigned int full_opening_time;
-  unsigned int full_closing_time;
-
-  unsigned long last_iterate_time;
-  unsigned long tick_1s;
-  unsigned long up_time;
-  unsigned long down_time;
-
-  unsigned long start_time;
-  unsigned long stop_time;
-
-  SuplaDeviceRollerShutterCVR cvr1;  // Change Value Request 1
-  SuplaDeviceRollerShutterCVR cvr2;
-
-  SuplaDeviceRollerShutterTask task;
-  uint8_t save_position;
-};
-
 class SuplaDeviceClass {
  protected:
   void *srpc;
   char registered;
-  SuplaChannelPin *channel_pin;
-  int channel_pin_count;
   int port;
   int connectionFailCounter;
   int networkIsNotReadyCounter;
-  SuplaDeviceRollerShutter *roller_shutter;
 
   unsigned long last_iterate_time;
   unsigned long wait_for_iterate;
@@ -130,12 +67,8 @@ class SuplaDeviceClass {
 
   Supla::Uptime uptime;
 
-  _impl_arduino_timer impl_arduino_timer;
-
-
   bool isInitialized(bool msg);
   void setString(char *dst, const char *src, int max_size);
-  void channelSetValue(int channel, char value, _supla_int_t DurationMS);
 
  private:
   void status(int status, const char *msg);
@@ -167,12 +100,10 @@ class SuplaDeviceClass {
   void iterate(void);
 
   void setStatusFuncImpl(_impl_arduino_status impl_arduino_status);
-  void setTimerFuncImpl(_impl_arduino_timer impl_arduino_timer);
   void setServerPort(int value);
 
   void onVersionError(TSDC_SuplaVersionError *version_error);
   void onRegisterResult(TSD_SuplaRegisterDeviceResult *register_device_result);
-  void channelSetValueByServer(TSD_SuplaChannelNewValue *new_value);
   void channelSetActivityTimeoutResult(
       TSDC_SuplaSetActivityTimeoutResult *result);
 

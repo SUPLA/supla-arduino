@@ -99,6 +99,6 @@ void ImpulseCounter::onFastTimer() {
   prevState = currentState;
 }
 
-Channel *ImpulseCounter::getChannel() {
+Supla::Channel *ImpulseCounter::getChannel() {
   return &channel;
 }
