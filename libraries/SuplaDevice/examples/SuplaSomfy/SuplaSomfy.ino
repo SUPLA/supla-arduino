@@ -4,6 +4,9 @@
 #include <EEPROM.h>
 #include <supla/io.h>
 
+// WARNING: this example will not work. It requires adjustments to new SuplaDevice library
+
+
 // Choose proper network interface for your card:
 // Arduino Mega with EthernetShield W5100:
 //#include <supla/network/ethernet_shield.h>

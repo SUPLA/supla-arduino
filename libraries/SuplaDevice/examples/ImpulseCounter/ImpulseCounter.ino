@@ -16,7 +16,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <SPI.h>
 #include <SuplaDevice.h>
-#include <SuplaImpulseCounter.h>
+#include <supla/sensor/impulse_counter.h>
+
+// Choose where Supla should store counter data in persistant memory
+// We recommend to use external FRAM memory 
+#define STORAGE_OFFSET 100
+#include <supla/storage/eeprom.h>
+Supla::Eeprom eeprom(STORAGE_OFFSET);
+// #include <supla/storage/fram_spi.h>
+// Supla::FramSpi fram(STORAGE_OFFSET);
+
 
 // Choose proper network interface for your card:
 // Arduino Mega with EthernetShield W5100:
@@ -54,22 +63,17 @@ void setup() {
    * Otherwise you will get "Channel conflict!" error.
    */
     
-  // CHANNEL0 - Impulse Counter on pin 34, without status LED (it is not implemented yet), counting raising edge (from LOW to HIGH), no pullup on pin, and 10 ms debounce timeout
-  SuplaDevice.addImpulseCounter(34, 0, true, false, 10);
+  // CHANNEL0 - Impulse Counter on pin 34, counting raising edge (from LOW to HIGH), no pullup on pin, and 10 ms debounce timeout
+  new Supla::Sensor::ImpulseCounter(34, true, false, 10);
   
-  // CHANNEL1 - Impulse Counter on pin 34, without status LED (it is not implemented yet), counting folling edge (from HIGH to LOW), with pullup on pin, and 50 ms debounce timeout
-  SuplaDevice.addImpulseCounter(35, 0, false, true, 50);
+  // CHANNEL1 - Impulse Counter on pin 34, counting folling edge (from HIGH to LOW), with pullup on pin, and 50 ms debounce timeout
+  new Supla::Sensor::ImpulseCounter(35, true, false, 50);
   
-  // Uncomment below line to cleanup the counter storage data
-//  SuplaImpulseCounter::clearStorage();
-
 
   /*
-   * SuplaDevice Initialization.
    * Server address is available at https://cloud.supla.org 
    * If you do not have an account, you can create it at https://cloud.supla.org/account/create
    * SUPLA and SUPLA CLOUD are free of charge
-   * 
    */
 
   SuplaDevice.begin(GUID,              // Global Unique Identifier 

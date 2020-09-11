@@ -19,6 +19,15 @@
 #include <supla/control/roller_shutter.h>
 #include <supla/control/button.h>
 
+// Choose where Supla should store roller shutter data in persistant memory
+// We recommend to use external FRAM memory 
+#define STORAGE_OFFSET 100
+#include <supla/storage/eeprom.h>
+Supla::Eeprom eeprom(STORAGE_OFFSET);
+// #include <supla/storage/fram_spi.h>
+// Supla::FramSpi fram(STORAGE_OFFSET);
+
+
 // Choose proper network interface for your card:
 // Arduino Mega with EthernetShield W5100:
 #include <supla/network/ethernet_shield.h>
