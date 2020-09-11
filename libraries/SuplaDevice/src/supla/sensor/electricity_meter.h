@@ -75,7 +75,7 @@ class ElectricityMeter : public Element {
     }
 
     // Prepare extended channel value
-    srpc_evtool_v1_emextended2extended(&emValue, extChannel.getExtValue());
+    srpc_evtool_v2_emextended2extended(&emValue, extChannel.getExtValue());
     extChannel.setNewValue(emValue);
   }
 
