@@ -19,7 +19,6 @@
 #include <Arduino.h>
 
 #include "SuplaDevice.h"
-#include "SuplaImpulseCounter.h"
 #include "supla-common/IEEE754tools.h"
 #include "supla-common/log.h"
 #include "supla-common/srpc.h"
@@ -155,6 +154,23 @@ bool SuplaDeviceClass::begin(unsigned char version) {
               SUPLA_SOFTVER_MAXSIZE);
   }
 
+  // Iterate all elements and load state
+  Supla::Storage::PrepareState();
+  for (auto element = Supla::Element::begin(); element != nullptr;
+       element = element->next()) {
+    element->onLoadState();
+  }
+
+  // Initialize elements
+  for (auto element = Supla::Element::begin(); element != nullptr;
+       element = element->next()) {
+    element->onInit();
+  }
+
+  // Enable timers
+  Supla::initTimers();
+
+  Serial.println(F("Initializing network layer"));
   Supla::Network::Setup();
 
   TsrpcParams srpc_params;
@@ -172,33 +188,6 @@ bool SuplaDeviceClass::begin(unsigned char version) {
 
   supla_log(LOG_DEBUG, "Using Supla protocol version %d", version);
 
-  // Iterate all elements and load state (TODO)
-  Supla::Storage::PrepareState();
-  for (auto element = Supla::Element::begin(); element != nullptr;
-       element = element->next()) {
-    element->onLoadState();
-  }
-
-  // Load counters values from EEPROM storage
-  SuplaImpulseCounter::loadStorage();
-
-  // Enable timers
-  Supla::initTimers();
-
-  for (auto element = Supla::Element::begin(); element != nullptr;
-       element = element->next()) {
-    element->onInit();
-  }
-
-  for (int a = 0; a < channel_pin_count; a++) {
-    SuplaImpulseCounter *ptr = SuplaImpulseCounter::getCounterByChannel(a);
-    if (ptr) {
-      _supla_int64_t value = ptr->getCounter();
-      ptr->clearIsChanged();
-      memcpy(Supla::Channel::reg_dev.channels[a].value, &value, 8);
-    }
-  }
-
   status(STATUS_INITIALIZED, "SuplaDevice initialized");
   return true;
 }
@@ -206,62 +195,6 @@ bool SuplaDeviceClass::begin(unsigned char version) {
 void SuplaDeviceClass::setName(const char *Name) {
   if (isInitialized(true)) return;
   setString(Supla::Channel::reg_dev.Name, Name, SUPLA_DEVICE_NAME_MAXSIZE);
-}
-
-int SuplaDeviceClass::addChannel(int pin1,
-                                 int pin2,
-                                 bool hiIsLo,
-                                 bool bistable) {
-  if (isInitialized(true)) return -1;
-
-  if (Supla::Channel::reg_dev.channel_count >= SUPLA_CHANNELMAXCOUNT) {
-    status(STATUS_CHANNEL_LIMIT_EXCEEDED, "Channel limit exceeded");
-    return -1;
-  }
-
-  channel_pin_count++;
-
-  if (bistable && (pin1 == 0 || pin2 == 0)) bistable = false;
-
-  // !!! Channel number is always equal to channel array idx
-  // Supla::Channel::reg_dev.channels[idx]
-  Supla::Channel::reg_dev.channels[Supla::Channel::reg_dev.channel_count]
-      .Number = Supla::Channel::reg_dev.channel_count;
-  channel_pin = (SuplaChannelPin *)realloc(
-      channel_pin,
-      sizeof(SuplaChannelPin) * (Supla::Channel::reg_dev.channel_count + 1));
-  channel_pin[Supla::Channel::reg_dev.channel_count].pin1 = pin1;
-  channel_pin[Supla::Channel::reg_dev.channel_count].pin2 = pin2;
-  channel_pin[Supla::Channel::reg_dev.channel_count].hiIsLo = hiIsLo;
-  channel_pin[Supla::Channel::reg_dev.channel_count].bistable = bistable;
-  channel_pin[Supla::Channel::reg_dev.channel_count].time_left =
-      0;  // 100*Supla::Channel::reg_dev.channel_count;
-  channel_pin[Supla::Channel::reg_dev.channel_count].vc_time = 0;
-  channel_pin[Supla::Channel::reg_dev.channel_count].bi_time_left = 0;
-  channel_pin[Supla::Channel::reg_dev.channel_count].last_val =
-      Supla::Io::digitalRead(Supla::Channel::reg_dev.channel_count,
-                             bistable ? pin2 : pin1);
-
-  Supla::Channel::reg_dev.channel_count++;
-
-  return Supla::Channel::reg_dev.channel_count - 1;
-}
-
-bool SuplaDeviceClass::addImpulseCounter(int impulsePin,
-                                         int statusLedPin,
-                                         bool detectLowToHigh,
-                                         bool inputPullup,
-                                         unsigned long debounceDelay) {
-  int c = addChannel(0, 0, false, false);
-  if (c == -1) return false;
-
-  Supla::Channel::reg_dev.channels[c].Type = SUPLA_CHANNELTYPE_IMPULSE_COUNTER;
-
-  // Init channel value with "0"
-  memset(Supla::Channel::reg_dev.channels[c].value, 0, 8);
-
-  SuplaImpulseCounter::create(
-      c, impulsePin, statusLedPin, detectLowToHigh, inputPullup, debounceDelay);
 }
 
 void SuplaDeviceClass::setString(char *dst, const char *src, int max_size) {
@@ -277,25 +210,6 @@ void SuplaDeviceClass::setString(char *dst, const char *src, int max_size) {
   memcpy(dst, src, size);
 }
 
-void SuplaDeviceClass::iterate_impulse_counter(
-    SuplaChannelPin *pin,
-    TDS_SuplaDeviceChannel_C *channel,
-    unsigned long time_diff,
-    int channel_number) {
-  if (channel->Type == SUPLA_CHANNELTYPE_IMPULSE_COUNTER &&
-      pin->time_left <= 0) {
-    pin->time_left = 5000;
-    SuplaImpulseCounter *ptr =
-        SuplaImpulseCounter::getCounterByChannel(channel_number);
-    if (ptr && ptr->isChanged()) {
-      _supla_int64_t value = ptr->getCounter();
-      ptr->clearIsChanged();
-      memcpy(channel->value, &value, 8);
-      srpc_ds_async_channel_value_changed(srpc, channel_number, channel->value);
-    }
-  }
-}
-
 void SuplaDeviceClass::onTimer(void) {
   for (auto element = Supla::Element::begin(); element != nullptr;
        element = element->next()) {
@@ -308,7 +222,6 @@ void SuplaDeviceClass::onFastTimer(void) {
   // after SuplaDevice initialization (because we have to read stored counter
   // values) and before any other operation like connection to Supla cloud
   // (because we want to count impulses even when we have connection issues.
-  SuplaImpulseCounter::iterateAll();
   for (auto element = Supla::Element::begin(); element != nullptr;
        element = element->next()) {
     element->onFastTimer();
@@ -329,7 +242,6 @@ void SuplaDeviceClass::iterate(void) {
     element->iterateAlways();
   }
 
-  SuplaImpulseCounter::updateStorageOccasionally();
   // Iterate all elements and saves state
   if (Supla::Storage::SaveStateAllowed(_millis)) {
     Supla::Storage::PrepareState();
@@ -431,13 +343,6 @@ void SuplaDeviceClass::iterate(void) {
         if (!element->iterateConnected(srpc)) {
           break;
         }
-      }
-
-      for (int a = 0; a < channel_pin_count; a++) {
-        iterate_impulse_counter(&channel_pin[a],
-                                &Supla::Channel::reg_dev.channels[a],
-                                time_diff,
-                                a);
       }
 
       last_iterate_time = millis();

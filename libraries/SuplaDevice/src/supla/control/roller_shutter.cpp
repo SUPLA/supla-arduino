@@ -48,6 +48,7 @@ RollerShutter::RollerShutter(int pinUp, int pinDown, bool highIsOn)
   targetPosition = STOP_POSITION;
   lastPositionBeforeMovement = currentPosition;
   channel.setType(SUPLA_CHANNELTYPE_RELAY);
+  channel.setDefault(SUPLA_CHANNELFNC_CONTROLLINGTHEROLLERSHUTTER);
   channel.setFuncList(SUPLA_BIT_FUNC_CONTROLLINGTHEROLLERSHUTTER);
 }
 

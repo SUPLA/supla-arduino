@@ -34,13 +34,13 @@ class Thermometer : public Element {
   virtual double getValue() {
     return TEMPERATURE_NOT_AVAILABLE;
   }
-void iterateAlways() {
+
+  void iterateAlways() {
     if (lastReadTime + 10000 < millis()) {
       lastReadTime = millis();
       channel.setNewValue(getValue());
     }
   }
-
 
  protected:
   Channel *getChannel() {

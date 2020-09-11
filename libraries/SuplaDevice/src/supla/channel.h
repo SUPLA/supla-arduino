@@ -41,6 +41,7 @@ class Channel {
                    uint8_t blue,
                    uint8_t colorBrightness,
                    uint8_t brightness);
+  void setNewValue(_supla_int64_t value);
   bool setNewValue(char *newValue);
 
   virtual bool isExtended();

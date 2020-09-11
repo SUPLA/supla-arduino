@@ -135,17 +135,7 @@ class SuplaDeviceClass {
 
   bool isInitialized(bool msg);
   void setString(char *dst, const char *src, int max_size);
-  int addChannel(int pin1, int pin2, bool hiIsLo, bool bistable);
   void channelSetValue(int channel, char value, _supla_int_t DurationMS);
-
-
-  SuplaDeviceRollerShutter *rsByChannelNumber(int channel_number);
-
-  void iterate_impulse_counter(SuplaChannelPin *pin,
-                               TDS_SuplaDeviceChannel_C *channel,
-                               unsigned long time_diff,
-                               int channel_number);
-
 
  private:
   void status(int status, const char *msg);
@@ -169,18 +159,6 @@ class SuplaDeviceClass {
   void setAuthKey(char authkey[SUPLA_AUTHKEY_SIZE]);
   void setEmail(const char *email);
   void setServer(const char *server);
-
-  // Adds impulse couner on "impulsePin" pin. "statusLedPin" is not implemented
-  // currently. "detectLowToHigh" defines if counter counts changes from LOW to
-  // HIGH state on impulsePin. With "false" it counts changes from HIGH to LOW
-  // "inputPullup" defines if impulsePin is configured as "INPUT_PULLUP" or
-  // "INPUT" "debounceDelay" defines how many ms is used to filter out bouncing
-  // changes between LOW and HIGH during change on pin state
-  bool addImpulseCounter(int impulsePin,
-                         int statusLedPin = 0,
-                         bool detectLowToHigh = false,
-                         bool inputPullup = true,
-                         unsigned long debounceDelay = 10);
 
   // Timer with 100 Hz frequency (10 ms)
   void onTimer(void);

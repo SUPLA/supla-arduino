@@ -99,6 +99,18 @@ void Channel::setNewValue(double temp, double humi) {
   }
 }
 
+void Channel::setNewValue(_supla_int64_t value) {
+  char newValue[SUPLA_CHANNELVALUE_SIZE];
+
+  memset(newValue, 0, SUPLA_CHANNELVALUE_SIZE);
+
+  memcpy(newValue, &value, sizeof(_supla_int64_t));
+  if (setNewValue(newValue)) {
+    supla_log(
+        LOG_DEBUG, "Channel(%d) value changed to %d", channelNumber, static_cast<int>(value));
+  }
+}
+
 void Channel::setNewValue(int value) {
   char newValue[SUPLA_CHANNELVALUE_SIZE];
 
