@@ -18,6 +18,7 @@
 #include <crc16.h>
 #include <supla-common/log.h>
 #include <supla/storage/storage.h>
+#include <supla/actions.h>
 
 #include "impulse_counter.h"
 
@@ -101,4 +102,13 @@ void ImpulseCounter::onFastTimer() {
 
 Supla::Channel *ImpulseCounter::getChannel() {
   return &channel;
+}
+
+void ImpulseCounter::trigger(int trigger, int action) {
+  switch (action) {
+    case RESET: {
+      setCounter(0);
+      break;
+    }
+  }
 }

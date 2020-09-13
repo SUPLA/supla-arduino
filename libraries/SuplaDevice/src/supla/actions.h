@@ -70,8 +70,10 @@ enum Action {
   TURN_ON_ALL_DIMMED,
   ITERATE_DIM_RGB,
   ITERATE_DIM_W,
-  ITERATE_DIM_ALL
+  ITERATE_DIM_ALL,
 
+  // Impulse counter
+  RESET
 
 };
 

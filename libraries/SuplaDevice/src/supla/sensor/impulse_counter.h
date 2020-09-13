@@ -20,10 +20,11 @@
 #include <supla-common/proto.h>
 #include <supla/channel.h>
 #include <supla/element.h>
+#include <supla/triggerable.h>
 
 namespace Supla {
 namespace Sensor {
-class ImpulseCounter : public Element {
+class ImpulseCounter : public Element, public Triggerable {
  public:
   ImpulseCounter(int _impulsePin,
                  bool _detectLowToHigh = false,
@@ -34,6 +35,7 @@ class ImpulseCounter : public Element {
   void onLoadState();
   void onSaveState();
   void onFastTimer();
+  void trigger(int trigger, int action);
 
   // Returns value of a counter at given Supla channel
   _supla_int64_t getCounter();
