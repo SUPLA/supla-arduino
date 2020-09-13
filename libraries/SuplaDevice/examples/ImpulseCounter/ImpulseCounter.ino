@@ -66,8 +66,8 @@ void setup() {
   // CHANNEL0 - Impulse Counter on pin 34, counting raising edge (from LOW to HIGH), no pullup on pin, and 10 ms debounce timeout
   new Supla::Sensor::ImpulseCounter(34, true, false, 10);
   
-  // CHANNEL1 - Impulse Counter on pin 34, counting folling edge (from HIGH to LOW), with pullup on pin, and 50 ms debounce timeout
-  new Supla::Sensor::ImpulseCounter(35, true, false, 50);
+  // CHANNEL1 - Impulse Counter on pin 35, counting falling edge (from HIGH to LOW), with pullup on pin, and 50 ms debounce timeout
+  new Supla::Sensor::ImpulseCounter(35, false, true, 50);
   
 
   /*
