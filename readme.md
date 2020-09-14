@@ -65,9 +65,9 @@ Supported network interface for ESP32:
 
 ### Exmaples
 
-Each example can run on Arduino Mega, ESP8266, or ESP32 board. Please read comments in example files and uncomment proper library for your network interface.
+Each example can run on Arduino Mega, ESP8266, or ESP32 board - unless mentioned otherwise in comments. Please read comments in example files and uncomment proper library for your network interface.
 
-SuplaSomfy, Supla_RollerShutter_FRAM - those examples are not updated yet.
+SuplaSomfy - this example is not updated yet.
 
 ### Folder structure
 
@@ -75,6 +75,8 @@ SuplaSomfy, Supla_RollerShutter_FRAM - those examples are not updated yet.
 * `supla/network` - implementation of network interfaces for supported boards
 * `supla/sensor` - implementation of Supla sensor channels (thermometers, open/close sensors, etc.)
 * `supla/control` - implementation of Supla control channels (various combinations of relays, buttons, action triggers)
+* `supla/clock` - time services used in library (i.e. RTC)
+* `supla` - all common classes are defined in main `supla` folder. You can find there classes that create framework on which all other components work. 
 
 Some functions from above folders have dependencies to external libraries. Please check documentation included in header files.
 
@@ -92,7 +94,8 @@ Supla channel number is assigned to each elemement with channel in an order of c
 
 `Element` class defines follwoing virtual methods that are called by SuplaDevice:
 1. `onInit` - called first within `SuplaDevice.begin()` method. It should initialize your element.
-2. `onLoadConfig` - called second within `SuplaDevice.begin()` method. It should read configuration data from persistent memory. This functionality is not implemented yet in library.
+2. `onLoadState` - called second within `SuplaDevice.begin()` method. It reads configuration data from persistent memory storage.
+3. `onSaveState` - called in `SuplaDevice.iterate()` - it saves state data to persistant storage. It is not called on each iteration. `Storage` class makes sure that storing to memory does not happen to often and time delay between saves depends on implementation. 
 3. `iterateAlways` - called on each iteration of `SuplaDevice.iterate()` method, regardless of network/connection status. Be careful - some other methods called in `SuplaDevice.iterate()` method may block program execution for some time (even few seconds) - i.e. trying to establish connection with Supla server is blocking - in case server is not accessible, it will iterfere with `iterateAlways` method. So time critical functions should not be put here.
 4. `iterateConnected` - called on each iterateion of `SuplaDevice.iterate()` method when device is connected and properly registered in Supla server. This method usually checks if there is some new data to be send to server (i.e. new temperature reading) and sends it. 
 5. `onTimer` - called every 10 ms after enabling in `SuplaDevice.begin()`
@@ -197,6 +200,30 @@ Sensor category is for all elements/channels that reads something and provides d
 
 ### Control 
 Control category is for all elements/channels that are used to control something, i.e. relays, buttons, RGBW.
+
+## Supported persistant memory storage 
+Storage class is used as an abstraction for different persistant memory devices. Some elements/channels will not work properly without storage and some will have limitted functionalities. I.e. `ImpulseCounter` requires storage to save counter value, so it could be restored after reset, or `RollerShutter` requires storage to keep openin/closing times and current shutter possition. Currently two variants of storage classes are supported.
+### EEPROM/Flash memory
+EEPROM (in case of Arduino Mega) and Flash (in case of ESP) are build into most of boards. Usually writing should be safe for 100 000 write operations (on each bit). So in order to limit those operations, this kind of Storage will save data in longer time periods (every few minutes). Supla will not write data if there is no change.
+```
+#include <supla/storage/eeprom.h>
+Supla::Eeprom eeprom(SUPLA_STORAGE_OFFSET);
+```
+Offset parameter is optional - use it if you already use saving to EEPROM in your application and you want SuplaDevice to use some other area of memory.
+
+### Adafruit FRAM SPI
+FRAM is recommended for storage in Supla. It allows almost limitless writing cycles and it is very fast memory.
+Currently only Adafruit FRAM SPI is supported.
+```
+#include <supla/storage/fram_spi.h>
+// Hardware SPI
+Supla::FramSpi fram(FRAM_CS, SUPLA_STORAGE_OFFSET);
+```
+or with SW SPI:
+```
+// Software SPI
+Supla::FramSpi fram(SCK_PIN, MISO_PIN, MOSI_PIN, FRAM_CS, SUPLA_STORAGE_OFFSET);
+```
 
 ## History
 
