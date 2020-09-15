@@ -33,7 +33,7 @@ bool Eeprom::init() {
 #if defined(ARDUINO_ARCH_ESP8266) 
   EEPROM.begin(1024);
 #elif defined(ARDUINO_ARCH_ESP32)
-  EEPROM.begin(512)
+  EEPROM.begin(512);
 #endif
   delay(15);
 
