@@ -22,6 +22,7 @@
 #include "supla-common/proto.h"
 #include "supla/network/network.h"
 #include "supla/uptime.h"
+#include "supla/clock/clock.h"
 
 #define ACTIVITY_TIMEOUT 30
 
@@ -66,6 +67,7 @@ class SuplaDeviceClass {
   int currentStatus;
 
   Supla::Uptime uptime;
+  Supla::Clock *clock;
 
   bool isInitialized(bool msg);
   void setString(char *dst, const char *src, int max_size);
@@ -78,6 +80,8 @@ class SuplaDeviceClass {
   ~SuplaDeviceClass();
 
   void fillStateData(TDSC_ChannelState &channelState);
+  void addClock(Supla::Clock *clock);
+  Supla::Clock *getClock();
 
   bool begin(char GUID[SUPLA_GUID_SIZE],
              const char *Server,
@@ -106,6 +110,7 @@ class SuplaDeviceClass {
   void onRegisterResult(TSD_SuplaRegisterDeviceResult *register_device_result);
   void channelSetActivityTimeoutResult(
       TSDC_SuplaSetActivityTimeoutResult *result);
+  void onGetUserLocaltimeResult(TSDC_UserLocalTimeResult *result);
 
   void setSwVersion(const char *);
   int getCurrentStatus();

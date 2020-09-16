@@ -485,4 +485,19 @@ void SuplaDeviceClass::setServer(const char *server) {
       Supla::Channel::reg_dev.ServerName, server, SUPLA_SERVER_NAME_MAXSIZE);
 }
 
+void SuplaDeviceClass::onGetUserLocaltimeResult(TSDC_UserLocalTimeResult *result) {
+  if (clock) {
+    clock->parseLocaltimeFromServer(result);
+  }
+}
+
+void SuplaDeviceClass::addClock(Supla::Clock *_clock) {
+  Serial.println(F("Clock class added"));
+  clock = _clock;
+}
+
+Supla::Clock * SuplaDeviceClass::getClock() {
+  return clock;
+}
+
 SuplaDeviceClass SuplaDevice;

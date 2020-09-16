@@ -99,6 +99,11 @@ void message_received(void *_srpc,
       case SUPLA_SDC_CALL_PING_SERVER_RESULT:
         break;
 
+      case SUPLA_DCS_CALL_GET_USER_LOCALTIME_RESULT: {
+        ((SuplaDeviceClass *)_sdc)->onGetUserLocaltimeResult(rd.data.sdc_user_localtime_result);
+        break;                                                 
+      }                                                         
+
       default:
         supla_log(LOG_DEBUG, "Received unknown message from server!");
         break;
