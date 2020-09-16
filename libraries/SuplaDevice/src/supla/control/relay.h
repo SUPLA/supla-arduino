@@ -24,11 +24,12 @@
 
 #include <Arduino.h>
 
-#include "../io.h"
+#include "../actions.h"
 #include "../channel.h"
 #include "../element.h"
+#include "../io.h"
+#include "../storage/storage.h"
 #include "../triggerable.h"
-#include "../actions.h"
 
 namespace Supla {
 namespace Control {
@@ -37,102 +38,23 @@ class Relay : public Element, public Triggerable {
   Relay(int pin,
         bool highIsOn = true,
         _supla_int_t functions = (0xFF ^
-                                  SUPLA_BIT_FUNC_CONTROLLINGTHEROLLERSHUTTER))
-      : pin(pin), durationMs(0), highIsOn(highIsOn) {
-    channel.setType(SUPLA_CHANNELTYPE_RELAY);
-    channel.setFuncList(functions);
-  }
+                                  SUPLA_BIT_FUNC_CONTROLLINGTHEROLLERSHUTTER));
 
-  virtual uint8_t pinOnValue() {
-    return highIsOn ? HIGH : LOW;
-  }
+  virtual uint8_t pinOnValue();
+  virtual uint8_t pinOffValue();
+  virtual void turnOn(_supla_int_t duration = 0);
+  virtual void turnOff(_supla_int_t duration = 0);
+  virtual bool isOn();
+  virtual void toggle();
 
-  virtual uint8_t pinOffValue() {
-    return highIsOn ? LOW : HIGH;
-  }
+  void trigger(int trigger, int action);
 
-  void onInit() {
-    pinMode(pin, OUTPUT);
-    Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOffValue());
-  }
-
-  void iterateAlways() {
-    if (durationMs && durationMs < millis()) {
-      durationMs = 0;
-      toggle();
-    }
-  }
-
-  int handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue) {
-    int result = -1;
-    if (newValue->value[0] == 1) {
-      turnOn(newValue->DurationMS);
-      result = 1;
-    } else if (newValue->value[0] == 0) {
-      turnOff(newValue->DurationMS);
-      result = 1;
-    }
-
-    return result;
-  }
-
-  virtual void turnOn(_supla_int_t duration = 0) {
-    if (duration > 0) {
-      durationMs = duration + millis();
-    }
-    Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOnValue());
-
-    channel.setNewValue(true);
-  }
-
-  virtual void turnOff(_supla_int_t duration = 0) {
-    durationMs = 0;
-    Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOffValue());
-
-    channel.setNewValue(false);
-  }
-
-  virtual bool isOn() {
-    return Supla::Io::digitalRead(channel.getChannelNumber(), pin) ==
-           pinOnValue();
-  }
-
-  virtual void toggle() {
-    durationMs = 0;
-    Supla::Io::digitalWrite(
-        channel.getChannelNumber(),
-        pin,
-        Supla::Io::digitalRead(channel.getChannelNumber(), pin) == LOW ? HIGH
-                                                                       : LOW);
-
-    if (isOn()) {
-      channel.setNewValue(true);
-    } else {
-      channel.setNewValue(false);
-    }
-  }
-
-  void trigger(int trigger, int action) {
-    switch (action) {
-      case TURN_ON: {
-        turnOn();
-        break;
-      }
-      case TURN_OFF: {
-        turnOff();
-        break;
-      }
-      case TOGGLE: {
-        toggle();
-        break;
-      }
-    }
-  }
+  void onInit();
+  void iterateAlways();
+  int handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue);
 
  protected:
-  Channel *getChannel() {
-    return &channel;
-  }
+  Channel *getChannel();
   Channel channel;
   _supla_int_t durationMs;
   int pin;
