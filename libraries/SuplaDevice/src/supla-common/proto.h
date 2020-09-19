@@ -1239,6 +1239,7 @@ typedef struct {
   char Name[ZWAVE_NODE_NAME_MAXSIZE];  // UTF8. Last variable in struct!
 } TCalCfg_ZWave_Node;                  // v. >= 12
 
+/*
 typedef struct {
   unsigned int MinimumSec : 24;
   unsigned int MaximumSec : 24;
@@ -1249,6 +1250,8 @@ typedef struct {
 typedef struct {
   unsigned int TimeSec : 24;
 } TCalCfg_ZWave_WakeUpTime;
+
+*/
 
 typedef struct {
   _supla_int_t Command;
