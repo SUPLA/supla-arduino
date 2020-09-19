@@ -29,10 +29,7 @@
 using namespace Supla;
 using namespace Control;
 
-Relay::Relay(int pin,
-        bool highIsOn = true,
-        _supla_int_t functions = (0xFF ^
-                                  SUPLA_BIT_FUNC_CONTROLLINGTHEROLLERSHUTTER))
+Relay::Relay(int pin, bool highIsOn, _supla_int_t functions)
       : pin(pin), durationMs(0), highIsOn(highIsOn) {
     channel.setType(SUPLA_CHANNELTYPE_RELAY);
     channel.setFuncList(functions);
@@ -71,7 +68,7 @@ void Relay::iterateAlways() {
     return result;
   }
 
-void Relay::turnOn(_supla_int_t duration = 0) {
+void Relay::turnOn(_supla_int_t duration) {
     if (duration > 0) {
       durationMs = duration + millis();
     }
@@ -80,7 +77,7 @@ void Relay::turnOn(_supla_int_t duration = 0) {
     channel.setNewValue(true);
   }
 
-void Relay::turnOff(_supla_int_t duration = 0) {
+void Relay::turnOff(_supla_int_t duration) {
     durationMs = 0;
     Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOffValue());
 
