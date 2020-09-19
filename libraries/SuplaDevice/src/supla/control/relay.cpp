@@ -104,7 +104,7 @@ void Relay::toggle() {
     }
   }
 
-void Relay::trigger(int trigger, int action) {
+void Relay::runAction(int trigger, int action) {
     switch (action) {
       case TURN_ON: {
         turnOn();

@@ -14,14 +14,14 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "supla/will_trigger.h"
+#include "supla/local_action.h"
 
 namespace Supla {
 
-WillTrigger::WillTrigger() : registeredClientsCount(0) {
+LocalAction::LocalAction() : registeredClientsCount(0) {
 }
 
-void WillTrigger::willTrigger(Triggerable &client, int event, int action) {
+void LocalAction::addAction(int action, Triggerable &client, int event) {
   if (registeredClientsCount < MAX_TRIGGERABLE_CLIENTS) {
     clients[registeredClientsCount].client = &client;
     clients[registeredClientsCount].onEvent = event;
@@ -30,10 +30,10 @@ void WillTrigger::willTrigger(Triggerable &client, int event, int action) {
   }
 }
 
-void WillTrigger::runTrigger(int event) {
+void LocalAction::runAction(int event) {
   for (int i = 0; i < registeredClientsCount; i++) {
     if (clients[i].onEvent == event) {
-      clients[i].client->trigger(event, clients[i].action);
+      clients[i].client->runAction(event, clients[i].action);
     }
   }
 }

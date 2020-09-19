@@ -47,7 +47,7 @@ class Relay : public Element, public Triggerable {
   virtual bool isOn();
   virtual void toggle();
 
-  void trigger(int trigger, int action);
+  void runAction(int trigger, int action);
 
   void onInit();
   void iterateAlways();
