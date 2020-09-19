@@ -31,6 +31,7 @@
 #include "../storage/storage.h"
 #include "../triggerable.h"
 
+
 namespace Supla {
 namespace Control {
 class Relay : public Element, public Triggerable {
@@ -39,6 +40,12 @@ class Relay : public Element, public Triggerable {
         bool highIsOn = true,
         _supla_int_t functions = (0xFF ^
                                   SUPLA_BIT_FUNC_CONTROLLINGTHEROLLERSHUTTER));
+
+  // Sets default relay state after device reset/power up
+  // -1 - restore from Storage
+  // 0 - off (default)
+  // 1 - on
+//  virtual void setDefaultStateOnInit(int8_t state);
 
   virtual uint8_t pinOnValue();
   virtual uint8_t pinOffValue();
@@ -50,6 +57,8 @@ class Relay : public Element, public Triggerable {
   void trigger(int trigger, int action);
 
   void onInit();
+  void onLoadState();
+  void onSaveState();
   void iterateAlways();
   int handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue);
 
@@ -59,6 +68,7 @@ class Relay : public Element, public Triggerable {
   _supla_int_t durationMs;
   int pin;
   bool highIsOn;
+  int8_t stateOnInit;
 };
 
 };  // namespace Control

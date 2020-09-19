@@ -21,8 +21,8 @@
 
 #include <Arduino.h>
 
-#include "../io.h"
 #include "../actions.h"
+#include "../io.h"
 #include "../storage/storage.h"
 #include "relay.h"
 
@@ -30,101 +30,122 @@ using namespace Supla;
 using namespace Control;
 
 Relay::Relay(int pin,
-        bool highIsOn = true,
-        _supla_int_t functions = (0xFF ^
-                                  SUPLA_BIT_FUNC_CONTROLLINGTHEROLLERSHUTTER))
-      : pin(pin), durationMs(0), highIsOn(highIsOn) {
-    channel.setType(SUPLA_CHANNELTYPE_RELAY);
-    channel.setFuncList(functions);
-  }
+             bool highIsOn = true,
+             _supla_int_t functions =
+                 (0xFF ^ SUPLA_BIT_FUNC_CONTROLLINGTHEROLLERSHUTTER))
+    : pin(pin), durationMs(0), highIsOn(highIsOn), stateOnInit(0) {
+  channel.setType(SUPLA_CHANNELTYPE_RELAY);
+  channel.setFuncList(functions);
+}
 
 uint8_t Relay::pinOnValue() {
-    return highIsOn ? HIGH : LOW;
-  }
+  return highIsOn ? HIGH : LOW;
+}
 
 uint8_t Relay::pinOffValue() {
-    return highIsOn ? LOW : HIGH;
-  }
+  return highIsOn ? LOW : HIGH;
+}
 
 void Relay::onInit() {
-    pinMode(pin, OUTPUT);
-    Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOffValue());
-  }
+  pinMode(pin, OUTPUT);
+  Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOffValue());
+}
 
 void Relay::iterateAlways() {
-    if (durationMs && durationMs < millis()) {
-      durationMs = 0;
-      toggle();
-    }
+  if (durationMs && durationMs < millis()) {
+    durationMs = 0;
+    toggle();
+  }
+}
+
+int Relay::handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue) {
+  int result = -1;
+  if (newValue->value[0] == 1) {
+    turnOn(newValue->DurationMS);
+    result = 1;
+  } else if (newValue->value[0] == 0) {
+    turnOff(newValue->DurationMS);
+    result = 1;
   }
 
-  int Relay::handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue) {
-    int result = -1;
-    if (newValue->value[0] == 1) {
-      turnOn(newValue->DurationMS);
-      result = 1;
-    } else if (newValue->value[0] == 0) {
-      turnOff(newValue->DurationMS);
-      result = 1;
-    }
-
-    return result;
-  }
+  return result;
+}
 
 void Relay::turnOn(_supla_int_t duration = 0) {
-    if (duration > 0) {
-      durationMs = duration + millis();
-    }
-    Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOnValue());
-
-    channel.setNewValue(true);
+  if (duration > 0) {
+    durationMs = duration + millis();
   }
+  Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOnValue());
+
+  channel.setNewValue(true);
+}
 
 void Relay::turnOff(_supla_int_t duration = 0) {
-    durationMs = 0;
-    Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOffValue());
+  durationMs = 0;
+  Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOffValue());
 
-    channel.setNewValue(false);
-  }
+  channel.setNewValue(false);
+}
 
 bool Relay::isOn() {
-    return Supla::Io::digitalRead(channel.getChannelNumber(), pin) ==
-           pinOnValue();
-  }
+  return Supla::Io::digitalRead(channel.getChannelNumber(), pin) ==
+         pinOnValue();
+}
 
 void Relay::toggle() {
-    durationMs = 0;
-    Supla::Io::digitalWrite(
-        channel.getChannelNumber(),
-        pin,
-        Supla::Io::digitalRead(channel.getChannelNumber(), pin) == LOW ? HIGH
-                                                                       : LOW);
+  durationMs = 0;
+  Supla::Io::digitalWrite(
+      channel.getChannelNumber(),
+      pin,
+      Supla::Io::digitalRead(channel.getChannelNumber(), pin) == LOW ? HIGH
+                                                                     : LOW);
 
-    if (isOn()) {
-      channel.setNewValue(true);
-    } else {
-      channel.setNewValue(false);
-    }
+  if (isOn()) {
+    channel.setNewValue(true);
+  } else {
+    channel.setNewValue(false);
   }
+}
 
 void Relay::trigger(int trigger, int action) {
-    switch (action) {
-      case TURN_ON: {
-        turnOn();
-        break;
-      }
-      case TURN_OFF: {
-        turnOff();
-        break;
-      }
-      case TOGGLE: {
-        toggle();
-        break;
-      }
+  switch (action) {
+    case TURN_ON: {
+      turnOn();
+      break;
+    }
+    case TURN_OFF: {
+      turnOff();
+      break;
+    }
+    case TOGGLE: {
+      toggle();
+      break;
     }
   }
+}
 
 Channel *Relay::getChannel() {
-    return &channel;
-  }
+  return &channel;
+}
 
+void Relay::onSaveState() {
+ 
+//  Supla::Storage::WriteState((unsigned char *)&counter, sizeof(counter));
+}
+
+void Relay::onLoadState() {
+/*  if (stateOnInit == -1) {
+    int8_t data;
+    if (Supla::Storage::ReadState((unsigned char *)&data, sizeof(data))) {
+      stateOnInit = data;
+    }
+  } */
+}
+
+/*void Relay::setDefaultStateOnInit(int state) {
+  if (state >= -1 && state <= 1) {
+    stateOnInit = state;
+  }
+}
+
+*/

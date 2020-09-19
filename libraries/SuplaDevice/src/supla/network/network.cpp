@@ -103,7 +103,31 @@ void message_received(void *_srpc,
         ((SuplaDeviceClass *)_sdc)->onGetUserLocaltimeResult(rd.data.sdc_user_localtime_result);
         break;                                                 
       }                                                         
+      case SUPLA_SD_CALL_DEVICE_CALCFG_REQUEST: {
+        TDS_DeviceCalCfgResult result;
+        result.ReceiverID = rd.data.sd_device_calcfg_request->SenderID;
+        result.ChannelNumber = rd.data.sd_device_calcfg_request->ChannelNumber;
+        result.Command = rd.data.sd_device_calcfg_request->Command;
+        result.Result = SUPLA_CALCFG_RESULT_NOT_SUPPORTED;
+        result.DataSize = 0;
 
+        if (rd.data.sd_device_calcfg_request->SuperUserAuthorized != 1) {
+          result.Result = SUPLA_CALCFG_RESULT_UNAUTHORIZED;
+        } else {
+          auto element = Supla::Element::getElementByChannelNumber(
+              rd.data.sd_device_calcfg_request->ChannelNumber);
+          if (element) {
+            result.Result = element->handleCalcfgFromServer(rd.data.sd_device_calcfg_request->Command, rd.data.sd_device_calcfg_request->DataSize, rd.data.sd_device_calcfg_request->Data );
+          } else {
+            Serial.print(F("Error: couldn't find element for a requested channel ["));
+            Serial.print(rd.data.sd_channel_new_value->ChannelNumber);
+            Serial.println(F("]"));
+          }
+        }
+
+        srpc_ds_async_device_calcfg_result(_srpc, &result);
+        break;
+      }
       default:
         supla_log(LOG_DEBUG, "Received unknown message from server!");
         break;
