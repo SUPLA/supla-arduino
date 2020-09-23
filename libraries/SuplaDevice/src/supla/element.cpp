@@ -98,4 +98,11 @@ void Element::handleGetChannelState(TDSC_ChannelState &channelState) {
   return;
 }
 
+Element & Element::disableChannelState() {
+  if (getChannel()) {
+    getChannel()->unsetFlag(SUPLA_CHANNEL_FLAG_CHANNELSTATE);
+  }
+  return *this;
+}
+
 };  // namespace Supla

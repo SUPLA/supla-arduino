@@ -75,6 +75,8 @@ class Element {
 
   int getChannelNumber();
 
+  Element &disableChannelState();
+
  protected:
   virtual Channel *getChannel();
   static Element *firstPtr;
