@@ -69,8 +69,8 @@ void setup() {
   Supla::Control::Button *buttonOpen = new Supla::Control::Button(28, true, true);
   Supla::Control::Button *buttonClose = new Supla::Control::Button(29, true, true);
 
-  buttonOpen->willTrigger(*rs, Supla::ON_PRESS, Supla::OPEN_OR_STOP);
-  buttonClose->willTrigger(*rs, Supla::ON_PRESS, Supla::CLOSE_OR_STOP);
+  buttonOpen->addAction(Supla::OPEN_OR_STOP, *rs, Supla::ON_PRESS);
+  buttonClose->addAction(Supla::CLOSE_OR_STOP, *rs, Supla::ON_PRESS);
  
   /*
    * SuplaDevice Initialization.

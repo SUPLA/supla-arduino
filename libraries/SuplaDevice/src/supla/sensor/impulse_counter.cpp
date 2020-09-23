@@ -104,7 +104,7 @@ Supla::Channel *ImpulseCounter::getChannel() {
   return &channel;
 }
 
-void ImpulseCounter::trigger(int trigger, int action) {
+void ImpulseCounter::runAction(int trigger, int action) {
   switch (action) {
     case RESET: {
       setCounter(0);

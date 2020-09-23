@@ -29,11 +29,8 @@
 using namespace Supla;
 using namespace Control;
 
-Relay::Relay(int pin,
-             bool highIsOn = true,
-             _supla_int_t functions =
-                 (0xFF ^ SUPLA_BIT_FUNC_CONTROLLINGTHEROLLERSHUTTER))
-    : pin(pin), durationMs(0), highIsOn(highIsOn), stateOnInit(0) {
+Relay::Relay(int pin, bool highIsOn, _supla_int_t functions)
+    : pin(pin), durationMs(0), highIsOn(highIsOn) {
   channel.setType(SUPLA_CHANNELTYPE_RELAY);
   channel.setFuncList(functions);
 }
@@ -71,7 +68,7 @@ int Relay::handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue) {
   return result;
 }
 
-void Relay::turnOn(_supla_int_t duration = 0) {
+void Relay::turnOn(_supla_int_t duration) {
   if (duration > 0) {
     durationMs = duration + millis();
   }
@@ -80,7 +77,7 @@ void Relay::turnOn(_supla_int_t duration = 0) {
   channel.setNewValue(true);
 }
 
-void Relay::turnOff(_supla_int_t duration = 0) {
+void Relay::turnOff(_supla_int_t duration) {
   durationMs = 0;
   Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOffValue());
 
@@ -107,7 +104,7 @@ void Relay::toggle() {
   }
 }
 
-void Relay::trigger(int trigger, int action) {
+void Relay::runAction(int trigger, int action) {
   switch (action) {
     case TURN_ON: {
       turnOn();
@@ -129,17 +126,16 @@ Channel *Relay::getChannel() {
 }
 
 void Relay::onSaveState() {
- 
-//  Supla::Storage::WriteState((unsigned char *)&counter, sizeof(counter));
+  //  Supla::Storage::WriteState((unsigned char *)&counter, sizeof(counter));
 }
 
 void Relay::onLoadState() {
-/*  if (stateOnInit == -1) {
-    int8_t data;
-    if (Supla::Storage::ReadState((unsigned char *)&data, sizeof(data))) {
-      stateOnInit = data;
-    }
-  } */
+  /*  if (stateOnInit == -1) {
+      int8_t data;
+      if (Supla::Storage::ReadState((unsigned char *)&data, sizeof(data))) {
+        stateOnInit = data;
+      }
+    } */
 }
 
 /*void Relay::setDefaultStateOnInit(int state) {

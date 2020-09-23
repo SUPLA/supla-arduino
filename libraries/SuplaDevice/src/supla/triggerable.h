@@ -20,7 +20,7 @@
 namespace Supla {
 class Triggerable {
  public:
-  virtual void trigger(int event, int action) = 0;
+  virtual void runAction(int event, int action) = 0;
 };
 
 };

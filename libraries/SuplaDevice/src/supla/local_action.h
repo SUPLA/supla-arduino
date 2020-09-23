@@ -14,8 +14,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _will_trigger_h
-#define _will_trigger_h
+#ifndef _local_action_h
+#define _local_action_h
 
 #include "triggerable.h"
 
@@ -30,13 +30,13 @@ class TriggerableClient {
   int action;
 };
 
-class WillTrigger {
+class LocalAction {
  public:
-  WillTrigger();
+  LocalAction();
 
-  virtual void willTrigger(Triggerable &client, int event, int action);
+  virtual void addAction(int action, Triggerable &client, int event);
 
-  virtual void runTrigger(int event);
+  virtual void runAction(int event);
 
  protected:
   TriggerableClient clients[MAX_TRIGGERABLE_CLIENTS];
