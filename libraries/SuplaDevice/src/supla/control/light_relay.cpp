@@ -37,6 +37,15 @@ void LightRelay::handleGetChannelState(TDSC_ChannelState &channelState) {
   channelState.LightSourceLifespanLeft = 500;
 }
 
+int LightRelay::handleCalcfgFromServer(TSD_DeviceCalCfgRequest *request) {
+  if (request && request->Command == SUPLA_CALCFG_CMD_SET_LIGHTSOURCE_LIFESPAN) {
+    
+
+    return SUPLA_CALCFG_RESULT_DONE;
+  }
+
+  return SUPLA_CALCFG_RESULT_NOT_SUPPORTED;
+}
 /*
  * 53 55 50 4C 41 SUPLA
  * C 7 0 0 0 

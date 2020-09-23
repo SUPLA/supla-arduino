@@ -98,4 +98,8 @@ void Element::handleGetChannelState(TDSC_ChannelState &channelState) {
   return;
 }
 
+int Element::handleCalcfgFromServer(TSD_DeviceCalCfgRequest *request) {
+  return SUPLA_CALCFG_RESULT_NOT_SUPPORTED;
+}
+
 };  // namespace Supla

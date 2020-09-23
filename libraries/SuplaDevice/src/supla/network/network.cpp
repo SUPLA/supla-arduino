@@ -117,7 +117,7 @@ void message_received(void *_srpc,
           auto element = Supla::Element::getElementByChannelNumber(
               rd.data.sd_device_calcfg_request->ChannelNumber);
           if (element) {
-            result.Result = element->handleCalcfgFromServer(rd.data.sd_device_calcfg_request->Command, rd.data.sd_device_calcfg_request->DataSize, rd.data.sd_device_calcfg_request->Data );
+            result.Result = element->handleCalcfgFromServer(rd.data.sd_device_calcfg_request);
           } else {
             Serial.print(F("Error: couldn't find element for a requested channel ["));
             Serial.print(rd.data.sd_channel_new_value->ChannelNumber);
