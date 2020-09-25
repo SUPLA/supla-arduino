@@ -26,7 +26,7 @@ namespace Supla {
 namespace Sensor {
 class Distance : public Element {
  public:
-  Distance() {
+  Distance() : lastReadTime(0) {
     channel.setType(SUPLA_CHANNELTYPE_DISTANCESENSOR);
     channel.setDefault(SUPLA_CHANNELFNC_DISTANCESENSOR);
     channel.setNewValue(DISTANCE_NOT_AVAILABLE);
@@ -48,6 +48,7 @@ class Distance : public Element {
     return &channel;
   }
   Channel channel;
+  unsigned long lastReadTime;
 };
 
 };  // namespace Sensor

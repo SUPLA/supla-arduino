@@ -29,7 +29,7 @@ namespace Supla {
 namespace Sensor {
 class ElectricityMeter : public Element {
  public:
-  ElectricityMeter() : valueChanged(false) {
+  ElectricityMeter() : valueChanged(false), lastReadTime(0) {
     extChannel.setType(SUPLA_CHANNELTYPE_ELECTRICITY_METER);
     extChannel.setDefault(SUPLA_CHANNELFNC_ELECTRICITY_METER);
     memset(&emValue, 0, sizeof(emValue));
@@ -75,7 +75,7 @@ class ElectricityMeter : public Element {
     }
 
     // Prepare extended channel value
-    srpc_evtool_v1_emextended2extended(&emValue, extChannel.getExtValue());
+    srpc_evtool_v2_emextended2extended(&emValue, extChannel.getExtValue());
     extChannel.setNewValue(emValue);
   }
 
@@ -249,11 +249,12 @@ class ElectricityMeter : public Element {
   Channel *getChannel() {
     return &extChannel;
   }
-  TElectricityMeter_ExtendedValue emValue;
+  TElectricityMeter_ExtendedValue_V2 emValue;
   ChannelExtended extChannel;
   _supla_int_t rawCurrent[MAX_PHASES];
   bool valueChanged;
   bool currentMeasurementAvailable;
+  unsigned long lastReadTime;
 };
 
 };  // namespace Sensor

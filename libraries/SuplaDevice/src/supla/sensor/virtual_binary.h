@@ -32,12 +32,13 @@ class VirtualBinary : public Element, public Triggerable {
   bool getValue();
   void iterateAlways();
   void onInit();
-  void trigger(int trigger, int action);
+  void runAction(int trigger, int action);
 
  protected:
   Channel *getChannel();
   Channel channel;
   bool state;
+  unsigned long lastReadTime;
 };
 
 };  // namespace Sensor

@@ -14,13 +14,37 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _triggerable_h
-#define _triggerable_h
+#ifndef _supla_clock_h
+#define _supla_clock_h
+
+#include <time.h>
+#include <supla-common/proto.h>
+#include <supla/element.h>
 
 namespace Supla {
-class Triggerable {
- public:
-  virtual void runAction(int event, int action) = 0;
+
+class Clock : public Element {
+  public:
+  Clock();
+  virtual bool isReady();
+  virtual int getYear();
+  virtual int getMonth();
+  virtual int getDay();
+  virtual int getDayOfWeek(); // 1 - Sunday, 2 - Monday
+  virtual int getHour();
+  virtual int getMin();
+  virtual int getSec();
+
+  void onTimer();
+  bool iterateConnected(void *srpc);
+
+  virtual void parseLocaltimeFromServer(TSDC_UserLocalTimeResult *result);
+
+  protected:
+  time_t localtime;
+  unsigned long lastServerUpdate;
+  unsigned long lastMillis;
+ 
 };
 
 };

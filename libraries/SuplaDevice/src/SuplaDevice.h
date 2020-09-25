@@ -21,6 +21,8 @@
 
 #include "supla-common/proto.h"
 #include "supla/network/network.h"
+#include "supla/uptime.h"
+#include "supla/clock/clock.h"
 
 #define ACTIVITY_TIMEOUT 30
 
@@ -50,93 +52,13 @@
 
 typedef void (*_impl_arduino_status)(int status, const char *msg);
 
-typedef void (*_impl_rs_save_position)(int channelNumber, int position);
-typedef void (*_impl_rs_load_position)(int channelNumber, int *position);
-typedef void (*_impl_rs_save_settings)(int channelNumber,
-                                       unsigned int full_opening_time,
-                                       unsigned int full_closing_time);
-typedef void (*_impl_rs_load_settings)(int channelNumber,
-                                       unsigned int *full_opening_time,
-                                       unsigned int *full_closing_time);
-
-typedef void (*_impl_arduino_timer)(void);
-
-typedef struct SuplaChannelPin {
-  int pin1;
-  int pin2;
-  bool hiIsLo;
-  bool bistable;
-
-  unsigned long time_left;
-  unsigned long bi_time_left;
-  unsigned long vc_time;
-
-  uint8_t last_val;
-  double last_val_dbl1;
-  double last_val_dbl2;
-};
-
-typedef struct SuplaDeviceRollerShutterTask {
-  uint8_t percent;
-  uint8_t direction;
-  bool active;
-};
-
-typedef struct SuplaDeviceRollerShutterCVR {
-  uint8_t active;
-  uint8_t value;
-  unsigned long time;
-};
-
-typedef struct {
-  int pin;
-  uint8_t value;
-  unsigned long time;
-} SuplaDeviceRollerShutterButton;
-
-typedef struct SuplaDeviceRollerShutter {
-  SuplaDeviceRollerShutterButton btnUp;
-  SuplaDeviceRollerShutterButton btnDown;
-
-  int position;
-  int last_position;
-  int channel_number;
-  unsigned int full_opening_time;
-  unsigned int full_closing_time;
-
-  unsigned long last_iterate_time;
-  unsigned long tick_1s;
-  unsigned long up_time;
-  unsigned long down_time;
-
-  unsigned long start_time;
-  unsigned long stop_time;
-
-  SuplaDeviceRollerShutterCVR cvr1;  // Change Value Request 1
-  SuplaDeviceRollerShutterCVR cvr2;
-
-  SuplaDeviceRollerShutterTask task;
-  uint8_t save_position;
-};
-
 class SuplaDeviceClass {
  protected:
   void *srpc;
   char registered;
-  bool isInitialized(bool msg);
-  void setString(char *dst, const char *src, int max_size);
-  int addChannel(int pin1, int pin2, bool hiIsLo, bool bistable);
-  void channelSetValue(int channel, char value, _supla_int_t DurationMS);
-
-  SuplaChannelPin *channel_pin;
-  int channel_pin_count;
   int port;
   int connectionFailCounter;
   int networkIsNotReadyCounter;
-  int rs_count;
-  SuplaDeviceRollerShutter *roller_shutter;
-
-  SuplaDeviceRollerShutter *rsByChannelNumber(int channel_number);
 
   unsigned long last_iterate_time;
   unsigned long wait_for_iterate;
@@ -144,106 +66,36 @@ class SuplaDeviceClass {
   _impl_arduino_status impl_arduino_status;
   int currentStatus;
 
-  _impl_rs_save_position impl_rs_save_position;
-  _impl_rs_load_position impl_rs_load_position;
-  _impl_rs_save_settings impl_rs_save_settings;
-  _impl_rs_load_settings impl_rs_load_settings;
+  Supla::Uptime uptime;
+  Supla::Clock *clock;
 
-  _impl_arduino_timer impl_arduino_timer;
-
-  void rs_save_position(SuplaDeviceRollerShutter *rs);
-  void rs_load_position(SuplaDeviceRollerShutter *rs);
-  void rs_save_settings(SuplaDeviceRollerShutter *rs);
-  void rs_load_settings(SuplaDeviceRollerShutter *rs);
-  void rs_cvr_processing(SuplaDeviceRollerShutter *rs,
-                         SuplaChannelPin *pin,
-                         SuplaDeviceRollerShutterCVR *cvr);
-  void rs_set_relay(SuplaDeviceRollerShutter *rs,
-                    SuplaChannelPin *pin,
-                    uint8_t value,
-                    bool cancel_task,
-                    bool stop_delay);
-  void rs_set_relay(int channel_number, uint8_t value);
-  void rs_calibrate(SuplaDeviceRollerShutter *rs,
-                    unsigned long full_time,
-                    unsigned long time,
-                    int dest_pos);
-  void rs_move_position(SuplaDeviceRollerShutter *rs,
-                        SuplaChannelPin *pin,
-                        unsigned long full_time,
-                        unsigned long *time,
-                        bool up);
-  bool rs_time_margin(unsigned long full_time, unsigned long time, uint8_t m);
-  void rs_task_processing(SuplaDeviceRollerShutter *rs, SuplaChannelPin *pin);
-  void rs_add_task(SuplaDeviceRollerShutter *rs, unsigned char percent);
-  void rs_cancel_task(SuplaDeviceRollerShutter *rs);
-  bool rs_button_released(SuplaDeviceRollerShutterButton *btn);
-  void rs_buttons_processing(SuplaDeviceRollerShutter *rs);
-
-  void iterate_relay(SuplaChannelPin *pin,
-                     TDS_SuplaDeviceChannel_C *channel,
-                     unsigned long time_diff,
-                     int channel_idx);
-  void iterate_rollershutter(SuplaDeviceRollerShutter *rs,
-                             SuplaChannelPin *pin,
-                             TDS_SuplaDeviceChannel_C *channel);
-  void iterate_impulse_counter(SuplaChannelPin *pin,
-                               TDS_SuplaDeviceChannel_C *channel,
-                               unsigned long time_diff,
-                               int channel_number);
-
+  bool isInitialized(bool msg);
+  void setString(char *dst, const char *src, int max_size);
 
  private:
-  bool suplaDigitalRead_isHI(int channelNumber, uint8_t pin);
-  void suplaDigitalWrite_setHI(int channelNumber, uint8_t pin, bool hi);
   void status(int status, const char *msg);
 
  public:
   SuplaDeviceClass();
   ~SuplaDeviceClass();
 
-  void channelValueChanged(int channel_number, char v);
+  void fillStateData(TDSC_ChannelState &channelState);
+  void addClock(Supla::Clock *clock);
+  Supla::Clock *getClock();
 
   bool begin(char GUID[SUPLA_GUID_SIZE],
              const char *Server,
              const char *email,
              char authkey[SUPLA_AUTHKEY_SIZE],
-             unsigned char version = 10);
+             unsigned char version = 12);
+
+  bool begin(unsigned char version = 12);
 
   void setName(const char *Name);
-
-  int addRelay(int relayPin1,
-               int relayPin2,
-               bool hiIsLo,
-               bool bistable,
-               _supla_int_t functions);
-  bool addRelay(int relayPin1, int relayPin2, bool hiIsLo);
-  bool addRelay(int relayPin1, bool hiIsLo);
-  bool addRelay(int relayPin1);
-  bool addRollerShutterRelays(int relayPin1, int relayPin2, bool hiIsLo);
-  bool addRollerShutterRelays(int relayPin1, int relayPin2);
-  void setRollerShutterButtons(int channel_number,
-                               int btnUpPin,
-                               int btnDownPin);
-  // Adds impulse couner on "impulsePin" pin. "statusLedPin" is not implemented
-  // currently. "detectLowToHigh" defines if counter counts changes from LOW to
-  // HIGH state on impulsePin. With "false" it counts changes from HIGH to LOW
-  // "inputPullup" defines if impulsePin is configured as "INPUT_PULLUP" or
-  // "INPUT" "debounceDelay" defines how many ms is used to filter out bouncing
-  // changes between LOW and HIGH during change on pin state
-  bool addImpulseCounter(int impulsePin,
-                         int statusLedPin = 0,
-                         bool detectLowToHigh = false,
-                         bool inputPullup = true,
-                         unsigned long debounceDelay = 10);
-
-  bool relayOn(int channel_number, _supla_int_t DurationMS);
-  bool relayOff(int channel_number);
-
-  void rollerShutterReveal(int channel_number);
-  void rollerShutterShut(int channel_number);
-  void rollerShutterStop(int channel_number);
-  bool rollerShutterMotorIsOn(int channel_number);
+  void setGUID(char GUID[SUPLA_GUID_SIZE]);
+  void setAuthKey(char authkey[SUPLA_AUTHKEY_SIZE]);
+  void setEmail(const char *email);
+  void setServer(const char *server);
 
   // Timer with 100 Hz frequency (10 ms)
   void onTimer(void);
@@ -251,20 +103,14 @@ class SuplaDeviceClass {
   void onFastTimer(void);
   void iterate(void);
 
-  void setRollerShutterFuncImpl(_impl_rs_save_position impl_save_position,
-                                _impl_rs_load_position impl_load_position,
-                                _impl_rs_save_settings impl_save_settings,
-                                _impl_rs_load_settings impl_load_settings);
-
   void setStatusFuncImpl(_impl_arduino_status impl_arduino_status);
-  void setTimerFuncImpl(_impl_arduino_timer impl_arduino_timer);
   void setServerPort(int value);
 
   void onVersionError(TSDC_SuplaVersionError *version_error);
   void onRegisterResult(TSD_SuplaRegisterDeviceResult *register_device_result);
-  void channelSetValueByServer(TSD_SuplaChannelNewValue *new_value);
   void channelSetActivityTimeoutResult(
       TSDC_SuplaSetActivityTimeoutResult *result);
+  void onGetUserLocaltimeResult(TSDC_UserLocalTimeResult *result);
 
   void setSwVersion(const char *);
   int getCurrentStatus();

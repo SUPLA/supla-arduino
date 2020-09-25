@@ -17,15 +17,36 @@
 #ifndef _actions_h
 #define _actions_h
 
+// Actions are used in triggerable elements. They are grouped by most common
+// usage, but you should not rely on it. Please check exact supported actions
+// in triggerable element documentation
+
 namespace Supla {
 enum Action {
+  // Relays
   TURN_ON,
   TURN_OFF,
   TOGGLE,
 
+  // Settable binary sensors
   SET,
   CLEAR,
 
+  // Roller shutters
+  OPEN,
+  CLOSE,
+  STOP,
+  OPEN_OR_STOP,
+  CLOSE_OR_STOP,
+  COMFORT_UP_POSITION,
+  COMFORT_DOWN_POSITION,
+  STEP_BY_STEP,
+  MOVE_UP,
+  MOVE_DOWN,
+  MOVE_UP_OR_STOP,
+  MOVE_DOWN_OR_STOP,
+
+  // Dimmable light, RGB(W) LEDs
   BRIGHTEN_ALL,
   DIM_ALL,
   BRIGHTEN_R,
@@ -49,7 +70,11 @@ enum Action {
   TURN_ON_ALL_DIMMED,
   ITERATE_DIM_RGB,
   ITERATE_DIM_W,
-  ITERATE_DIM_ALL
+  ITERATE_DIM_ALL,
+
+  // Impulse counter
+  RESET
+
 };
 
 };

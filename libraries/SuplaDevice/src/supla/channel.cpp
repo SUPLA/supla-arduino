@@ -42,6 +42,7 @@ Channel::Channel() {
     last()->nextPtr = this;
   }
   nextPtr = nullptr;
+  setFlag(SUPLA_CHANNEL_FLAG_CHANNELSTATE);
 }
 
 Channel *Channel::begin() {
@@ -98,6 +99,18 @@ void Channel::setNewValue(double temp, double humi) {
   }
 }
 
+void Channel::setNewValue(_supla_int64_t value) {
+  char newValue[SUPLA_CHANNELVALUE_SIZE];
+
+  memset(newValue, 0, SUPLA_CHANNELVALUE_SIZE);
+
+  memcpy(newValue, &value, sizeof(_supla_int64_t));
+  if (setNewValue(newValue)) {
+    supla_log(
+        LOG_DEBUG, "Channel(%d) value changed to %d", channelNumber, static_cast<int>(value));
+  }
+}
+
 void Channel::setNewValue(int value) {
   char newValue[SUPLA_CHANNELVALUE_SIZE];
 
@@ -122,7 +135,7 @@ void Channel::setNewValue(bool value) {
   }
 }
 
-void Channel::setNewValue(TElectricityMeter_ExtendedValue &emValue) {
+void Channel::setNewValue(TElectricityMeter_ExtendedValue_V2 &emValue) {
   // Prepare standard channel value
   if (sizeof(TElectricityMeter_Value) <= SUPLA_CHANNELVALUE_SIZE) {
     TElectricityMeter_Measurement *m = nullptr;
@@ -160,32 +173,38 @@ void Channel::setNewValue(TElectricityMeter_ExtendedValue &emValue) {
 
 bool Channel::setNewValue(char *newValue) {
   if (memcmp(newValue, reg_dev.channels[channelNumber].value, 8) != 0) {
-    setUpdateReady();
     memcpy(reg_dev.channels[channelNumber].value, newValue, 8);
+    setUpdateReady();
     return true;
   }
   return false;
 }
 
-void Channel::setType(int type) {
+void Channel::setType(_supla_int_t type) {
   if (channelNumber >= 0) {
     reg_dev.channels[channelNumber].Type = type;
   }
 }
 
-void Channel::setDefault(int value) {
+void Channel::setDefault(_supla_int_t value) {
   if (channelNumber >= 0) {
     reg_dev.channels[channelNumber].Default = value;
   }
 }
 
-void Channel::setFlag(int flag) {
+void Channel::setFlag(_supla_int_t flag) {
   if (channelNumber >= 0) {
     reg_dev.channels[channelNumber].Flags |= flag;
   }
 }
 
-void Channel::setFuncList(int functions) {
+void Channel::unsetFlag(_supla_int_t flag) {
+  if (channelNumber >= 0) {
+    reg_dev.channels[channelNumber].Flags ^= flag;
+  }
+}
+
+void Channel::setFuncList(_supla_int_t functions) {
   if (channelNumber >= 0) {
     reg_dev.channels[channelNumber].FuncList = functions;
   }
@@ -200,6 +219,7 @@ void Channel::clearUpdateReady() {
 };
 
 void Channel::sendUpdate(void *srpc) {
+  clearUpdateReady();
   srpc_ds_async_channel_value_changed(
       srpc, channelNumber, reg_dev.channels[channelNumber].value);
 
@@ -209,7 +229,6 @@ void Channel::sendUpdate(void *srpc) {
     srpc_ds_async_channel_extendedvalue_changed(srpc, channelNumber, extValue);
   }
 
-  clearUpdateReady();
 }
 
 TSuplaChannelExtendedValue *Channel::getExtValue() {
@@ -257,7 +276,7 @@ void Channel::setNewValue(uint8_t red,
   }
 }
 
-int Channel::getChannelType() {
+_supla_int_t Channel::getChannelType() {
   if (channelNumber >= 0) {
     return reg_dev.channels[channelNumber].Type;
   }

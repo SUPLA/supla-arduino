@@ -26,7 +26,7 @@ namespace Supla {
 namespace Sensor {
 class Weight : public Element {
  public:
-  Weight() {
+  Weight() : lastReadTime(0) {
     channel.setType(SUPLA_CHANNELTYPE_WEIGHTSENSOR);
     channel.setDefault(SUPLA_CHANNELFNC_WEIGHTSENSOR);
     channel.setNewValue(WEIGHT_NOT_AVAILABLE);
@@ -49,6 +49,7 @@ class Weight : public Element {
     return &channel;
   }
   Channel channel;
+  unsigned long lastReadTime;
 };
 
 };  // namespace Sensor

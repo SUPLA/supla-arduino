@@ -27,7 +27,7 @@ namespace Supla {
 namespace Sensor {
 class Binary : public Element {
  public:
-  Binary(int pin, bool pullUp = false) : pin(pin), pullUp(pullUp) {
+  Binary(int pin, bool pullUp = false) : pin(pin), pullUp(pullUp), lastReadTime(0) {
     channel.setType(SUPLA_CHANNELTYPE_SENSORNO);
   }
 
@@ -56,6 +56,7 @@ class Binary : public Element {
   Channel channel;
   int pin;
   bool pullUp;
+  unsigned long lastReadTime;
 };
 
 };  // namespace Sensor

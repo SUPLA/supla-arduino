@@ -45,7 +45,8 @@ class BistableRelay : public Relay {
         statusPullUp(statusPullUp),
         statusHighIsOn(statusHighIsOn),
         disarmTimeMs(0),
-        busy(false) {
+        busy(false),
+        lastReadTime(0) {
   }
 
   void onInit() {
@@ -146,6 +147,7 @@ class BistableRelay : public Relay {
   bool statusPullUp;
   bool statusHighIsOn;
   unsigned long disarmTimeMs;
+  unsigned long lastReadTime;
   bool busy;
 };
 

@@ -105,10 +105,13 @@ class Network {
   virtual bool connected() = 0;
   virtual void disconnect() = 0;
   virtual void setup() = 0;
+  virtual void setTimeout(int);
 
   virtual bool isReady() = 0;
   virtual bool iterate();
   virtual bool ping();
+
+  virtual void fillStateData(TDSC_ChannelState &channelState);
 
   void setSrpc(void *_srpc);
   void updateLastSent();

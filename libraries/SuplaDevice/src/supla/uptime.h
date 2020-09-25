@@ -14,13 +14,32 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _triggerable_h
-#define _triggerable_h
+#ifndef _uptime_h
+#define _uptime_h
+
+#include "../supla-common/proto.h"
 
 namespace Supla {
-class Triggerable {
- public:
-  virtual void runAction(int event, int action) = 0;
+
+class Uptime {
+  public:
+    Uptime();
+
+    void iterate(unsigned long millis);
+    void resetConnectionUptime();
+    void setConnectionLostCause(unsigned char cause);
+
+    unsigned _supla_int_t getUptime();
+    unsigned _supla_int_t getConnectionUptime();
+    unsigned char getLastResetCause();
+
+
+  protected:
+    unsigned long lastMillis;
+    unsigned _supla_int_t deviceUptime;
+    unsigned _supla_int_t connectionUptime;
+    unsigned char lastConnectionResetCause;
+    bool acceptConnectionLostCause;
 };
 
 };

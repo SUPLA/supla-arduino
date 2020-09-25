@@ -13,7 +13,6 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
-
 #include <Arduino.h>
 
 #include "SuplaDevice.h"
@@ -71,8 +70,9 @@ void message_received(void *_srpc,
                 actionResult);
           }
         } else {
-          ((SuplaDeviceClass *)_sdc)
-              ->channelSetValueByServer(rd.data.sd_channel_new_value);
+          Serial.print(F("Error: couldn't find element for a requested channel ["));
+          Serial.print(rd.data.sd_channel_new_value->ChannelNumber);
+          Serial.println(F("]"));
         }
         break;
       }
@@ -80,6 +80,32 @@ void message_received(void *_srpc,
         ((SuplaDeviceClass *)_sdc)
             ->channelSetActivityTimeoutResult(
                 rd.data.sdc_set_activity_timeout_result);
+        break;
+      case SUPLA_CSD_CALL_GET_CHANNEL_STATE: {
+        TDSC_ChannelState state;
+        memset(&state, 0, sizeof(TDSC_ChannelState));
+        state.ReceiverID = rd.data.csd_channel_state_request->SenderID;
+        state.ChannelNumber = rd.data.csd_channel_state_request->ChannelNumber;
+        Network::Instance()->fillStateData(state);
+        ((SuplaDeviceClass *)_sdc)->fillStateData(state);
+        auto element = Supla::Element::getElementByChannelNumber(
+            rd.data.csd_channel_state_request->ChannelNumber);
+        if (element) {
+          element->handleGetChannelState(state);
+        }
+        srpc_csd_async_channel_state_result(_srpc, &state);
+        break;
+      }
+      case SUPLA_SDC_CALL_PING_SERVER_RESULT:
+        break;
+
+      case SUPLA_DCS_CALL_GET_USER_LOCALTIME_RESULT: {
+        ((SuplaDeviceClass *)_sdc)->onGetUserLocaltimeResult(rd.data.sdc_user_localtime_result);
+        break;                                                 
+      }                                                         
+
+      default:
+        supla_log(LOG_DEBUG, "Received unknown message from server!");
         break;
     }
 
@@ -147,6 +173,14 @@ void Network::clearTimeCounters() {
 
 void Network::setActivityTimeout(_supla_int_t activityTimeoutSec) {
   serverActivityTimeoutS = activityTimeoutSec;
+}
+
+void Network::setTimeout(int timeoutMs) {
+  supla_log(LOG_DEBUG, "setTimeout is not implemented for this interface");
+}
+
+void Network::fillStateData(TDSC_ChannelState &channelState) {
+  supla_log(LOG_DEBUG, "fillStateData is not implemented for this interface");
 }
 
 };  // namespace Supla

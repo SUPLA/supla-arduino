@@ -121,7 +121,7 @@ uint8_t RGBWBase::addWithLimit(int value, int addition, int limit) {
   return value + addition;
 }
 
-void RGBWBase::trigger(int trigger, int action) {
+void RGBWBase::runAction(int trigger, int action) {
   switch (action) {
     case TURN_ON: {
       turnOn();
@@ -214,7 +214,7 @@ void RGBWBase::trigger(int trigger, int action) {
       break;
     }
     case TOGGLE_W: {
-      setRGBW(-1, -1, -1, -1, curBrightness > 0 ? 0 : lastColorBrightness);
+      setRGBW(-1, -1, -1, -1, curBrightness > 0 ? 0 : lastBrightness);
       break;
     }
     case TURN_ON_RGB_DIMMED: {

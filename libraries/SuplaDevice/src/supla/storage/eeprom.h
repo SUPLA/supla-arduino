@@ -14,15 +14,29 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _triggerable_h
-#define _triggerable_h
+#ifndef _supla_eeprom_h
+#define _supla_eeprom_h
+
+#include "storage.h"
 
 namespace Supla {
-class Triggerable {
+
+class Eeprom : public Storage {
  public:
-  virtual void runAction(int event, int action) = 0;
+  Eeprom(unsigned int storageStartingOffset = 0);
+  bool init();
+  bool saveStateAllowed(unsigned long ms);
+  void commit();
+
+ protected:
+  int readStorage(int, unsigned char *, int, bool);
+  int writeStorage(int, const unsigned char *, int);
+
+  bool dataChanged;
+
+  unsigned long lastWriteTimestamp;
 };
 
-};
+};  // namespace Supla
 
 #endif

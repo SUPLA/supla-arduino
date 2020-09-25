@@ -14,29 +14,33 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "supla/will_trigger.h"
+#ifndef _bistable_roller_shutter_h
+#define _bistable_roller_shutter_h
+
+#include "roller_shutter.h"
 
 namespace Supla {
+namespace Control {
+class BistableRollerShutter : public RollerShutter {
+ public:
+  BistableRollerShutter(int pinUp, int pinDown, bool highIsOn = true);
 
-WillTrigger::WillTrigger() : registeredClientsCount(0) {
-}
+  void onTimer();
 
-void WillTrigger::willTrigger(Triggerable &client, int event, int action) {
-  if (registeredClientsCount < MAX_TRIGGERABLE_CLIENTS) {
-    clients[registeredClientsCount].client = &client;
-    clients[registeredClientsCount].onEvent = event;
-    clients[registeredClientsCount].action = action;
-    registeredClientsCount++;
-  }
-}
+ protected:
+  void stopMovement();
+  void relayDownOn();
+  void relayUpOn();
+  void relayUpOff();
+  void relayDownOff();
 
-void WillTrigger::runTrigger(int event) {
-  for (int i = 0; i < registeredClientsCount; i++) {
-    if (clients[i].onEvent == event) {
-      clients[i].client->trigger(event, clients[i].action);
-    }
-  }
-}
+  bool activeBiRelay;
+  unsigned long toggleTime;
+};
 
+};  // namespace Control
 };  // namespace Supla
+
+#endif
+
 

@@ -14,15 +14,29 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _triggerable_h
-#define _triggerable_h
+#include "supla/local_action.h"
 
 namespace Supla {
-class Triggerable {
- public:
-  virtual void runAction(int event, int action) = 0;
-};
 
-};
+LocalAction::LocalAction() : registeredClientsCount(0) {
+}
 
-#endif
+void LocalAction::addAction(int action, Triggerable &client, int event) {
+  if (registeredClientsCount < MAX_TRIGGERABLE_CLIENTS) {
+    clients[registeredClientsCount].client = &client;
+    clients[registeredClientsCount].onEvent = event;
+    clients[registeredClientsCount].action = action;
+    registeredClientsCount++;
+  }
+}
+
+void LocalAction::runAction(int event) {
+  for (int i = 0; i < registeredClientsCount; i++) {
+    if (clients[i].onEvent == event) {
+      clients[i].client->runAction(event, clients[i].action);
+    }
+  }
+}
+
+};  // namespace Supla
+

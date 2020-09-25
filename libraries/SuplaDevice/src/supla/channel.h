@@ -35,23 +35,25 @@ class Channel {
   void setNewValue(double temp, double humi);
   void setNewValue(int value);
   void setNewValue(bool value);
-  void setNewValue(TElectricityMeter_ExtendedValue &emValue);
+  void setNewValue(TElectricityMeter_ExtendedValue_V2 &emValue);
   void setNewValue(uint8_t red,
                    uint8_t green,
                    uint8_t blue,
                    uint8_t colorBrightness,
                    uint8_t brightness);
+  void setNewValue(_supla_int64_t value);
   bool setNewValue(char *newValue);
 
   virtual bool isExtended();
   bool isUpdateReady();
   int getChannelNumber();
-  int getChannelType();
+  _supla_int_t getChannelType();
 
-  void setType(int type);
-  void setDefault(int value);
-  void setFlag(int flag);
-  void setFuncList(int functions);
+  void setType(_supla_int_t type);
+  void setDefault(_supla_int_t value);
+  void setFlag(_supla_int_t flag);
+  void unsetFlag(_supla_int_t flag);
+  void setFuncList(_supla_int_t functions);
   void clearUpdateReady();
   void sendUpdate(void *srpc);
   virtual TSuplaChannelExtendedValue *getExtValue();

@@ -26,7 +26,7 @@ namespace Supla {
 namespace Sensor {
 class Rain: public Element {
  public:
-  Rain() {
+  Rain() : lastReadTime(0) {
     channel.setType(SUPLA_CHANNELTYPE_RAINSENSOR);
     channel.setDefault(SUPLA_CHANNELFNC_RAINSENSOR);
     channel.setNewValue(RAIN_NOT_AVAILABLE);
@@ -49,6 +49,7 @@ class Rain: public Element {
     return &channel;
   }
   Channel channel;
+  unsigned long lastReadTime;
 };
 
 };  // namespace Sensor

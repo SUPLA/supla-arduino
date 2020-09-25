@@ -21,11 +21,11 @@
 
 #include "../element.h"
 #include "../events.h"
-#include "../will_trigger.h"
+#include "../local_action.h"
 
 namespace Supla {
 namespace Control {
-class Button : public Element, public WillTrigger {
+class Button : public Element, public LocalAction {
  public:
   Button(int pin, bool pullUp = false, bool invertLogic = false)
       : pin(pin),
@@ -58,11 +58,11 @@ class Button : public Element, public WillTrigger {
           debounceTimeMs = millis();
           prevStatus = currentStatus;
           if (currentStatus == valueOnPress()) {
-            runTrigger(ON_PRESS);
-            runTrigger(ON_CHANGE);
+            runAction(ON_PRESS);
+            runAction(ON_CHANGE);
           } else {
-            runTrigger(ON_RELEASE);
-            runTrigger(ON_CHANGE);
+            runAction(ON_RELEASE);
+            runAction(ON_CHANGE);
           }
         }
       } else {
@@ -93,13 +93,13 @@ class Button : public Element, public WillTrigger {
 
  protected:
   int pin;
-  bool pullUp;
   unsigned long debounceTimeMs;
   unsigned long filterTimeMs;
   int debounceDelayMs;
   int swNoiseFilterDelayMs;
-  int prevStatus;
-  int newStatusCandidate;
+  bool pullUp;
+  int8_t prevStatus;
+  int8_t newStatusCandidate;
   bool invertLogic;
 };
 

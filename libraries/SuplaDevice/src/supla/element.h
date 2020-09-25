@@ -36,10 +36,13 @@ class Element {
   // initialize pins etc.
   virtual void onInit();
 
-  // TODO:
   // method called during Config initialization (i.e. read from EEPROM, FRAM).
-  // Called only if Config module is configured
-  virtual void onLoadConfig();
+  // Called only if Storage class is configured
+  virtual void onLoadState();
+
+  // method called during periodically during SuplaDevice iteration
+  // Called only if Storage class is configured
+  virtual void onSaveState();
 
   // method called on each SuplaDevice iteration (before Network layer
   // iteration). When Device is connected, both iterateAlways() and
@@ -66,13 +69,18 @@ class Element {
   //  1 - success==true
   virtual int handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue);
 
+  // Handles "get channel state" request from server
+  // channelState is prefilled with network and device status informations
+  virtual void handleGetChannelState(TDSC_ChannelState &channelState);
+
   int getChannelNumber();
+
+  Element &disableChannelState();
 
  protected:
   virtual Channel *getChannel();
   static Element *firstPtr;
   Element *nextPtr;
-  unsigned long lastReadTime;
 };
 
 };  // namespace Supla

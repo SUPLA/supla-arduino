@@ -19,7 +19,7 @@
 namespace Supla {
 namespace Sensor {
 
-VirtualBinary::VirtualBinary() : state(false) {
+VirtualBinary::VirtualBinary() : state(false), lastReadTime(0) {
   channel.setType(SUPLA_CHANNELTYPE_SENSORNO);
 }
 
@@ -38,7 +38,7 @@ void VirtualBinary::onInit() {
   channel.setNewValue(getValue());
 }
 
-void VirtualBinary::trigger(int trigger, int action) {
+void VirtualBinary::runAction(int trigger, int action) {
   switch (action) {
     case SET: {
       state = true;

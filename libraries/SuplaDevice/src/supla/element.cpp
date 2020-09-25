@@ -21,7 +21,7 @@
 namespace Supla {
 Element *Element::firstPtr = nullptr;
 
-Element::Element() : lastReadTime(0), nextPtr(nullptr) {
+Element::Element() : nextPtr(nullptr) {
   if (firstPtr == nullptr) {
     firstPtr = this;
   } else {
@@ -56,7 +56,9 @@ Element *Element::next() {
 
 void Element::onInit(){};
 
-void Element::onLoadConfig(){};
+void Element::onLoadState(){};
+
+void Element::onSaveState(){};
 
 void Element::iterateAlways(){};
 
@@ -91,4 +93,16 @@ int Element::getChannelNumber() {
 Channel *Element::getChannel() {
   return nullptr;
 }
+
+void Element::handleGetChannelState(TDSC_ChannelState &channelState) {
+  return;
+}
+
+Element & Element::disableChannelState() {
+  if (getChannel()) {
+    getChannel()->unsetFlag(SUPLA_CHANNEL_FLAG_CHANNELSTATE);
+  }
+  return *this;
+}
+
 };  // namespace Supla
