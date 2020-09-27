@@ -198,6 +198,12 @@ void Channel::setFlag(_supla_int_t flag) {
   }
 }
 
+void Channel::unsetFlag(_supla_int_t flag) {
+  if (channelNumber >= 0) {
+    reg_dev.channels[channelNumber].Flags ^= flag;
+  }
+}
+
 void Channel::setFuncList(_supla_int_t functions) {
   if (channelNumber >= 0) {
     reg_dev.channels[channelNumber].FuncList = functions;

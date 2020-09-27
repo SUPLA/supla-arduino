@@ -52,6 +52,7 @@ class Channel {
   void setType(_supla_int_t type);
   void setDefault(_supla_int_t value);
   void setFlag(_supla_int_t flag);
+  void unsetFlag(_supla_int_t flag);
   void setFuncList(_supla_int_t functions);
   void clearUpdateReady();
   void sendUpdate(void *srpc);

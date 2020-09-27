@@ -102,4 +102,11 @@ int Element::handleCalcfgFromServer(TSD_DeviceCalCfgRequest *request) {
   return SUPLA_CALCFG_RESULT_NOT_SUPPORTED;
 }
 
+Element & Element::disableChannelState() {
+  if (getChannel()) {
+    getChannel()->unsetFlag(SUPLA_CHANNEL_FLAG_CHANNELSTATE);
+  }
+  return *this;
+}
+
 };  // namespace Supla
