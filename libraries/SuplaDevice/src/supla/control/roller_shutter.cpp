@@ -175,6 +175,10 @@ void RollerShutter::runAction(int trigger, int action) {
         close();
       } else if (lastDirectionWasClose()) {
         open();
+      } else if (currentPosition < 50) {
+        close();
+      } else {
+        open();
       }
       break;
     }
