@@ -30,7 +30,7 @@ using namespace Supla;
 using namespace Control;
 
 Relay::Relay(int pin, bool highIsOn, _supla_int_t functions)
-    : pin(pin), durationMs(0), highIsOn(highIsOn) {
+    : pin(pin), durationMs(0), highIsOn(highIsOn), durationTimestamp(0) {
   channel.setType(SUPLA_CHANNELTYPE_RELAY);
   channel.setFuncList(functions);
 }
@@ -49,8 +49,7 @@ void Relay::onInit() {
 }
 
 void Relay::iterateAlways() {
-  if (durationMs && durationMs < millis()) {
-    durationMs = 0;
+  if (durationMs && millis() - durationTimestamp > durationMs) {
     toggle();
   }
 }
@@ -70,7 +69,8 @@ int Relay::handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue) {
 
 void Relay::turnOn(_supla_int_t duration) {
   if (duration > 0) {
-    durationMs = duration + millis();
+    durationMs = duration;
+    durationTimestamp = millis();
   }
   Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOnValue());
 
@@ -89,18 +89,11 @@ bool Relay::isOn() {
          pinOnValue();
 }
 
-void Relay::toggle() {
-  durationMs = 0;
-  Supla::Io::digitalWrite(
-      channel.getChannelNumber(),
-      pin,
-      Supla::Io::digitalRead(channel.getChannelNumber(), pin) == LOW ? HIGH
-                                                                     : LOW);
-
+void Relay::toggle(_supla_int_t duration) {
   if (isOn()) {
-    channel.setNewValue(true);
+    turnOff(duration);
   } else {
-    channel.setNewValue(false);
+    turnOn(duration);
   }
 }
 

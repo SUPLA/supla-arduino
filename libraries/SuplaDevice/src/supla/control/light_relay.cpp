@@ -14,59 +14,96 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-/* Relay class
- * This class is used to control any type of relay that can be controlled
- * by setting LOW or HIGH output on selected GPIO.
- */
-
 #include "light_relay.h"
 
 using namespace Supla;
 using namespace Control;
 
-LightRelay::LightRelay(int pin, bool highIsOn = true)
+#pragma pack(push, 1)
+struct LightRelayStateData {
+  unsigned short lifespan;
+  _supla_int_t turnOnSecondsCumulative;
+};
+#pragma pop
+
+LightRelay::LightRelay(int pin, bool highIsOn)
     : Relay(pin,
             highIsOn,
-            SUPLA_BIT_FUNC_LIGHTSWITCH | SUPLA_BIT_FUNC_STAIRCASETIMER) {
+            SUPLA_BIT_FUNC_LIGHTSWITCH | SUPLA_BIT_FUNC_STAIRCASETIMER),
+      lifespan(10000),
+      turnOnSecondsCumulative(0) {
   channel.setFlag(SUPLA_CHANNEL_FLAG_LIGHTSOURCELIFESPAN_SETTABLE);
 }
 
 void LightRelay::handleGetChannelState(TDSC_ChannelState &channelState) {
-  channelState.Fields |= SUPLA_CHANNELSTATE_FIELD_LIGHTSOURCELIFESPAN;
-  channelState.LightSourceLifespan = 1000;
-  channelState.LightSourceLifespanLeft = 500;
+  channelState.Fields |= SUPLA_CHANNELSTATE_FIELD_LIGHTSOURCELIFESPAN |
+                         SUPLA_CHANNELSTATE_FIELD_LIGHTSOURCEOPERATINGTIME;
+  channelState.LightSourceLifespan = lifespan;
+  channelState.LightSourceOperatingTime = turnOnSecondsCumulative;
 }
 
 int LightRelay::handleCalcfgFromServer(TSD_DeviceCalCfgRequest *request) {
-  if (request && request->Command == SUPLA_CALCFG_CMD_SET_LIGHTSOURCE_LIFESPAN) {
-    
+  if (request &&
+      request->Command == SUPLA_CALCFG_CMD_SET_LIGHTSOURCE_LIFESPAN) {
+    if (request->DataSize == sizeof(TCalCfg_LightSourceLifespan)) {
+      TCalCfg_LightSourceLifespan *config =
+          reinterpret_cast<TCalCfg_LightSourceLifespan *>(request->Data);
 
-    return SUPLA_CALCFG_RESULT_DONE;
+      if (config->SetTime) {
+        lifespan = config->LightSourceLifespan;
+      }
+      if (config->ResetCounter) {
+        turnOnSecondsCumulative = 0;
+      }
+
+      return SUPLA_CALCFG_RESULT_DONE;
+    }
   }
 
   return SUPLA_CALCFG_RESULT_NOT_SUPPORTED;
 }
-/*
- * 53 55 50 4C 41 SUPLA
- * C 7 0 0 0 
- * CC 1 0 0 -  SUPLA_SD_CALL_DEVICE_CALCFG_REQUEST
- * 19 0 0 0 sender id
- * 34 10 0 0 channel numbwer
- * 5 0 0 0 cmd
- * 70 17 0 0 result?
- * 1 0 ]
- * 0 0 0 4 0 0 0 
- * =
- * 1 0 E8 3 
- * 53 55 50 4C 41  SUPLA
- * 11:30:23.071 -> Received unknown message from server!
- * (reset + 1000)
- *                                                     0x28         SIZE      SENDER     CHANNEL      CMD     AUTH
- * 11:31:06.679 -> Received: [53 55 50 4C 41 C B 0 0 0 CC 1 0 0 | 19 0 0 0 | 34 10 0 0 | 5 0 0 0 | 70 17 0 0 |  1  | 
- * DATA type?   DATA size
- * 0 0 0 0    | 4 0 0 0   | 0 1 10 27  | 53 55 50 4C 41 ]
- * (no reset + 10000)
- *
- *   TCS_DeviceCalCfgRequest ( TCalCfg_LightSourceLifespan )
- *
- */
+
+void LightRelay::onLoadState() {
+  LightRelayStateData data;
+  if (Supla::Storage::ReadState((unsigned char *)&data, sizeof(data))) {
+    lifespan = data.lifespan;
+    turnOnSecondsCumulative = data.turnOnSecondsCumulative;
+
+    Serial.print(F("LightRelay["));
+    Serial.print(channel.getChannelNumber());
+    Serial.print(F("] settings restored from storage. Total lifespan: "));
+    Serial.print(lifespan);
+    Serial.print(F(" h; current operating time: "));
+    Serial.print(turnOnSecondsCumulative);
+    Serial.println(F(" s"));
+  }
+  Relay::onLoadState();
+}
+
+void LightRelay::onSaveState() {
+  LightRelayStateData data;
+
+  data.lifespan = lifespan;
+  data.turnOnSecondsCumulative = turnOnSecondsCumulative;
+  Supla::Storage::WriteState((unsigned char *)&data, sizeof(data));
+  Relay::onSaveState();
+}
+
+void LightRelay::turnOn(_supla_int_t duration) {
+  turnOnTimestamp = millis();
+  Relay::turnOn(duration);
+}
+
+void LightRelay::iterateAlways() {
+  if (isOn()) {
+    unsigned long currentMillis = millis();
+    int seconds = (currentMillis - turnOnTimestamp) / 1000;
+    if (seconds > 0) {
+      turnOnTimestamp =
+          currentMillis - ((currentMillis - turnOnTimestamp) % 1000);
+      turnOnSecondsCumulative += seconds;
+    }
+  }
+
+  Relay::iterateAlways();
+}

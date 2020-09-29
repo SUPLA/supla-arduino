@@ -39,109 +39,17 @@ class BistableRelay : public Relay {
                 bool statusHighIsOn = true,
                 bool highIsOn = true,
                 _supla_int_t functions =
-                    (0xFF ^ SUPLA_BIT_FUNC_CONTROLLINGTHEROLLERSHUTTER))
-      : Relay(pin, highIsOn, functions),
-        statusPin(statusPin),
-        statusPullUp(statusPullUp),
-        statusHighIsOn(statusHighIsOn),
-        disarmTimeMs(0),
-        busy(false),
-        lastReadTime(0) {
-  }
-
-  void onInit() {
-    Relay::onInit();
-    if (statusPin >= 0) {
-      pinMode(statusPin, statusPullUp ? INPUT_PULLUP : INPUT);
-      channel.setNewValue(isOn());
-    } else {
-      channel.setNewValue(false);
-    }
-  }
-
-  void iterateAlways() {
-    Relay::iterateAlways();
-
-    if (statusPin >= 0 && (lastReadTime + 100 < millis())) {
-      lastReadTime = millis();
-      channel.setNewValue(isOn());
-    }
-
-    if (disarmTimeMs < millis()) {
-      busy = false;
-      Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOffValue());
-    }
-  }
-
-  int handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue) {
-    // ignore new requests if we are in the middle of state change
-    if (busy) {
-      return 0;
-    } else {
-      return Relay::handleNewValueFromServer(newValue);
-    }
-  }
-
-  virtual void turnOn(_supla_int_t duration) {
-    if (busy) {
-      return;
-    }
-
-    // Change turn on requests duration to be at least 1 s
-    if (duration > 0 && duration < 1000) {
-      duration = 1000;
-    }
-    if (duration > 0) {
-      durationMs = duration + millis();
-    }
-
-    if (isStatusUnknown()) {
-      internalToggle();
-    } else if (!isOn()) {
-      internalToggle();
-    }
-  }
-
-  virtual void turnOff(_supla_int_t duration) {
-    if (busy) {
-      return;
-    }
-
-    durationMs = 0;
-
-    if (isStatusUnknown()) {
-      internalToggle();
-    } else if (isOn()) {
-      internalToggle();
-    }
-  }
-
-  virtual bool isOn() {
-    if (isStatusUnknown()) {
-      return false;
-    }
-    return Supla::Io::digitalRead(channel.getChannelNumber(), statusPin) == (statusHighIsOn ? HIGH : LOW);
-  }
-
-  bool isStatusUnknown() {
-    return (statusPin < 0);
-  }
-
-  virtual void toggle() {
-    if (busy) {
-      return;
-    }
-    durationMs = 0;
-
-    internalToggle();
-  }
+                    (0xFF ^ SUPLA_BIT_FUNC_CONTROLLINGTHEROLLERSHUTTER));
+  void onInit();
+  void iterateAlways();
+  int handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue);
+  virtual void turnOn(_supla_int_t duration);
+  virtual void turnOff(_supla_int_t duration);
+  virtual bool isOn();
+  bool isStatusUnknown();
 
  protected:
-  void internalToggle() {
-    busy = true;
-    disarmTimeMs = millis() + 200;
-    Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOnValue());
-  }
+  void internalToggle();
 
   int statusPin;
   bool statusPullUp;

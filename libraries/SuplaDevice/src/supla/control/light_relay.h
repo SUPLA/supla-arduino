@@ -14,11 +14,6 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-/* Relay class
- * This class is used to control any type of relay that can be controlled
- * by setting LOW or HIGH output on selected GPIO.
- */
-
 #ifndef _light_relay_h
 #define _light_relay_h
 
@@ -27,14 +22,22 @@
 namespace Supla {
 namespace Control {
 class LightRelay : public Relay {
-  public:
+ public:
   LightRelay(int pin, bool highIsOn = true);
   void handleGetChannelState(TDSC_ChannelState &channelState);
   int handleCalcfgFromServer(TSD_DeviceCalCfgRequest *request);
+  void onLoadState();
+  void onSaveState();
+  void turnOn(_supla_int_t duration = 0);
+  void iterateAlways();
+
+ protected:
+  unsigned short lifespan;
+  _supla_int_t turnOnSecondsCumulative;
+  unsigned long turnOnTimestamp;
 };
 
-};
-};
+};  // namespace Control
+};  // namespace Supla
 
 #endif
-

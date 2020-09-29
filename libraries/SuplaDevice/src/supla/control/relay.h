@@ -31,7 +31,6 @@
 #include "../storage/storage.h"
 #include "../triggerable.h"
 
-
 namespace Supla {
 namespace Control {
 class Relay : public Element, public Triggerable {
@@ -45,14 +44,14 @@ class Relay : public Element, public Triggerable {
   // -1 - restore from Storage
   // 0 - off (default)
   // 1 - on
-//  virtual void setDefaultStateOnInit(int8_t state);
+  //  virtual void setDefaultStateOnInit(int8_t state);
 
   virtual uint8_t pinOnValue();
   virtual uint8_t pinOffValue();
   virtual void turnOn(_supla_int_t duration = 0);
   virtual void turnOff(_supla_int_t duration = 0);
   virtual bool isOn();
-  virtual void toggle();
+  virtual void toggle(_supla_int_t duration = 0);
 
   void runAction(int trigger, int action);
 
@@ -66,6 +65,7 @@ class Relay : public Element, public Triggerable {
   Channel *getChannel();
   Channel channel;
   _supla_int_t durationMs;
+  unsigned long durationTimestamp;
   int pin;
   bool highIsOn;
   int8_t stateOnInit;
