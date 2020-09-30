@@ -31,6 +31,12 @@
 #include "../storage/storage.h"
 #include "../triggerable.h"
 
+#define STATE_ON_INIT_RESTORED_OFF -3
+#define STATE_ON_INIT_RESTORED_ON -2
+#define STATE_ON_INIT_RESTORE -1
+#define STATE_ON_INIT_OFF 0
+#define STATE_ON_INIT_ON 1
+
 namespace Supla {
 namespace Control {
 class Relay : public Element, public Triggerable {
@@ -44,7 +50,10 @@ class Relay : public Element, public Triggerable {
   // -1 - restore from Storage
   // 0 - off (default)
   // 1 - on
-  //  virtual void setDefaultStateOnInit(int8_t state);
+  virtual Relay &setDefaultStateOn();
+  virtual Relay &setDefaultStateOff();
+  virtual Relay &setDefaultStateRestore();
+  virtual Relay &keepTurnOnDuration(bool keep = true);
 
   virtual uint8_t pinOnValue();
   virtual uint8_t pinOffValue();
@@ -64,11 +73,16 @@ class Relay : public Element, public Triggerable {
  protected:
   Channel *getChannel();
   Channel channel;
-  _supla_int_t durationMs;
-  unsigned long durationTimestamp;
   int pin;
   bool highIsOn;
+
   int8_t stateOnInit;
+
+  _supla_int_t durationMs;
+  _supla_int_t storedTurnOnDurationMs;
+  unsigned long durationTimestamp;
+  bool keepTurnOnDurationMs;
+
 };
 
 };  // namespace Control

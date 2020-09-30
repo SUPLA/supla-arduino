@@ -30,6 +30,10 @@ void LocalAction::addAction(int action, Triggerable &client, int event) {
   }
 }
 
+void LocalAction::addAction(int action, Triggerable *client, int event) {
+  addAction(action, *client, event);
+}
+
 void LocalAction::runAction(int event) {
   for (int i = 0; i < registeredClientsCount; i++) {
     if (clients[i].onEvent == event) {

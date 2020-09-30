@@ -30,7 +30,13 @@ using namespace Supla;
 using namespace Control;
 
 Relay::Relay(int pin, bool highIsOn, _supla_int_t functions)
-    : pin(pin), durationMs(0), highIsOn(highIsOn), durationTimestamp(0) {
+    : pin(pin),
+      durationMs(0),
+      highIsOn(highIsOn),
+      durationTimestamp(0),
+      stateOnInit(STATE_ON_INIT_OFF),
+      keepTurnOnDurationMs(false),
+      storedTurnOnDurationMs(0) {
   channel.setType(SUPLA_CHANNELTYPE_RELAY);
   channel.setFuncList(functions);
 }
@@ -44,8 +50,15 @@ uint8_t Relay::pinOffValue() {
 }
 
 void Relay::onInit() {
-  pinMode(pin, OUTPUT);
-  Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOffValue());
+  if (stateOnInit == STATE_ON_INIT_ON ||
+      stateOnInit == STATE_ON_INIT_RESTORED_ON) {
+    turnOn();
+  } else {
+    turnOff();
+  }
+
+  pinMode(pin, OUTPUT);  // pin mode is set after setting pin value in order to
+                         // avoid problems with LOW trigger relays
 }
 
 void Relay::iterateAlways() {
@@ -57,6 +70,9 @@ void Relay::iterateAlways() {
 int Relay::handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue) {
   int result = -1;
   if (newValue->value[0] == 1) {
+    if (keepTurnOnDurationMs) {
+      storedTurnOnDurationMs = newValue->DurationMS;
+    }
     turnOn(newValue->DurationMS);
     result = 1;
   } else if (newValue->value[0] == 0) {
@@ -68,9 +84,10 @@ int Relay::handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue) {
 }
 
 void Relay::turnOn(_supla_int_t duration) {
-  if (duration > 0) {
-    durationMs = duration;
-    durationTimestamp = millis();
+  durationMs = duration;
+  durationTimestamp = millis();
+  if (keepTurnOnDurationMs) {
+    durationMs = storedTurnOnDurationMs;
   }
   Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOnValue());
 
@@ -78,7 +95,8 @@ void Relay::turnOn(_supla_int_t duration) {
 }
 
 void Relay::turnOff(_supla_int_t duration) {
-  durationMs = 0;
+  durationMs = duration;
+  durationTimestamp = millis();
   Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOffValue());
 
   channel.setNewValue(false);
@@ -119,22 +137,59 @@ Channel *Relay::getChannel() {
 }
 
 void Relay::onSaveState() {
-  //  Supla::Storage::WriteState((unsigned char *)&counter, sizeof(counter));
-}
-
-void Relay::onLoadState() {
-  /*  if (stateOnInit == -1) {
-      int8_t data;
-      if (Supla::Storage::ReadState((unsigned char *)&data, sizeof(data))) {
-        stateOnInit = data;
-      }
-    } */
-}
-
-/*void Relay::setDefaultStateOnInit(int state) {
-  if (state >= -1 && state <= 1) {
-    stateOnInit = state;
+  if (keepTurnOnDurationMs) {
+    Supla::Storage::WriteState((unsigned char *)&storedTurnOnDurationMs,
+                               sizeof(storedTurnOnDurationMs));
+  }
+  if (stateOnInit < 0) {
+    bool enabled = isOn();
+    Supla::Storage::WriteState((unsigned char *)&enabled, sizeof(enabled));
   }
 }
 
-*/
+void Relay::onLoadState() {
+  if (keepTurnOnDurationMs) {
+    Supla::Storage::ReadState((unsigned char *)&storedTurnOnDurationMs,
+                              sizeof(storedTurnOnDurationMs));
+    Serial.print(F("Relay["));
+    Serial.print(channel.getChannelNumber());
+    Serial.print(F("]: restored durationMs: "));
+    Serial.println(storedTurnOnDurationMs);
+  }
+
+  if (stateOnInit < 0) {
+    bool enabled = false;
+    if (Supla::Storage::ReadState((unsigned char *)&enabled, sizeof(enabled))) {
+      Serial.print(F("Relay["));
+      Serial.print(channel.getChannelNumber());
+      Serial.print(F("]: restored relay state: "));
+      if (enabled) {
+        Serial.println(F("ON"));
+        stateOnInit = STATE_ON_INIT_RESTORED_ON;
+      } else {
+        Serial.println(F("OFF"));
+        stateOnInit = STATE_ON_INIT_RESTORED_OFF;
+      }
+    }
+  }
+}
+
+Relay &Relay::setDefaultStateOn() {
+  stateOnInit = STATE_ON_INIT_ON;
+  return *this;
+}
+
+Relay &Relay::setDefaultStateOff() {
+  stateOnInit = STATE_ON_INIT_OFF;
+  return *this;
+}
+
+Relay &Relay::setDefaultStateRestore() {
+  stateOnInit = STATE_ON_INIT_RESTORE;
+  return *this;
+}
+
+Relay &Relay::keepTurnOnDuration(bool keep) {
+  keepTurnOnDurationMs = keep;
+  return *this;
+}

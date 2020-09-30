@@ -27,6 +27,12 @@ int Io::digitalRead(int channelNumber, uint8_t pin) {
 }
 
 void Io::digitalWrite(int channelNumber, uint8_t pin, uint8_t val) {
+  Serial.print(" **** Digital write[");
+  Serial.print(channelNumber);
+  Serial.print("], pin: ");
+  Serial.print(pin);
+  Serial.print("; value: ");
+  Serial.println(val);
   if (ioInstance) {
     ioInstance->customDigitalWrite(channelNumber, pin, val);
     return;

@@ -43,8 +43,10 @@ class BistableRelay : public Relay {
   void onInit();
   void iterateAlways();
   int handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue);
-  virtual void turnOn(_supla_int_t duration);
-  virtual void turnOff(_supla_int_t duration);
+  void turnOn(_supla_int_t duration = 0);
+  void turnOff(_supla_int_t duration = 0);
+  void toggle(_supla_int_t duration = 0);
+
   virtual bool isOn();
   bool isStatusUnknown();
 

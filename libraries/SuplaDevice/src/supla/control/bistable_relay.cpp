@@ -19,6 +19,8 @@
 using namespace Supla;
 using namespace Control;
 
+#define STATE_ON_INIT_KEEP 2
+
 BistableRelay::BistableRelay(int pin,
                              int statusPin,
                              bool statusPullUp,
@@ -32,16 +34,29 @@ BistableRelay::BistableRelay(int pin,
       disarmTimeMs(0),
       busy(false),
       lastReadTime(0) {
+  stateOnInit = STATE_ON_INIT_KEEP;
 }
 
 void BistableRelay::onInit() {
-  Relay::onInit();
+
   if (statusPin >= 0) {
     pinMode(statusPin, statusPullUp ? INPUT_PULLUP : INPUT);
     channel.setNewValue(isOn());
   } else {
     channel.setNewValue(false);
   }
+
+  Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOffValue());
+
+  if (stateOnInit == STATE_ON_INIT_ON ||
+      stateOnInit == STATE_ON_INIT_RESTORED_ON) {
+    turnOn();
+  } else if (stateOnInit == STATE_ON_INIT_OFF ||
+             stateOnInit == STATE_ON_INIT_RESTORED_OFF) {
+    turnOff();
+  }
+
+  pinMode(pin, OUTPUT);
 }
 
 void BistableRelay::iterateAlways() {
@@ -52,7 +67,7 @@ void BistableRelay::iterateAlways() {
     channel.setNewValue(isOn());
   }
 
-  if (millis() - disarmTimeMs > 200) {
+  if (busy && millis() - disarmTimeMs > 200) {
     busy = false;
     Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOffValue());
   }
@@ -73,6 +88,11 @@ void BistableRelay::turnOn(_supla_int_t duration) {
     return;
   }
 
+  durationMs = 0;
+
+  if (keepTurnOnDurationMs) {
+    duration = storedTurnOnDurationMs;
+  }
   // Change turn on requests duration to be at least 1 s
   if (duration > 0 && duration < 1000) {
     duration = 1000;
@@ -82,9 +102,7 @@ void BistableRelay::turnOn(_supla_int_t duration) {
     durationTimestamp = millis();
   }
 
-  if (isStatusUnknown()) {
-    internalToggle();
-  } else if (!isOn()) {
+  if (isStatusUnknown() || !isOn()) {
     internalToggle();
   }
 }
@@ -119,4 +137,12 @@ void BistableRelay::internalToggle() {
   busy = true;
   disarmTimeMs = millis();
   Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOnValue());
+}
+
+void BistableRelay::toggle(_supla_int_t duration) {
+  if (isOn() || isStatusUnknown()) {
+    turnOff(duration);
+  } else {
+    turnOn(duration);
+  }
 }

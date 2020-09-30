@@ -35,6 +35,7 @@ class LocalAction {
   LocalAction();
 
   virtual void addAction(int action, Triggerable &client, int event);
+  virtual void addAction(int action, Triggerable *client, int event);
 
   virtual void runAction(int event);
 
