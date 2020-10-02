@@ -46,10 +46,6 @@ class Relay : public Element, public Triggerable {
         _supla_int_t functions = (0xFF ^
                                   SUPLA_BIT_FUNC_CONTROLLINGTHEROLLERSHUTTER));
 
-  // Sets default relay state after device reset/power up
-  // -1 - restore from Storage
-  // 0 - off (default)
-  // 1 - on
   virtual Relay &setDefaultStateOn();
   virtual Relay &setDefaultStateOff();
   virtual Relay &setDefaultStateRestore();
