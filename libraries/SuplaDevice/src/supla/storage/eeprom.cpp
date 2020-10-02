@@ -66,7 +66,8 @@ int Eeprom::writeStorage(int offset, const unsigned char *buf, int size) {
   }
   Serial.print(F("Wrote "));
   Serial.print(size);
-  Serial.println(F(" bytes to storage"));
+  Serial.print(F(" bytes to storage at "));
+  Serial.println(offset);
   return size;
 }
 
