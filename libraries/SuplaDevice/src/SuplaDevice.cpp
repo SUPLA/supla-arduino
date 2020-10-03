@@ -94,6 +94,26 @@ bool SuplaDeviceClass::begin(unsigned char version) {
   // Supla::Storage::LoadDeviceConfig();
   // Supla::Storage::LoadElementConfig();
   //
+  
+  // Pefrorm dry run of write state to validate stored state section with current
+  // device configuration
+  Serial.println(F("Validating storage state section with current device configuration"));
+  Supla::Storage::PrepareState(true);
+  for (auto element = Supla::Element::begin(); element != nullptr;
+      element = element->next()) {
+    element->onSaveState();
+  }
+  // if state storage validation was successful, perform read state
+  if (Supla::Storage::FinalizeSaveState()) {
+    Serial.println(F("Storage state section validation completed. Loading elements state..."));
+    // Iterate all elements and load state
+    Supla::Storage::PrepareState();
+    for (auto element = Supla::Element::begin(); element != nullptr;
+        element = element->next()) {
+      element->onLoadState();
+    }
+  }
+
 
   bool emptyGuidDetected = true;
   for (int i = 0; i < SUPLA_GUID_SIZE; i++) {
@@ -144,13 +164,6 @@ bool SuplaDeviceClass::begin(unsigned char version) {
     setString(Supla::Channel::reg_dev.SoftVer,
               "User SW, lib 2.3.2",
               SUPLA_SOFTVER_MAXSIZE);
-  }
-
-  // Iterate all elements and load state
-  Supla::Storage::PrepareState();
-  for (auto element = Supla::Element::begin(); element != nullptr;
-       element = element->next()) {
-    element->onLoadState();
   }
 
   // Initialize elements

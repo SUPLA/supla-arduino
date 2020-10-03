@@ -63,16 +63,17 @@ bool Storage::LoadElementConfig() {
   return false;
 }
 
-void Storage::PrepareState() {
+void Storage::PrepareState(bool dryRun) {
   if (Instance()) {
-    Instance()->prepareState();
+    Instance()->prepareState(dryRun);
   }
 }
 
-void Storage::FinalizeSaveState() {
+bool Storage::FinalizeSaveState() {
   if (Instance()) {
-    Instance()->finalizeSaveState();
+    return Instance()->finalizeSaveState();
   }
+  return false;
 }
 
 bool Storage::SaveStateAllowed(unsigned long ms) {
@@ -89,14 +90,14 @@ Storage::Storage(unsigned int storageStartingOffset)
       elementConfigOffset(0),
       elementStateOffset(0),
       newSectionSize(0),
-      newSectionElementsCount(0),
-      sectionsCount(0) {
+      sectionsCount(0),
+      dryRun(false) {
   instance = this;
 }
 
-void Storage::prepareState() {
+void Storage::prepareState(bool performDryRun) {
+  dryRun = performDryRun;
   newSectionSize = 0;
-  newSectionElementsCount = 0;
   currentStateOffset = elementStateOffset + sizeof(SectionPreamble);
 }
 
@@ -111,6 +112,8 @@ bool Storage::readState(unsigned char *buf, int size) {
 }
 
 bool Storage::writeState(const unsigned char *buf, int size) {
+  newSectionSize += size;
+
   if (size == 0) {
     return true;
   }
@@ -118,12 +121,18 @@ bool Storage::writeState(const unsigned char *buf, int size) {
   if (elementStateSize > 0 &&
       elementStateOffset + sizeof(SectionPreamble) + elementStateSize <
           currentStateOffset + size) {
-    Serial.println(F("Warning! Attempt to write state outside of section size."));
+    Serial.println(
+        F("Warning! Attempt to write state outside of section size."));
     Serial.println(
         F("Storage: rewriting element state section. All data will be lost."));
     elementStateSize = 0;
     elementStateOffset = 0;
     return false;
+  }
+
+  if (dryRun) {
+    currentStateOffset += size;
+    return true;
   }
 
   // Calculation of offset for section data - in case sector is missing
@@ -154,15 +163,25 @@ bool Storage::writeState(const unsigned char *buf, int size) {
         storageStartingOffset, (unsigned char *)&preamble, sizeof(preamble));
   }
 
-  newSectionElementsCount++;
-  newSectionSize += size;
-
   currentStateOffset += updateStorage(currentStateOffset, buf, size);
 
   return true;
 }
 
-void Storage::finalizeSaveState() {
+bool Storage::finalizeSaveState() {
+  if (dryRun) {
+    dryRun = false;
+    if (elementStateSize != newSectionSize) {
+      Serial.println(
+          F("Element state section size doesn't match current device "
+            "configuration"));
+      elementStateOffset = 0;
+      elementStateSize = 0;
+      return false;
+    }
+    return true;
+  }
+
   SectionPreamble preamble;
   preamble.type = STORAGE_SECTION_TYPE_ELEMENT_STATE;
   preamble.size = newSectionSize;
@@ -174,6 +193,7 @@ void Storage::finalizeSaveState() {
       elementStateOffset, (unsigned char *)&preamble, sizeof(preamble));
 
   commit();
+  return true;
 }
 
 bool Storage::init() {
@@ -226,7 +246,7 @@ bool Storage::init() {
     if (section.crc1 != section.crc2) {
       Serial.println(
           F("Warning! CRC copies on section doesn't match. Please check your "
-          "storage hardware"));
+            "storage hardware"));
     }
 
     switch (section.type) {
@@ -265,6 +285,10 @@ bool Storage::loadElementConfig() {
 }
 
 int Storage::updateStorage(int offset, const unsigned char *buf, int size) {
+  if (offset < storageStartingOffset) {
+    return 0;
+  }
+
   unsigned char currentData[size];
   readStorage(offset, currentData, size, false);
 

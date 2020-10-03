@@ -33,8 +33,8 @@ class Storage {
   static bool WriteState(const unsigned char *, int);
   static bool LoadDeviceConfig();
   static bool LoadElementConfig();
-  static void PrepareState();
-  static void FinalizeSaveState();
+  static void PrepareState(bool dryRun = false);
+  static bool FinalizeSaveState();
   static bool SaveStateAllowed(unsigned long);
 
   Storage(unsigned int storageStartingOffset = 0);
@@ -45,8 +45,8 @@ class Storage {
 
   virtual bool loadDeviceConfig();
   virtual bool loadElementConfig();
-  virtual void prepareState();
-  virtual void finalizeSaveState();
+  virtual void prepareState(bool performDryRun);
+  virtual bool finalizeSaveState();
   virtual bool saveStateAllowed(unsigned long) = 0;
 
   virtual void commit() = 0;
@@ -68,8 +68,8 @@ class Storage {
   unsigned int currentStateOffset;
 
   unsigned int newSectionSize;
-  unsigned int newSectionElementsCount;
   int sectionsCount;
+  bool dryRun;
 
   static Storage *instance;
 };
