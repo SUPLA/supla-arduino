@@ -39,6 +39,9 @@ class Storage {
 
   Storage(unsigned int storageStartingOffset = 0);
 
+  // Changes default state save period time
+  virtual void setStateSavePeriod(unsigned long periodMs);
+
   virtual bool init();
   virtual bool readState(unsigned char *, int);
   virtual bool writeState(const unsigned char *, int);
@@ -47,7 +50,7 @@ class Storage {
   virtual bool loadElementConfig();
   virtual void prepareState(bool performDryRun);
   virtual bool finalizeSaveState();
-  virtual bool saveStateAllowed(unsigned long) = 0;
+  virtual bool saveStateAllowed(unsigned long);
 
   virtual void commit() = 0;
 
@@ -70,6 +73,9 @@ class Storage {
   unsigned int newSectionSize;
   int sectionsCount;
   bool dryRun;
+
+  unsigned long saveStatePeriod;
+  unsigned long lastWriteTimestamp;
 
   static Storage *instance;
 };

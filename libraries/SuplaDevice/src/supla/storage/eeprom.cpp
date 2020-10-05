@@ -21,12 +21,13 @@
 
 using namespace Supla;
 
-#define SUPLA_EEPROM_WRITING_PERIOD 10000
+// By default, write to EEPROM every 3 min
+#define SUPLA_EEPROM_WRITING_PERIOD 3*60*1000
 
 Eeprom::Eeprom(unsigned int storageStartingOffset)
     : Storage(storageStartingOffset),
-      lastWriteTimestamp(0),
       dataChanged(false) {
+  setStateSavePeriod(SUPLA_EEPROM_WRITING_PERIOD);
 }
 
 bool Eeprom::init() {
@@ -69,14 +70,6 @@ int Eeprom::writeStorage(int offset, const unsigned char *buf, int size) {
   Serial.print(F(" bytes to storage at "));
   Serial.println(offset);
   return size;
-}
-
-bool Eeprom::saveStateAllowed(unsigned long ms) {
-  if (ms - lastWriteTimestamp > SUPLA_EEPROM_WRITING_PERIOD) {
-    lastWriteTimestamp = ms;
-    return true;
-  }
-  return false;
 }
 
 void Eeprom::commit() {

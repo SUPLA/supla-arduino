@@ -25,7 +25,6 @@ class Eeprom : public Storage {
  public:
   Eeprom(unsigned int storageStartingOffset = 0);
   bool init();
-  bool saveStateAllowed(unsigned long ms);
   void commit();
 
  protected:
@@ -33,8 +32,6 @@ class Eeprom : public Storage {
   int writeStorage(int, const unsigned char *, int);
 
   bool dataChanged;
-
-  unsigned long lastWriteTimestamp;
 };
 
 };  // namespace Supla

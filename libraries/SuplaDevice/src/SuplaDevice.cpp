@@ -93,8 +93,7 @@ bool SuplaDeviceClass::begin(unsigned char version) {
 
   // Supla::Storage::LoadDeviceConfig();
   // Supla::Storage::LoadElementConfig();
-  //
-  
+
   // Pefrorm dry run of write state to validate stored state section with current
   // device configuration
   Serial.println(F("Validating storage state section with current device configuration"));
@@ -103,7 +102,7 @@ bool SuplaDeviceClass::begin(unsigned char version) {
       element = element->next()) {
     element->onSaveState();
   }
-  // if state storage validation was successful, perform read state
+  // If state storage validation was successful, perform read state
   if (Supla::Storage::FinalizeSaveState()) {
     Serial.println(F("Storage state section validation completed. Loading elements state..."));
     // Iterate all elements and load state
@@ -113,6 +112,15 @@ bool SuplaDeviceClass::begin(unsigned char version) {
       element->onLoadState();
     }
   }
+
+  // Initialize elements
+  for (auto element = Supla::Element::begin(); element != nullptr;
+       element = element->next()) {
+    element->onInit();
+  }
+
+  // Enable timers
+  Supla::initTimers();
 
 
   bool emptyGuidDetected = true;
@@ -165,15 +173,6 @@ bool SuplaDeviceClass::begin(unsigned char version) {
               "User SW, lib 2.3.2",
               SUPLA_SOFTVER_MAXSIZE);
   }
-
-  // Initialize elements
-  for (auto element = Supla::Element::begin(); element != nullptr;
-       element = element->next()) {
-    element->onInit();
-  }
-
-  // Enable timers
-  Supla::initTimers();
 
   Serial.println(F("Initializing network layer"));
   Supla::Network::Setup();

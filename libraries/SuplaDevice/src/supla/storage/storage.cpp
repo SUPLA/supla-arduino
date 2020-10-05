@@ -91,7 +91,9 @@ Storage::Storage(unsigned int storageStartingOffset)
       elementStateOffset(0),
       newSectionSize(0),
       sectionsCount(0),
-      dryRun(false) {
+      dryRun(false),
+      lastWriteTimestamp(0),
+      saveStatePeriod(1000) {
   instance = this;
 }
 
@@ -297,3 +299,20 @@ int Storage::updateStorage(int offset, const unsigned char *buf, int size) {
   }
   return size;
 }
+
+void Storage::setStateSavePeriod(unsigned long periodMs) {
+  if (periodMs < 1000) {
+    saveStatePeriod = 1000;
+  } else {
+    saveStatePeriod = periodMs;
+  }
+}
+
+bool Storage::saveStateAllowed(unsigned long ms) {
+  if (ms - lastWriteTimestamp > saveStatePeriod) {
+    lastWriteTimestamp = ms;
+    return true;
+  }
+  return false;
+}
+
