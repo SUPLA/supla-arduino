@@ -17,7 +17,8 @@
 #ifndef _electricity_meter_h
 #define _electricity_meter_h
 
-#include <cstring>
+#include <string.h>
+#include <Arduino.h>
 
 #include "../channel_extended.h"
 #include "../element.h"

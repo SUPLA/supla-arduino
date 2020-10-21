@@ -55,7 +55,7 @@ class Network {
       Instance()->clearTimeCounters();
       return Instance()->connect(server, port);
     }
-    return false;
+    return 0;
   }
 
   static void Disconnect() {
