@@ -87,10 +87,10 @@ int RollerShutter::handleNewValueFromServer(
     Serial.println(F("STOP"));
     stop();
   } else if (task == 1) {
-    Serial.println(F("CLOSE"));
+    Serial.println(F("MOVE_DOWN"));
     moveDown();
   } else if (task == 2) {
-    Serial.println(F("OPEN"));
+    Serial.println(F("MOVE_UP"));
     moveUp();
   } else if (task >= 10 && task <= 110) {
     setTargetPosition(task - 10);
@@ -180,6 +180,16 @@ void RollerShutter::runAction(int trigger, int action) {
       } else {
         open();
       }
+      break;
+    }
+
+    case MOVE_UP: {
+      moveUp();
+      break;
+    }
+
+    case MOVE_DOWN: {
+      moveDown();
       break;
     }
   }
