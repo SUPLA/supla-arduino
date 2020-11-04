@@ -310,6 +310,12 @@ void RollerShutter::onTimer() {
     return;
   }
 
+  if (operationTimeout != 0 &&
+      millis() - lastMovementStartTime > operationTimeout) {
+    setTargetPosition(STOP_POSITION);
+    operationTimeout = 0;
+  }
+
   if (targetPosition == STOP_POSITION && inMove()) {
     stopMovement();
     calibrationTime = 0;
@@ -320,13 +326,9 @@ void RollerShutter::onTimer() {
   } else if (calibrate) {
     // If calibrationTime is not set, then it means we should start calibration
     if (calibrationTime == 0) {
-      if (operationTimeout != 0 &&
-          millis() - lastMovementStartTime > operationTimeout) {
-        setTargetPosition(STOP_POSITION);
-        operationTimeout = 0;
-      }
       // If roller shutter wasn't in move when calibration is requested, we
       // select direction based on requested targetPosition
+      operationTimeout = 0;
       if (targetPosition > 50 || targetPosition == MOVE_DOWN_POSITION) {
         if (currentDirection == UP_DIR) {
           stopMovement();
@@ -335,7 +337,7 @@ void RollerShutter::onTimer() {
           calibrationTime = closingTimeMs;
           lastMovementStartTime = millis();
           if (calibrationTime == 0) {
-            operationTimeout = 30000;
+            operationTimeout = 60000;
           }
           startClosing();
         }
@@ -347,7 +349,7 @@ void RollerShutter::onTimer() {
           calibrationTime = openingTimeMs;
           lastMovementStartTime = millis();
           if (calibrationTime == 0) {
-            operationTimeout = 30000;
+            operationTimeout = 60000;
           }
           startOpening();
         }
@@ -377,7 +379,7 @@ void RollerShutter::onTimer() {
   } else if (!newTargetPositionAvailable &&
              currentDirection !=
                  STOP_DIR) {  // no new command available and it is moving,
-                          // just handle roller movement/status
+                              // just handle roller movement/status
     if (currentDirection == UP_DIR && currentPosition > 0) {
       int movementDistance = lastPositionBeforeMovement;
       int timeRequired = (1.0 * openingTimeMs * movementDistance / 100.0);
@@ -417,9 +419,12 @@ void RollerShutter::onTimer() {
     int newDirection = STOP_DIR;
     if (targetPosition == MOVE_UP_POSITION) {
       newDirection = UP_DIR;
+      operationTimeout = 60000;
     } else if (targetPosition == MOVE_DOWN_POSITION) {
       newDirection = DOWN_DIR;
+      operationTimeout = 60000;
     } else {
+      operationTimeout = 0;
       int newMovementValue = targetPosition - currentPosition;
       // 0 - 100 = -100 (move down); 50 -
       // 20 = 30 (move up 30%), etc
