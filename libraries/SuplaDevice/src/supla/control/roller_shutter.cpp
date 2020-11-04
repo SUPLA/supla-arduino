@@ -192,6 +192,23 @@ void RollerShutter::runAction(int trigger, int action) {
       moveDown();
       break;
     }
+
+    case MOVE_UP_OR_STOP: {
+      if (inMove()) {
+        stop();
+      } else {
+        moveUp();
+      }
+      break;
+    }
+    case MOVE_DOWN_OR_STOP: {
+      if (inMove()) {
+        stop();
+      } else {
+        moveDown();
+      }
+      break;
+    }
   }
 }
 

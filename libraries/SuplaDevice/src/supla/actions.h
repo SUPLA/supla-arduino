@@ -43,6 +43,8 @@ enum Action {
   STEP_BY_STEP,
   MOVE_UP,
   MOVE_DOWN,
+  MOVE_UP_OR_STOP,
+  MOVE_DOWN_OR_STOP,
 
   // Dimmable light, RGB(W) LEDs
   BRIGHTEN_ALL,
