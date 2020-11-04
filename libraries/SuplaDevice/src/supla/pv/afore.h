@@ -17,8 +17,8 @@
 #ifndef __afore_h
 #define __afore_h
 
-#include <supla/sensor/one_phase_electricity_meter.h>
 #include <IPAddress.h>
+#include <supla/sensor/one_phase_electricity_meter.h>
 
 #if defined(ARDUINO_ARCH_AVR)
 #include <Ethernet.h>
@@ -31,30 +31,30 @@
 namespace Supla {
 namespace PV {
 class Afore : public Supla::Sensor::OnePhaseElectricityMeter {
-  public:
+ public:
   Afore(IPAddress ip, int port, const char *loginAndPassword);
   void readValuesFromDevice();
   void iterateAlways();
   bool iterateConnected(void *srpc);
 
-  protected:
-  IPAddress ip;
-  int port;
-  char loginAndPassword[LOGIN_AND_PASSOWORD_MAX_LENGTH];
+ protected:
 #if defined(ARDUINO_ARCH_AVR)
   EthernetClient pvClient;
 #else
   WiFiClient pvClient;
 #endif
-  bool dataIsReady;
+  IPAddress ip;
+  int port;
+  char loginAndPassword[LOGIN_AND_PASSOWORD_MAX_LENGTH];
+  char buf[80];
   _supla_int64_t totalGeneratedEnergy;
   _supla_int_t currentPower;
-  bool varFound;
-  bool vFound;
-  char buf[80];
   int bytesCounter;
-  bool dataFetchInProgress;
   int retryCounter;
+  bool vFound;
+  bool varFound;
+  bool dataIsReady;
+  bool dataFetchInProgress;
 };
 };  // namespace PV
 };  // namespace Supla
