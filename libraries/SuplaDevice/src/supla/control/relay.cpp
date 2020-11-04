@@ -76,7 +76,9 @@ int Relay::handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue) {
     turnOn(newValue->DurationMS);
     result = 1;
   } else if (newValue->value[0] == 0) {
-    turnOff(newValue->DurationMS);
+    turnOff(0);  // newValue->DurationMS may contain "turn on duration" which
+                 // result in unexpected "turn on after duration ms received in
+                 // turnOff message"
     result = 1;
   }
 
