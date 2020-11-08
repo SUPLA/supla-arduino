@@ -56,6 +56,11 @@ class ThermHygroPressMeter : public ThermHygroMeter {
     return response;
   }
 
+  Element &disableChannelState() {
+    pressureChannel.unsetFlag(SUPLA_CHANNEL_FLAG_CHANNELSTATE);
+    return ThermHygroMeter::disableChannelState();
+  }
+
  protected:
   Channel pressureChannel;
 };
