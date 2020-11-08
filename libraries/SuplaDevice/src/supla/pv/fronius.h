@@ -30,7 +30,7 @@ namespace Supla {
 namespace PV {
 class Fronius : public Supla::Sensor::OnePhaseElectricityMeter {
  public:
-  Fronius(IPAddress ip, int port = 80);
+  Fronius(IPAddress ip, int port = 80, int deviceId = 1);
   void readValuesFromDevice();
   void iterateAlways();
   bool iterateConnected(void *srpc);
@@ -52,6 +52,7 @@ class Fronius : public Supla::Sensor::OnePhaseElectricityMeter {
   int bytesCounter;
   int retryCounter;
   int valueToFetch;
+  int deviceId;
   bool startCharFound;
   bool dataIsReady;
   bool dataFetchInProgress;

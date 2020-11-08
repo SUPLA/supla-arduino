@@ -21,7 +21,7 @@ using namespace PV;
 
 enum ParametersToRead { NONE, TOTAL_ENERGY, FAC, IAC, PAC, UAC };
 
-Fronius::Fronius(IPAddress ip, int port)
+Fronius::Fronius(IPAddress ip, int port, int deviceId)
     : ip(ip),
       port(port),
       dataIsReady(false),
@@ -34,7 +34,8 @@ Fronius::Fronius(IPAddress ip, int port)
       bytesCounter(0),
       dataFetchInProgress(false),
       retryCounter(0),
-      valueToFetch(NONE) {
+      valueToFetch(NONE),
+      deviceId(deviceId) {
 }
 
 void Fronius::iterateAlways() {
@@ -147,13 +148,20 @@ bool Fronius::iterateConnected(void *srpc) {
   if (!dataFetchInProgress) {
     if (lastReadTime == 0 || millis() - lastReadTime > 15000) {
       lastReadTime = millis();
-      Serial.println(F("Fronius connecting"));
+      Serial.print(F("Fronius connecting "));
+      Serial.println(deviceId);
       if (pvClient.connect(ip, port)) {
         retryCounter = 0;
         dataFetchInProgress = true;
         Serial.println(F("Succesful connect"));
 
-        pvClient.println("GET /solar_api/v1/GetInverterRealtimeData.cgi?Scope=Device&DeviceID=1&DataCollection=CommonInverterData HTTP/1.1");
+        char buf[100];
+        strcpy(buf, "GET /solar_api/v1/GetInverterRealtimeData.cgi?Scope=Device&DeviceID=");
+        char idBuf[20];
+        sprintf(idBuf, "%d", deviceId);
+        strcat(buf, idBuf);
+        strcat(buf, "&DataCollection=CommonInverterData HTTP/1.1");
+        pvClient.println(buf);
         pvClient.println("Host: localhost");
         pvClient.println("Connection: close");
         pvClient.println();
