@@ -16,10 +16,7 @@
 
 #include "button.h"
 
-using namespace Supla;
-using namespace Control;
-
-Button::Button(int pin, bool pullUp, bool invertLogic)
+Supla::Control::Button::Button(int pin, bool pullUp, bool invertLogic)
     : pin(pin),
       pullUp(pullUp),
       prevStatus(LOW),
@@ -28,14 +25,17 @@ Button::Button(int pin, bool pullUp, bool invertLogic)
       filterTimeMs(0),
       debounceDelayMs(50),
       swNoiseFilterDelayMs(20),
-      invertLogic(invertLogic) {
+      invertLogic(invertLogic),
+      holdTimeMs(0),
+      multiclickTimeMs(0),
+      enableExtDetection(false) {
 }
 
-void Button::iterateAlways() {
+void Supla::Control::Button::onTimer() {
   // Ignore anything that happen within debounceDelayMs ms since last state
   // change
+  int currentStatus = digitalRead(pin);
   if (millis() - debounceTimeMs > debounceDelayMs) {
-    int currentStatus = digitalRead(pin);
     if (currentStatus != prevStatus) {
       // If status is changed, then make sure that it will be kept at
       // least swNoiseFilterDelayMs ms to avoid noise
@@ -47,6 +47,7 @@ void Button::iterateAlways() {
       // If new status is kept at least swNoiseFilterDelayMs ms, then apply
       // change of status
       if (millis() - filterTimeMs > swNoiseFilterDelayMs) {
+    //    enableExtDetection = true;
         debounceTimeMs = millis();
         prevStatus = currentStatus;
         if (currentStatus == valueOnPress()) {
@@ -63,23 +64,36 @@ void Button::iterateAlways() {
       newStatusCandidate = prevStatus;
     }
   }
+  if (enableExtDetection) {
+    if (currentStatus == valueOnPress()) {
+
+    }
+
+  }
 }
 
-void Button::onInit() {
+void Supla::Control::Button::onInit() {
   pinMode(pin, pullUp ? INPUT_PULLUP : INPUT);
   prevStatus = digitalRead(pin);
   newStatusCandidate = prevStatus;
 }
 
-int Button::valueOnPress() {
+int Supla::Control::Button::valueOnPress() {
   return invertLogic ? LOW : HIGH;
 }
 
-void Button::setSwNoiseFilterDelay(int newDelayMs) {
+void Supla::Control::Button::setSwNoiseFilterDelay(unsigned int newDelayMs) {
   swNoiseFilterDelayMs = newDelayMs;
 }
 
-void Button::setDebounceDelay(int newDelayMs) {
+void Supla::Control::Button::setDebounceDelay(unsigned int newDelayMs) {
   debounceDelayMs = newDelayMs;
 }
 
+void Supla::Control::Button::setHoldTime(unsigned int timeMs) {
+  holdTimeMs = timeMs;
+}
+
+void Supla::Control::Button::setMulticlickTime(unsigned int timeMs) {
+  multiclickTimeMs = timeMs;
+}

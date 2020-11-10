@@ -29,22 +29,27 @@ class Button : public Element, public LocalAction {
  public:
   Button(int pin, bool pullUp = false, bool invertLogic = false);
 
-  void iterateAlways();
+  void onTimer();
   void onInit();
   int valueOnPress();
-  void setSwNoiseFilterDelay(int newDelayMs);
-  void setDebounceDelay(int newDelayMs);
+  void setSwNoiseFilterDelay(unsigned int newDelayMs);
+  void setDebounceDelay(unsigned int newDelayMs);
+  void setHoldTime(unsigned int timeMs);
+  void setMulticlickTime(unsigned int timeMs);
 
  protected:
-  int pin;
   unsigned long debounceTimeMs;
   unsigned long filterTimeMs;
-  int debounceDelayMs;
-  int swNoiseFilterDelayMs;
+  int pin;
+  unsigned int debounceDelayMs;
+  unsigned int swNoiseFilterDelayMs;
+  unsigned int holdTimeMs;
+  unsigned int multiclickTimeMs;
   bool pullUp;
+  bool invertLogic;
+  bool enableExtDetection;
   int8_t prevStatus;
   int8_t newStatusCandidate;
-  bool invertLogic;
 };
 
 };  // namespace Control
