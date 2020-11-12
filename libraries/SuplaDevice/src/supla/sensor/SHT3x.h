@@ -17,57 +17,73 @@
 #ifndef _sht3x_h
 #define _sht3x_h
 
-// Dependency: Risele SHT3x library - use library manager to install it
+// Dependency: ClosedCube SHT3x library - use library manager to install it
 // https://github.com/closedcube/ClosedCube_SHT31D_Arduino
 
-#include "ClosedCube_SHT31D.h"
+#include <ClosedCube_SHT31D.h>
+
 #include "therm_hygro_meter.h"
+
 
 namespace Supla {
 namespace Sensor {
 class SHT3x : public ThermHygroMeter {
  public:
-  SHT3x(int8_t address = 0x44) : address(address) {
+  SHT3x(int8_t address = 0x44)
+      : temperature(TEMPERATURE_NOT_AVAILABLE),
+        humidity(HUMIDITY_NOT_AVAILABLE),
+        address(address),
+        retryCount(0) {
   }
 
   double getTemp() {
-    float value = TEMPERATURE_NOT_AVAILABLE;
-
-    SHT31D result = sht.readTempAndHumidity(
-        SHT3XD_REPEATABILITY_LOW, SHT3XD_MODE_CLOCK_STRETCH, 50);
-
-    if (result.error == SHT3XD_NO_ERROR) {
-      value = result.t;
-    } else {
-      Serial.print(F("SHT [ERROR] Code #"));
-      Serial.println(result.error);
-    }
-    return value;
+    return temperature;
   }
 
   double getHumi() {
-    float value = HUMIDITY_NOT_AVAILABLE;
+    return humidity;
+  }
 
-    SHT31D result = sht.readTempAndHumidity(
-        SHT3XD_REPEATABILITY_LOW, SHT3XD_MODE_CLOCK_STRETCH, 50);
-
-    if (result.error == SHT3XD_NO_ERROR) {
-      value = result.rh;
-    } else {
-      Serial.print(F("SHT [ERROR] Code #"));
-      Serial.println(result.error);
+ private:
+  void iterateAlways() {
+    if (millis() - lastReadTime > 10000) {
+      lastReadTime = millis();
+      readValuesFromDevice();
+      channel.setNewValue(getTemp(), getHumi());
     }
-    return value;
   }
 
   void onInit() {
     sht.begin(address);
-
+    readValuesFromDevice();
     channel.setNewValue(getTemp(), getHumi());
+  }
+
+  void readValuesFromDevice() {
+    SHT31D result = sht.readTempAndHumidity(
+        SHT3XD_REPEATABILITY_LOW, SHT3XD_MODE_CLOCK_STRETCH, 50);
+
+    if (result.error != SHT3XD_NO_ERROR) {
+      Serial.print(F("SHT [ERROR] Code #"));
+      Serial.println(result.error);
+      retryCount++;
+      if (retryCount > 3) {
+        retryCount = 0;
+        temperature = TEMPERATURE_NOT_AVAILABLE;
+        humidity = HUMIDITY_NOT_AVAILABLE;
+      }
+    } else {
+      retryCount = 0;
+      temperature = result.t;
+      humidity = result.rh;
+    }
   }
 
  protected:
   int8_t address;
+  double temperature;
+  double humidity;
+  int8_t retryCount;
   ::ClosedCube_SHT31D sht;  // I2C
 };
 
