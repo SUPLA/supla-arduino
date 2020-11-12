@@ -20,7 +20,7 @@
 // Dependency: Adafruid Si7021 library - use library manager to install it
 // https://github.com/adafruit/Adafruit_Si7021
 
-#include "Adafruit_Si7021.h"
+#include <Adafruit_Si7021.h>
 #include "therm_hygro_meter.h"
 
 namespace Supla {
@@ -53,7 +53,6 @@ class Si7021 : public ThermHygroMeter {
   }
 
   void onInit() {
-    sensor = Adafruit_Si7021();
     sensor.begin();
 
     Serial.print(F("Found model "));
