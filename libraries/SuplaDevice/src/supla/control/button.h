@@ -25,31 +25,52 @@
 
 namespace Supla {
 namespace Control {
-class Button : public Element, public LocalAction {
- public:
-  Button(int pin, bool pullUp = false, bool invertLogic = false);
 
-  void onTimer();
-  void onInit();
-  int valueOnPress();
+class ButtonState {
+ public:
+  ButtonState(int pin, bool pullUp, bool invertLogic);
+  int update();
+  void init();
+
   void setSwNoiseFilterDelay(unsigned int newDelayMs);
   void setDebounceDelay(unsigned int newDelayMs);
   void setHoldTime(unsigned int timeMs);
   void setMulticlickTime(unsigned int timeMs);
 
  protected:
+  int valueOnPress();
+
   unsigned long debounceTimeMs;
   unsigned long filterTimeMs;
-  int pin;
   unsigned int debounceDelayMs;
   unsigned int swNoiseFilterDelayMs;
-  unsigned int holdTimeMs;
-  unsigned int multiclickTimeMs;
+  int pin;
+  int8_t newStatusCandidate;
+  int8_t prevState;
   bool pullUp;
   bool invertLogic;
+};
+
+class Button : public Element,
+               public LocalAction {
+ public:
+  Button(int pin, bool pullUp = false, bool invertLogic = false);
+
+  void onTimer();
+  void onInit();
+  void setSwNoiseFilterDelay(unsigned int newDelayMs);
+  void setDebounceDelay(unsigned int newDelayMs);
+  void setHoldTime(unsigned int timeMs);
+  void setMulticlickTime(unsigned int timeMs);
+
+ protected:
+  ButtonState state;
+  unsigned int holdTimeMs;
+  unsigned int multiclickTimeMs;
+  uint8_t clickCounter;
+  unsigned long lastStateChangeMs;
   bool enableExtDetection;
-  int8_t prevStatus;
-  int8_t newStatusCandidate;
+  bool holdSend;
 };
 
 };  // namespace Control

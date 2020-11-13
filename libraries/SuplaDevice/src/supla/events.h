@@ -25,15 +25,15 @@ enum Event {
   ON_RELEASE,  // Triggered on transition from valueOnPress()
   ON_CHANGE,   // Triggered on all transitions
   ON_HOLD,     // Triggered when button is hold
-  ON_MULTI_1,  // ON_MULTI_x is triggered when multiclick is detected
-  ON_MULTI_2,
-  ON_MULTI_3,
-  ON_MULTI_4,
-  ON_MULTI_5,
-  ON_MULTI_6,
-  ON_MULTI_7,
-  ON_MULTI_8,
-  ON_MULTI_9
+  ON_CLICK_1,  // ON_MULTI_x is triggered when multiclick is detected
+  ON_CLICK_2,
+  ON_CLICK_3,
+  ON_CLICK_4,
+  ON_CLICK_5,
+  ON_CLICK_6,
+  ON_CLICK_7,
+  ON_CLICK_8,
+  ON_CLICK_9
 };
 
 };
