@@ -69,7 +69,8 @@ Supla::Control::Button::Button(int pin, bool pullUp, bool invertLogic)
       enableExtDetection(false),
       lastStateChangeMs(0),
       holdSend(false),
-      clickCounter(0) {
+      clickCounter(0),
+      bistable(false) {
 }
 
 void Supla::Control::Button::onTimer() {
@@ -87,12 +88,12 @@ void Supla::Control::Button::onTimer() {
   }
 
   if (!stateChanged) {
-    if (stateResult == PRESSED) {
+    if (!bistable && stateResult == PRESSED) {
       if (clickCounter <= 1 && holdTimeMs > 0 && timeDelta > holdTimeMs && !holdSend) {
         runAction(ON_HOLD);
         holdSend = true;
       }
-    } else if (stateResult == RELEASED) {
+    } else if (bistable || stateResult == RELEASED) {
       if (multiclickTimeMs > 0 && timeDelta > multiclickTimeMs) {
         if (!holdSend) {
           switch (clickCounter) {
@@ -133,7 +134,7 @@ void Supla::Control::Button::onTimer() {
 
   if (stateChanged) {
     lastStateChangeMs = millis();
-    if (stateResult == TO_PRESSED) {
+    if (stateResult == TO_PRESSED || bistable) {
       clickCounter++;
     }
 
@@ -171,8 +172,15 @@ void Supla::Control::ButtonState::setDebounceDelay(unsigned int newDelayMs) {
 
 void Supla::Control::Button::setHoldTime(unsigned int timeMs) {
   holdTimeMs = timeMs;
+  if (bistable) {
+    holdTimeMs = 0;
+  }
 }
 
-void Supla::Control::Button::setMulticlickTime(unsigned int timeMs) {
+void Supla::Control::Button::setMulticlickTime(unsigned int timeMs, bool bistableButton) {
   multiclickTimeMs = timeMs;
+  bistable = bistableButton;
+  if (bistable) {
+    holdTimeMs = 0;
+  }
 }

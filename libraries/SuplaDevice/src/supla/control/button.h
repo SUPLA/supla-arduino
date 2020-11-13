@@ -61,7 +61,7 @@ class Button : public Element,
   void setSwNoiseFilterDelay(unsigned int newDelayMs);
   void setDebounceDelay(unsigned int newDelayMs);
   void setHoldTime(unsigned int timeMs);
-  void setMulticlickTime(unsigned int timeMs);
+  void setMulticlickTime(unsigned int timeMs, bool bistableButton = false);
 
  protected:
   ButtonState state;
@@ -71,6 +71,7 @@ class Button : public Element,
   unsigned long lastStateChangeMs;
   bool enableExtDetection;
   bool holdSend;
+  bool bistable;
 };
 
 };  // namespace Control
