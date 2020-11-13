@@ -36,7 +36,7 @@ double MAX6675_K::getValue() {
 
   if (value & 0x4) {  // this means there is no probe connected to Max6675
     Serial.print(F("no probe connected to Max6675"));
-    return -111;
+    return TEMPERATURE_NOT_AVAILABLE;
   }
   value >>= 3;
 
