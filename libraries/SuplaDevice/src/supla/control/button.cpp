@@ -19,14 +19,15 @@
 enum StateResults {PRESSED, RELEASED, TO_PRESSED, TO_RELEASED};
 
 Supla::Control::ButtonState::ButtonState(int pin, bool pullUp, bool invertLogic)
-    : pin(pin),
-      pullUp(pullUp),
-      invertLogic(invertLogic),
-      newStatusCandidate(LOW),
-      debounceTimeMs(0),
+    : debounceTimeMs(0),
       filterTimeMs(0),
       debounceDelayMs(50),
-      swNoiseFilterDelayMs(20) {
+      swNoiseFilterDelayMs(20),
+      pin(pin),
+      newStatusCandidate(LOW),
+      prevState(LOW),
+      pullUp(pullUp),
+      invertLogic(invertLogic) {
 }
 
 int Supla::Control::ButtonState::update() {
@@ -66,10 +67,10 @@ Supla::Control::Button::Button(int pin, bool pullUp, bool invertLogic)
     : state(pin, pullUp, invertLogic),
       holdTimeMs(0),
       multiclickTimeMs(0),
-      enableExtDetection(false),
-      lastStateChangeMs(0),
-      holdSend(false),
       clickCounter(0),
+      lastStateChangeMs(0),
+      enableExtDetection(false),
+      holdSend(false),
       bistable(false) {
 }
 
