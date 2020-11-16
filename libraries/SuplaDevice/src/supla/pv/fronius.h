@@ -44,11 +44,11 @@ class Fronius : public Supla::Sensor::OnePhaseElectricityMeter {
   IPAddress ip;
   int port;
   char buf[80];
-  _supla_int64_t totalGeneratedEnergy;
+  unsigned _supla_int64_t totalGeneratedEnergy;
   _supla_int_t currentPower;
-  _supla_int16_t currentCurrent;
-  _supla_int16_t currentFreq;
-  _supla_int16_t currentVoltage;
+  unsigned _supla_int16_t currentCurrent;
+  unsigned _supla_int16_t currentFreq;
+  unsigned _supla_int16_t currentVoltage;
   int bytesCounter;
   int retryCounter;
   int valueToFetch;

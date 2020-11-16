@@ -32,8 +32,8 @@ BistableRelay::BistableRelay(int pin,
       statusPullUp(statusPullUp),
       statusHighIsOn(statusHighIsOn),
       disarmTimeMs(0),
-      busy(false),
-      lastReadTime(0) {
+      lastReadTime(0),
+      busy(false) {
   stateOnInit = STATE_ON_INIT_KEEP;
 }
 
@@ -108,6 +108,7 @@ void BistableRelay::turnOn(_supla_int_t duration) {
 }
 
 void BistableRelay::turnOff(_supla_int_t duration) {
+  (void)(duration);
   if (busy) {
     return;
   }

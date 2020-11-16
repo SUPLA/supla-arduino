@@ -27,7 +27,7 @@ using namespace Supla;
 Eeprom::Eeprom(unsigned int storageStartingOffset)
     : Storage(storageStartingOffset),
       dataChanged(false) {
-  setStateSavePeriod(SUPLA_EEPROM_WRITING_PERIOD);
+  setStateSavePeriod((unsigned long)SUPLA_EEPROM_WRITING_PERIOD);
 }
 
 bool Eeprom::init() {
@@ -41,7 +41,7 @@ bool Eeprom::init() {
   return Storage::init();
 }
 
-int Eeprom::readStorage(int offset, unsigned char *buf, int size, bool logs) {
+int Eeprom::readStorage(unsigned int offset, unsigned char *buf, int size, bool logs) {
   if (logs) {
     Serial.print(F("readStorage: "));
     Serial.print(size);
@@ -60,7 +60,7 @@ int Eeprom::readStorage(int offset, unsigned char *buf, int size, bool logs) {
   return size;
 }
 
-int Eeprom::writeStorage(int offset, const unsigned char *buf, int size) {
+int Eeprom::writeStorage(unsigned int offset, const unsigned char *buf, int size) {
   dataChanged = true;
   for (int i = 0; i < size; i++) {
     EEPROM.write(offset + i, buf[i]);

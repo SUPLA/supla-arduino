@@ -81,7 +81,7 @@ class ElectricityMeter : public Element {
   }
 
   // energy in 0.00001 kWh
-  void setFwdActEnergy(char phase, _supla_int64_t energy) {
+  void setFwdActEnergy(int phase, unsigned _supla_int64_t energy) {
     if (phase >= 0 && phase < MAX_PHASES) {
       if (emValue.total_forward_active_energy[phase] != energy) {
         valueChanged = true;
@@ -92,7 +92,7 @@ class ElectricityMeter : public Element {
   }
 
   // energy in 0.00001 kWh
-  void setRvrActEnergy(char phase, _supla_int64_t energy) {
+  void setRvrActEnergy(int phase, unsigned _supla_int64_t energy) {
     if (phase >= 0 && phase < MAX_PHASES) {
       if (emValue.total_reverse_active_energy[phase] != energy) {
         valueChanged = true;
@@ -103,7 +103,7 @@ class ElectricityMeter : public Element {
   }
 
   // energy in 0.00001 kWh
-  void setFwdReactEnergy(char phase, _supla_int64_t energy) {
+  void setFwdReactEnergy(int phase, unsigned _supla_int64_t energy) {
     if (phase >= 0 && phase < MAX_PHASES) {
       if (emValue.total_forward_reactive_energy[phase] != energy) {
         valueChanged = true;
@@ -114,7 +114,7 @@ class ElectricityMeter : public Element {
   }
 
   // energy in 0.00001 kWh
-  void setRvrReactEnergy(char phase, _supla_int64_t energy) {
+  void setRvrReactEnergy(int phase, unsigned _supla_int64_t energy) {
     if (phase >= 0 && phase < MAX_PHASES) {
       if (emValue.total_reverse_reactive_energy[phase] != energy) {
         valueChanged = true;
@@ -125,7 +125,7 @@ class ElectricityMeter : public Element {
   }
 
   // voltage in 0.01 V
-  void setVoltage(char phase, _supla_int16_t voltage) {
+  void setVoltage(int phase, unsigned _supla_int16_t voltage) {
     if (phase >= 0 && phase < MAX_PHASES) {
       if (emValue.m[0].voltage[phase] != voltage) {
         valueChanged = true;
@@ -136,7 +136,7 @@ class ElectricityMeter : public Element {
   }
 
   // current in 0.001 A
-  void setCurrent(char phase, _supla_int_t current) {
+  void setCurrent(int phase, unsigned _supla_int_t current) {
     if (phase >= 0 && phase < MAX_PHASES) {
       if (rawCurrent[phase] != current) {
         valueChanged = true;
@@ -147,7 +147,7 @@ class ElectricityMeter : public Element {
   }
 
   // Frequency in 0.01 Hz
-  void setFreq(_supla_int16_t freq) {
+  void setFreq(unsigned _supla_int16_t freq) {
     if (emValue.m[0].freq != freq) {
       valueChanged = true;
     }
@@ -156,7 +156,7 @@ class ElectricityMeter : public Element {
   }
 
   // power in 0.00001 kW
-  void setPowerActive(char phase, _supla_int_t power) {
+  void setPowerActive(int phase, _supla_int_t power) {
     if (phase >= 0 && phase < MAX_PHASES) {
       if (emValue.m[0].power_active[phase] != power) {
         valueChanged = true;
@@ -167,7 +167,7 @@ class ElectricityMeter : public Element {
   }
 
   // power in 0.00001 kvar
-  void setPowerReactive(char phase, _supla_int_t power) {
+  void setPowerReactive(int phase, _supla_int_t power) {
     if (phase >= 0 && phase < MAX_PHASES) {
       if (emValue.m[0].power_reactive[phase] != power) {
         valueChanged = true;
@@ -178,7 +178,7 @@ class ElectricityMeter : public Element {
   }
 
   // power in 0.00001 kVA
-  void setPowerApparent(char phase, _supla_int_t power) {
+  void setPowerApparent(int phase, _supla_int_t power) {
     if (phase >= 0 && phase < MAX_PHASES) {
       if (emValue.m[0].power_apparent[phase] != power) {
         valueChanged = true;
@@ -189,7 +189,7 @@ class ElectricityMeter : public Element {
   }
 
   // power in 0.001
-  void setPowerFactor(char phase, _supla_int_t powerFactor) {
+  void setPowerFactor(int phase, _supla_int_t powerFactor) {
     if (phase >= 0 && phase < MAX_PHASES) {
       if (emValue.m[0].power_factor[phase] != powerFactor) {
         valueChanged = true;
@@ -200,7 +200,7 @@ class ElectricityMeter : public Element {
   }
 
   // phase angle in 0.1 degree
-  void setPhaseAngle(char phase, _supla_int_t phaseAngle) {
+  void setPhaseAngle(int phase, _supla_int_t phaseAngle) {
     if (phase >= 0 && phase < MAX_PHASES) {
       if (emValue.m[0].phase_angle[phase] != phaseAngle) {
         valueChanged = true;
@@ -252,7 +252,7 @@ class ElectricityMeter : public Element {
   }
   TElectricityMeter_ExtendedValue_V2 emValue;
   ChannelExtended extChannel;
-  _supla_int_t rawCurrent[MAX_PHASES];
+  unsigned _supla_int_t rawCurrent[MAX_PHASES];
   bool valueChanged;
   bool currentMeasurementAvailable;
   unsigned long lastReadTime;

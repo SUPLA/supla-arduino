@@ -28,8 +28,8 @@ class Eeprom : public Storage {
   void commit();
 
  protected:
-  int readStorage(int, unsigned char *, int, bool);
-  int writeStorage(int, const unsigned char *, int);
+  int readStorage(unsigned int, unsigned char *, int, bool);
+  int writeStorage(unsigned int, const unsigned char *, int);
 
   bool dataChanged;
 };

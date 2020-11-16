@@ -143,6 +143,7 @@ class ESPWifi : public Supla::Network {
       wifiConfigured = true;
     gotIpEventHandler =
         WiFi.onStationModeGotIP([](const WiFiEventStationModeGotIP &event) {
+          (void)(event);
           Serial.print(F("local IP: "));
           Serial.println(WiFi.localIP());
           Serial.print(F("subnetMask: "));
@@ -156,6 +157,7 @@ class ESPWifi : public Supla::Network {
         });
     disconnectedEventHandler = WiFi.onStationModeDisconnected(
         [](const WiFiEventStationModeDisconnected &event) {
+          (void)(event);
           Serial.println(F("WiFi station disconnected"));
         });
 

@@ -55,9 +55,9 @@ class Storage {
   virtual void commit() = 0;
 
  protected:
-  virtual int readStorage(int, unsigned char *, int, bool = true) = 0;
-  virtual int writeStorage(int, const unsigned char *, int) = 0;
-  virtual int updateStorage(int, const unsigned char *, int);
+  virtual int readStorage(unsigned int, unsigned char *, int, bool = true) = 0;
+  virtual int writeStorage(unsigned int, const unsigned char *, int) = 0;
+  virtual int updateStorage(unsigned int, const unsigned char *, int);
 
   unsigned int storageStartingOffset;
   unsigned int deviceConfigOffset;

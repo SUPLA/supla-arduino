@@ -85,15 +85,18 @@ bool Storage::SaveStateAllowed(unsigned long ms) {
 
 Storage::Storage(unsigned int storageStartingOffset)
     : storageStartingOffset(storageStartingOffset),
-      currentStateOffset(0),
       deviceConfigOffset(0),
       elementConfigOffset(0),
       elementStateOffset(0),
+      deviceConfigSize(0),
+      elementConfigSize(0),
+      elementStateSize(0),
+      currentStateOffset(0),
       newSectionSize(0),
       sectionsCount(0),
       dryRun(false),
-      lastWriteTimestamp(0),
-      saveStatePeriod(1000) {
+      saveStatePeriod(1000), 
+      lastWriteTimestamp(0) {
   instance = this;
 }
 
@@ -200,7 +203,7 @@ bool Storage::finalizeSaveState() {
 
 bool Storage::init() {
   Serial.println(F("Storage initialization"));
-  int currentOffset = storageStartingOffset;
+  unsigned int currentOffset = storageStartingOffset;
   Preamble preamble;
   currentOffset +=
       readStorage(currentOffset, (unsigned char *)&preamble, sizeof(preamble));
@@ -236,7 +239,7 @@ bool Storage::init() {
     Serial.print(F("Reading section: "));
     Serial.println(i);
     SectionPreamble section;
-    int sectionOffset = currentOffset;
+    unsigned int sectionOffset = currentOffset;
     currentOffset +=
         readStorage(currentOffset, (unsigned char *)&section, sizeof(section));
 
@@ -286,7 +289,7 @@ bool Storage::loadElementConfig() {
   return true;
 }
 
-int Storage::updateStorage(int offset, const unsigned char *buf, int size) {
+int Storage::updateStorage(unsigned int offset, const unsigned char *buf, int size) {
   if (offset < storageStartingOffset) {
     return 0;
   }

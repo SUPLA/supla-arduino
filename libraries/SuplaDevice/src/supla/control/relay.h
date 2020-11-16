@@ -58,7 +58,7 @@ class Relay : public Element, public Triggerable {
   virtual bool isOn();
   virtual void toggle(_supla_int_t duration = 0);
 
-  void runAction(int trigger, int action);
+  void runAction(int event, int action);
 
   void onInit();
   void onLoadState();
@@ -74,8 +74,8 @@ class Relay : public Element, public Triggerable {
 
   int8_t stateOnInit;
 
-  _supla_int_t durationMs;
-  _supla_int_t storedTurnOnDurationMs;
+  unsigned _supla_int_t durationMs;
+  unsigned _supla_int_t storedTurnOnDurationMs;
   unsigned long durationTimestamp;
   bool keepTurnOnDurationMs;
 

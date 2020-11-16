@@ -38,7 +38,8 @@ void VirtualBinary::onInit() {
   channel.setNewValue(getValue());
 }
 
-void VirtualBinary::runAction(int trigger, int action) {
+void VirtualBinary::runAction(int event, int action) {
+  (void)(event);
   switch (action) {
     case SET: {
       state = true;

@@ -44,7 +44,7 @@ class RGBWBase : public Element, public Triggerable {
   virtual void turnOn();
   virtual void turnOff();
   virtual void toggle();
-  void runAction(int trigger, int action);
+  void runAction(int event, int action);
   void setStep(int step);
   void setDefaultDimmedBrightness(int dimmedBrightness);
   void setFadeEffectTime(int timeMs);

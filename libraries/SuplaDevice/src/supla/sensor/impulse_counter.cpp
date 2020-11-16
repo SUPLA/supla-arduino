@@ -29,11 +29,11 @@ ImpulseCounter::ImpulseCounter(int _impulsePin,
                                bool _inputPullup,
                                unsigned int _debounceDelay)
     : impulsePin(_impulsePin),
+      lastImpulseMillis(0),
       debounceDelay(_debounceDelay),
       detectLowToHigh(_detectLowToHigh),
-      lastImpulseMillis(0),
-      counter(0),
-      inputPullup(_inputPullup) {
+      inputPullup(_inputPullup),
+      counter(0) {
   channel.setType(SUPLA_CHANNELTYPE_IMPULSE_COUNTER);
 
   prevState = (detectLowToHigh == true ? LOW : HIGH);
@@ -104,7 +104,8 @@ Supla::Channel *ImpulseCounter::getChannel() {
   return &channel;
 }
 
-void ImpulseCounter::runAction(int trigger, int action) {
+void ImpulseCounter::runAction(int event, int action) {
+  (void)(event);
   switch (action) {
     case RESET: {
       setCounter(0);

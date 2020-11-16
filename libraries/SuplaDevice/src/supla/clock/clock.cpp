@@ -20,7 +20,7 @@
 
 using namespace Supla;
 
-Clock::Clock() : localtime(0), lastMillis(0), lastServerUpdate(0) {};
+Clock::Clock() : localtime(0), lastServerUpdate(0), lastMillis(0) {};
 
 bool Clock::isReady() { 
   return true;

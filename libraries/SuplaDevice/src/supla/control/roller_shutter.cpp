@@ -26,26 +26,26 @@ struct RollerShutterStateData {
   uint32_t openingTimeMs;
   int8_t currentPosition;  // 0 - closed; 100 - opened
 };
-#pragma pop
+#pragma pack(pop)
 
 RollerShutter::RollerShutter(int pinUp, int pinDown, bool highIsOn)
-    : highIsOn(highIsOn),
-      pinUp(pinUp),
-      pinDown(pinDown),
+    : closingTimeMs(0),
       openingTimeMs(0),
-      closingTimeMs(0),
       calibrate(true),
       comfortDownValue(20),
       comfortUpValue(80),
       newTargetPositionAvailable(false),
+      highIsOn(highIsOn),
       currentDirection(STOP_DIR),
       lastDirection(STOP_DIR),
       currentPosition(UNKNOWN_POSITION),
+      targetPosition(STOP_POSITION),
+      pinUp(pinUp),
+      pinDown(pinDown),
       lastMovementStartTime(0),
       doNothingTime(0),
       calibrationTime(0),
       operationTimeout(0) {
-  targetPosition = STOP_POSITION;
   lastPositionBeforeMovement = currentPosition;
   channel.setType(SUPLA_CHANNELTYPE_RELAY);
   channel.setDefault(SUPLA_CHANNELFNC_CONTROLLINGTHEROLLERSHUTTER);
@@ -124,7 +124,8 @@ void RollerShutter::setOpenCloseTime(uint32_t newClosingTimeMs,
   }
 }
 
-void RollerShutter::runAction(int trigger, int action) {
+void RollerShutter::runAction(int event, int action) {
+  (void)(event);
   switch (action) {
     case CLOSE_OR_STOP: {
       if (inMove()) {
@@ -477,7 +478,7 @@ void RollerShutter::configComfortDownValue(uint8_t position) {
 }
 
 void RollerShutter::onLoadState() {
-  RollerShutterStateData data;
+  RollerShutterStateData data = RollerShutterStateData();
   if (Supla::Storage::ReadState((unsigned char *)&data, sizeof(data))) {
     closingTimeMs = data.closingTimeMs;
     openingTimeMs = data.openingTimeMs;

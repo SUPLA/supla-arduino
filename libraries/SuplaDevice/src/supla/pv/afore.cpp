@@ -22,14 +22,15 @@ using namespace PV;
 Afore::Afore(IPAddress ip, int port, const char *loginAndPass)
     : ip(ip),
       port(port),
-      dataIsReady(false),
+      buf(),
       totalGeneratedEnergy(0),
       currentPower(0),
-      varFound(false),
       bytesCounter(0),
-      dataFetchInProgress(false),
       retryCounter(0),
-      vFound(false) {
+      vFound(false),
+      varFound(false),
+      dataIsReady(false),
+      dataFetchInProgress(false) {
   int len = strlen(loginAndPass);
   if (len > LOGIN_AND_PASSOWORD_MAX_LENGTH) {
     len = LOGIN_AND_PASSOWORD_MAX_LENGTH;

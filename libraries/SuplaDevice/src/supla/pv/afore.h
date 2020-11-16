@@ -47,7 +47,7 @@ class Afore : public Supla::Sensor::OnePhaseElectricityMeter {
   int port;
   char loginAndPassword[LOGIN_AND_PASSOWORD_MAX_LENGTH];
   char buf[80];
-  _supla_int64_t totalGeneratedEnergy;
+  unsigned _supla_int64_t totalGeneratedEnergy;
   _supla_int_t currentPower;
   int bytesCounter;
   int retryCounter;

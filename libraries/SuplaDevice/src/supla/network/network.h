@@ -96,6 +96,7 @@ class Network {
     if (Instance() != NULL) {
       return Instance()->ping();
     }
+    return false;
   }
 
   Network(IPAddress *ip);

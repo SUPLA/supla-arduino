@@ -24,18 +24,19 @@ enum ParametersToRead { NONE, TOTAL_ENERGY, FAC, IAC, PAC, UAC };
 Fronius::Fronius(IPAddress ip, int port, int deviceId)
     : ip(ip),
       port(port),
-      dataIsReady(false),
+      buf(),
       totalGeneratedEnergy(0),
       currentPower(0),
       currentCurrent(0),
       currentFreq(0),
       currentVoltage(0),
-      startCharFound(false),
       bytesCounter(0),
-      dataFetchInProgress(false),
       retryCounter(0),
       valueToFetch(NONE),
-      deviceId(deviceId) {
+      deviceId(deviceId),
+      startCharFound(false),
+      dataIsReady(false),
+      dataFetchInProgress(false) {
 }
 
 void Fronius::iterateAlways() {

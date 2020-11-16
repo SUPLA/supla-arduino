@@ -134,12 +134,12 @@ bool SuplaDeviceClass::begin(unsigned char version) {
     return false;
   }
 
-  if (Supla::Channel::reg_dev.ServerName[0] == NULL) {
+  if (Supla::Channel::reg_dev.ServerName[0] == '\0') {
     status(STATUS_UNKNOWN_SERVER_ADDRESS, "Unknown server address");
     return false;
   }
 
-  if (Supla::Channel::reg_dev.Email[0] == NULL) {
+  if (Supla::Channel::reg_dev.Email[0] == '\0') {
     status(STATUS_MISSING_CREDENTIALS, "Unknown email address");
     return false;
   }
@@ -356,6 +356,11 @@ void SuplaDeviceClass::iterate(void) {
 
 void SuplaDeviceClass::onVersionError(TSDC_SuplaVersionError *version_error) {
   status(STATUS_PROTOCOL_VERSION_ERROR, "Protocol version error");
+  Serial.print(F("Protocol version error. Server min: "));
+  Serial.print(version_error->server_version_min);
+  Serial.print(F("; Server version: "));
+  Serial.println(version_error->server_version);
+
   Supla::Network::Disconnect();
 
   wait_for_iterate = millis() + 5000;

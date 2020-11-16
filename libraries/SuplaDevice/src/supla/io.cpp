@@ -47,10 +47,12 @@ Io::Io() {
 }
 
 int Io::customDigitalRead(int channelNumber, uint8_t pin) {
+  (void)(channelNumber);
   return ::digitalRead(pin);
 }
 
 void Io::customDigitalWrite(int channelNumber, uint8_t pin, uint8_t val) {
+  (void)(channelNumber);
   ::digitalWrite(pin, val);
 }
 

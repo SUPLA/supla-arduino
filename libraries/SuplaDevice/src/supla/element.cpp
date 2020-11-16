@@ -78,6 +78,7 @@ void Element::onTimer(){};
 void Element::onFastTimer(){};
 
 int Element::handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue) {
+  (void)(newValue);
   return -1;
 }
 
@@ -95,10 +96,12 @@ Channel *Element::getChannel() {
 }
 
 void Element::handleGetChannelState(TDSC_ChannelState &channelState) {
+  (void)(channelState);
   return;
 }
 
 int Element::handleCalcfgFromServer(TSD_DeviceCalCfgRequest *request) {
+  (void)(request);
   return SUPLA_CALCFG_RESULT_NOT_SUPPORTED;
 }
 

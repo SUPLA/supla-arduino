@@ -31,12 +31,12 @@ using namespace Control;
 
 Relay::Relay(int pin, bool highIsOn, _supla_int_t functions)
     : pin(pin),
-      durationMs(0),
       highIsOn(highIsOn),
-      durationTimestamp(0),
       stateOnInit(STATE_ON_INIT_OFF),
-      keepTurnOnDurationMs(false),
-      storedTurnOnDurationMs(0) {
+      durationMs(0),
+      storedTurnOnDurationMs(0),
+      durationTimestamp(0),
+      keepTurnOnDurationMs(false) {
   channel.setType(SUPLA_CHANNELTYPE_RELAY);
   channel.setFuncList(functions);
 }
@@ -117,7 +117,8 @@ void Relay::toggle(_supla_int_t duration) {
   }
 }
 
-void Relay::runAction(int trigger, int action) {
+void Relay::runAction(int event, int action) {
+  (void)(event);
   switch (action) {
     case TURN_ON: {
       turnOn();

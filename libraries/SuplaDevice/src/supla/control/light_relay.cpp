@@ -24,7 +24,7 @@ struct LightRelayStateData {
   unsigned short lifespan;
   _supla_int_t turnOnSecondsCumulative;
 };
-#pragma pop
+#pragma pack(pop)
 
 LightRelay::LightRelay(int pin, bool highIsOn)
     : Relay(pin,

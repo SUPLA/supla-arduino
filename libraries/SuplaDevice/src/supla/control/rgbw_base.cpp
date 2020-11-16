@@ -24,13 +24,13 @@ namespace Control {
 
 RGBWBase::RGBWBase()
     : buttonStep(10),
-      lastColorBrightness(100),
-      lastBrightness(100),
       curRed(0),
       curGreen(255),
       curBlue(0),
       curColorBrightness(0),
       curBrightness(0),
+      lastColorBrightness(100),
+      lastBrightness(100),
       defaultDimmedBrightness(20),
       dimIterationDirection(false),
       iterationDelayCounter(0),
@@ -121,7 +121,8 @@ uint8_t RGBWBase::addWithLimit(int value, int addition, int limit) {
   return value + addition;
 }
 
-void RGBWBase::runAction(int trigger, int action) {
+void RGBWBase::runAction(int event, int action) {
+  (void)(event);
   switch (action) {
     case TURN_ON: {
       turnOn();
