@@ -67,11 +67,14 @@ class Button : public Element,
   ButtonState state;
   unsigned int holdTimeMs;
   unsigned int multiclickTimeMs;
-  uint8_t clickCounter;
   unsigned long lastStateChangeMs;
+  uint8_t clickCounter;
   bool enableExtDetection;
   bool holdSend;
   bool bistable;
+  bool sequenceDetectecion;
+  uint16_t currentSequence[30];
+  uint16_t matchSequence[30];
 };
 
 };  // namespace Control

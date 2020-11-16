@@ -19,14 +19,15 @@
 enum StateResults {PRESSED, RELEASED, TO_PRESSED, TO_RELEASED};
 
 Supla::Control::ButtonState::ButtonState(int pin, bool pullUp, bool invertLogic)
-    : pin(pin),
-      pullUp(pullUp),
-      invertLogic(invertLogic),
-      newStatusCandidate(LOW),
-      debounceTimeMs(0),
+    : debounceTimeMs(0),
       filterTimeMs(0),
       debounceDelayMs(50),
-      swNoiseFilterDelayMs(20) {
+      swNoiseFilterDelayMs(20),
+      pin(pin),
+      newStatusCandidate(LOW),
+      prevState(LOW),
+      pullUp(pullUp),
+      invertLogic(invertLogic) {
 }
 
 int Supla::Control::ButtonState::update() {
@@ -66,11 +67,14 @@ Supla::Control::Button::Button(int pin, bool pullUp, bool invertLogic)
     : state(pin, pullUp, invertLogic),
       holdTimeMs(0),
       multiclickTimeMs(0),
-      enableExtDetection(false),
       lastStateChangeMs(0),
-      holdSend(false),
       clickCounter(0),
-      bistable(false) {
+      enableExtDetection(false),
+      holdSend(false),
+      bistable(false),
+      sequenceDetectecion(true),
+      currentSequence(),
+      matchSequence {470, 389, 101, 120, 119, 190, 130, 220, 100, 150, 500} {
 }
 
 void Supla::Control::Button::onTimer() {
@@ -87,15 +91,29 @@ void Supla::Control::Button::onTimer() {
     runAction(ON_CHANGE);
   }
 
+  if (stateChanged) {
+    lastStateChangeMs = millis();
+    if (sequenceDetectecion) {
+      if (clickCounter > 0 && clickCounter < 31) {
+        currentSequence[clickCounter - 1] = timeDelta;
+      }
+      clickCounter++;
+    } else {
+      if (stateResult == TO_PRESSED || bistable) {
+        clickCounter++;
+      }
+    }
+  }
+
   if (!stateChanged) {
     if (!bistable && stateResult == PRESSED) {
       if (clickCounter <= 1 && holdTimeMs > 0 && timeDelta > holdTimeMs && !holdSend) {
         runAction(ON_HOLD);
         holdSend = true;
       }
-    } else if (bistable || stateResult == RELEASED) {
+    } else if (clickCounter > 0 && (bistable || stateResult == RELEASED)) {
       if (multiclickTimeMs > 0 && timeDelta > multiclickTimeMs) {
-        if (!holdSend) {
+        if (!holdSend && !sequenceDetectecion) {
           switch (clickCounter) {
             case 1:
               runAction(ON_CLICK_1);
@@ -125,6 +143,38 @@ void Supla::Control::Button::onTimer() {
               runAction(ON_CLICK_9);
               break;
           }
+        } else if (sequenceDetectecion) {
+          Serial.print("Recorded sequence: ");
+          if (clickCounter > 31) {
+            clickCounter = 31;
+          }
+          for (int i = 0; i < clickCounter - 1; i++) {
+            Serial.print(currentSequence[i]);
+            Serial.print(", ");
+          }
+          Serial.println();
+
+          int matchSequenceSize = 0;
+          for (; matchSequenceSize < 30; matchSequenceSize++) {
+            if (matchSequence[matchSequenceSize] == 0) {
+              break;
+            }
+          }
+          Serial.print("matchSequenceSize ");
+          Serial.println(matchSequenceSize);
+          Serial.print("clickCounter ");
+          Serial.println(clickCounter);
+
+          if (matchSequenceSize != clickCounter - 1) {
+            Serial.println("Sequence size doesn't match");
+          } else {
+            Serial.println("Sequence size match");
+
+            for (int i = 0; i < clickCounter - 1; i++) {
+            
+            }
+
+          }
         }
         holdSend = false;
         clickCounter = 0;
@@ -132,13 +182,6 @@ void Supla::Control::Button::onTimer() {
     }
   }
 
-  if (stateChanged) {
-    lastStateChangeMs = millis();
-    if (stateResult == TO_PRESSED || bistable) {
-      clickCounter++;
-    }
-
-  }
 }
 
 void Supla::Control::Button::onInit() {
