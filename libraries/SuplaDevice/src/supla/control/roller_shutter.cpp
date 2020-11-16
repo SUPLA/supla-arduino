@@ -506,5 +506,9 @@ void RollerShutter::onSaveState() {
   Supla::Storage::WriteState((unsigned char *)&data, sizeof(data));
 }
 
+int RollerShutter::getCurrentPosition() {
+  return currentPosition;
+}
+
 };  // namespace Control
 };  // namespace Supla

@@ -48,6 +48,7 @@ class RollerShutter : public Element, public Triggerable {
   void moveUp();   // start opening roller shutter regardless of its position (keep motor going up)
   void moveDown(); // starts closing roller shutter regardless of its position (keep motor going down)
   void setTargetPosition(int newPosition);
+  int getCurrentPosition();
 
   void configComfortUpValue(uint8_t position);
   void configComfortDownValue(uint8_t position);
