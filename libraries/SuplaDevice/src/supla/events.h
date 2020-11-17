@@ -33,7 +33,8 @@ enum Event {
   ON_CLICK_6,
   ON_CLICK_7,
   ON_CLICK_8,
-  ON_CLICK_9
+  ON_CLICK_9,
+  ON_CLICK_10
 };
 
 };

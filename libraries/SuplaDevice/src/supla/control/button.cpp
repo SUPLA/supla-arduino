@@ -125,6 +125,9 @@ void Supla::Control::Button::onTimer() {
             case 9:
               runAction(ON_CLICK_9);
               break;
+            case 10:
+              runAction(ON_CLICK_10);
+              break;
           }
         }
         holdSend = false;
