@@ -15,7 +15,7 @@
 */
 
 #include "sequence_button.h"
-#include <cstring>
+#include <string.h>
 
 Supla::Control::SequenceButton::SequenceButton(int pin, bool pullUp, bool invertLogic)
     : SimpleButton(pin, pullUp, invertLogic),
