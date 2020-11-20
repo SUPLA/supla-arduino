@@ -30,7 +30,7 @@ namespace Sensor {
 class OneWireBus {
  public:
   OneWireBus(uint8_t pinNumber)
-      : oneWire(pinNumber), pin(pinNumber), nextBus(nullptr), lastReadTime(0) {
+      : pin(pinNumber), nextBus(nullptr), lastReadTime(0), oneWire(pinNumber) {
     supla_log(LOG_DEBUG, "Initializing OneWire bus at pin %d", pinNumber);
     sensors.setOneWire(&oneWire);
     sensors.begin();
@@ -144,39 +144,39 @@ class DS18B20 : public Thermometer {
       myBus->sensors.requestTemperatures();
       myBus->lastReadTime = millis();
     }
-    if (myBus->lastReadTime + 5000 < millis() && (lastReadTime != myBus->lastReadTime)) {
+    if (myBus->lastReadTime + 5000 < millis() &&
+        (lastReadTime != myBus->lastReadTime)) {
       channel.setNewValue(getValue());
       lastReadTime = myBus->lastReadTime;
     }
   }
 
   double getValue() {
-      double value = TEMPERATURE_NOT_AVAILABLE;
-      if (address[0] == 0) {
-        value = myBus->sensors.getTempCByIndex(0);
-      } else {
-        value = myBus->sensors.getTempC(address);
-      }
+    double value = TEMPERATURE_NOT_AVAILABLE;
+    if (address[0] == 0) {
+      value = myBus->sensors.getTempCByIndex(0);
+    } else {
+      value = myBus->sensors.getTempC(address);
+    }
 
-      if (value == DEVICE_DISCONNECTED_C || value == 85.0) {
-        value = TEMPERATURE_NOT_AVAILABLE;
-      }
+    if (value == DEVICE_DISCONNECTED_C || value == 85.0) {
+      value = TEMPERATURE_NOT_AVAILABLE;
+    }
 
-      if (value == TEMPERATURE_NOT_AVAILABLE) {
-        retryCounter++;
-        if (retryCounter > 3) {
-          retryCounter = 0;
-        } else {
-          value = lastValidValue;
-        }
-      } else {
+    if (value == TEMPERATURE_NOT_AVAILABLE) {
+      retryCounter++;
+      if (retryCounter > 3) {
         retryCounter = 0;
+      } else {
+        value = lastValidValue;
       }
-      lastValidValue = value;
+    } else {
+      retryCounter = 0;
+    }
+    lastValidValue = value;
 
-      return value;
+    return value;
   }
-
 
   void onInit() {
     channel.setNewValue(getValue());

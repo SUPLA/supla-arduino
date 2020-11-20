@@ -14,30 +14,41 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _button_h
-#define _button_h
+#ifndef _sequence_button_h
+#define _sequence_button_h
 
-#include <Arduino.h>
-#include "simple_button.h"
+#include "button.h"
 
 namespace Supla {
 namespace Control {
 
-class Button : public SimpleButton {
+#define SEQUENCE_MAX_SIZE 30
+
+struct ClickSequence {
+  uint16_t data[SEQUENCE_MAX_SIZE];
+};
+ 
+class SequenceButton : public SimpleButton {
  public:
-  Button(int pin, bool pullUp = false, bool invertLogic = false);
+  SequenceButton(int pin, bool pullUp = false, bool invertLogic = false);
 
   void onTimer();
-  void setHoldTime(unsigned int timeMs);
-  void setMulticlickTime(unsigned int timeMs, bool bistableButton = false);
+
+  void setSequence(uint16_t *sequence);
+  void setMargin(float);
 
  protected:
-  unsigned int holdTimeMs;
-  unsigned int multiclickTimeMs;
   unsigned long lastStateChangeMs;
+  uint16_t longestSequenceTimeDeltaWithMargin;
   uint8_t clickCounter;
-  bool holdSend;
-  bool bistable;
+  bool sequenceDetectecion;
+
+  ClickSequence currentSequence;
+  ClickSequence matchSequence;
+
+  float margin;
+  unsigned int calculateMargin(unsigned int);
+
 };
 
 };  // namespace Control

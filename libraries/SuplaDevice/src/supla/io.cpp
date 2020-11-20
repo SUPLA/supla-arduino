@@ -19,6 +19,26 @@
 #include <Arduino.h>
 
 namespace Supla {
+void Io::pinMode(uint8_t pin, uint8_t mode) {
+  return pinMode(-1, pin, mode);
+}
+
+int Io::digitalRead(uint8_t pin) {
+  return digitalRead(-1, pin);
+}
+
+void Io::digitalWrite(uint8_t pin, uint8_t val) {
+  digitalWrite(-1, pin, val);
+}
+
+void Io::pinMode(int channelNumber, uint8_t pin, uint8_t mode) {
+  if (ioInstance) {
+    ioInstance->customPinMode(channelNumber, pin, mode);
+  } else { 
+    ::pinMode(pin, mode);
+  }
+}
+
 int Io::digitalRead(int channelNumber, uint8_t pin) {
   if (ioInstance) {
     return ioInstance->customDigitalRead(channelNumber, pin);
@@ -54,6 +74,11 @@ int Io::customDigitalRead(int channelNumber, uint8_t pin) {
 void Io::customDigitalWrite(int channelNumber, uint8_t pin, uint8_t val) {
   (void)(channelNumber);
   ::digitalWrite(pin, val);
+}
+
+void Io::customPinMode(int channelNumber, uint8_t pin, uint8_t mode) {
+  (void)(channelNumber);
+  ::pinMode(pin, mode);
 }
 
 };  // namespace Supla
