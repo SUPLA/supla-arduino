@@ -93,6 +93,9 @@ void Supla::Control::Button::onTimer() {
               runAction(ON_CLICK_10);
               break;
           }
+          if (clickCounter >= 10) {
+            runAction(ON_CRAZY_CLICKER);
+          }
         } 
         holdSend = false;
         clickCounter = 0;

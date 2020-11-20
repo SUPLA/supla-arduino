@@ -15,6 +15,7 @@
 */
 
 #include "sequence_button.h"
+#include <cstring>
 
 Supla::Control::SequenceButton::SequenceButton(int pin, bool pullUp, bool invertLogic)
     : SimpleButton(pin, pullUp, invertLogic),
@@ -46,19 +47,22 @@ void Supla::Control::SequenceButton::onTimer() {
     if (clickCounter > 0 && clickCounter < SEQUENCE_MAX_SIZE + 1) {
       currentSequence.data[clickCounter - 1] = timeDelta;
     }
+    if (clickCounter == 0) {
+      memset(currentSequence.data, 0, sizeof(uint16_t [SEQUENCE_MAX_SIZE]));
+    }
     clickCounter++;
   }
 
   if (!stateChanged) {
     if (clickCounter > 0 && stateResult == RELEASED) {
       if (timeDelta > longestSequenceTimeDeltaWithMargin) {
-          Serial.print("Recorded sequence: ");
+          Serial.print(F("Recorded sequence: "));
           if (clickCounter > 31) {
             clickCounter = 31;
           }
           for (int i = 0; i < clickCounter - 1; i++) {
             Serial.print(currentSequence.data[i]);
-            Serial.print(", ");
+            Serial.print(F(", "));
           }
           Serial.println();
 
@@ -70,9 +74,8 @@ void Supla::Control::SequenceButton::onTimer() {
           }
           if (matchSequenceSize != clickCounter - 1) {
             Serial.println(F("Sequence size doesn't match"));
+            runAction(ON_SEQUENCE_DOESNT_MATCH);
           } else {
-            Serial.println(F("Sequence size match"));
-
             bool match = true;
             for (int i = 0; i < clickCounter - 1; i++) {
               unsigned int marginValue = calculateMargin(matchSequence.data[i]);
@@ -82,9 +85,11 @@ void Supla::Control::SequenceButton::onTimer() {
               }
             }
             if (match) {
-              Serial.println(F("SEQUENCE MATCH"));
+              Serial.println(F("Sequence match"));
+              runAction(ON_SEQUENCE_MATCH);
             } else {
-              Serial.println(F("SEQUENCE DOESN'T MATCH"));
+              Serial.println(F("Sequence doesn't match"));
+              runAction(ON_SEQUENCE_DOESNT_MATCH);
             }
 
           }
@@ -120,9 +125,13 @@ void Supla::Control::SequenceButton::setSequence(uint16_t *sequence) {
       maxValue = sequence[i];
     }
   }
-  maxValue *= 1.3;
-  if (maxValue < 200) {
-    maxValue = 200;
+  maxValue *= 1.5;
+  if (maxValue < 500) {
+    maxValue = 500;
   }
   longestSequenceTimeDeltaWithMargin = maxValue;
+}
+
+void Supla::Control::SequenceButton::getLastRecordedSequence(uint16_t *sequence) {
+  memcpy(sequence, currentSequence.data, sizeof(uint16_t [SEQUENCE_MAX_SIZE]));
 }

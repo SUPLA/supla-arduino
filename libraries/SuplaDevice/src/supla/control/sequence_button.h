@@ -36,6 +36,7 @@ class SequenceButton : public SimpleButton {
 
   void setSequence(uint16_t *sequence);
   void setMargin(float);
+  void getLastRecordedSequence(uint16_t *sequence);
 
  protected:
   unsigned long lastStateChangeMs;
