@@ -40,7 +40,7 @@ BistableRelay::BistableRelay(int pin,
 void BistableRelay::onInit() {
 
   if (statusPin >= 0) {
-    pinMode(statusPin, statusPullUp ? INPUT_PULLUP : INPUT);
+    Supla::Io::pinMode(channel.getChannelNumber(), statusPin, statusPullUp ? INPUT_PULLUP : INPUT);
     channel.setNewValue(isOn());
   } else {
     channel.setNewValue(false);
@@ -56,7 +56,7 @@ void BistableRelay::onInit() {
     turnOff();
   }
 
-  pinMode(pin, OUTPUT);
+  Supla::Io::pinMode(channel.getChannelNumber(), pin, OUTPUT);
 }
 
 void BistableRelay::iterateAlways() {

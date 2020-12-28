@@ -21,38 +21,19 @@
 
 #include "../channel.h"
 #include "../element.h"
-#include "../io.h"
 
 namespace Supla {
 namespace Sensor {
 class Binary : public Element {
  public:
-  Binary(int pin, bool pullUp = false) : pin(pin), pullUp(pullUp), lastReadTime(0) {
-    channel.setType(SUPLA_CHANNELTYPE_SENSORNO);
-  }
-
-  bool getValue() {
-    return Supla::Io::digitalRead(channel.getChannelNumber(), pin) == LOW
-               ? false
-               : true;
-  }
-
-  void iterateAlways() {
-    if (lastReadTime + 100 < millis()) {
-      lastReadTime = millis();
-      channel.setNewValue(getValue());
-    }
-  }
-
-  void onInit() {
-    pinMode(pin, pullUp ? INPUT_PULLUP : INPUT);
-    channel.setNewValue(getValue());
-  }
+  Binary(int pin, bool pullUp);
+  bool getValue();
+  void iterateAlways();
+  void onInit();
 
  protected:
-  Channel *getChannel() {
-    return &channel;
-  }
+  Channel *getChannel();
+
   Channel channel;
   int pin;
   bool pullUp;

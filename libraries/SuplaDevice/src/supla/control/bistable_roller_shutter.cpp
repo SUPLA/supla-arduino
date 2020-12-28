@@ -38,23 +38,23 @@ void BistableRollerShutter::stopMovement() {
 void BistableRollerShutter::relayDownOn() {
   activeBiRelay = true;
   toggleTime = millis();
-  digitalWrite(pinDown, highIsOn ? HIGH : LOW);
+  Supla::Io::digitalWrite(channel.getChannelNumber(), pinDown, highIsOn ? HIGH : LOW);
 }
 
 void BistableRollerShutter::relayUpOn() {
   activeBiRelay = true;
   toggleTime = millis();
-  digitalWrite(pinUp, highIsOn ? HIGH : LOW);
+  Supla::Io::digitalWrite(channel.getChannelNumber(), pinUp, highIsOn ? HIGH : LOW);
 }
 
 void BistableRollerShutter::relayDownOff() {
   activeBiRelay = false;
-  digitalWrite(pinDown, highIsOn ? LOW : HIGH);
+  Supla::Io::digitalWrite(channel.getChannelNumber(), pinDown, highIsOn ? LOW : HIGH);
 }
 
 void BistableRollerShutter::relayUpOff() {
   activeBiRelay = false;
-  digitalWrite(pinUp, highIsOn ? LOW : HIGH);
+  Supla::Io::digitalWrite(channel.getChannelNumber(), pinUp, highIsOn ? LOW : HIGH);
 }
 
 void BistableRollerShutter::onTimer() {

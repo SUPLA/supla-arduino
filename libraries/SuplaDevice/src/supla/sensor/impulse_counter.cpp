@@ -19,6 +19,7 @@
 #include <supla-common/log.h>
 #include <supla/storage/storage.h>
 #include <supla/actions.h>
+#include <supla/io.h>
 
 #include "impulse_counter.h"
 
@@ -52,9 +53,9 @@ ImpulseCounter::ImpulseCounter(int _impulsePin,
 
 void ImpulseCounter::onInit() {
   if (inputPullup) {
-    pinMode(impulsePin, INPUT_PULLUP);
+    Supla::Io::pinMode(channel.getChannelNumber(), impulsePin, INPUT_PULLUP);
   } else {
-    pinMode(impulsePin, INPUT);
+    Supla::Io::pinMode(channel.getChannelNumber(), impulsePin, INPUT);
   }
 }
 
@@ -88,7 +89,7 @@ void ImpulseCounter::incCounter() {
 }
 
 void ImpulseCounter::onFastTimer() {
-  int currentState = digitalRead(impulsePin);
+  int currentState = Supla::Io::digitalRead(channel.getChannelNumber(), impulsePin);
   if (prevState == (detectLowToHigh == true ? LOW : HIGH)) {
     if (millis() - lastImpulseMillis > debounceDelay) {
       if (currentState == (detectLowToHigh == true ? HIGH : LOW)) {
