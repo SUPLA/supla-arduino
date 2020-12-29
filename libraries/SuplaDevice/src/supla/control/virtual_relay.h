@@ -46,6 +46,8 @@ class VirtualRelay : public Relay {
     state = true;
 
     channel.setNewValue(state);
+    // Schedule save in 5 s after state change
+    Supla::Storage::ScheduleSave(5000);
   }
 
   virtual void turnOff(_supla_int_t duration = 0) {
@@ -54,6 +56,8 @@ class VirtualRelay : public Relay {
     state = false;
 
     channel.setNewValue(state);
+    // Schedule save in 5 s after state change
+    Supla::Storage::ScheduleSave(5000);
   }
 
   virtual bool isOn() {

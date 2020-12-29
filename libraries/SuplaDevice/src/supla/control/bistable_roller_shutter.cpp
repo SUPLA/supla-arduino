@@ -15,6 +15,7 @@
 */
 
 #include "bistable_roller_shutter.h"
+#include <supla/storage/storage.h>
 
 namespace Supla {
 namespace Control {
@@ -33,6 +34,8 @@ void BistableRollerShutter::stopMovement() {
   }
   currentDirection = STOP_DIR;
   doNothingTime = millis();
+  // Schedule save in 5 s after stop movement of roller shutter
+  Supla::Storage::ScheduleSave(5000);
 }
 
 void BistableRollerShutter::relayDownOn() {

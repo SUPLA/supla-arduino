@@ -94,6 +94,9 @@ void Relay::turnOn(_supla_int_t duration) {
   Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOnValue());
 
   channel.setNewValue(true);
+
+  // Schedule save in 5 s after state change
+  Supla::Storage::ScheduleSave(5000);
 }
 
 void Relay::turnOff(_supla_int_t duration) {
@@ -102,6 +105,9 @@ void Relay::turnOff(_supla_int_t duration) {
   Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOffValue());
 
   channel.setNewValue(false);
+
+  // Schedule save in 5 s after state change
+  Supla::Storage::ScheduleSave(5000);
 }
 
 bool Relay::isOn() {

@@ -15,7 +15,7 @@
 */
 
 #include "roller_shutter.h"
-#include "supla/storage/storage.h"
+#include <supla/storage/storage.h>
 
 namespace Supla {
 namespace Control {
@@ -268,6 +268,8 @@ void RollerShutter::stopMovement() {
   switchOffRelays();
   currentDirection = STOP_DIR;
   doNothingTime = millis();
+  // Schedule save in 5 s after stop movement of roller shutter
+  Supla::Storage::ScheduleSave(5000);
 }
 
 void RollerShutter::relayDownOn() {

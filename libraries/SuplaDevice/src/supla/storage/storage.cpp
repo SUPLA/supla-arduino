@@ -83,6 +83,12 @@ bool Storage::SaveStateAllowed(unsigned long ms) {
   return false;
 }
 
+void Storage::ScheduleSave(unsigned long delayMs) {
+  if (Instance()) {
+    Instance()->scheduleSave(delayMs);
+  }
+}
+
 Storage::Storage(unsigned int storageStartingOffset)
     : storageStartingOffset(storageStartingOffset),
       deviceConfigOffset(0),
@@ -319,3 +325,11 @@ bool Storage::saveStateAllowed(unsigned long ms) {
   return false;
 }
 
+void Storage::scheduleSave(unsigned long delayMs) {
+  unsigned long currentMs = millis();
+  unsigned long newTimestamp = currentMs - saveStatePeriod - 1 + delayMs;
+  
+  if (currentMs - lastWriteTimestamp  < currentMs - newTimestamp) {
+    lastWriteTimestamp = newTimestamp;
+  }
+}

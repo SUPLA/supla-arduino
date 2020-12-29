@@ -138,6 +138,9 @@ void BistableRelay::internalToggle() {
   busy = true;
   disarmTimeMs = millis();
   Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOnValue());
+
+  // Schedule save in 5 s after state change
+  Supla::Storage::ScheduleSave(5000);
 }
 
 void BistableRelay::toggle(_supla_int_t duration) {

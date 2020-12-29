@@ -36,6 +36,7 @@ class Storage {
   static void PrepareState(bool dryRun = false);
   static bool FinalizeSaveState();
   static bool SaveStateAllowed(unsigned long);
+  static void ScheduleSave(unsigned long delayMs);
 
   Storage(unsigned int storageStartingOffset = 0);
 
@@ -51,6 +52,7 @@ class Storage {
   virtual void prepareState(bool performDryRun);
   virtual bool finalizeSaveState();
   virtual bool saveStateAllowed(unsigned long);
+  virtual void scheduleSave(unsigned long delayMs);
 
   virtual void commit() = 0;
 
