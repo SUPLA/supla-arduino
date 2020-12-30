@@ -6,6 +6,14 @@
 
 SuplaDevice is a library for [Arduino IDE](https://www.arduino.cc/en/main/software) that allows to implement devices working with [Supla](https://www.supla.org).
 
+## Library installation
+
+There are few options how to install library in Arduino IDE. Here is one example:
+1. Download SuplaDevice repository as a zip file (click green "Code" button on github repository)
+2. Extract downloaded zip file
+3. Copy whole SuplaDevice subfolder to a location where Arduino keeps libraries (in Arduino IDE open File->Preferences and there is a sketch location folder - libraries are kept in "libraries" subfolder)
+4. You should be able to open SuplaDevice exmaples in Arduino IDE
+
 ## Hardware requirements
 
 ### Arduino Mega
