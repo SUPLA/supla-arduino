@@ -39,12 +39,13 @@ class FramSpi : public Storage {
           int8_t framCs,
           unsigned int storageStartingOffset = 0)
       : Storage(storageStartingOffset),
-        fram(clk, miso, mosi, framCs),
-        lastWriteTimestamp(0) {
+        fram(clk, miso, mosi, framCs) {
+    setStateSavePeriod(SUPLA_FRAM_WRITING_PERIOD);
   }
 
   FramSpi(int8_t framCs, unsigned int storageStartingOffset = 0)
-      : Storage(storageStartingOffset), fram(framCs), lastWriteTimestamp(0) {
+      : Storage(storageStartingOffset), fram(framCs) {
+    setStateSavePeriod(SUPLA_FRAM_WRITING_PERIOD);
   }
 
   bool init() {
@@ -57,18 +58,10 @@ class FramSpi : public Storage {
     return Storage::init();
   }
 
-  bool saveStateAllowed(unsigned long ms) {
-    if (ms - lastWriteTimestamp > SUPLA_FRAM_WRITING_PERIOD) {
-      lastWriteTimestamp = ms;
-      return true;
-    }
-    return false;
-  }
-
   void commit(){};
 
  protected:
-  int readStorage(int offset, unsigned char *buf, int size, bool logs) {
+  int readStorage(unsigned int offset, unsigned char *buf, int size, bool logs) {
     if (logs) {
       Serial.print(F("readStorage: "));
       Serial.print(size);
@@ -87,17 +80,16 @@ class FramSpi : public Storage {
     return size;
   }
 
-  int writeStorage(int offset, const unsigned char *buf, int size) {
+  int writeStorage(unsigned int offset, const unsigned char *buf, int size) {
     fram.writeEnable(true);
-    fram.write(offset, const_cast<uint8_t*>(buf), size);
+    fram.write(offset, const_cast<uint8_t *>(buf), size);
     fram.writeEnable(false);
     Serial.print(F("Wrote "));
     Serial.print(size);
-    Serial.println(F(" bytes to storage"));
+    Serial.print(F(" bytes to storage at "));
+    Serial.println(offset);
     return size;
   }
-
-  unsigned long lastWriteTimestamp;
 
   Adafruit_FRAM_SPI fram;
 };

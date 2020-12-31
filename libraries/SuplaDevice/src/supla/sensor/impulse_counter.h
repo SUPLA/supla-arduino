@@ -35,7 +35,7 @@ class ImpulseCounter : public Element, public Triggerable {
   void onLoadState();
   void onSaveState();
   void onFastTimer();
-  void runAction(int trigger, int action);
+  void runAction(int event, int action);
 
   // Returns value of a counter at given Supla channel
   _supla_int64_t getCounter();
@@ -59,7 +59,7 @@ class ImpulseCounter : public Element, public Triggerable {
                          // (HIGH to LOW) edge
   bool inputPullup;
 
-  _supla_int64_t counter;  // Actual count of impulses
+  unsigned _supla_int64_t counter;  // Actual count of impulses
 
   Channel *getChannel();
   Channel channel;

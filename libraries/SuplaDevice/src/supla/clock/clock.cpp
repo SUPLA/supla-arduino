@@ -20,7 +20,7 @@
 
 using namespace Supla;
 
-Clock::Clock() : localtime(0), lastMillis(0), lastServerUpdate(0) {};
+Clock::Clock() : localtime(0), lastServerUpdate(0), lastMillis(0) {};
 
 bool Clock::isReady() { 
   return true;
@@ -151,5 +151,7 @@ bool Clock::iterateConnected(void *srpc) {
   if (lastServerUpdate == 0 || millis() - lastServerUpdate > 5*60000) { // update every 5 min
     srpc_dcs_async_get_user_localtime(srpc);
     lastServerUpdate = millis();
+    return false;
   }
+  return true;
 }

@@ -21,8 +21,8 @@
 
 #include <Arduino.h>
 
-#include "../io.h"
 #include "../actions.h"
+#include "../io.h"
 #include "../storage/storage.h"
 #include "relay.h"
 
@@ -30,98 +30,169 @@ using namespace Supla;
 using namespace Control;
 
 Relay::Relay(int pin, bool highIsOn, _supla_int_t functions)
-      : pin(pin), durationMs(0), highIsOn(highIsOn) {
-    channel.setType(SUPLA_CHANNELTYPE_RELAY);
-    channel.setFuncList(functions);
-  }
+    : pin(pin),
+      highIsOn(highIsOn),
+      stateOnInit(STATE_ON_INIT_OFF),
+      durationMs(0),
+      storedTurnOnDurationMs(0),
+      durationTimestamp(0),
+      keepTurnOnDurationMs(false) {
+  channel.setType(SUPLA_CHANNELTYPE_RELAY);
+  channel.setFuncList(functions);
+}
 
 uint8_t Relay::pinOnValue() {
-    return highIsOn ? HIGH : LOW;
-  }
+  return highIsOn ? HIGH : LOW;
+}
 
 uint8_t Relay::pinOffValue() {
-    return highIsOn ? LOW : HIGH;
-  }
+  return highIsOn ? LOW : HIGH;
+}
 
 void Relay::onInit() {
-    pinMode(pin, OUTPUT);
-    Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOffValue());
+  if (stateOnInit == STATE_ON_INIT_ON ||
+      stateOnInit == STATE_ON_INIT_RESTORED_ON) {
+    turnOn();
+  } else {
+    turnOff();
   }
+
+  Supla::Io::pinMode(channel.getChannelNumber(), pin, OUTPUT);  // pin mode is set after setting pin value in order to
+                         // avoid problems with LOW trigger relays
+}
 
 void Relay::iterateAlways() {
-    if (durationMs && durationMs < millis()) {
-      durationMs = 0;
-      toggle();
+  if (durationMs && millis() - durationTimestamp > durationMs) {
+    toggle();
+  }
+}
+
+int Relay::handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue) {
+  int result = -1;
+  if (newValue->value[0] == 1) {
+    if (keepTurnOnDurationMs) {
+      storedTurnOnDurationMs = newValue->DurationMS;
     }
+    turnOn(newValue->DurationMS);
+    result = 1;
+  } else if (newValue->value[0] == 0) {
+    turnOff(0);  // newValue->DurationMS may contain "turn on duration" which
+                 // result in unexpected "turn on after duration ms received in
+                 // turnOff message"
+    result = 1;
   }
 
-  int Relay::handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue) {
-    int result = -1;
-    if (newValue->value[0] == 1) {
-      turnOn(newValue->DurationMS);
-      result = 1;
-    } else if (newValue->value[0] == 0) {
-      turnOff(newValue->DurationMS);
-      result = 1;
-    }
-
-    return result;
-  }
+  return result;
+}
 
 void Relay::turnOn(_supla_int_t duration) {
-    if (duration > 0) {
-      durationMs = duration + millis();
-    }
-    Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOnValue());
-
-    channel.setNewValue(true);
+  durationMs = duration;
+  durationTimestamp = millis();
+  if (keepTurnOnDurationMs) {
+    durationMs = storedTurnOnDurationMs;
   }
+  Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOnValue());
+
+  channel.setNewValue(true);
+}
 
 void Relay::turnOff(_supla_int_t duration) {
-    durationMs = 0;
-    Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOffValue());
+  durationMs = duration;
+  durationTimestamp = millis();
+  Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOffValue());
 
-    channel.setNewValue(false);
-  }
+  channel.setNewValue(false);
+}
 
 bool Relay::isOn() {
-    return Supla::Io::digitalRead(channel.getChannelNumber(), pin) ==
-           pinOnValue();
+  return Supla::Io::digitalRead(channel.getChannelNumber(), pin) ==
+         pinOnValue();
+}
+
+void Relay::toggle(_supla_int_t duration) {
+  if (isOn()) {
+    turnOff(duration);
+  } else {
+    turnOn(duration);
   }
+}
 
-void Relay::toggle() {
-    durationMs = 0;
-    Supla::Io::digitalWrite(
-        channel.getChannelNumber(),
-        pin,
-        Supla::Io::digitalRead(channel.getChannelNumber(), pin) == LOW ? HIGH
-                                                                       : LOW);
-
-    if (isOn()) {
-      channel.setNewValue(true);
-    } else {
-      channel.setNewValue(false);
+void Relay::runAction(int event, int action) {
+  (void)(event);
+  switch (action) {
+    case TURN_ON: {
+      turnOn();
+      break;
+    }
+    case TURN_OFF: {
+      turnOff();
+      break;
+    }
+    case TOGGLE: {
+      toggle();
+      break;
     }
   }
-
-void Relay::runAction(int trigger, int action) {
-    switch (action) {
-      case TURN_ON: {
-        turnOn();
-        break;
-      }
-      case TURN_OFF: {
-        turnOff();
-        break;
-      }
-      case TOGGLE: {
-        toggle();
-        break;
-      }
-    }
-  }
+}
 
 Channel *Relay::getChannel() {
-    return &channel;
+  return &channel;
+}
+
+void Relay::onSaveState() {
+  Supla::Storage::WriteState((unsigned char *)&storedTurnOnDurationMs,
+                             sizeof(storedTurnOnDurationMs));
+  bool enabled = false;
+  if (stateOnInit < 0) {
+    enabled = isOn();
+  } 
+  Supla::Storage::WriteState((unsigned char *)&enabled, sizeof(enabled));
+}
+
+void Relay::onLoadState() {
+  Supla::Storage::ReadState((unsigned char *)&storedTurnOnDurationMs,
+                            sizeof(storedTurnOnDurationMs));
+  if (keepTurnOnDurationMs) {
+    Serial.print(F("Relay["));
+    Serial.print(channel.getChannelNumber());
+    Serial.print(F("]: restored durationMs: "));
+    Serial.println(storedTurnOnDurationMs);
+  } else {
+    storedTurnOnDurationMs = 0;
   }
 
+  bool enabled = false;
+  Supla::Storage::ReadState((unsigned char *)&enabled, sizeof(enabled));
+  if (stateOnInit < 0) {
+    Serial.print(F("Relay["));
+    Serial.print(channel.getChannelNumber());
+    Serial.print(F("]: restored relay state: "));
+    if (enabled) {
+      Serial.println(F("ON"));
+      stateOnInit = STATE_ON_INIT_RESTORED_ON;
+    } else {
+      Serial.println(F("OFF"));
+      stateOnInit = STATE_ON_INIT_RESTORED_OFF;
+    }
+  }
+}
+
+Relay &Relay::setDefaultStateOn() {
+  stateOnInit = STATE_ON_INIT_ON;
+  return *this;
+}
+
+Relay &Relay::setDefaultStateOff() {
+  stateOnInit = STATE_ON_INIT_OFF;
+  return *this;
+}
+
+Relay &Relay::setDefaultStateRestore() {
+  stateOnInit = STATE_ON_INIT_RESTORE;
+  return *this;
+}
+
+Relay &Relay::keepTurnOnDuration(bool keep) {
+  keepTurnOnDurationMs = keep;
+  return *this;
+}

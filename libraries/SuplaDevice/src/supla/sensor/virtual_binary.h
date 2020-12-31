@@ -32,7 +32,7 @@ class VirtualBinary : public Element, public Triggerable {
   bool getValue();
   void iterateAlways();
   void onInit();
-  void runAction(int trigger, int action);
+  void runAction(int event, int action);
 
  protected:
   Channel *getChannel();

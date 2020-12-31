@@ -14,51 +14,32 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "virtual_binary.h"
+#include "binary.h"
+#include "../io.h"
 
-namespace Supla {
-namespace Sensor {
-
-VirtualBinary::VirtualBinary() : state(false), lastReadTime(0) {
+Supla::Sensor::Binary::Binary(int pin, bool pullUp = false)
+    : pin(pin), pullUp(pullUp), lastReadTime(0) {
   channel.setType(SUPLA_CHANNELTYPE_SENSORNO);
 }
 
-bool VirtualBinary::getValue() {
-  return state;
+bool Supla::Sensor::Binary::getValue() {
+  return Supla::Io::digitalRead(channel.getChannelNumber(), pin) == LOW ? false
+                                                                        : true;
 }
 
-void VirtualBinary::iterateAlways() {
-  if (millis() - lastReadTime > 100) {
+void Supla::Sensor::Binary::iterateAlways() {
+  if (lastReadTime + 100 < millis()) {
     lastReadTime = millis();
     channel.setNewValue(getValue());
   }
 }
 
-void VirtualBinary::onInit() {
+void Supla::Sensor::Binary::onInit() {
+  Supla::Io::pinMode(
+      channel.getChannelNumber(), pin, pullUp ? INPUT_PULLUP : INPUT);
   channel.setNewValue(getValue());
 }
 
-void VirtualBinary::runAction(int event, int action) {
-  (void)(event);
-  switch (action) {
-    case SET: {
-      state = true;
-      break;
-    }
-    case CLEAR: {
-      state = false;
-      break;
-    }
-    case TOGGLE: {
-      state = !state;
-      break;
-    }
-  }
-}
-
-Channel *VirtualBinary::getChannel() {
+Supla::Channel *Supla::Sensor::Binary::getChannel() {
   return &channel;
 }
-
-};  // namespace Sensor
-};  // namespace Supla

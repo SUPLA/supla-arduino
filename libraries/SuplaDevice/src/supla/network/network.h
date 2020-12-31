@@ -55,7 +55,7 @@ class Network {
       Instance()->clearTimeCounters();
       return Instance()->connect(server, port);
     }
-    return false;
+    return 0;
   }
 
   static void Disconnect() {
@@ -96,6 +96,7 @@ class Network {
     if (Instance() != NULL) {
       return Instance()->ping();
     }
+    return false;
   }
 
   Network(IPAddress *ip);

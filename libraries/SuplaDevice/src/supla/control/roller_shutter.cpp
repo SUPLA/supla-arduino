@@ -26,26 +26,26 @@ struct RollerShutterStateData {
   uint32_t openingTimeMs;
   int8_t currentPosition;  // 0 - closed; 100 - opened
 };
-#pragma pop
+#pragma pack(pop)
 
 RollerShutter::RollerShutter(int pinUp, int pinDown, bool highIsOn)
-    : highIsOn(highIsOn),
-      pinUp(pinUp),
-      pinDown(pinDown),
+    : closingTimeMs(0),
       openingTimeMs(0),
-      closingTimeMs(0),
       calibrate(true),
       comfortDownValue(20),
       comfortUpValue(80),
       newTargetPositionAvailable(false),
+      highIsOn(highIsOn),
       currentDirection(STOP_DIR),
       lastDirection(STOP_DIR),
       currentPosition(UNKNOWN_POSITION),
+      targetPosition(STOP_POSITION),
+      pinUp(pinUp),
+      pinDown(pinDown),
       lastMovementStartTime(0),
       doNothingTime(0),
       calibrationTime(0),
       operationTimeout(0) {
-  targetPosition = STOP_POSITION;
   lastPositionBeforeMovement = currentPosition;
   channel.setType(SUPLA_CHANNELTYPE_RELAY);
   channel.setDefault(SUPLA_CHANNELFNC_CONTROLLINGTHEROLLERSHUTTER);
@@ -53,10 +53,10 @@ RollerShutter::RollerShutter(int pinUp, int pinDown, bool highIsOn)
 }
 
 void RollerShutter::onInit() {
-  pinMode(pinUp, OUTPUT);
-  pinMode(pinDown, OUTPUT);
-  digitalWrite(pinUp, highIsOn ? LOW : HIGH);
-  digitalWrite(pinDown, highIsOn ? LOW : HIGH);
+  Supla::Io::digitalWrite(channel.getChannelNumber(), pinUp, highIsOn ? LOW : HIGH);
+  Supla::Io::digitalWrite(channel.getChannelNumber(), pinDown, highIsOn ? LOW : HIGH);
+  Supla::Io::pinMode(channel.getChannelNumber(), pinUp, OUTPUT);
+  Supla::Io::pinMode(channel.getChannelNumber(), pinDown, OUTPUT);
 }
 
 /*
@@ -87,10 +87,10 @@ int RollerShutter::handleNewValueFromServer(
     Serial.println(F("STOP"));
     stop();
   } else if (task == 1) {
-    Serial.println(F("CLOSE"));
+    Serial.println(F("MOVE_DOWN"));
     moveDown();
   } else if (task == 2) {
-    Serial.println(F("OPEN"));
+    Serial.println(F("MOVE_UP"));
     moveUp();
   } else if (task >= 10 && task <= 110) {
     setTargetPosition(task - 10);
@@ -124,7 +124,8 @@ void RollerShutter::setOpenCloseTime(uint32_t newClosingTimeMs,
   }
 }
 
-void RollerShutter::runAction(int trigger, int action) {
+void RollerShutter::runAction(int event, int action) {
+  (void)(event);
   switch (action) {
     case CLOSE_OR_STOP: {
       if (inMove()) {
@@ -175,6 +176,37 @@ void RollerShutter::runAction(int trigger, int action) {
         close();
       } else if (lastDirectionWasClose()) {
         open();
+      } else if (currentPosition < 50) {
+        close();
+      } else {
+        open();
+      }
+      break;
+    }
+
+    case MOVE_UP: {
+      moveUp();
+      break;
+    }
+
+    case MOVE_DOWN: {
+      moveDown();
+      break;
+    }
+
+    case MOVE_UP_OR_STOP: {
+      if (inMove()) {
+        stop();
+      } else {
+        moveUp();
+      }
+      break;
+    }
+    case MOVE_DOWN_OR_STOP: {
+      if (inMove()) {
+        stop();
+      } else {
+        moveDown();
       }
       break;
     }
@@ -239,19 +271,19 @@ void RollerShutter::stopMovement() {
 }
 
 void RollerShutter::relayDownOn() {
-  digitalWrite(pinDown, highIsOn ? HIGH : LOW);
+  Supla::Io::digitalWrite(channel.getChannelNumber(), pinDown, highIsOn ? HIGH : LOW);
 }
 
 void RollerShutter::relayUpOn() {
-  digitalWrite(pinUp, highIsOn ? HIGH : LOW);
+  Supla::Io::digitalWrite(channel.getChannelNumber(), pinUp, highIsOn ? HIGH : LOW);
 }
 
 void RollerShutter::relayDownOff() {
-  digitalWrite(pinDown, highIsOn ? LOW : HIGH);
+  Supla::Io::digitalWrite(channel.getChannelNumber(), pinDown, highIsOn ? LOW : HIGH);
 }
 
 void RollerShutter::relayUpOff() {
-  digitalWrite(pinUp, highIsOn ? LOW : HIGH);
+  Supla::Io::digitalWrite(channel.getChannelNumber(), pinUp, highIsOn ? LOW : HIGH);
 }
 
 void RollerShutter::startClosing() {
@@ -279,6 +311,12 @@ void RollerShutter::onTimer() {
     return;
   }
 
+  if (operationTimeout != 0 &&
+      millis() - lastMovementStartTime > operationTimeout) {
+    setTargetPosition(STOP_POSITION);
+    operationTimeout = 0;
+  }
+
   if (targetPosition == STOP_POSITION && inMove()) {
     stopMovement();
     calibrationTime = 0;
@@ -289,13 +327,9 @@ void RollerShutter::onTimer() {
   } else if (calibrate) {
     // If calibrationTime is not set, then it means we should start calibration
     if (calibrationTime == 0) {
-      if (operationTimeout != 0 &&
-          millis() - lastMovementStartTime > operationTimeout) {
-        setTargetPosition(STOP_POSITION);
-        operationTimeout = 0;
-      }
       // If roller shutter wasn't in move when calibration is requested, we
       // select direction based on requested targetPosition
+      operationTimeout = 0;
       if (targetPosition > 50 || targetPosition == MOVE_DOWN_POSITION) {
         if (currentDirection == UP_DIR) {
           stopMovement();
@@ -304,7 +338,7 @@ void RollerShutter::onTimer() {
           calibrationTime = closingTimeMs;
           lastMovementStartTime = millis();
           if (calibrationTime == 0) {
-            operationTimeout = 30000;
+            operationTimeout = 60000;
           }
           startClosing();
         }
@@ -316,7 +350,7 @@ void RollerShutter::onTimer() {
           calibrationTime = openingTimeMs;
           lastMovementStartTime = millis();
           if (calibrationTime == 0) {
-            operationTimeout = 30000;
+            operationTimeout = 60000;
           }
           startOpening();
         }
@@ -346,7 +380,7 @@ void RollerShutter::onTimer() {
   } else if (!newTargetPositionAvailable &&
              currentDirection !=
                  STOP_DIR) {  // no new command available and it is moving,
-                          // just handle roller movement/status
+                              // just handle roller movement/status
     if (currentDirection == UP_DIR && currentPosition > 0) {
       int movementDistance = lastPositionBeforeMovement;
       int timeRequired = (1.0 * openingTimeMs * movementDistance / 100.0);
@@ -386,9 +420,12 @@ void RollerShutter::onTimer() {
     int newDirection = STOP_DIR;
     if (targetPosition == MOVE_UP_POSITION) {
       newDirection = UP_DIR;
+      operationTimeout = 60000;
     } else if (targetPosition == MOVE_DOWN_POSITION) {
       newDirection = DOWN_DIR;
+      operationTimeout = 60000;
     } else {
+      operationTimeout = 0;
       int newMovementValue = targetPosition - currentPosition;
       // 0 - 100 = -100 (move down); 50 -
       // 20 = 30 (move up 30%), etc
@@ -441,7 +478,7 @@ void RollerShutter::configComfortDownValue(uint8_t position) {
 }
 
 void RollerShutter::onLoadState() {
-  RollerShutterStateData data;
+  RollerShutterStateData data = RollerShutterStateData();
   if (Supla::Storage::ReadState((unsigned char *)&data, sizeof(data))) {
     closingTimeMs = data.closingTimeMs;
     openingTimeMs = data.openingTimeMs;
@@ -467,6 +504,10 @@ void RollerShutter::onSaveState() {
   data.currentPosition = currentPosition;
 
   Supla::Storage::WriteState((unsigned char *)&data, sizeof(data));
+}
+
+int RollerShutter::getCurrentPosition() {
+  return currentPosition;
 }
 
 };  // namespace Control

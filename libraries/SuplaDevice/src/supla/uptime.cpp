@@ -19,10 +19,10 @@
 namespace Supla {
 
 Uptime::Uptime()
-    : deviceUptime(0),
+    : lastMillis(0),
+      deviceUptime(0),
       connectionUptime(0),
       lastConnectionResetCause(SUPLA_LASTCONNECTIONRESETCAUSE_UNKNOWN),
-      lastMillis(0),
       acceptConnectionLostCause(false) {
 }
 

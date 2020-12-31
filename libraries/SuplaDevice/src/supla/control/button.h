@@ -18,89 +18,26 @@
 #define _button_h
 
 #include <Arduino.h>
-
-#include "../element.h"
-#include "../events.h"
-#include "../local_action.h"
+#include "simple_button.h"
 
 namespace Supla {
 namespace Control {
-class Button : public Element, public LocalAction {
+
+class Button : public SimpleButton {
  public:
-  Button(int pin, bool pullUp = false, bool invertLogic = false)
-      : pin(pin),
-        pullUp(pullUp),
-        prevStatus(LOW),
-        newStatusCandidate(LOW),
-        debounceTimeMs(0),
-        filterTimeMs(0),
-        debounceDelayMs(50),
-        swNoiseFilterDelayMs(20),
-        invertLogic(invertLogic) {
-  }
+  Button(int pin, bool pullUp = false, bool invertLogic = false);
 
-  void iterateAlways() {
-    // Ignore anything that happen within debounceDelayMs ms since last state
-    // change
-    if (millis() - debounceTimeMs > debounceDelayMs) {
-      int currentStatus = digitalRead(pin);
-      if (currentStatus != prevStatus) {
-        // If status is changed, then make sure that it will be kept at
-        // least swNoiseFilterDelayMs ms to avoid noise
-        if (currentStatus != newStatusCandidate) {
-          newStatusCandidate = currentStatus;
-          filterTimeMs = millis();
-          return;
-        }
-        // If new status is kept at least swNoiseFilterDelayMs ms, then apply
-        // change of status
-        if (millis() - filterTimeMs > swNoiseFilterDelayMs) {
-          debounceTimeMs = millis();
-          prevStatus = currentStatus;
-          if (currentStatus == valueOnPress()) {
-            runAction(ON_PRESS);
-            runAction(ON_CHANGE);
-          } else {
-            runAction(ON_RELEASE);
-            runAction(ON_CHANGE);
-          }
-        }
-      } else {
-        // If current status is the same as prevStatus, then reset
-        // new status candidate
-        newStatusCandidate = prevStatus;
-      }
-    }
-  }
-
-  void onInit() {
-    pinMode(pin, pullUp ? INPUT_PULLUP : INPUT);
-    prevStatus = digitalRead(pin);
-    newStatusCandidate = prevStatus;
-  }
-
-  int valueOnPress() {
-    return invertLogic ? LOW : HIGH;
-  }
-
-  void setSwNoiseFilterDelay(int newDelayMs) {
-    swNoiseFilterDelayMs = newDelayMs;
-  }
-
-  void setDebounceDelay(int newDelayMs) {
-    debounceDelayMs = newDelayMs;
-  }
+  void onTimer();
+  void setHoldTime(unsigned int timeMs);
+  void setMulticlickTime(unsigned int timeMs, bool bistableButton = false);
 
  protected:
-  int pin;
-  unsigned long debounceTimeMs;
-  unsigned long filterTimeMs;
-  int debounceDelayMs;
-  int swNoiseFilterDelayMs;
-  bool pullUp;
-  int8_t prevStatus;
-  int8_t newStatusCandidate;
-  bool invertLogic;
+  unsigned int holdTimeMs;
+  unsigned int multiclickTimeMs;
+  unsigned long lastStateChangeMs;
+  uint8_t clickCounter;
+  bool holdSend;
+  bool bistable;
 };
 
 };  // namespace Control

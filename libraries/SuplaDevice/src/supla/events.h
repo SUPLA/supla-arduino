@@ -20,9 +20,24 @@
 namespace Supla {
 
 enum Event {
+// Supla::Control::Button events
   ON_PRESS,    // Triggered on transition to valueOnPress()
   ON_RELEASE,  // Triggered on transition from valueOnPress()
-  ON_CHANGE    // Triggered on all transitions
+  ON_CHANGE,   // Triggered on all transitions
+  ON_HOLD,     // Triggered when button is hold
+  ON_CLICK_1,  // ON_MULTI_x is triggered when multiclick is detected
+  ON_CLICK_2,
+  ON_CLICK_3,
+  ON_CLICK_4,
+  ON_CLICK_5,
+  ON_CLICK_6,
+  ON_CLICK_7,
+  ON_CLICK_8,
+  ON_CLICK_9,
+  ON_CLICK_10,
+  ON_CRAZY_CLICKER,  // triggered on >= 10 clicks 
+  ON_SEQUENCE_MATCH,        // triggered by SequenceButton 
+  ON_SEQUENCE_DOESNT_MATCH  // triggered by SequenceButton
 };
 
 };

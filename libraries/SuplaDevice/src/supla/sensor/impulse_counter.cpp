@@ -19,6 +19,7 @@
 #include <supla-common/log.h>
 #include <supla/storage/storage.h>
 #include <supla/actions.h>
+#include <supla/io.h>
 
 #include "impulse_counter.h"
 
@@ -29,11 +30,11 @@ ImpulseCounter::ImpulseCounter(int _impulsePin,
                                bool _inputPullup,
                                unsigned int _debounceDelay)
     : impulsePin(_impulsePin),
+      lastImpulseMillis(0),
       debounceDelay(_debounceDelay),
       detectLowToHigh(_detectLowToHigh),
-      lastImpulseMillis(0),
-      counter(0),
-      inputPullup(_inputPullup) {
+      inputPullup(_inputPullup),
+      counter(0) {
   channel.setType(SUPLA_CHANNELTYPE_IMPULSE_COUNTER);
 
   prevState = (detectLowToHigh == true ? LOW : HIGH);
@@ -52,9 +53,9 @@ ImpulseCounter::ImpulseCounter(int _impulsePin,
 
 void ImpulseCounter::onInit() {
   if (inputPullup) {
-    pinMode(impulsePin, INPUT_PULLUP);
+    Supla::Io::pinMode(channel.getChannelNumber(), impulsePin, INPUT_PULLUP);
   } else {
-    pinMode(impulsePin, INPUT);
+    Supla::Io::pinMode(channel.getChannelNumber(), impulsePin, INPUT);
   }
 }
 
@@ -88,7 +89,7 @@ void ImpulseCounter::incCounter() {
 }
 
 void ImpulseCounter::onFastTimer() {
-  int currentState = digitalRead(impulsePin);
+  int currentState = Supla::Io::digitalRead(channel.getChannelNumber(), impulsePin);
   if (prevState == (detectLowToHigh == true ? LOW : HIGH)) {
     if (millis() - lastImpulseMillis > debounceDelay) {
       if (currentState == (detectLowToHigh == true ? HIGH : LOW)) {
@@ -104,7 +105,8 @@ Supla::Channel *ImpulseCounter::getChannel() {
   return &channel;
 }
 
-void ImpulseCounter::runAction(int trigger, int action) {
+void ImpulseCounter::runAction(int event, int action) {
+  (void)(event);
   switch (action) {
     case RESET: {
       setCounter(0);

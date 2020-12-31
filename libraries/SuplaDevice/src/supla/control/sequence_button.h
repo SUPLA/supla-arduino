@@ -14,33 +14,45 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _binary_h
-#define _binary_h
+#ifndef _sequence_button_h
+#define _sequence_button_h
 
-#include <Arduino.h>
-
-#include "../channel.h"
-#include "../element.h"
+#include "button.h"
 
 namespace Supla {
-namespace Sensor {
-class Binary : public Element {
+namespace Control {
+
+#define SEQUENCE_MAX_SIZE 30
+
+struct ClickSequence {
+  uint16_t data[SEQUENCE_MAX_SIZE];
+};
+ 
+class SequenceButton : public SimpleButton {
  public:
-  Binary(int pin, bool pullUp);
-  bool getValue();
-  void iterateAlways();
-  void onInit();
+  SequenceButton(int pin, bool pullUp = false, bool invertLogic = false);
+
+  void onTimer();
+
+  void setSequence(uint16_t *sequence);
+  void setMargin(float);
+  void getLastRecordedSequence(uint16_t *sequence);
 
  protected:
-  Channel *getChannel();
+  unsigned long lastStateChangeMs;
+  uint16_t longestSequenceTimeDeltaWithMargin;
+  uint8_t clickCounter;
+  bool sequenceDetectecion;
 
-  Channel channel;
-  int pin;
-  bool pullUp;
-  unsigned long lastReadTime;
+  ClickSequence currentSequence;
+  ClickSequence matchSequence;
+
+  float margin;
+  unsigned int calculateMargin(unsigned int);
+
 };
 
-};  // namespace Sensor
+};  // namespace Control
 };  // namespace Supla
 
 #endif

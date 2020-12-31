@@ -37,7 +37,7 @@ class ESPWifi : public Supla::Network {
   ESPWifi(const char *wifiSsid = nullptr,
           const char *wifiPassword = nullptr,
           IPAddress *ip = nullptr)
-      : Network(ip), client(nullptr), isSecured(true) {
+      : Network(ip), client(nullptr), isSecured(true), wifiConfigured(false) {
     ssid[0] = '\0';
     password[0] = '\0';
     setSsid(wifiSsid);
@@ -139,8 +139,11 @@ class ESPWifi : public Supla::Network {
 
   // TODO: add handling of custom local ip
   void setup() {
+    if (!wifiConfigured) {
+      wifiConfigured = true;
     gotIpEventHandler =
         WiFi.onStationModeGotIP([](const WiFiEventStationModeGotIP &event) {
+          (void)(event);
           Serial.print(F("local IP: "));
           Serial.println(WiFi.localIP());
           Serial.print(F("subnetMask: "));
@@ -154,6 +157,7 @@ class ESPWifi : public Supla::Network {
         });
     disconnectedEventHandler = WiFi.onStationModeDisconnected(
         [](const WiFiEventStationModeDisconnected &event) {
+          (void)(event);
           Serial.println(F("WiFi station disconnected"));
         });
 
@@ -161,6 +165,14 @@ class ESPWifi : public Supla::Network {
     Serial.print(ssid);
     Serial.println(F("\""));
     WiFi.begin(ssid, password);
+    } else {
+      Serial.println(F("WiFi: resetting WiFi connection"));
+      if (client) {
+        delete client;
+        client = nullptr;
+      }
+      WiFi.reconnect();
+    }
 
     yield();
   }
@@ -212,6 +224,7 @@ class ESPWifi : public Supla::Network {
  protected:
   WiFiClient *client = NULL;
   bool isSecured;
+  bool wifiConfigured;
   String fingerprint;
   char ssid[MAX_SSID_SIZE];
   char password[MAX_WIFI_PASSWORD_SIZE];

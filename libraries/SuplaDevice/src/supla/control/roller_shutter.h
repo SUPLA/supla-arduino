@@ -40,7 +40,7 @@ class RollerShutter : public Element, public Triggerable {
   RollerShutter(int pinUp, int pinDown, bool highIsOn = true);
 
   int handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue);
-  void runAction(int trigger, int action);
+  void runAction(int event, int action);
 
   void close(); // Sets target position to 100%
   void open();  // Sets target position to 0%
@@ -48,6 +48,7 @@ class RollerShutter : public Element, public Triggerable {
   void moveUp();   // start opening roller shutter regardless of its position (keep motor going up)
   void moveDown(); // starts closing roller shutter regardless of its position (keep motor going down)
   void setTargetPosition(int newPosition);
+  int getCurrentPosition();
 
   void configComfortUpValue(uint8_t position);
   void configComfortDownValue(uint8_t position);

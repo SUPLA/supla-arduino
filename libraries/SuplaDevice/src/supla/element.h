@@ -73,6 +73,8 @@ class Element {
   // channelState is prefilled with network and device status informations
   virtual void handleGetChannelState(TDSC_ChannelState &channelState);
 
+  virtual int handleCalcfgFromServer(TSD_DeviceCalCfgRequest *request);
+
   int getChannelNumber();
 
   Element &disableChannelState();

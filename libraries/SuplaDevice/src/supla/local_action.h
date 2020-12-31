@@ -17,6 +17,7 @@
 #ifndef _local_action_h
 #define _local_action_h
 
+#include <stdint.h>
 #include "triggerable.h"
 
 #define MAX_TRIGGERABLE_CLIENTS 10
@@ -26,8 +27,8 @@ namespace Supla {
 class TriggerableClient {
  public:
   Triggerable *client;
-  int onEvent;
-  int action;
+  uint8_t onEvent;
+  uint8_t action;
 };
 
 class LocalAction {
@@ -35,12 +36,13 @@ class LocalAction {
   LocalAction();
 
   virtual void addAction(int action, Triggerable &client, int event);
+  virtual void addAction(int action, Triggerable *client, int event);
 
   virtual void runAction(int event);
 
  protected:
   TriggerableClient clients[MAX_TRIGGERABLE_CLIENTS];
-  int registeredClientsCount;
+  uint8_t registeredClientsCount;
 };
 
 };  // namespace Supla

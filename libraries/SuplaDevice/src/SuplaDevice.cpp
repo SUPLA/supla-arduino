@@ -93,7 +93,35 @@ bool SuplaDeviceClass::begin(unsigned char version) {
 
   // Supla::Storage::LoadDeviceConfig();
   // Supla::Storage::LoadElementConfig();
-  //
+
+  // Pefrorm dry run of write state to validate stored state section with current
+  // device configuration
+  Serial.println(F("Validating storage state section with current device configuration"));
+  Supla::Storage::PrepareState(true);
+  for (auto element = Supla::Element::begin(); element != nullptr;
+      element = element->next()) {
+    element->onSaveState();
+  }
+  // If state storage validation was successful, perform read state
+  if (Supla::Storage::FinalizeSaveState()) {
+    Serial.println(F("Storage state section validation completed. Loading elements state..."));
+    // Iterate all elements and load state
+    Supla::Storage::PrepareState();
+    for (auto element = Supla::Element::begin(); element != nullptr;
+        element = element->next()) {
+      element->onLoadState();
+    }
+  }
+
+  // Initialize elements
+  for (auto element = Supla::Element::begin(); element != nullptr;
+       element = element->next()) {
+    element->onInit();
+  }
+
+  // Enable timers
+  Supla::initTimers();
+
 
   bool emptyGuidDetected = true;
   for (int i = 0; i < SUPLA_GUID_SIZE; i++) {
@@ -106,12 +134,12 @@ bool SuplaDeviceClass::begin(unsigned char version) {
     return false;
   }
 
-  if (Supla::Channel::reg_dev.ServerName[0] == NULL) {
+  if (Supla::Channel::reg_dev.ServerName[0] == '\0') {
     status(STATUS_UNKNOWN_SERVER_ADDRESS, "Unknown server address");
     return false;
   }
 
-  if (Supla::Channel::reg_dev.Email[0] == NULL) {
+  if (Supla::Channel::reg_dev.Email[0] == '\0') {
     status(STATUS_MISSING_CREDENTIALS, "Unknown email address");
     return false;
   }
@@ -145,22 +173,6 @@ bool SuplaDeviceClass::begin(unsigned char version) {
               "User SW, lib 2.3.2",
               SUPLA_SOFTVER_MAXSIZE);
   }
-
-  // Iterate all elements and load state
-  Supla::Storage::PrepareState();
-  for (auto element = Supla::Element::begin(); element != nullptr;
-       element = element->next()) {
-    element->onLoadState();
-  }
-
-  // Initialize elements
-  for (auto element = Supla::Element::begin(); element != nullptr;
-       element = element->next()) {
-    element->onInit();
-  }
-
-  // Enable timers
-  Supla::initTimers();
 
   Serial.println(F("Initializing network layer"));
   Supla::Network::Setup();
@@ -344,6 +356,11 @@ void SuplaDeviceClass::iterate(void) {
 
 void SuplaDeviceClass::onVersionError(TSDC_SuplaVersionError *version_error) {
   status(STATUS_PROTOCOL_VERSION_ERROR, "Protocol version error");
+  Serial.print(F("Protocol version error. Server min: "));
+  Serial.print(version_error->server_version_min);
+  Serial.print(F("; Server version: "));
+  Serial.println(version_error->server_version);
+
   Supla::Network::Disconnect();
 
   wait_for_iterate = millis() + 5000;

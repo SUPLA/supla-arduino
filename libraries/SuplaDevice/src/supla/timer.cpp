@@ -29,10 +29,12 @@ ETSTimer supla_esp_timer;
 ETSTimer supla_esp_fastTimer;
 
 void esp_timer_cb(void *timer_arg) {
+  (void)(timer_arg);
   SuplaDevice.onTimer();
 }
 
 void esp_fastTimer_cb(void *timer_arg) {
+  (void)(timer_arg);
   SuplaDevice.onFastTimer();
 }
 #elif defined(ARDUINO_ARCH_ESP32)

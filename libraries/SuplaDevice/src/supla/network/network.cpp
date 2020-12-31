@@ -25,11 +25,13 @@ namespace Supla {
 
 Network *Network::netIntf = NULL;
 
-_supla_int_t data_read(void *buf, _supla_int_t count, void *sdc) {
+_supla_int_t data_read(void *buf, _supla_int_t count, void *userParams) {
+  (void)(userParams);
   return Supla::Network::Read(buf, count);
 }
 
-_supla_int_t data_write(void *buf, _supla_int_t count, void *sdc) {
+_supla_int_t data_write(void *buf, _supla_int_t count, void *userParams) {
+  (void)(userParams);
   _supla_int_t r = Supla::Network::Write(buf, count);
   if (r > 0) {
     Network::Instance()->updateLastSent();
@@ -42,12 +44,15 @@ void message_received(void *_srpc,
                       unsigned _supla_int_t call_type,
                       void *_sdc,
                       unsigned char proto_version) {
+  (void)(rr_id);
+  (void)(call_type);
+  (void)(proto_version);
   TsrpcReceivedData rd;
-  char result;
+  char getDataResult;
 
   Network::Instance()->updateLastResponse();
 
-  if (SUPLA_RESULT_TRUE == (result = srpc_getdata(_srpc, &rd, 0))) {
+  if (SUPLA_RESULT_TRUE == (getDataResult = srpc_getdata(_srpc, &rd, 0))) {
     switch (rd.call_type) {
       case SUPLA_SDC_CALL_VERSIONERROR:
         ((SuplaDeviceClass *)_sdc)->onVersionError(rd.data.sdc_version_error);
@@ -103,7 +108,31 @@ void message_received(void *_srpc,
         ((SuplaDeviceClass *)_sdc)->onGetUserLocaltimeResult(rd.data.sdc_user_localtime_result);
         break;                                                 
       }                                                         
+      case SUPLA_SD_CALL_DEVICE_CALCFG_REQUEST: {
+        TDS_DeviceCalCfgResult result;
+        result.ReceiverID = rd.data.sd_device_calcfg_request->SenderID;
+        result.ChannelNumber = rd.data.sd_device_calcfg_request->ChannelNumber;
+        result.Command = rd.data.sd_device_calcfg_request->Command;
+        result.Result = SUPLA_CALCFG_RESULT_NOT_SUPPORTED;
+        result.DataSize = 0;
 
+        if (rd.data.sd_device_calcfg_request->SuperUserAuthorized != 1) {
+          result.Result = SUPLA_CALCFG_RESULT_UNAUTHORIZED;
+        } else {
+          auto element = Supla::Element::getElementByChannelNumber(
+              rd.data.sd_device_calcfg_request->ChannelNumber);
+          if (element) {
+            result.Result = element->handleCalcfgFromServer(rd.data.sd_device_calcfg_request);
+          } else {
+            Serial.print(F("Error: couldn't find element for a requested channel ["));
+            Serial.print(rd.data.sd_channel_new_value->ChannelNumber);
+            Serial.println(F("]"));
+          }
+        }
+
+        srpc_ds_async_device_calcfg_result(_srpc, &result);
+        break;
+      }
       default:
         supla_log(LOG_DEBUG, "Received unknown message from server!");
         break;
@@ -111,7 +140,7 @@ void message_received(void *_srpc,
 
     srpc_rd_free(&rd);
 
-  } else if (result == SUPLA_RESULT_DATA_ERROR) {
+  } else if (getDataResult == SUPLA_RESULT_DATA_ERROR) {
     supla_log(LOG_DEBUG, "DATA ERROR!");
   }
 }
@@ -134,6 +163,7 @@ Network::Network(IPAddress *ip) {
 }
 
 bool Network::iterate() {
+  return false;
 }
 
 void Network::updateLastSent() {
@@ -176,10 +206,12 @@ void Network::setActivityTimeout(_supla_int_t activityTimeoutSec) {
 }
 
 void Network::setTimeout(int timeoutMs) {
+  (void)(timeoutMs);
   supla_log(LOG_DEBUG, "setTimeout is not implemented for this interface");
 }
 
 void Network::fillStateData(TDSC_ChannelState &channelState) {
+  (void)(channelState);
   supla_log(LOG_DEBUG, "fillStateData is not implemented for this interface");
 }
 

@@ -14,33 +14,30 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _binary_h
-#define _binary_h
+#ifndef _light_relay_h
+#define _light_relay_h
 
-#include <Arduino.h>
-
-#include "../channel.h"
-#include "../element.h"
+#include "relay.h"
 
 namespace Supla {
-namespace Sensor {
-class Binary : public Element {
+namespace Control {
+class LightRelay : public Relay {
  public:
-  Binary(int pin, bool pullUp);
-  bool getValue();
+  LightRelay(int pin, bool highIsOn = true);
+  void handleGetChannelState(TDSC_ChannelState &channelState);
+  int handleCalcfgFromServer(TSD_DeviceCalCfgRequest *request);
+  void onLoadState();
+  void onSaveState();
+  void turnOn(_supla_int_t duration = 0);
   void iterateAlways();
-  void onInit();
 
  protected:
-  Channel *getChannel();
-
-  Channel channel;
-  int pin;
-  bool pullUp;
-  unsigned long lastReadTime;
+  unsigned short lifespan;
+  _supla_int_t turnOnSecondsCumulative;
+  unsigned long turnOnTimestamp;
 };
 
-};  // namespace Sensor
+};  // namespace Control
 };  // namespace Supla
 
 #endif

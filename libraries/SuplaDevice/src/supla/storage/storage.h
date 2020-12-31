@@ -33,11 +33,14 @@ class Storage {
   static bool WriteState(const unsigned char *, int);
   static bool LoadDeviceConfig();
   static bool LoadElementConfig();
-  static void PrepareState();
-  static void FinalizeSaveState();
+  static void PrepareState(bool dryRun = false);
+  static bool FinalizeSaveState();
   static bool SaveStateAllowed(unsigned long);
 
   Storage(unsigned int storageStartingOffset = 0);
+
+  // Changes default state save period time
+  virtual void setStateSavePeriod(unsigned long periodMs);
 
   virtual bool init();
   virtual bool readState(unsigned char *, int);
@@ -45,16 +48,16 @@ class Storage {
 
   virtual bool loadDeviceConfig();
   virtual bool loadElementConfig();
-  virtual void prepareState();
-  virtual void finalizeSaveState();
-  virtual bool saveStateAllowed(unsigned long) = 0;
+  virtual void prepareState(bool performDryRun);
+  virtual bool finalizeSaveState();
+  virtual bool saveStateAllowed(unsigned long);
 
   virtual void commit() = 0;
 
  protected:
-  virtual int readStorage(int, unsigned char *, int, bool = true) = 0;
-  virtual int writeStorage(int, const unsigned char *, int) = 0;
-  virtual int updateStorage(int, const unsigned char *, int);
+  virtual int readStorage(unsigned int, unsigned char *, int, bool = true) = 0;
+  virtual int writeStorage(unsigned int, const unsigned char *, int) = 0;
+  virtual int updateStorage(unsigned int, const unsigned char *, int);
 
   unsigned int storageStartingOffset;
   unsigned int deviceConfigOffset;
@@ -68,8 +71,11 @@ class Storage {
   unsigned int currentStateOffset;
 
   unsigned int newSectionSize;
-  unsigned int newSectionElementsCount;
   int sectionsCount;
+  bool dryRun;
+
+  unsigned long saveStatePeriod;
+  unsigned long lastWriteTimestamp;
 
   static Storage *instance;
 };

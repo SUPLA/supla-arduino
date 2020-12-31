@@ -68,7 +68,7 @@ void SuplaSomfy::SendCommand(somfy_frame_t *frame, uint8_t sync) {
     delayMicroseconds(9415);
     // Silence pulse
     digitalWrite(_dataPin, LOW);
-    delayMicroseconds(89565);
+    delayMicroseconds((unsigned int)89565);
   }
 
   // Hardware sync (Two sync for the first frame, seven for the next frame)
