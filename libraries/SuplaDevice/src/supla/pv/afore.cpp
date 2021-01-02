@@ -31,6 +31,7 @@ Afore::Afore(IPAddress ip, int port, const char *loginAndPass)
       varFound(false),
       dataIsReady(false),
       dataFetchInProgress(false) {
+  refreshRateSec = 15;
   int len = strlen(loginAndPass);
   if (len > LOGIN_AND_PASSOWORD_MAX_LENGTH) {
     len = LOGIN_AND_PASSOWORD_MAX_LENGTH;
@@ -105,7 +106,7 @@ void Afore::iterateAlways() {
 
 bool Afore::iterateConnected(void *srpc) {
   if (!dataFetchInProgress) {
-    if (lastReadTime == 0 || millis() - lastReadTime > 15000) {
+    if (lastReadTime == 0 || millis() - lastReadTime > refreshRateSec*1000) {
       lastReadTime = millis();
       Serial.println(F("AFORE connecting"));
       if (pvClient.connect(ip, port)) {
@@ -137,3 +138,4 @@ bool Afore::iterateConnected(void *srpc) {
 
 void Afore::readValuesFromDevice() {
 }
+

@@ -37,6 +37,7 @@ Fronius::Fronius(IPAddress ip, int port, int deviceId)
       startCharFound(false),
       dataIsReady(false),
       dataFetchInProgress(false) {
+  refreshRateSec = 15;
 }
 
 void Fronius::iterateAlways() {
@@ -147,7 +148,7 @@ void Fronius::iterateAlways() {
 
 bool Fronius::iterateConnected(void *srpc) {
   if (!dataFetchInProgress) {
-    if (lastReadTime == 0 || millis() - lastReadTime > 15000) {
+    if (lastReadTime == 0 || millis() - lastReadTime > refreshRateSec*1000) {
       lastReadTime = millis();
       Serial.print(F("Fronius connecting "));
       Serial.println(deviceId);
@@ -189,3 +190,4 @@ bool Fronius::iterateConnected(void *srpc) {
 
 void Fronius::readValuesFromDevice() {
 }
+
