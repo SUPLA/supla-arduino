@@ -58,3 +58,6 @@ TEST(UptimeTests, IterateShouldIncreaseUptimeCounters) {
   EXPECT_EQ(uptime.getLastResetCause(), SUPLA_LASTCONNECTIONRESETCAUSE_UNKNOWN);
 }
 
+TEST(UptimeTests, FailingTestExample) {
+  ASSERT_TRUE(false);
+}
