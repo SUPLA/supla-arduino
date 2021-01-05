@@ -15,4 +15,4 @@ script:
   - cd extras/test/build
   - CXX=/usr/bin/g++-6 CC=/usr/bin/gcc-6 cmake ..
   - make
-  - make test
+  - ./supladevicetests
