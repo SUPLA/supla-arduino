@@ -14,120 +14,15 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef esp_wifi_h__
-#define esp_wifi_h__
+// DEPRECATED: please use esp_wifi.h instead
 
-#include <Arduino.h>
-#include <WiFi.h>
+#ifndef esp32_wifi_h__
+#define esp32_wifi_h__
 
-#include "../supla_lib_config.h"
-#include "network.h"
-
-#define MAX_SSID_SIZE          32
-#define MAX_WIFI_PASSWORD_SIZE 64
-
-// TODO: change logs to supla_log
+#include "esp_wifi.h"
 
 namespace Supla {
-class ESP32Wifi : public Supla::Network {
- public:
-  ESP32Wifi(const char *wifiSsid,
-            const char *wifiPassword,
-            IPAddress *ip = NULL)
-      : Network(ip) {
-    strcpy(ssid, wifiSsid);
-    strcpy(password, wifiPassword);
-  }
-
-  int read(void *buf, int count) {
-    _supla_int_t size = client.available();
-
-    if (size > 0) {
-      if (size > count) size = count;
-      long readSize = client.read((uint8_t *)buf, size);
-#ifdef SUPLA_COMM_DEBUG
-      Serial.print(F("Received: ["));
-      for (int i = 0; i < readSize; i++) {
-        Serial.print(static_cast<unsigned char *>(buf)[i], HEX);
-        Serial.print(F(" "));
-      }
-      Serial.println(F("]"));
-#endif
-
-      return readSize;
-    }
-    return -1;
-  }
-
-  int write(void *buf, int count) {
-#ifdef SUPLA_COMM_DEBUG
-    Serial.print(F("Sending: ["));
-    for (int i = 0; i < count; i++) {
-      Serial.print(static_cast<unsigned char *>(buf)[i], HEX);
-      Serial.print(F(" "));
-    }
-    Serial.println(F("]"));
-#endif
-    long sendSize = client.write((const uint8_t *)buf, count);
-    return sendSize;
-  }
-
-  int connect(const char *server, int port = -1) {
-    int connectionPort = (port == -1 ? 2015 : port);
-    supla_log(
-        LOG_DEBUG, "Establishing connection with: %s (port: %d)", server, connectionPort);
-    return client.connect(server, connectionPort);
-  }
-
-  bool connected() {
-    return client.connected();
-  }
-
-  bool isReady() {
-    return WiFi.status() == WL_CONNECTED;
-  }
-
-  void disconnect() {
-    client.stop();
-  }
-
-  // TODO: add handling of custom local ip
-  void setup() {
-    WiFiEventId_t event_gotIP = WiFi.onEvent(
-        [](WiFiEvent_t event, WiFiEventInfo_t info) {
-          Serial.print(F("local IP: "));
-          Serial.println(WiFi.localIP());
-          Serial.print(F("subnetMask: "));
-          Serial.println(WiFi.subnetMask());
-          Serial.print(F("gatewayIP: "));
-          Serial.println(WiFi.gatewayIP());
-          long rssi = WiFi.RSSI();
-          Serial.print(F("Signal Strength (RSSI): "));
-          Serial.print(rssi);
-          Serial.println(F(" dBm"));
-        },
-        WiFiEvent_t::SYSTEM_EVENT_STA_GOT_IP);
-
-    WiFiEventId_t event_disconnected = WiFi.onEvent(
-        [](WiFiEvent_t event, WiFiEventInfo_t info) {
-          Serial.println(F("wifi Station disconnected"));
-        },
-        WiFiEvent_t::SYSTEM_EVENT_STA_DISCONNECTED);
-
-    Serial.print(F("WIFI: establishing connection with SSID: \""));
-    Serial.print(ssid);
-    Serial.println(F("\""));
-    WiFi.begin(ssid, password);
-    yield();
-  }
-
- protected:
-  WiFiClient client;
-
-  char ssid[MAX_SSID_SIZE];
-  char password[MAX_WIFI_PASSWORD_SIZE];
+typedef ESPWifi ESP32Wifi;
 };
-
-};  // namespace Supla
 
 #endif

@@ -18,7 +18,13 @@
 #define esp_wifi_h__
 
 #include <Arduino.h>
+
+#ifdef ARDUINO_ARCH_ESP8266
 #include <ESP8266WiFi.h>
+#else
+#include <WiFi.h>
+#endif
+
 #include <WiFiClientSecure.h>
 
 #include "../supla_lib_config.h"
@@ -27,7 +33,9 @@
 #define MAX_SSID_SIZE          32
 #define MAX_WIFI_PASSWORD_SIZE 64
 
+#ifdef ARDUINO_ARCH_ESP8266
 WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
+#endif
 
 // TODO: change logs to supla_log
 
@@ -42,6 +50,10 @@ class ESPWifi : public Supla::Network {
     password[0] = '\0';
     setSsid(wifiSsid);
     setPassword(wifiPassword);
+#ifdef ARDUINO_ARCH_ESP32
+    enableSSL(
+        false);  // current ESP32 WiFiClientSecure does not suport "setInsecure"
+#endif
   }
 
   int read(void *buf, int count) {
@@ -85,10 +97,18 @@ class ESPWifi : public Supla::Network {
         client = new WiFiClientSecure();
         if (fingerprint.length() > 0) {
           message += " with certificate matching";
+#ifdef ARDUINO_ARCH_ESP8266
           ((WiFiClientSecure *)client)->setFingerprint(fingerprint.c_str());
+#else
+          message += " - NOT SUPPORTED ON ESP32 implmentation";
+#endif
         } else {
           message += " without certificate matching";
+#ifdef ARDUINO_ARCH_ESP8266
           ((WiFiClientSecure *)client)->setInsecure();
+#else
+          message += " - NOT SUPPORTED ON ESP32 implmentation";
+#endif
         }
       } else {
         message = "unsecured connection";
@@ -141,30 +161,52 @@ class ESPWifi : public Supla::Network {
   void setup() {
     if (!wifiConfigured) {
       wifiConfigured = true;
-    gotIpEventHandler =
-        WiFi.onStationModeGotIP([](const WiFiEventStationModeGotIP &event) {
-          (void)(event);
-          Serial.print(F("local IP: "));
-          Serial.println(WiFi.localIP());
-          Serial.print(F("subnetMask: "));
-          Serial.println(WiFi.subnetMask());
-          Serial.print(F("gatewayIP: "));
-          Serial.println(WiFi.gatewayIP());
-          long rssi = WiFi.RSSI();
-          Serial.print(F("Signal strength (RSSI): "));
-          Serial.print(rssi);
-          Serial.println(F(" dBm"));
-        });
-    disconnectedEventHandler = WiFi.onStationModeDisconnected(
-        [](const WiFiEventStationModeDisconnected &event) {
-          (void)(event);
-          Serial.println(F("WiFi station disconnected"));
-        });
+#ifdef ARDUINO_ARCH_ESP8266
+      gotIpEventHandler =
+          WiFi.onStationModeGotIP([](const WiFiEventStationModeGotIP &event) {
+            (void)(event);
+            Serial.print(F("local IP: "));
+            Serial.println(WiFi.localIP());
+            Serial.print(F("subnetMask: "));
+            Serial.println(WiFi.subnetMask());
+            Serial.print(F("gatewayIP: "));
+            Serial.println(WiFi.gatewayIP());
+            long rssi = WiFi.RSSI();
+            Serial.print(F("Signal strength (RSSI): "));
+            Serial.print(rssi);
+            Serial.println(F(" dBm"));
+          });
+      disconnectedEventHandler = WiFi.onStationModeDisconnected(
+          [](const WiFiEventStationModeDisconnected &event) {
+            (void)(event);
+            Serial.println(F("WiFi station disconnected"));
+          });
+#else
+      WiFiEventId_t event_gotIP = WiFi.onEvent(
+          [](WiFiEvent_t event, WiFiEventInfo_t info) {
+            Serial.print(F("local IP: "));
+            Serial.println(WiFi.localIP());
+            Serial.print(F("subnetMask: "));
+            Serial.println(WiFi.subnetMask());
+            Serial.print(F("gatewayIP: "));
+            Serial.println(WiFi.gatewayIP());
+            long rssi = WiFi.RSSI();
+            Serial.print(F("Signal Strength (RSSI): "));
+            Serial.print(rssi);
+            Serial.println(F(" dBm"));
+          },
+          WiFiEvent_t::SYSTEM_EVENT_STA_GOT_IP);
 
-    Serial.print(F("WiFi: establishing connection with SSID: \""));
-    Serial.print(ssid);
-    Serial.println(F("\""));
-    WiFi.begin(ssid, password);
+      WiFiEventId_t event_disconnected = WiFi.onEvent(
+          [](WiFiEvent_t event, WiFiEventInfo_t info) {
+            Serial.println(F("wifi Station disconnected"));
+          },
+          WiFiEvent_t::SYSTEM_EVENT_STA_DISCONNECTED);
+#endif
+      Serial.print(F("WiFi: establishing connection with SSID: \""));
+      Serial.print(ssid);
+      Serial.println(F("\""));
+      WiFi.begin(ssid, password);
     } else {
       Serial.println(F("WiFi: resetting WiFi connection"));
       if (client) {
