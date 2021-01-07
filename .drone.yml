@@ -10,3 +10,4 @@ steps:
   - cmake ..
   - make
   - ./supladevicetests
+
