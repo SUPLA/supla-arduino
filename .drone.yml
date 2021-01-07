@@ -3,7 +3,7 @@ name: default
 
 steps:
 - name: test
-  image: gcc
+  image: rikorose/gcc-cmake
   commands:
   - mkdir extras/test/build
   - cd extras/test/build
