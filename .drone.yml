@@ -1,0 +1,12 @@
+kind: pipeline
+name: default
+
+steps:
+- name: test
+  image: gcc
+  commands:
+  - mkdir extras/test/build
+  - cd extras/test/build
+  - cmake ..
+  - make
+  - ./supladevicetests
