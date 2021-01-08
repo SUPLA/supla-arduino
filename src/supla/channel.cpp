@@ -14,6 +14,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#include <string.h>
+
 #include "supla/channel.h"
 #include "supla-common/log.h"
 #include "supla-common/srpc.h"
@@ -60,6 +62,9 @@ Channel *Channel::last() {
 int Channel::size() {
   int count = 0;
   Channel *ptr = firstPtr;
+  if (!ptr) {
+    return 0;
+  }
   if (ptr) {
     count++;
   }

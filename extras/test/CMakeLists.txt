@@ -6,8 +6,10 @@ enable_testing()
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_BUILD_TYPE Debug)
 
 include_directories(../../src)
+include_directories(doubles)
 
 add_subdirectory(../../src/ build)
 
@@ -25,9 +27,14 @@ if(NOT googletest_POPULATED)
   add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
 endif()
 
-file(GLOB SRCS UptimeTests/*.cpp)
+file(GLOB TEST_SRC
+  UptimeTests/*.cpp
+  ChannelTests/*cpp
+  )
 
-add_executable(supladevicetests ${SRCS})
+file(GLOB DOUBLE_SRC doubles/*.cpp)
+
+add_executable(supladevicetests ${TEST_SRC} ${DOUBLE_SRC})
 
 target_link_libraries(supladevicetests
   gtest
