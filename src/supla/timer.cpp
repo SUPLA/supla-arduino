@@ -20,7 +20,7 @@
 #include "timer.h"
 
 #if defined(ARDUINO_ARCH_ESP32)
-#include <esp_timer.h>
+#include <Ticker.h>
 #endif
 
 namespace {
@@ -38,14 +38,14 @@ void esp_fastTimer_cb(void *timer_arg) {
   SuplaDevice.onFastTimer();
 }
 #elif defined(ARDUINO_ARCH_ESP32)
-hw_timer_t *supla_esp_timer = NULL;
-hw_timer_t *supla_esp_fastTimer = NULL;
+Ticker supla_esp_timer;
+Ticker supla_esp_fastTimer;
 
-void IRAM_ATTR esp_timer_cb() {
+void esp_timer_cb() {
   SuplaDevice.onTimer();
 }
 
-void IRAM_ATTR esp_fastTimer_cb() {
+void esp_fastTimer_cb() {
   SuplaDevice.onFastTimer();
 }
 #else
@@ -71,17 +71,8 @@ void initTimers() {
   os_timer_arm(&supla_esp_fastTimer, 1, 1);
 
 #elif defined(ARDUINO_ARCH_ESP32)
-  supla_esp_timer = timerBegin(0, 80, true);                   // timer 0, div 80
-  timerAttachInterrupt(supla_esp_timer, &esp_timer_cb, true);  // attach callback
-  timerAlarmWrite(supla_esp_timer, 10 * 1000, false);          // set time in us
-  timerAlarmEnable(supla_esp_timer);                           // enable interrupt
-
-  supla_esp_fastTimer = timerBegin(1, 80, true);
-  timerAttachInterrupt(supla_esp_fastTimer,
-                       &esp_fastTimer_cb,
-                       true);                       // attach callback
-  timerAlarmWrite(supla_esp_fastTimer, 1 * 1000, false);  // set time in us
-  timerAlarmEnable(supla_esp_fastTimer);                  // enable interrupt
+  supla_esp_timer.attach_ms(10, esp_timer_cb);
+  supla_esp_fastTimer.attach_ms(1, esp_fastTimer_cb);
 #else
   // Timer 1 for interrupt frequency 100 Hz (10 ms)
   TCCR1A = 0;  // set entire TCCR1A register to 0
