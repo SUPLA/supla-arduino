@@ -13,4 +13,5 @@ steps:
 - name: test
   image: rikorose/gcc-cmake
   commands:
+  - cd extras/test/build
   - ./supladevicetests
