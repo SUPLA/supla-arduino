@@ -26,9 +26,13 @@ namespace Supla {
 namespace Sensor {
 class HC_SR04 : public Distance {
  public:
-  HC_SR04(int8_t trigPin, int8_t echoPin) : failCount(0), lastDuration(0) {
+  HC_SR04(int8_t trigPin, int8_t echoPin, int16_t min_in = 0, int16_t max_in = 500, int16_t min_out = 0, int16_t max_out = 500) : failCount(0), lastDuration(0) {
     _trigPin = trigPin;
     _echoPin = echoPin;
+    _min_in = min_in;
+    _max_in = max_in;
+    _min_out = min_out;
+    _max_out = max_out;
   }
   void onInit() {
     pinMode(_trigPin, OUTPUT);
@@ -53,12 +57,33 @@ class HC_SR04 : public Distance {
       failCount++;
     }
 
-    return failCount <= 3 ? duration * 0.034 / 2 / 100 : DISTANCE_NOT_AVAILABLE;
+    long distance = (duration/2) / 29.1;
+    long value = map(distance, _min_in, _max_in, _min_out, _max_out);
+    if (_min_out < _max_out){      
+      value = constrain(value, _min_out, _max_out);      
+    } else{
+      value = constrain(value, _max_out, _min_out);
+    }
+    return failCount <= 3 ? (float)value / 100 : DISTANCE_NOT_AVAILABLE;
   }
-
+ 
+  void setMinMaxIn(int16_t min_in, int16_t max_in) {
+    _min_in = min_in;
+    _max_in = max_in;
+  }
+  
+  void setMinMaxOut(int16_t min_out, int16_t max_out) {
+    _min_out = min_out;
+    _max_out = max_out;
+  }
+ 
  protected:
   int8_t _trigPin;
   int8_t _echoPin;
+  int16_t _min_in;
+  int16_t _max_in;
+  int16_t _min_out;
+  int16_t _max_out; 
   char failCount;
   bool ready;
   unsigned long lastDuration;
