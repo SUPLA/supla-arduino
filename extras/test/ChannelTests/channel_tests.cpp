@@ -62,4 +62,12 @@ TEST(ChannelTests, ChannelMethods) {
   EXPECT_EQ(first.getChannelType(), 0);
   EXPECT_EQ(first.getExtValue(), nullptr);
 
+  int number = first.getChannelNumber();
+  char emptyArray[SUPLA_CHANNELVALUE_SIZE] = {};
+  EXPECT_EQ(number, Supla::Channel::reg_dev.channels[number].Number);
+  EXPECT_EQ(Supla::Channel::reg_dev.channels[number].Type, 0);
+  EXPECT_EQ(Supla::Channel::reg_dev.channels[number].FuncList, 0);
+  EXPECT_EQ(Supla::Channel::reg_dev.channels[number].Default, 0);
+  EXPECT_EQ(Supla::Channel::reg_dev.channels[number].Flags, SUPLA_CHANNEL_FLAG_CHANNELSTATE);
+  EXPECT_TRUE(0 == memcmp(Supla::Channel::reg_dev.channels[number].value, emptyArray, SUPLA_CHANNELVALUE_SIZE));
 }
