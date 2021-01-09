@@ -47,6 +47,25 @@ Channel::Channel() {
   setFlag(SUPLA_CHANNEL_FLAG_CHANNELSTATE);
 }
 
+Channel::~Channel() {
+  auto ptr = begin();
+  auto prev = ptr;
+
+  while (ptr != this) {
+    prev = ptr;
+    ptr = ptr->nextPtr;
+  }
+
+  // we are first item on a list
+  if (prev == ptr) {
+    firstPtr = ptr->nextPtr;
+  } else {
+    prev->nextPtr = ptr->nextPtr;
+  }
+
+  reg_dev.channel_count--;
+}
+
 Channel *Channel::begin() {
   return firstPtr;
 }

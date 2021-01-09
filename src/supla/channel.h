@@ -26,6 +26,7 @@ namespace Supla {
 class Channel {
  public:
   Channel();
+  ~Channel();
 
   static Channel *begin();
   static Channel *last();
