@@ -81,7 +81,7 @@ class HC_SR04 : public Distance {
   int8_t _trigPin;
   int8_t _echoPin;
   int16_t _minIn;
-  int16_t _maxIin;
+  int16_t _maxIn;
   int16_t _minOut;
   int16_t _maxOut; 
   char failCount;
