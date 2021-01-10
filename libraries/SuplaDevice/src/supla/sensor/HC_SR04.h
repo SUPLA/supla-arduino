@@ -26,13 +26,13 @@ namespace Supla {
 namespace Sensor {
 class HC_SR04 : public Distance {
  public:
-  HC_SR04(int8_t trigPin, int8_t echoPin, int16_t min_in = 0, int16_t max_in = 500, int16_t min_out = 0, int16_t max_out = 500) : failCount(0), lastDuration(0) {
+  HC_SR04(int8_t trigPin, int8_t echoPin, int16_t minIn = 0, int16_t maxIn = 500, int16_t minOut = 0, int16_t maxOut = 500) : failCount(0), lastDuration(0) {
     _trigPin = trigPin;
     _echoPin = echoPin;
-    _min_in = min_in;
-    _max_in = max_in;
-    _min_out = min_out;
-    _max_out = max_out;
+    _minIn = minIn;
+    _maxIn = maxIn;
+    _minOut = minOut;
+    _maxOut = maxOut;
   }
   void onInit() {
     pinMode(_trigPin, OUTPUT);
@@ -58,32 +58,32 @@ class HC_SR04 : public Distance {
     }
 
     long distance = (duration/2) / 29.1;
-    long value = map(distance, _min_in, _max_in, _min_out, _max_out);
-    if (_min_out < _max_out){      
-      value = constrain(value, _min_out, _max_out);      
+    long value = map(distance, _minIn, _maxIn, _minOut, _maxOut);
+    if (_minOut < _maxOut){      
+      value = constrain(value, _minOut, _maxOut);      
     } else{
-      value = constrain(value, _max_out, _min_out);
+      value = constrain(value, _maxOut, _minOut);
     }
     return failCount <= 3 ? (float)value / 100 : DISTANCE_NOT_AVAILABLE;
   }
  
-  void setMinMaxIn(int16_t min_in, int16_t max_in) {
-    _min_in = min_in;
-    _max_in = max_in;
+  void setMinMaxIn(int16_t minIn, int16_t maxIn) {
+    _minIn = minIn;
+    _maxIn = maxIn;
   }
   
-  void setMinMaxOut(int16_t min_out, int16_t max_out) {
-    _min_out = min_out;
-    _max_out = max_out;
+  void setMinMaxOut(int16_t minOut, int16_t maxOut) {
+    _minOut = minOut;
+    _maxOut = maxOut;
   }
  
  protected:
   int8_t _trigPin;
   int8_t _echoPin;
-  int16_t _min_in;
-  int16_t _max_in;
-  int16_t _min_out;
-  int16_t _max_out; 
+  int16_t _minIn;
+  int16_t _maxIin;
+  int16_t _minOut;
+  int16_t _maxOut; 
   char failCount;
   bool ready;
   unsigned long lastDuration;
