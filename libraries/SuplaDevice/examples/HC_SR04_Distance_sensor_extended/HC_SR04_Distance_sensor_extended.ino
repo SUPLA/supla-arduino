@@ -40,10 +40,10 @@ Supla::EthernetShield ethernet(mac);
 
 int8_t trigPin = 13;
 int8_t echoPin = 12;
-int16_t min_sensor_read =  5; //minimum sensor reading distance in centimeters
-int16_t max_sensor_read = 55; //maximum sensor reading distance in centimeters
-int16_t min_app_reading = 50; //minimum distance shown by the App in centimeters when sensor read <= min_sensor_read
-int16_t max_app_reading =  0; //maximum distance shown by the App in centimeters when sensor read >= max_sensor_read
+int16_t minSensorRead =  5; //minimum sensor reading distance in centimeters
+int16_t maxSensorRead = 55; //maximum sensor reading distance in centimeters
+int16_t minAppReading = 50; //minimum distance shown by the App in centimeters when sensor read <= min_sensor_read
+int16_t maxAppReading =  0; //maximum distance shown by the App in centimeters when sensor read >= max_sensor_read
 
 void setup() {
 
@@ -62,7 +62,7 @@ void setup() {
    * Otherwise you will get "Channel conflict!" error.
    */
 
-  new Supla::Sensor::HC_SR04(trigPin,echoPin, min_sensor_read, max_sensor_read, min_app_reading, max_app_reading); 
+  new Supla::Sensor::HC_SR04(trigPin,echoPin, minSensorRead, maxSensorRead, minAppReading, maxAppReading); 
  
   // Supla::Sensor::HC_SR04(trigPin, echoPin) // sends sensor reading to cloud unchanged
 
