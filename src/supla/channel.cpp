@@ -22,7 +22,6 @@
 #include "tools.h"
 
 namespace Supla {
-Channel *Channel::firstPtr = nullptr;
 
 unsigned long Channel::lastCommunicationTimeMs = 0;
 TDS_SuplaRegisterDevice_E Channel::reg_dev;
@@ -38,60 +37,11 @@ Channel::Channel() {
 // TODO: add status CHANNEL_LIMIT_EXCEEDED
   }
 
-  if (firstPtr == nullptr) {
-    firstPtr = this;
-  } else {
-    last()->nextPtr = this;
-  }
-  nextPtr = nullptr;
   setFlag(SUPLA_CHANNEL_FLAG_CHANNELSTATE);
 }
 
 Channel::~Channel() {
-  auto ptr = begin();
-  auto prev = ptr;
-
-  while (ptr != this) {
-    prev = ptr;
-    ptr = ptr->nextPtr;
-  }
-
-  // we are first item on a list
-  if (prev == ptr) {
-    firstPtr = ptr->nextPtr;
-  } else {
-    prev->nextPtr = ptr->nextPtr;
-  }
-
   reg_dev.channel_count--;
-}
-
-Channel *Channel::begin() {
-  return firstPtr;
-}
-
-Channel *Channel::last() {
-  Channel *ptr = firstPtr;
-  while (ptr && ptr->nextPtr) {
-    ptr = ptr->nextPtr;
-  }
-  return ptr;
-}
-
-int Channel::size() {
-  int count = 0;
-  Channel *ptr = firstPtr;
-  if (!ptr) {
-    return 0;
-  }
-  if (ptr) {
-    count++;
-  }
-  while (ptr->nextPtr) {
-    count++;
-    ptr = ptr->nextPtr;
-  }
-  return count;
 }
 
 void Channel::setNewValue(double dbl) {
@@ -257,18 +207,6 @@ void Channel::sendUpdate(void *srpc) {
 
 TSuplaChannelExtendedValue *Channel::getExtValue() {
   return nullptr;
-}
-
-void Channel::clearAllUpdateReady() {
-  for (auto channel = begin(); channel != nullptr; channel = channel->next()) {
-    if (!channel->isExtended()) {
-      channel->clearUpdateReady();
-    }
-  }
-}
-
-Channel *Channel::next() {
-  return nextPtr;
 }
 
 void Channel::setUpdateReady() {

@@ -28,10 +28,6 @@ class Channel {
   Channel();
   ~Channel();
 
-  static Channel *begin();
-  static Channel *last();
-  static int size();
-
   void setNewValue(double dbl);
   void setNewValue(double temp, double humi);
   void setNewValue(int value);
@@ -58,8 +54,6 @@ class Channel {
   void clearUpdateReady();
   void sendUpdate(void *srpc);
   virtual TSuplaChannelExtendedValue *getExtValue();
-  static void clearAllUpdateReady();
-  Channel *next();
 
   static unsigned long lastCommunicationTimeMs;
   static TDS_SuplaRegisterDevice_E reg_dev;
@@ -70,8 +64,6 @@ class Channel {
   bool valueChanged;
   int channelNumber;
 
-  Channel *nextPtr;
-  static Channel *firstPtr;
 };
 
 };  // namespace Supla

@@ -330,7 +330,6 @@ void SuplaDeviceClass::iterate(void) {
     if (!srpc_ds_async_registerdevice_e(srpc, &Supla::Channel::reg_dev)) {
       supla_log(LOG_DEBUG, "Fatal SRPC failure!");
     }
-    Supla::Channel::clearAllUpdateReady();
 
   } else if (registered == 1) {
     if (Supla::Network::Ping() == false) {
