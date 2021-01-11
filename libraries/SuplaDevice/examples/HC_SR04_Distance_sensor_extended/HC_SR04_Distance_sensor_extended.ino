@@ -69,7 +69,7 @@ void setup() {
 
   /*
    * SuplaDevice Initialization.
-   * Server address, LocationID and LocationPassword are available at https://cloud.supla.org 
+   * Server address is available at https://cloud.supla.org 
    * If you do not have an account, you can create it at https://cloud.supla.org/account/create
    * SUPLA and SUPLA CLOUD are free of charge
    * 
