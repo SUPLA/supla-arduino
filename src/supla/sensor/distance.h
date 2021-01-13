@@ -20,7 +20,7 @@
 #include "supla/channel.h"
 #include "supla/element.h"
 
-#define DISTANCE_NOT_AVAILABLE -1
+#define DISTANCE_NOT_AVAILABLE -1.0
 
 namespace Supla {
 namespace Sensor {

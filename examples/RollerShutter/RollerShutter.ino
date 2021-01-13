@@ -14,7 +14,6 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include <SPI.h>
 #include <SuplaDevice.h>
 #include <supla/control/roller_shutter.h>
 #include <supla/control/button.h>
@@ -27,30 +26,26 @@ Supla::Eeprom eeprom(STORAGE_OFFSET);
 // #include <supla/storage/fram_spi.h>
 // Supla::FramSpi fram(STORAGE_OFFSET);
 
-
 // Choose proper network interface for your card:
-// Arduino Mega with EthernetShield W5100:
-#include <supla/network/ethernet_shield.h>
-// Ethernet MAC address
-uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
-Supla::EthernetShield ethernet(mac);
-//
-// Arduino Mega with ENC28J60:
-// #include <supla/network/ENC28J60.h>
-// Supla::ENC28J60 ethernet(mac);
-//
-// ESP8266 based board:
-// #include <supla/network/esp_wifi.h>
-// Supla::ESPWifi wifi("your_wifi_ssid", "your_wifi_password");
-//
-// ESP32 based board:
-// #include <supla/network/esp32_wifi.h>
-// Supla::ESP32Wifi wifi("your_wifi_ssid", "your_wifi_password");
+#ifdef ARDUINO_ARCH_AVR
+  // Arduino Mega with EthernetShield W5100:
+  #include <supla/network/ethernet_shield.h>
+  // Ethernet MAC address
+  uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
+  Supla::EthernetShield ethernet(mac);
 
+  // Arduino Mega with ENC28J60:
+  // #include <supla/network/ENC28J60.h>
+  // Supla::ENC28J60 ethernet(mac);
+#elif defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+  // ESP8266 and ESP32 based board:
+  #include <supla/network/esp_wifi.h>
+  Supla::ESPWifi wifi("your_wifi_ssid", "your_wifi_password");
+#endif
 
 void setup() {
 
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   // Replace the falowing GUID with value that you can retrieve from https://www.supla.org/arduino/get-guid
   char GUID[SUPLA_GUID_SIZE] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
