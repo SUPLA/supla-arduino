@@ -59,6 +59,8 @@ class RollerShutter : public Element, public Triggerable {
   void onLoadState();
   void onSaveState();
 
+  Channel *getChannel();
+
  protected:
   virtual void stopMovement();
   virtual void relayDownOn();
@@ -73,8 +75,6 @@ class RollerShutter : public Element, public Triggerable {
   bool lastDirectionWasOpen();
   bool lastDirectionWasClose();
   bool inMove();
-
-  Channel *getChannel();
 
   Channel channel;
 

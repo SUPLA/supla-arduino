@@ -17,6 +17,7 @@
 #ifndef _thermometer_h
 #define _thermometer_h
 
+#include <Arduino.h>
 #include "supla/channel.h"
 #include "supla/element.h"
 
@@ -26,26 +27,13 @@ namespace Supla {
 namespace Sensor {
 class Thermometer : public Element {
  public:
-  Thermometer() : lastReadTime(0) {
-    channel.setType(SUPLA_CHANNELTYPE_THERMOMETER);
-    channel.setDefault(SUPLA_CHANNELFNC_THERMOMETER);
-  }
+  Thermometer();
+  virtual double getValue();
+  void iterateAlways();
 
-  virtual double getValue() {
-    return TEMPERATURE_NOT_AVAILABLE;
-  }
-
-  void iterateAlways() {
-    if (lastReadTime + 10000 < millis()) {
-      lastReadTime = millis();
-      channel.setNewValue(getValue());
-    }
-  }
+  Channel *getChannel();
 
  protected:
-  Channel *getChannel() {
-    return &channel;
-  }
   Channel channel;
   unsigned long lastReadTime;
 };

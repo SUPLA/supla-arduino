@@ -77,6 +77,7 @@ class Element {
 
   int getChannelNumber();
   virtual Channel *getChannel();
+  virtual Channel *getSecondaryChannel();
 
   Element &disableChannelState();
 

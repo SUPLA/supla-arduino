@@ -25,27 +25,11 @@ namespace Supla {
 namespace Sensor {
 class ThermHygroMeter : public Thermometer {
  public:
-  ThermHygroMeter() {
-    channel.setType(SUPLA_CHANNELTYPE_HUMIDITYANDTEMPSENSOR);
-    channel.setDefault(SUPLA_CHANNELFNC_HUMIDITYANDTEMPERATURE);
-  }
+  ThermHygroMeter();
+  virtual double getTemp();
+  virtual double getHumi();
+  void iterateAlways();
 
-  virtual double getTemp() {
-    return TEMPERATURE_NOT_AVAILABLE;
-  }
-
-  virtual double getHumi() {
-    return HUMIDITY_NOT_AVAILABLE;
-  }
-
-  void iterateAlways() {
-    if (millis() - lastReadTime > 10000) {
-      lastReadTime = millis();
-      channel.setNewValue(getTemp(), getHumi());
-    }
-  }
-
- protected:
 };
 
 };  // namespace Sensor

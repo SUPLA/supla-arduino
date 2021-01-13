@@ -33,9 +33,9 @@ class VirtualBinary : public Element, public Triggerable {
   void iterateAlways();
   void onInit();
   void runAction(int event, int action);
+  Channel *getChannel();
 
  protected:
-  Channel *getChannel();
   Channel channel;
   bool state;
   unsigned long lastReadTime;

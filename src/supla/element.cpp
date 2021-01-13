@@ -95,6 +95,10 @@ Channel *Element::getChannel() {
   return nullptr;
 }
 
+Channel *Element::getSecondaryChannel() {
+  return nullptr;
+}
+
 void Element::handleGetChannelState(TDSC_ChannelState &channelState) {
   (void)(channelState);
   return;
