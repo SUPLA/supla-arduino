@@ -1,0 +1,17 @@
+kind: pipeline
+name: default
+
+steps:
+- name: compilation
+  image: rikorose/gcc-cmake
+  commands:
+  - mkdir extras/test/build
+  - cd extras/test/build
+  - cmake ..
+  - make
+
+- name: test
+  image: rikorose/gcc-cmake
+  commands:
+  - cd extras/test/build
+  - ./supladevicetests
