@@ -13,12 +13,17 @@ include_directories(doubles)
 
 add_subdirectory(../../src/ build)
 
+mark_as_advanced(
+BUILD_GMOCK
+BUILD_GTEST
+)
+
 include(FetchContent)
 
 FetchContent_Declare(
   googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG        release-1.8.0
+  GIT_TAG        release-1.10.0
   )
 
 FetchContent_GetProperties(googletest)
@@ -30,6 +35,7 @@ endif()
 file(GLOB TEST_SRC
   UptimeTests/*.cpp
   ChannelTests/*cpp
+  IoTests/*.cpp
   )
 
 file(GLOB DOUBLE_SRC doubles/*.cpp)
@@ -37,6 +43,7 @@ file(GLOB DOUBLE_SRC doubles/*.cpp)
 add_executable(supladevicetests ${TEST_SRC} ${DOUBLE_SRC})
 
 target_link_libraries(supladevicetests
+  gmock
   gtest
   gtest_main
   supladevicelib

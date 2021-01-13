@@ -229,3 +229,42 @@ TEST(ChannelTests, ExtendedChannelMethods) {
   EXPECT_NE(nullptr, extChannel.getExtValue() );
   
 }
+
+TEST(ChannelTests, ChannelValueGetters) {
+  Supla::Channel channel;
+
+  EXPECT_DOUBLE_EQ(channel.getValueDouble(), 0);
+
+  double pi = 3.1415;
+  channel.setNewValue(pi);
+  EXPECT_DOUBLE_EQ(channel.getValueDouble(), pi);
+
+  double e = 2.71828;
+  channel.setNewValue(pi, e);
+  EXPECT_NEAR(channel.getValueDoubleFirst(), pi, 0.001);
+  EXPECT_NEAR(channel.getValueDoubleSecond(), e, 0.001);
+
+  int valueInt = 2021;
+  channel.setNewValue(valueInt);
+  EXPECT_EQ(channel.getValueInt32(), valueInt);
+
+  _supla_int64_t valueInt64 = 202013012021000;
+  channel.setNewValue(valueInt64);
+  EXPECT_EQ(channel.getValueInt64(), valueInt64);
+
+  channel.setNewValue(true);
+  EXPECT_TRUE(channel.getValueBool());
+
+  channel.setNewValue(false);
+  EXPECT_FALSE(channel.getValueBool());
+
+  uint8_t red = 10, green = 20, blue = 30, colorBright = 50, bright = 90;
+  channel.setNewValue(red, green, blue, colorBright, bright);
+  EXPECT_EQ(channel.getValueRed(), red);
+  EXPECT_EQ(channel.getValueGreen(), green);
+  EXPECT_EQ(channel.getValueBlue(), blue);
+  EXPECT_EQ(channel.getValueColorBrightness(), colorBright);
+  EXPECT_EQ(channel.getValueBrightness(), bright);
+  
+
+}

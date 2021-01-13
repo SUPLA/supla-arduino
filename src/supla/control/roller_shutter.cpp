@@ -14,8 +14,9 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "roller_shutter.h"
 #include <supla/storage/storage.h>
+
+#include "roller_shutter.h"
 
 namespace Supla {
 namespace Control {
@@ -53,8 +54,10 @@ RollerShutter::RollerShutter(int pinUp, int pinDown, bool highIsOn)
 }
 
 void RollerShutter::onInit() {
-  Supla::Io::digitalWrite(channel.getChannelNumber(), pinUp, highIsOn ? LOW : HIGH);
-  Supla::Io::digitalWrite(channel.getChannelNumber(), pinDown, highIsOn ? LOW : HIGH);
+  Supla::Io::digitalWrite(
+      channel.getChannelNumber(), pinUp, highIsOn ? LOW : HIGH);
+  Supla::Io::digitalWrite(
+      channel.getChannelNumber(), pinDown, highIsOn ? LOW : HIGH);
   Supla::Io::pinMode(channel.getChannelNumber(), pinUp, OUTPUT);
   Supla::Io::pinMode(channel.getChannelNumber(), pinDown, OUTPUT);
 }
@@ -273,19 +276,23 @@ void RollerShutter::stopMovement() {
 }
 
 void RollerShutter::relayDownOn() {
-  Supla::Io::digitalWrite(channel.getChannelNumber(), pinDown, highIsOn ? HIGH : LOW);
+  Supla::Io::digitalWrite(
+      channel.getChannelNumber(), pinDown, highIsOn ? HIGH : LOW);
 }
 
 void RollerShutter::relayUpOn() {
-  Supla::Io::digitalWrite(channel.getChannelNumber(), pinUp, highIsOn ? HIGH : LOW);
+  Supla::Io::digitalWrite(
+      channel.getChannelNumber(), pinUp, highIsOn ? HIGH : LOW);
 }
 
 void RollerShutter::relayDownOff() {
-  Supla::Io::digitalWrite(channel.getChannelNumber(), pinDown, highIsOn ? LOW : HIGH);
+  Supla::Io::digitalWrite(
+      channel.getChannelNumber(), pinDown, highIsOn ? LOW : HIGH);
 }
 
 void RollerShutter::relayUpOff() {
-  Supla::Io::digitalWrite(channel.getChannelNumber(), pinUp, highIsOn ? LOW : HIGH);
+  Supla::Io::digitalWrite(
+      channel.getChannelNumber(), pinUp, highIsOn ? LOW : HIGH);
 }
 
 void RollerShutter::startClosing() {
@@ -455,10 +462,10 @@ void RollerShutter::onTimer() {
   }
   // if (newCurrentPosition != currentPosition) {
   // currentPosition = newCurrentPosition;
-  channel.setNewValue(
-      currentPosition);  // value set on channel will be send to server
-                         // during iterateConnected() execution
-                         // }
+  channel.setNewValue(static_cast<_supla_int_t>(
+      currentPosition));  // value set on channel will be send to server
+                          // during iterateConnected() execution
+                          // }
 }
 
 Channel *RollerShutter::getChannel() {

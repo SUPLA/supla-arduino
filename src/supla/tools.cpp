@@ -41,3 +41,16 @@ void float2DoublePacked(float number, uint8_t *bar, int byteOrder) {
   }
 #endif
 }
+
+float doublePacked2float(uint8_t *bar) {
+  _FLOATCONV fl;
+  _DBLCONV dbl;
+  for (int i = 0; i < 8; i++) {
+    dbl.b[i] = bar[i]; 
+  }
+  fl.p.s = dbl.p.s;
+  fl.p.m = dbl.p.m;
+  fl.p.e = dbl.p.e + 127 - 1023;  // exponent adjust
+
+  return fl.f;
+}

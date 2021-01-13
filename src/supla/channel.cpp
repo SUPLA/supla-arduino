@@ -31,7 +31,10 @@ Channel::Channel() {
   channelNumber = -1;
   if (reg_dev.channel_count < SUPLA_CHANNELMAXCOUNT) {
     channelNumber = reg_dev.channel_count;
+
+    memset(&reg_dev.channels[channelNumber], 0, sizeof(reg_dev.channels[channelNumber]));
     reg_dev.channels[channelNumber].Number = channelNumber;
+
     reg_dev.channel_count++;
   } else {
 // TODO: add status CHANNEL_LIMIT_EXCEEDED
@@ -58,8 +61,8 @@ void Channel::setNewValue(double dbl) {
 
 void Channel::setNewValue(double temp, double humi) {
   char newValue[SUPLA_CHANNELVALUE_SIZE];
-  long t = temp * 1000.00;
-  long h = humi * 1000.00;
+  _supla_int_t t = temp * 1000.00;
+  _supla_int_t h = humi * 1000.00;
 
   memcpy(newValue, &t, 4);
   memcpy(&(newValue[4]), &h, 4);
@@ -85,12 +88,12 @@ void Channel::setNewValue(_supla_int64_t value) {
   }
 }
 
-void Channel::setNewValue(int value) {
+void Channel::setNewValue(_supla_int_t value) {
   char newValue[SUPLA_CHANNELVALUE_SIZE];
 
   memset(newValue, 0, SUPLA_CHANNELVALUE_SIZE);
 
-  memcpy(newValue, &value, sizeof(int));
+  memcpy(newValue, &value, sizeof(value));
   if (setNewValue(newValue)) {
     supla_log(
         LOG_DEBUG, "Channel(%d) value changed to %d", channelNumber, value);
@@ -244,5 +247,67 @@ _supla_int_t Channel::getChannelType() {
   }
   return -1;
 }
+
+double Channel::getValueDouble() {
+  double value;
+  if (sizeof(double) == 8) {
+    memcpy(&value, reg_dev.channels[channelNumber].value, 8);
+  } else if (sizeof(double) == 4) {
+    value = doublePacked2float((uint8_t *)(reg_dev.channels[channelNumber].value));
+  }
+  
+  return value;
+}
+
+double Channel::getValueDoubleFirst() { 
+  _supla_int_t value;
+  memcpy(&value, reg_dev.channels[channelNumber].value, 4);
+
+  return value / 1000.0;
+}
+
+double Channel::getValueDoubleSecond() {
+  _supla_int_t value;
+  memcpy(&value, &(reg_dev.channels[channelNumber].value[4]), 4);
+
+  return value / 1000.0;
+}
+
+_supla_int_t Channel::getValueInt32() {
+  _supla_int_t value;
+  memcpy(&value, reg_dev.channels[channelNumber].value, sizeof(value));
+  return value;
+}
+ 
+_supla_int64_t Channel::getValueInt64() {
+  _supla_int64_t value;
+  memcpy(&value, reg_dev.channels[channelNumber].value, sizeof(value));
+  return value;
+}
+
+bool Channel::getValueBool() {
+  return reg_dev.channels[channelNumber].value[0];
+}
+
+uint8_t Channel::getValueRed() {
+  return reg_dev.channels[channelNumber].value[4];
+}
+
+uint8_t Channel::getValueGreen() {
+  return reg_dev.channels[channelNumber].value[3];
+}
+
+uint8_t Channel::getValueBlue() {
+  return reg_dev.channels[channelNumber].value[2];
+}
+
+uint8_t Channel::getValueColorBrightness() {
+  return reg_dev.channels[channelNumber].value[1];
+}
+
+uint8_t Channel::getValueBrightness() {
+  return reg_dev.channels[channelNumber].value[0];
+}
+
 
 };  // namespace Supla
