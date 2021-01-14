@@ -66,8 +66,9 @@ class Relay : public Element, public Triggerable {
   void iterateAlways();
   int handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue);
 
- protected:
   Channel *getChannel();
+
+ protected:
   Channel channel;
   int pin;
   bool highIsOn;

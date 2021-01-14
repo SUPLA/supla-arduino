@@ -20,10 +20,10 @@
 #include <Arduino.h>
 #include <stdint.h>
 
+#include "../actions.h"
 #include "../channel.h"
 #include "../element.h"
 #include "../triggerable.h"
-#include "../actions.h"
 
 namespace Supla {
 namespace Control {
@@ -50,15 +50,16 @@ class RGBWBase : public Element, public Triggerable {
   void setFadeEffectTime(int timeMs);
   void onTimer();
 
-void onInit() {
+  void onInit() {
+    // Send to Supla server new values
+    channel.setNewValue(
+        curRed, curGreen, curBlue, curColorBrightness, curBrightness);
+  }
 
-  // Send to Supla server new values
-  channel.setNewValue(
-      curRed, curGreen, curBlue, curColorBrightness, curBrightness);
-}
+  Channel *getChannel();
+
  protected:
   uint8_t addWithLimit(int value, int addition, int limit = 255);
-  Channel *getChannel();
   void iterateDimmerRGBW(int rgbStep, int wStep);
 
   Channel channel;
@@ -74,13 +75,12 @@ void onInit() {
   bool dimIterationDirection;
   int iterationDelayCounter;
   int fadeEffect;
-  int hwRed;                   // 0 - 255
-  int hwGreen;                 // 0 - 255
-  int hwBlue;                  // 0 - 255
-  int hwColorBrightness;       // 0 - 100
-  int hwBrightness;            // 0 - 100
+  int hwRed;              // 0 - 255
+  int hwGreen;            // 0 - 255
+  int hwBlue;             // 0 - 255
+  int hwColorBrightness;  // 0 - 100
+  int hwBrightness;       // 0 - 100
   unsigned long lastTick;
-
 };
 
 };  // namespace Control

@@ -46,6 +46,8 @@ class ImpulseCounter : public Element, public Triggerable {
   // Increment the counter by 1
   void incCounter();
 
+  Channel *getChannel();
+
  protected:
   int prevState;  // Store previous state of pin (LOW/HIGH). It is used to track
                   // changes on pin state.
@@ -61,7 +63,6 @@ class ImpulseCounter : public Element, public Triggerable {
 
   unsigned _supla_int64_t counter;  // Actual count of impulses
 
-  Channel *getChannel();
   Channel channel;
 
 };

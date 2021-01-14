@@ -43,11 +43,11 @@ class Wind: public Element {
     }
   }
 
-
- protected:
   Channel *getChannel() {
     return &channel;
   }
+
+ protected:
   Channel channel;
   unsigned long lastReadTime;
 };

@@ -25,41 +25,12 @@ namespace Supla {
 namespace Sensor {
 class ThermHygroPressMeter : public ThermHygroMeter {
  public:
-  ThermHygroPressMeter() {
-    pressureChannel.setType(SUPLA_CHANNELTYPE_PRESSURESENSOR);
-    pressureChannel.setDefault(SUPLA_CHANNELFNC_PRESSURESENSOR);
-  }
-
-  virtual double getPressure() {
-    return PRESSURE_NOT_AVAILABLE;
-  }
-
-  void iterateAlways() {
-    if (millis() - lastReadTime > 10000) {
-      pressureChannel.setNewValue(getPressure());
-    }
-    ThermHygroMeter::iterateAlways();
-  }
-
-  bool iterateConnected(void *srpc) {
-    bool response = true;
-    if (pressureChannel.isUpdateReady() &&
-        millis() - pressureChannel.lastCommunicationTimeMs > 100) {
-      pressureChannel.lastCommunicationTimeMs = millis();
-      pressureChannel.sendUpdate(srpc);
-      response = false;
-    }
-
-    if (!Element::iterateConnected(srpc)) {
-      response = false;
-    }
-    return response;
-  }
-
-  Element &disableChannelState() {
-    pressureChannel.unsetFlag(SUPLA_CHANNEL_FLAG_CHANNELSTATE);
-    return ThermHygroMeter::disableChannelState();
-  }
+  ThermHygroPressMeter();
+  virtual double getPressure();
+  void iterateAlways();
+  bool iterateConnected(void *srpc);
+  Element &disableChannelState();
+  Channel *getSecondaryChannel();
 
  protected:
   Channel pressureChannel;

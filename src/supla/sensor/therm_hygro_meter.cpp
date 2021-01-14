@@ -14,33 +14,24 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _binary_h
-#define _binary_h
+#include "therm_hygro_meter.h"
 
-#include <Arduino.h>
+Supla::Sensor::ThermHygroMeter::ThermHygroMeter() {
+  channel.setType(SUPLA_CHANNELTYPE_HUMIDITYANDTEMPSENSOR);
+  channel.setDefault(SUPLA_CHANNELFNC_HUMIDITYANDTEMPERATURE);
+}
 
-#include "../channel.h"
-#include "../element.h"
+double Supla::Sensor::ThermHygroMeter::getTemp() {
+  return TEMPERATURE_NOT_AVAILABLE;
+}
 
-namespace Supla {
-namespace Sensor {
-class Binary : public Element {
- public:
-  Binary(int pin, bool pullUp);
-  bool getValue();
-  void iterateAlways();
-  void onInit();
-  Channel *getChannel();
+double Supla::Sensor::ThermHygroMeter::getHumi() {
+  return HUMIDITY_NOT_AVAILABLE;
+}
 
- protected:
-
-  Channel channel;
-  int pin;
-  bool pullUp;
-  unsigned long lastReadTime;
-};
-
-};  // namespace Sensor
-};  // namespace Supla
-
-#endif
+void Supla::Sensor::ThermHygroMeter::iterateAlways() {
+  if (millis() - lastReadTime > 10000) {
+    lastReadTime = millis();
+    channel.setNewValue(getTemp(), getHumi());
+  }
+}

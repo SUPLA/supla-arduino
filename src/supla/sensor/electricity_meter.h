@@ -92,9 +92,9 @@ class ElectricityMeter : public Element {
 
   void setResreshRate(unsigned int sec);
 
- protected:
   Channel *getChannel();
 
+ protected:
   TElectricityMeter_ExtendedValue_V2 emValue;
   ChannelExtended extChannel;
   unsigned _supla_int_t rawCurrent[MAX_PHASES];

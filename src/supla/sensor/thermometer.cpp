@@ -14,33 +14,24 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _binary_h
-#define _binary_h
+#include "thermometer.h"
 
-#include <Arduino.h>
+Supla::Sensor::Thermometer::Thermometer() : lastReadTime(0) {
+  channel.setType(SUPLA_CHANNELTYPE_THERMOMETER);
+  channel.setDefault(SUPLA_CHANNELFNC_THERMOMETER);
+}
 
-#include "../channel.h"
-#include "../element.h"
+double Supla::Sensor::Thermometer::getValue() {
+  return TEMPERATURE_NOT_AVAILABLE;
+}
 
-namespace Supla {
-namespace Sensor {
-class Binary : public Element {
- public:
-  Binary(int pin, bool pullUp);
-  bool getValue();
-  void iterateAlways();
-  void onInit();
-  Channel *getChannel();
+void Supla::Sensor::Thermometer::iterateAlways() {
+  if (lastReadTime + 10000 < millis()) {
+    lastReadTime = millis();
+    channel.setNewValue(getValue());
+  }
+}
 
- protected:
-
-  Channel channel;
-  int pin;
-  bool pullUp;
-  unsigned long lastReadTime;
-};
-
-};  // namespace Sensor
-};  // namespace Supla
-
-#endif
+Supla::Channel *Supla::Sensor::Thermometer::getChannel() {
+  return &channel;
+}
