@@ -14,32 +14,29 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#ifndef _arduino_mock_h
+#define _arduino_mock_h
 
 #include "Arduino.h"
 #include <gmock/gmock.h>
-#include "arduino_mock.h"
 
-SerialStub Serial;
+class DigitalInterface {
+  public:
+    DigitalInterface();
+    virtual ~DigitalInterface();
+    virtual void digitalWrite(uint8_t, uint8_t) = 0;
+    virtual int digitalRead(uint8_t) = 0;
+    virtual void pinMode(uint8_t, uint8_t) = 0;
+    
+    static DigitalInterface *instance;
+};
 
-DigitalInterface::DigitalInterface() {
-  instance = this;
-}
+class DigitalInterfaceMock : public DigitalInterface {
+  public:
+  MOCK_METHOD(void, digitalWrite, (uint8_t, uint8_t), (override));
+  MOCK_METHOD(int, digitalRead, (uint8_t), (override));
+  MOCK_METHOD(void, pinMode, (uint8_t, uint8_t), (override));
 
-DigitalInterface::~DigitalInterface() {
-  instance = nullptr;
-}
+};
 
-DigitalInterface *DigitalInterface::instance = nullptr;
-
-void digitalWrite(uint8_t pin, uint8_t val) {
-  DigitalInterface::instance->digitalWrite(pin, val);
-}
-
-int digitalRead(uint8_t pin) {
-  return DigitalInterface::instance->digitalRead(pin);
-}
-
-void pinMode(uint8_t pin, uint8_t mode) {
-  DigitalInterface::instance->pinMode(pin, mode);
-}
-
+#endif
