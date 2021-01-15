@@ -121,7 +121,7 @@ uint8_t RGBWBase::addWithLimit(int value, int addition, int limit) {
   return value + addition;
 }
 
-void RGBWBase::runAction(int event, int action) {
+void RGBWBase::handleAction(int event, int action) {
   (void)(event);
   switch (action) {
     case TURN_ON: {

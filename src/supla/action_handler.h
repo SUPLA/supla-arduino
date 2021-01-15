@@ -14,13 +14,13 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _triggerable_h
-#define _triggerable_h
+#ifndef _action_handler_h
+#define _action_handler_h
 
 namespace Supla {
-class Triggerable {
+class ActionHandler {
  public:
-  virtual void runAction(int event, int action) = 0;
+  virtual void handleAction(int event, int action) = 0;
 };
 
 };

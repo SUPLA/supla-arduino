@@ -23,11 +23,11 @@
 #include "../actions.h"
 #include "../channel.h"
 #include "../element.h"
-#include "../triggerable.h"
+#include "../action_handler.h"
 
 namespace Supla {
 namespace Control {
-class RGBWBase : public Element, public Triggerable {
+class RGBWBase : public Element, public ActionHandler {
  public:
   RGBWBase();
 
@@ -44,7 +44,7 @@ class RGBWBase : public Element, public Triggerable {
   virtual void turnOn();
   virtual void turnOff();
   virtual void toggle();
-  void runAction(int event, int action);
+  void handleAction(int event, int action);
   void setStep(int step);
   void setDefaultDimmedBrightness(int dimmedBrightness);
   void setFadeEffectTime(int timeMs);

@@ -21,7 +21,7 @@ namespace Supla {
 LocalAction::LocalAction() : registeredClientsCount(0) {
 }
 
-void LocalAction::addAction(int action, Triggerable &client, int event) {
+void LocalAction::addAction(int action, ActionHandler &client, int event) {
   if (registeredClientsCount < MAX_TRIGGERABLE_CLIENTS) {
     clients[registeredClientsCount].client = &client;
     clients[registeredClientsCount].onEvent = event;
@@ -30,14 +30,14 @@ void LocalAction::addAction(int action, Triggerable &client, int event) {
   }
 }
 
-void LocalAction::addAction(int action, Triggerable *client, int event) {
+void LocalAction::addAction(int action, ActionHandler *client, int event) {
   addAction(action, *client, event);
 }
 
 void LocalAction::runAction(int event) {
   for (int i = 0; i < registeredClientsCount; i++) {
     if (clients[i].onEvent == event) {
-      clients[i].client->runAction(event, clients[i].action);
+      clients[i].client->handleAction(event, clients[i].action);
     }
   }
 }

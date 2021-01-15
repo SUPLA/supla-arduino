@@ -123,7 +123,7 @@ void Relay::toggle(_supla_int_t duration) {
   }
 }
 
-void Relay::runAction(int event, int action) {
+void Relay::handleAction(int event, int action) {
   (void)(event);
   switch (action) {
     case TURN_ON: {

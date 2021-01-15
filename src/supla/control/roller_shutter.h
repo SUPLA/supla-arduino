@@ -22,7 +22,7 @@
 #include "../io.h"
 #include "../channel.h"
 #include "../element.h"
-#include "../triggerable.h"
+#include "../action_handler.h"
 #include "../actions.h"
 
 #define UNKNOWN_POSITION    -1
@@ -35,12 +35,12 @@ namespace Control {
 
 enum Directions { STOP_DIR, DOWN_DIR, UP_DIR };
 
-class RollerShutter : public Element, public Triggerable {
+class RollerShutter : public Element, public ActionHandler {
  public:
   RollerShutter(int pinUp, int pinDown, bool highIsOn = true);
 
   int handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue);
-  void runAction(int event, int action);
+  void handleAction(int event, int action);
 
   void close(); // Sets target position to 100%
   void open();  // Sets target position to 0%

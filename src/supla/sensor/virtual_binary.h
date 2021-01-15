@@ -21,18 +21,18 @@
 
 #include "../channel.h"
 #include "../element.h"
-#include "../triggerable.h"
+#include "../action_handler.h"
 #include "../actions.h"
 
 namespace Supla {
 namespace Sensor {
-class VirtualBinary : public Element, public Triggerable {
+class VirtualBinary : public Element, public ActionHandler {
  public:
   VirtualBinary();
   bool getValue();
   void iterateAlways();
   void onInit();
-  void runAction(int event, int action);
+  void handleAction(int event, int action);
   Channel *getChannel();
 
  protected:

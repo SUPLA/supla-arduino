@@ -127,7 +127,7 @@ void RollerShutter::setOpenCloseTime(uint32_t newClosingTimeMs,
   }
 }
 
-void RollerShutter::runAction(int event, int action) {
+void RollerShutter::handleAction(int event, int action) {
   (void)(event);
   switch (action) {
     case CLOSE_OR_STOP: {
