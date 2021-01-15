@@ -18,6 +18,12 @@
 
 #include <supla/channel.h>
 #include <supla/channel_extended.h>
+#include <srpc_mock.h>
+
+using ::testing::_;
+using ::testing::ElementsAreArray;
+using ::testing::Args;
+using ::testing::ElementsAre;
 
 TEST(ChannelTests, ChannelMethods) {
   Supla::Channel first;
@@ -265,6 +271,24 @@ TEST(ChannelTests, ChannelValueGetters) {
   EXPECT_EQ(channel.getValueBlue(), blue);
   EXPECT_EQ(channel.getValueColorBrightness(), colorBright);
   EXPECT_EQ(channel.getValueBrightness(), bright);
-  
+}
 
+TEST(ChannelTests, SendUpdateTest) {
+  Supla::Channel channel;
+  ::testing::InSequence seq;
+  SrpcMock srpc;
+
+  const char emptyArray[SUPLA_CHANNELVALUE_SIZE] = {};
+  char array[SUPLA_CHANNELVALUE_SIZE] = {};
+  array[0] = 1;
+
+  EXPECT_CALL(srpc, valueChanged(nullptr, 0, ElementsAreArray(emptyArray)));
+  EXPECT_CALL(srpc, valueChanged(nullptr, 0, ElementsAreArray(array)));
+
+  EXPECT_FALSE(channel.isUpdateReady());
+  channel.sendUpdate(nullptr);
+  channel.setNewValue(true);
+  EXPECT_TRUE(channel.isUpdateReady());
+  channel.sendUpdate(nullptr);
+  EXPECT_FALSE(channel.isUpdateReady());
 }

@@ -27,6 +27,7 @@ namespace Supla {
 class Element {
  public:
   Element();
+  virtual ~Element();
   static Element *begin();
   static Element *last();
   static Element *getElementByChannelNumber(int channelNumber);

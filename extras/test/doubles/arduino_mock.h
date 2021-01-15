@@ -31,12 +31,27 @@ class DigitalInterface {
     static DigitalInterface *instance;
 };
 
+class TimeInterface {
+  public:
+    TimeInterface();
+    virtual ~TimeInterface();
+    virtual unsigned long millis() = 0;
+    
+    static TimeInterface *instance;
+};
+
+
 class DigitalInterfaceMock : public DigitalInterface {
   public:
   MOCK_METHOD(void, digitalWrite, (uint8_t, uint8_t), (override));
   MOCK_METHOD(int, digitalRead, (uint8_t), (override));
   MOCK_METHOD(void, pinMode, (uint8_t, uint8_t), (override));
 
+};
+
+class TimeInterfaceMock : public TimeInterface {
+  public:
+    MOCK_METHOD(unsigned long, millis, (), (override));
 };
 
 #endif

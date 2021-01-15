@@ -14,47 +14,29 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#include <supla-common/srpc.h>
+#include "srpc_mock.h"
 
-#include "Arduino.h"
-#include <gmock/gmock.h>
-#include "arduino_mock.h"
+_supla_int_t SRPC_ICACHE_FLASH srpc_ds_async_channel_extendedvalue_changed(
+    void *_srpc, unsigned char channel_number,
+    TSuplaChannelExtendedValue *value) {
+  return 0;
+}
+         
+_supla_int_t SRPC_ICACHE_FLASH srpc_ds_async_channel_value_changed(
+    void *_srpc, unsigned char channel_number, char *value) {
+  std::vector<char> vec(value, value + 8);
+  return SrpcInterface::instance->valueChanged(_srpc, channel_number, vec);
+}
 
-SerialStub Serial;
-
-DigitalInterface::DigitalInterface() {
+SrpcInterface::SrpcInterface() {
   instance = this;
 }
 
-DigitalInterface::~DigitalInterface() {
+SrpcInterface::~SrpcInterface() {
   instance = nullptr;
 }
 
-DigitalInterface *DigitalInterface::instance = nullptr;
-
-TimeInterface::TimeInterface() {
-  instance = this;
-}
-
-TimeInterface::~TimeInterface() {
-  instance = nullptr;
-}
-
-TimeInterface *TimeInterface::instance = nullptr;
-
-void digitalWrite(uint8_t pin, uint8_t val) {
-  DigitalInterface::instance->digitalWrite(pin, val);
-}
-
-int digitalRead(uint8_t pin) {
-  return DigitalInterface::instance->digitalRead(pin);
-}
-
-void pinMode(uint8_t pin, uint8_t mode) {
-  DigitalInterface::instance->pinMode(pin, mode);
-}
-
-unsigned long millis() {
-  return TimeInterface::instance->millis();
-}
+SrpcInterface *SrpcInterface::instance = nullptr;
 
 

@@ -14,16 +14,26 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include <supla-common/srpc.h>
+#ifndef _srpc_mock_h
+#define _srpc_mock_h
 
-_supla_int_t SRPC_ICACHE_FLASH srpc_ds_async_channel_extendedvalue_changed(
-    void *_srpc, unsigned char channel_number,
-    TSuplaChannelExtendedValue *value) {
-  return 0;
-}
-         
-_supla_int_t SRPC_ICACHE_FLASH srpc_ds_async_channel_value_changed(
-    void *_srpc, unsigned char channel_number, char *value) {
-  return 0;
-}
+#include <gmock/gmock.h>
+#include <supla-common/proto.h>
+#include <vector>
 
+class SrpcInterface {
+  public:
+    SrpcInterface();
+    virtual ~SrpcInterface();
+
+    virtual _supla_int_t valueChanged(void *srpc, unsigned char channelNumber, std::vector<char> value) = 0;
+    
+    static SrpcInterface *instance;
+};
+
+class SrpcMock : public SrpcInterface {
+  public:
+    MOCK_METHOD(_supla_int_t, valueChanged, (void *, unsigned char, std::vector<char>), (override));
+};
+
+#endif

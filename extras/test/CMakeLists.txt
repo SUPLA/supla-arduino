@@ -36,6 +36,7 @@ file(GLOB TEST_SRC
   UptimeTests/*.cpp
   ChannelTests/*cpp
   IoTests/*.cpp
+  ElementTests/*.cpp
   )
 
 file(GLOB DOUBLE_SRC doubles/*.cpp)

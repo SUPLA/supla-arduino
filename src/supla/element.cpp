@@ -29,6 +29,20 @@ Element::Element() : nextPtr(nullptr) {
   }
 }
 
+Element::~Element() {
+  if (begin() == this) {
+    firstPtr = next();
+    return;
+  }
+
+  auto ptr = begin();
+  while (ptr->next() != this) {
+    ptr = ptr->next();
+  }
+
+  ptr->nextPtr = ptr->next()->next();
+}
+
 Element *Element::begin() {
   return firstPtr;
 }

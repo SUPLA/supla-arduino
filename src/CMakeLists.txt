@@ -4,6 +4,7 @@ set(SRCS
   supla/channel_extended.cpp
   supla/io.cpp
   supla/tools.cpp
+  supla/element.cpp
 )
 
 add_library(supladevicelib SHARED ${SRCS})
