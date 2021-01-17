@@ -26,7 +26,7 @@ double Supla::Sensor::Thermometer::getValue() {
 }
 
 void Supla::Sensor::Thermometer::iterateAlways() {
-  if (lastReadTime + 10000 < millis()) {
+  if (millis() - lastReadTime > 10000) {
     lastReadTime = millis();
     channel.setNewValue(getValue());
   }

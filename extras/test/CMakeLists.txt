@@ -37,6 +37,7 @@ file(GLOB TEST_SRC
   ChannelTests/*cpp
   IoTests/*.cpp
   ElementTests/*.cpp
+  LocalActionTests/*.cpp
   )
 
 file(GLOB DOUBLE_SRC doubles/*.cpp)

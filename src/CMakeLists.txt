@@ -5,6 +5,7 @@ set(SRCS
   supla/io.cpp
   supla/tools.cpp
   supla/element.cpp
+  supla/local_action.cpp
 )
 
 add_library(supladevicelib SHARED ${SRCS})

@@ -24,25 +24,14 @@
 
 namespace Supla {
 
-class ActionHandlerClient {
- public:
-  ActionHandler *client;
-  uint8_t onEvent;
-  uint8_t action;
-};
-
 class LocalAction {
  public:
-  LocalAction();
-
+  virtual ~LocalAction();
   virtual void addAction(int action, ActionHandler &client, int event);
   virtual void addAction(int action, ActionHandler *client, int event);
 
   virtual void runAction(int event);
 
- protected:
-  ActionHandlerClient clients[MAX_TRIGGERABLE_CLIENTS];
-  uint8_t registeredClientsCount;
 };
 
 };  // namespace Supla
