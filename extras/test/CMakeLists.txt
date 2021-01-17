@@ -38,6 +38,7 @@ file(GLOB TEST_SRC
   IoTests/*.cpp
   ElementTests/*.cpp
   LocalActionTests/*.cpp
+  SensorTests/*.cpp
   )
 
 file(GLOB DOUBLE_SRC doubles/*.cpp)

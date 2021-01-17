@@ -14,24 +14,11 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _local_action_h
-#define _local_action_h
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+#include <supla/sensor/thermometer.h>
 
-#include <stdint.h>
-#include "action_handler.h"
+TEST(ThermometerTests, BasicTest) {
+  EXPECT_TRUE(true);
+}
 
-namespace Supla {
-
-class LocalAction {
- public:
-  virtual ~LocalAction();
-  virtual void addAction(int action, ActionHandler &client, int event);
-  virtual void addAction(int action, ActionHandler *client, int event);
-
-  virtual void runAction(int event);
-
-};
-
-};  // namespace Supla
-
-#endif

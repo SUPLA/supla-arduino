@@ -30,6 +30,7 @@
 #include "../io.h"
 #include "../storage/storage.h"
 #include "../action_handler.h"
+#include "../local_action.h"
 
 #define STATE_ON_INIT_RESTORED_OFF -3
 #define STATE_ON_INIT_RESTORED_ON -2
@@ -39,7 +40,7 @@
 
 namespace Supla {
 namespace Control {
-class Relay : public Element, public ActionHandler {
+class Relay : public Element, public ActionHandler, public LocalAction {
  public:
   Relay(int pin,
         bool highIsOn = true,
@@ -65,6 +66,7 @@ class Relay : public Element, public ActionHandler {
   void onSaveState();
   void iterateAlways();
   int handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue);
+  unsigned _supla_int_t getStoredTurnOnDurationMs();
 
   Channel *getChannel();
 

@@ -202,3 +202,7 @@ Relay &Relay::keepTurnOnDuration(bool keep) {
   keepTurnOnDurationMs = keep;
   return *this;
 }
+
+unsigned _supla_int_t Relay::getStoredTurnOnDurationMs() {
+  return storedTurnOnDurationMs;
+}
