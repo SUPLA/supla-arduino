@@ -29,7 +29,7 @@ void Supla::Control::VirtualRelay::onInit() {
   }
 }
 
-void Supla::Control::VirtualRelay::turnOn(_supla_int_t duration = 0) {
+void Supla::Control::VirtualRelay::turnOn(_supla_int_t duration) {
   durationMs = duration;
   durationTimestamp = millis();
   if (keepTurnOnDurationMs) {
@@ -42,7 +42,7 @@ void Supla::Control::VirtualRelay::turnOn(_supla_int_t duration = 0) {
   Supla::Storage::ScheduleSave(5000);
 }
 
-void Supla::Control::VirtualRelay::turnOff(_supla_int_t duration = 0) {
+void Supla::Control::VirtualRelay::turnOff(_supla_int_t duration) {
   durationMs = duration;
   durationTimestamp = millis();
   state = false;
