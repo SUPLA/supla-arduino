@@ -141,10 +141,6 @@ void Relay::handleAction(int event, int action) {
   }
 }
 
-Channel *Relay::getChannel() {
-  return &channel;
-}
-
 void Relay::onSaveState() {
   Supla::Storage::WriteState((unsigned char *)&storedTurnOnDurationMs,
                              sizeof(storedTurnOnDurationMs));

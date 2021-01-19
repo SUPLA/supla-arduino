@@ -25,8 +25,7 @@
 #include <Arduino.h>
 
 #include "../actions.h"
-#include "../channel.h"
-#include "../element.h"
+#include "../channel_element.h"
 #include "../io.h"
 #include "../storage/storage.h"
 #include "../action_handler.h"
@@ -40,7 +39,7 @@
 
 namespace Supla {
 namespace Control {
-class Relay : public Element, public ActionHandler, public LocalAction {
+class Relay : public ChannelElement, public ActionHandler {
  public:
   Relay(int pin,
         bool highIsOn = true,
@@ -68,10 +67,7 @@ class Relay : public Element, public ActionHandler, public LocalAction {
   int handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue);
   unsigned _supla_int_t getStoredTurnOnDurationMs();
 
-  Channel *getChannel();
-
  protected:
-  Channel channel;
   int pin;
   bool highIsOn;
 

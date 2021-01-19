@@ -18,7 +18,17 @@
 
 #include <supla/channel.h>
 #include <supla/channel_extended.h>
+#include <gmock/gmock.h>
 #include <srpc_mock.h>
+#include <supla/events.h>
+#include <supla/actions.h>
+
+
+class ActionHandlerMock : public Supla::ActionHandler {
+ public:
+  MOCK_METHOD(void, handleAction, (int, int), (override));
+};
+
 
 using ::testing::_;
 using ::testing::ElementsAreArray;
@@ -291,4 +301,192 @@ TEST(ChannelTests, SendUpdateTest) {
   EXPECT_TRUE(channel.isUpdateReady());
   channel.sendUpdate(nullptr);
   EXPECT_FALSE(channel.isUpdateReady());
+}
+
+TEST(ChannelTests, BoolChannelWithLocalActions) {
+  Supla::Channel ch1;
+
+  ::testing::InSequence seq;
+  ActionHandlerMock mock1;
+  ActionHandlerMock mock2;
+  SrpcMock srpc;
+
+  int action1 = 11;
+  int action2 = 12;
+  int action3 = 13;
+
+  EXPECT_CALL(mock1, handleAction(Supla::ON_TURN_ON, action1));
+  EXPECT_CALL(mock1, handleAction(Supla::ON_TURN_OFF, action2));
+  EXPECT_CALL(mock1, handleAction(Supla::ON_TURN_ON, action1));
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, action3));
+  EXPECT_CALL(mock2, handleAction).Times(0);
+
+
+  ch1.addAction(action1, mock1, Supla::ON_TURN_ON);
+  ch1.addAction(action2, mock1, Supla::ON_TURN_OFF);
+
+  ch1.setNewValue(true);
+  ch1.setNewValue(false);
+  ch1.setNewValue(false); // nothing should be called on mocks
+  ch1.setNewValue(false); // nothing should be called on mocks
+
+  ch1.addAction(action3, mock1, Supla::ON_CHANGE);
+  ch1.setNewValue(true);
+  ch1.setNewValue(true); // nothing should be called on mocks
+  ch1.setNewValue(true); // nothing should be called on mocks
+
+}
+
+TEST(ChannelTests, Int32ChannelWithLocalActions) {
+  Supla::Channel ch1;
+
+  ::testing::InSequence seq;
+  ActionHandlerMock mock1;
+  ActionHandlerMock mock2;
+  SrpcMock srpc;
+
+  int action1 = 11;
+  int action2 = 12;
+  int action3 = 13;
+
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, action1));
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, action1));
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, action1));
+  EXPECT_CALL(mock2, handleAction).Times(0);
+
+  ch1.addAction(action1, mock1, Supla::ON_CHANGE);
+
+  _supla_int_t value = 15;
+
+  ch1.setNewValue(value);
+  ch1.setNewValue(value);
+
+  value++;
+  ch1.setNewValue(value);
+
+  value++;
+  ch1.setNewValue(value);
+  ch1.setNewValue(value);
+  ch1.setNewValue(value);
+}
+
+TEST(ChannelTests, Int64ChannelWithLocalActions) {
+  Supla::Channel ch1;
+
+  ::testing::InSequence seq;
+  ActionHandlerMock mock1;
+  ActionHandlerMock mock2;
+  SrpcMock srpc;
+
+  int action1 = 11;
+  int action2 = 12;
+  int action3 = 13;
+
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, action1));
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, action1));
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, action1));
+  EXPECT_CALL(mock2, handleAction).Times(0);
+
+  ch1.addAction(action1, mock1, Supla::ON_CHANGE);
+
+  _supla_int64_t value = 15;
+
+  ch1.setNewValue(value);
+  ch1.setNewValue(value);
+
+  value++;
+  ch1.setNewValue(value);
+
+  value++;
+  ch1.setNewValue(value);
+  ch1.setNewValue(value);
+  ch1.setNewValue(value);
+}
+
+TEST(ChannelTests, DoubleChannelWithLocalActions) {
+  Supla::Channel ch1;
+
+  ::testing::InSequence seq;
+  ActionHandlerMock mock1;
+  ActionHandlerMock mock2;
+  SrpcMock srpc;
+
+  int action1 = 11;
+
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, action1));
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, action1));
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, action1));
+  EXPECT_CALL(mock2, handleAction).Times(0);
+
+  ch1.addAction(action1, mock1, Supla::ON_CHANGE);
+
+  double value = 3.1415;
+
+  ch1.setNewValue(value);
+  ch1.setNewValue(value);
+
+  value += 1.2;
+  ch1.setNewValue(value);
+
+  value += 1.2;
+  ch1.setNewValue(value);
+  ch1.setNewValue(value);
+  ch1.setNewValue(value);
+}
+
+TEST(ChannelTests, DoubleFloatChannelWithLocalActions) {
+  Supla::Channel ch1;
+
+  ::testing::InSequence seq;
+  ActionHandlerMock mock1;
+  ActionHandlerMock mock2;
+  SrpcMock srpc;
+
+  int action1 = 11;
+
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, action1));
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, action1));
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, action1));
+  EXPECT_CALL(mock2, handleAction).Times(0);
+
+  ch1.addAction(action1, mock1, Supla::ON_CHANGE);
+
+  float value1 = 3.1415;
+  float value2 = 2.5;
+
+  ch1.setNewValue(value1, value2);
+  ch1.setNewValue(value1, value2);
+
+  value1 += 1.2;
+  ch1.setNewValue(value1, value2);
+
+  value2 += 1.2;
+  ch1.setNewValue(value1, value2);
+  ch1.setNewValue(value1, value2);
+  ch1.setNewValue(value1, value2);
+}
+
+TEST(ChannelTests, RgbwChannelWithLocalActions) {
+  Supla::Channel ch1;
+
+  ::testing::InSequence seq;
+  ActionHandlerMock mock1;
+  ActionHandlerMock mock2;
+  SrpcMock srpc;
+
+  int action1 = 11;
+
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, action1));
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, action1));
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, action1));
+  EXPECT_CALL(mock2, handleAction).Times(0);
+
+  ch1.addAction(action1, mock1, Supla::ON_CHANGE);
+
+  ch1.setNewValue(10, 20, 30, 90, 80);
+  ch1.setNewValue(10, 20, 30, 90, 80);
+
+  ch1.setNewValue(10, 21, 30, 90, 80);
+  ch1.setNewValue(10, 20, 30, 90, 81);
+  ch1.setNewValue(10, 20, 30, 90, 81);
 }
