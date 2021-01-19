@@ -18,13 +18,12 @@
 #define _supla_impulse_counter_h_
 
 #include <supla-common/proto.h>
-#include <supla/channel.h>
-#include <supla/element.h>
+#include <supla/channel_element.h>
 #include <supla/action_handler.h>
 
 namespace Supla {
 namespace Sensor {
-class ImpulseCounter : public Element, public ActionHandler {
+class ImpulseCounter : public ChannelElement, public ActionHandler {
  public:
   ImpulseCounter(int _impulsePin,
                  bool _detectLowToHigh = false,
@@ -46,8 +45,6 @@ class ImpulseCounter : public Element, public ActionHandler {
   // Increment the counter by 1
   void incCounter();
 
-  Channel *getChannel();
-
  protected:
   int prevState;  // Store previous state of pin (LOW/HIGH). It is used to track
                   // changes on pin state.
@@ -62,9 +59,6 @@ class ImpulseCounter : public Element, public ActionHandler {
   bool inputPullup;
 
   unsigned _supla_int64_t counter;  // Actual count of impulses
-
-  Channel channel;
-
 };
 };  // namespace Sensor
 };  // namespace Supla

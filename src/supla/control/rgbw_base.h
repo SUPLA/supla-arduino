@@ -21,13 +21,12 @@
 #include <stdint.h>
 
 #include "../actions.h"
-#include "../channel.h"
-#include "../element.h"
+#include "../channel_element.h"
 #include "../action_handler.h"
 
 namespace Supla {
 namespace Control {
-class RGBWBase : public Element, public ActionHandler {
+class RGBWBase : public ChannelElement, public ActionHandler {
  public:
   RGBWBase();
 
@@ -56,13 +55,10 @@ class RGBWBase : public Element, public ActionHandler {
         curRed, curGreen, curBlue, curColorBrightness, curBrightness);
   }
 
-  Channel *getChannel();
-
  protected:
   uint8_t addWithLimit(int value, int addition, int limit = 255);
   void iterateDimmerRGBW(int rgbStep, int wStep);
 
-  Channel channel;
   uint8_t buttonStep;               // 10
   uint8_t curRed;                   // 0 - 255
   uint8_t curGreen;                 // 0 - 255

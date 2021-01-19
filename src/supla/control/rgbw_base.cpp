@@ -308,10 +308,6 @@ void RGBWBase::iterateDimmerRGBW(int rgbStep, int wStep) {
       addWithLimit(curBrightness, wStep, 100));
 }
 
-Channel *RGBWBase::getChannel() {
-  return &channel;
-}
-
 void RGBWBase::setStep(int step) {
   buttonStep = step;
 }

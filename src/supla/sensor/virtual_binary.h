@@ -19,24 +19,21 @@
 
 #include <Arduino.h>
 
-#include "../channel.h"
-#include "../element.h"
+#include "../channel_element.h"
 #include "../action_handler.h"
 #include "../actions.h"
 
 namespace Supla {
 namespace Sensor {
-class VirtualBinary : public Element, public ActionHandler {
+class VirtualBinary : public ChannelElement, public ActionHandler {
  public:
   VirtualBinary();
   bool getValue();
   void iterateAlways();
   void onInit();
   void handleAction(int event, int action);
-  Channel *getChannel();
 
  protected:
-  Channel channel;
   bool state;
   unsigned long lastReadTime;
 };

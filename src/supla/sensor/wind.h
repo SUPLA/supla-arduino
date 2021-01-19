@@ -17,14 +17,13 @@
 #ifndef _wind_h
 #define _wind_h
 
-#include "supla/channel.h"
-#include "supla/element.h"
+#include "supla/channel_element.h"
 
 #define WIND_NOT_AVAILABLE -1
 
 namespace Supla {
 namespace Sensor {
-class Wind: public Element {
+class Wind: public ChannelElement {
  public:
   Wind() : lastReadTime(0) {
     channel.setType(SUPLA_CHANNELTYPE_WINDSENSOR);
@@ -43,12 +42,7 @@ class Wind: public Element {
     }
   }
 
-  Channel *getChannel() {
-    return &channel;
-  }
-
  protected:
-  Channel channel;
   unsigned long lastReadTime;
 };
 

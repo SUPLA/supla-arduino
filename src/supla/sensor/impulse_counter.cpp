@@ -101,10 +101,6 @@ void ImpulseCounter::onFastTimer() {
   prevState = currentState;
 }
 
-Supla::Channel *ImpulseCounter::getChannel() {
-  return &channel;
-}
-
 void ImpulseCounter::handleAction(int event, int action) {
   (void)(event);
   switch (action) {

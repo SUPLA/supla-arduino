@@ -468,10 +468,6 @@ void RollerShutter::onTimer() {
                           // }
 }
 
-Channel *RollerShutter::getChannel() {
-  return &channel;
-}
-
 void RollerShutter::configComfortUpValue(uint8_t position) {
   comfortUpValue = position;
   if (comfortUpValue > 100) {

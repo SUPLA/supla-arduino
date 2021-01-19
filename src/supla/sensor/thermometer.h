@@ -18,23 +18,19 @@
 #define _thermometer_h
 
 #include <Arduino.h>
-#include "supla/channel.h"
-#include "supla/element.h"
+#include "supla/channel_element.h"
 
 #define TEMPERATURE_NOT_AVAILABLE -275
 
 namespace Supla {
 namespace Sensor {
-class Thermometer : public Element {
+class Thermometer : public ChannelElement {
  public:
   Thermometer();
   virtual double getValue();
   void iterateAlways();
 
-  Channel *getChannel();
-
  protected:
-  Channel channel;
   unsigned long lastReadTime;
 };
 

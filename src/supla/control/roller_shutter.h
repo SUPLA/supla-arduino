@@ -20,8 +20,7 @@
 #include <Arduino.h>
 
 #include "../io.h"
-#include "../channel.h"
-#include "../element.h"
+#include "../channel_element.h"
 #include "../action_handler.h"
 #include "../actions.h"
 
@@ -35,7 +34,7 @@ namespace Control {
 
 enum Directions { STOP_DIR, DOWN_DIR, UP_DIR };
 
-class RollerShutter : public Element, public ActionHandler {
+class RollerShutter : public ChannelElement, public ActionHandler {
  public:
   RollerShutter(int pinUp, int pinDown, bool highIsOn = true);
 
@@ -59,8 +58,6 @@ class RollerShutter : public Element, public ActionHandler {
   void onLoadState();
   void onSaveState();
 
-  Channel *getChannel();
-
  protected:
   virtual void stopMovement();
   virtual void relayDownOn();
@@ -75,8 +72,6 @@ class RollerShutter : public Element, public ActionHandler {
   bool lastDirectionWasOpen();
   bool lastDirectionWasClose();
   bool inMove();
-
-  Channel channel;
 
   uint32_t closingTimeMs;
   uint32_t openingTimeMs;

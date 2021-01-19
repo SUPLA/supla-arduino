@@ -19,22 +19,18 @@
 
 #include <Arduino.h>
 
-#include "../channel.h"
-#include "../element.h"
+#include "../channel_element.h"
 
 namespace Supla {
 namespace Sensor {
-class Binary : public Element {
+class Binary : public ChannelElement {
  public:
   Binary(int pin, bool pullUp);
   bool getValue();
   void iterateAlways();
   void onInit();
-  Channel *getChannel();
 
  protected:
-
-  Channel channel;
   int pin;
   bool pullUp;
   unsigned long lastReadTime;

@@ -56,9 +56,5 @@ void VirtualBinary::handleAction(int event, int action) {
   }
 }
 
-Channel *VirtualBinary::getChannel() {
-  return &channel;
-}
-
 };  // namespace Sensor
 };  // namespace Supla

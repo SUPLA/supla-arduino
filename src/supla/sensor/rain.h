@@ -17,14 +17,13 @@
 #ifndef _rain_h
 #define _rain_h
 
-#include "supla/channel.h"
-#include "supla/element.h"
+#include "supla/channel_element.h"
 
 #define RAIN_NOT_AVAILABLE -1
 
 namespace Supla {
 namespace Sensor {
-class Rain: public Element {
+class Rain: public ChannelElement {
  public:
   Rain() : lastReadTime(0) {
     channel.setType(SUPLA_CHANNELTYPE_RAINSENSOR);
@@ -43,12 +42,7 @@ class Rain: public Element {
     }
   }
 
-  Channel *getChannel() {
-    return &channel;
-  }
-
  protected:
-  Channel channel;
   unsigned long lastReadTime;
 };
 

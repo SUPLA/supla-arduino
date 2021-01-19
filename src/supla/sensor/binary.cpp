@@ -39,7 +39,3 @@ void Supla::Sensor::Binary::onInit() {
       channel.getChannelNumber(), pin, pullUp ? INPUT_PULLUP : INPUT);
   channel.setNewValue(getValue());
 }
-
-Supla::Channel *Supla::Sensor::Binary::getChannel() {
-  return &channel;
-}

@@ -32,6 +32,3 @@ void Supla::Sensor::Thermometer::iterateAlways() {
   }
 }
 
-Supla::Channel *Supla::Sensor::Thermometer::getChannel() {
-  return &channel;
-}
