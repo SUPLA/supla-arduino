@@ -17,6 +17,7 @@
 #include <Arduino.h>
 
 #include "internal_pin_output.h"
+#include "../events.h"
 
 Supla::Control::InternalPinOutput::InternalPinOutput(int pin, bool highIsOn)
     : pin(pin),
@@ -53,12 +54,19 @@ void Supla::Control::InternalPinOutput::turnOn(_supla_int_t duration) {
     durationMs = storedTurnOnDurationMs;
   }
 
+  runAction(Supla::ON_TURN_ON); 
+  runAction(Supla::ON_CHANGE); 
+
   Supla::Io::digitalWrite(pin, pinOnValue());
 }
 
 void Supla::Control::InternalPinOutput::turnOff(_supla_int_t duration) {
   durationMs = duration;
   durationTimestamp = millis();
+
+  runAction(Supla::ON_TURN_OFF); 
+  runAction(Supla::ON_CHANGE); 
+
   Supla::Io::digitalWrite(pin, pinOffValue());
 }
 

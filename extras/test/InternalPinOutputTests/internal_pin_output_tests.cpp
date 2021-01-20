@@ -19,6 +19,8 @@
 
 #include <supla/control/internal_pin_output.h>
 #include <arduino_mock.h>
+#include <supla/events.h>
+#include <supla/actions.h>
 
 using ::testing::Return;
 
@@ -310,6 +312,42 @@ TEST(InternalPinOutputTests, HandleActionTests) {
 
   ipo.iterateAlways();
   ipo.handleAction(0, Supla::TOGGLE);
+  ipo.iterateAlways();
+}
+
+TEST(InternalPinOutputTests, TurnOnWithAction) {
+  const int pin = 5;
+  DigitalInterfaceMock ioMock;
+  TimeInterfaceMock timeMock;
+  ActionHandlerMock ahMock;
+
+
+  ::testing::InSequence seq;
+
+  EXPECT_CALL(timeMock, millis).WillOnce(Return(0));
+  EXPECT_CALL(ahMock, handleAction(Supla::ON_TURN_OFF, Supla::TURN_OFF));
+  EXPECT_CALL(ahMock, handleAction(Supla::ON_CHANGE, 33));
+  EXPECT_CALL(ioMock, digitalWrite(pin, LOW)).Times(1);
+  EXPECT_CALL(ioMock, pinMode(pin, OUTPUT)).Times(1);
+
+  EXPECT_CALL(timeMock, millis).WillOnce(Return(0));
+  EXPECT_CALL(ahMock, handleAction(Supla::ON_TURN_ON, Supla::TURN_ON));
+  EXPECT_CALL(ahMock, handleAction(Supla::ON_CHANGE, 33));
+  EXPECT_CALL(ioMock, digitalWrite(pin, HIGH)).Times(1);
+
+
+  Supla::Control::InternalPinOutput ipo(pin);
+  ipo.addAction(Supla::TURN_ON, ahMock, Supla::ON_TURN_ON);
+  ipo.addAction(Supla::TURN_OFF, ahMock, Supla::ON_TURN_OFF);
+  ipo.addAction(33, ahMock, Supla::ON_CHANGE);
+
+  ipo.onInit();
+
+  ipo.iterateAlways();
+  ipo.iterateAlways();
+
+  ipo.turnOn();
+  ipo.iterateAlways();
   ipo.iterateAlways();
 }
 
