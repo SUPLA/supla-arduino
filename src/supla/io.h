@@ -40,6 +40,7 @@ class Io {
   static Io *ioInstance;
 
   Io();
+  virtual ~Io();
   virtual void customPinMode(int channelNumber, uint8_t pin, uint8_t mode);
   virtual int customDigitalRead(int channelNumber, uint8_t pin);
   virtual void customDigitalWrite(int channelNumber, uint8_t pin, uint8_t val);

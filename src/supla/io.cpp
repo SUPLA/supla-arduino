@@ -66,6 +66,10 @@ Io::Io() {
   ioInstance = this;
 }
 
+Io::~Io() {
+  ioInstance = nullptr;
+}
+
 int Io::customDigitalRead(int channelNumber, uint8_t pin) {
   (void)(channelNumber);
   return ::digitalRead(pin);

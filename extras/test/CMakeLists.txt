@@ -40,6 +40,8 @@ file(GLOB TEST_SRC
   LocalActionTests/*.cpp
   SensorTests/*.cpp
   ChannelElementTests/*.cpp
+  InternalPinOutputTests/*.cpp
+  PinStatusLedTests/*.cpp
   )
 
 file(GLOB DOUBLE_SRC doubles/*.cpp)
