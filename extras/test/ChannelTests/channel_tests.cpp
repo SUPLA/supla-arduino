@@ -17,7 +17,6 @@
 #include <gtest/gtest.h>
 
 #include <supla/channel.h>
-#include <supla/channel_extended.h>
 #include <gmock/gmock.h>
 #include <srpc_mock.h>
 #include <supla/events.h>
@@ -236,14 +235,6 @@ TEST(ChannelTests, SetNewValue) {
   EXPECT_TRUE(0 == memcmp(Supla::Channel::reg_dev.channels[number].value, &expectedValue, sizeof(expectedValue)));
   EXPECT_TRUE(channel.isUpdateReady());
   channel.clearUpdateReady();
-}
-
-TEST(ChannelTests, ExtendedChannelMethods) {
-  Supla::ChannelExtended extChannel;
-
-  EXPECT_TRUE(extChannel.isExtended());
-  EXPECT_NE(nullptr, extChannel.getExtValue() );
-  
 }
 
 TEST(ChannelTests, ChannelValueGetters) {
