@@ -17,6 +17,7 @@
 #include <SuplaDevice.h>
 #include <supla/control/roller_shutter.h>
 #include <supla/control/button.h>
+#include <supla/control/pin_status_led.h>
 
 // Choose where Supla should store roller shutter data in persistant memory
 // We recommend to use external FRAM memory 
@@ -63,6 +64,12 @@ void setup() {
   Supla::Control::RollerShutter *rs = new Supla::Control::RollerShutter(30, 31, false);
   Supla::Control::Button *buttonOpen = new Supla::Control::Button(28, true, true);
   Supla::Control::Button *buttonClose = new Supla::Control::Button(29, true, true);
+
+  // Add two LEDs to inform about roller shutter relay status
+  // If inverted value is required, please add third parameter with true value
+  new Supla::Control::PinStatusLed(30, 24); // pin 30 status to be informed on pin 24
+  new Supla::Control::PinStatusLed(31, 25); // pin 31 status to be informed on pin 25
+  
 
   buttonOpen->addAction(Supla::OPEN_OR_STOP, *rs, Supla::ON_PRESS);
   buttonClose->addAction(Supla::CLOSE_OR_STOP, *rs, Supla::ON_PRESS);
