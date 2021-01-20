@@ -15,7 +15,6 @@
 */
 
 #include <Arduino.h>
-#include <crc16.h>
 #include <supla-common/log.h>
 #include <supla/storage/storage.h>
 #include <supla/actions.h>
