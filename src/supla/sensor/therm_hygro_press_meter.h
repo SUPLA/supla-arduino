@@ -32,6 +32,11 @@ class ThermHygroPressMeter : public ThermHygroMeter {
   Element &disableChannelState();
   Channel *getSecondaryChannel();
 
+  // Override local action methods in order to delegate execution to Channel and
+  // Secondary Channel
+  void addAction(int action, ActionHandler &client, int event);
+  void addAction(int action, ActionHandler *client, int event);
+
  protected:
   Channel pressureChannel;
 };

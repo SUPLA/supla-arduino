@@ -39,7 +39,8 @@ enum Event {
   ON_SEQUENCE_MATCH,        // triggered by SequenceButton 
   ON_SEQUENCE_DOESNT_MATCH,  // triggered by SequenceButton
   ON_TURN_ON,
-  ON_TURN_OFF
+  ON_TURN_OFF,
+  ON_SECONDARY_CHANNEL_CHANGE
 };
 
 };

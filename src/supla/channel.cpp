@@ -57,6 +57,7 @@ void Channel::setNewValue(double dbl) {
   }
   if (setNewValue(newValue)) {
     runAction(ON_CHANGE);
+    runAction(ON_SECONDARY_CHANNEL_CHANGE);
     supla_log(LOG_DEBUG, "Channel(%d) value changed to %f", channelNumber, dbl);
   }
 }
@@ -71,6 +72,7 @@ void Channel::setNewValue(double temp, double humi) {
 
   if (setNewValue(newValue)) {
     runAction(ON_CHANGE);
+    runAction(ON_SECONDARY_CHANNEL_CHANGE);
     supla_log(LOG_DEBUG,
               "Channel(%d) value changed to temp(%f), humi(%f)",
               channelNumber,
@@ -87,6 +89,7 @@ void Channel::setNewValue(_supla_int64_t value) {
   memcpy(newValue, &value, sizeof(_supla_int64_t));
   if (setNewValue(newValue)) {
     runAction(ON_CHANGE);
+    runAction(ON_SECONDARY_CHANNEL_CHANGE);
     supla_log(
         LOG_DEBUG, "Channel(%d) value changed to %d", channelNumber, static_cast<int>(value));
   }
@@ -100,6 +103,7 @@ void Channel::setNewValue(_supla_int_t value) {
   memcpy(newValue, &value, sizeof(value));
   if (setNewValue(newValue)) {
     runAction(ON_CHANGE);
+    runAction(ON_SECONDARY_CHANNEL_CHANGE);
     supla_log(
         LOG_DEBUG, "Channel(%d) value changed to %d", channelNumber, value);
   }
@@ -118,6 +122,7 @@ void Channel::setNewValue(bool value) {
       runAction(Supla::ON_TURN_OFF);
     }
     runAction(Supla::ON_CHANGE);
+    runAction(ON_SECONDARY_CHANNEL_CHANGE);
 
     supla_log(
         LOG_DEBUG, "Channel(%d) value changed to %d", channelNumber, value);
@@ -250,6 +255,7 @@ void Channel::setNewValue(uint8_t red,
   newValue[4] = red;
   if (setNewValue(newValue)) {
     runAction(ON_CHANGE);
+    runAction(ON_SECONDARY_CHANNEL_CHANGE);
     supla_log(LOG_DEBUG, "Channel(%d) value changed to RGB(%d, %d, %d), colBr(%d), bright(%d)", channelNumber, red, green, blue, colorBrightness, brightness);
   }
 }
