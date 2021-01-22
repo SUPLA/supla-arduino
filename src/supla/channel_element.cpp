@@ -15,6 +15,7 @@
 */
 
 #include "channel_element.h"
+#include "events.h"
 
 Supla::Channel *Supla::ChannelElement::getChannel() {
   return &channel;
@@ -28,4 +29,13 @@ void Supla::ChannelElement::addAction(int action, ActionHandler *client, int eve
   addAction(action, *client, event);
 }
 
+void Supla::ChannelElement::addAction(int action, ActionHandler &client, Supla::Condition *condition) {
+  condition->setClient(client);
+  condition->setSource(this);
+  channel.addAction(action, condition, Supla::ON_CHANGE);
+}
+
+void Supla::ChannelElement::addAction(int action, ActionHandler *client, Supla::Condition *condition) {
+  addAction(action, *client, condition);
+}
 

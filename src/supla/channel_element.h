@@ -21,8 +21,11 @@
 #include "channel.h"
 #include "local_action.h"
 #include "action_handler.h"
+#include "condition.h"
 
 namespace Supla {
+
+class Condition;
 
 class ChannelElement : public Element, public LocalAction {
   public:
@@ -32,6 +35,9 @@ class ChannelElement : public Element, public LocalAction {
   // Override local action methods in order to delegate execution to Channel
   void addAction(int action, ActionHandler &client, int event);
   void addAction(int action, ActionHandler *client, int event);
+
+  virtual void addAction(int action, ActionHandler &client, Supla::Condition *condition);
+  virtual void addAction(int action, ActionHandler *client, Supla::Condition *condition);
 
   protected:
     Channel channel;

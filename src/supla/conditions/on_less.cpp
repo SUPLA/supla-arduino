@@ -14,27 +14,31 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _local_action_h
-#define _local_action_h
+#include "../condition.h"
 
-#include <stdint.h>
-#include "action_handler.h"
-
-namespace Supla {
-
-class ActionHandlerClient;
-
-class LocalAction {
+class OnLessCond : public Supla::Condition {
  public:
-  virtual ~LocalAction();
-  virtual void addAction(int action, ActionHandler &client, int event);
-  virtual void addAction(int action, ActionHandler *client, int event);
+  OnLessCond(double threshold, bool useAlternativeMeasurement)
+      : Supla::Condition(threshold, useAlternativeMeasurement), alreadyFired(false) {
+  }
 
-  virtual void runAction(int event);
-
-  static ActionHandlerClient *getClientListPtr();
+  bool checkConditionFor(double val) {
+    if (!alreadyFired && val < threshold) {
+      alreadyFired = true;
+      return true;
+    }
+    if (alreadyFired) {
+      if (val >= threshold) {
+        alreadyFired = false;
+      }
+    } 
+    return false;
+  }
+  bool alreadyFired;
 };
 
-};  // namespace Supla
 
-#endif
+Supla::Condition *OnLess(double threshold, bool useAlternativeMeasurement) {
+  return new OnLessCond(threshold, useAlternativeMeasurement);
+}
+

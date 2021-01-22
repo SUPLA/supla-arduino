@@ -69,6 +69,9 @@ LocalAction::~LocalAction() {
     if (ptr->trigger == this) {
       auto tbdptr = ptr;
       ptr = ptr->next;
+      if (tbdptr->client->deleteClient()) {
+        delete tbdptr->client;
+      }
       delete tbdptr;
     } else {
       ptr = ptr->next;
@@ -96,6 +99,10 @@ void LocalAction::runAction(int event) {
     }
     ptr = ptr->next;
   }
+}
+
+ActionHandlerClient *LocalAction::getClientListPtr() {
+  return ActionHandlerClient::begin;
 }
 
 };  // namespace Supla

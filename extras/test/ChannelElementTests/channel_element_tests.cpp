@@ -20,6 +20,7 @@
 #include <supla/events.h>
 #include <supla/actions.h>
 #include <supla/action_handler.h>
+#include <supla/condition.h>
 
 
 class ActionHandlerMock : public Supla::ActionHandler {
@@ -29,6 +30,7 @@ class ActionHandlerMock : public Supla::ActionHandler {
 
 
 TEST(ChannelElementTests, ActionDelegationToChannel) {
+  ASSERT_EQ(Supla::LocalAction::getClientListPtr(), nullptr);
   Supla::ChannelElement element;
 
   ActionHandlerMock mock1;
@@ -51,4 +53,29 @@ TEST(ChannelElementTests, ActionDelegationToChannel) {
   element.getChannel()->setNewValue(false);
   element.getChannel()->setNewValue(false);
 }
+
+TEST(ChannelElementTests, ActionDelegationToConditions) {
+  ASSERT_EQ(Supla::LocalAction::getClientListPtr(), nullptr);
+
+  ActionHandlerMock mock1;
+  ActionHandlerMock mock2;
+
+  int action1 = 11;
+
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, action1)).Times(1);
+  EXPECT_CALL(mock2, handleAction(Supla::ON_CHANGE, action1)).Times(1);
+
+  Supla::ChannelElement element;
+  auto channel = element.getChannel();
+  channel->setType(SUPLA_CHANNELTYPE_DISTANCESENSOR);
+
+  element.addAction(action1, mock1, OnLess(50));
+  element.addAction(action1, &mock2, OnLess(30));
+
+  channel->setNewValue(60);
+  channel->setNewValue(50);
+  channel->setNewValue(45);
+  channel->setNewValue(25);
+}
+
 

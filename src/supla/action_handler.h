@@ -20,7 +20,11 @@
 namespace Supla {
 class ActionHandler {
  public:
+  virtual ~ActionHandler() {};
   virtual void handleAction(int event, int action) = 0;
+  virtual bool deleteClient() {
+    return false;
+  }
 };
 
 };
