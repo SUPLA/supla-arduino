@@ -16,19 +16,21 @@
 
 #include "../condition.h"
 
-class OnLessCond : public Supla::Condition {
+class OnEqualCond : public Supla::Condition {
  public:
-  OnLessCond(double threshold, bool useAlternativeMeasurement)
+  OnEqualCond(double threshold, bool useAlternativeMeasurement)
       : Supla::Condition(threshold, useAlternativeMeasurement) {
   }
 
   bool condition(double val) {
-    return val < threshold;
+    return val == threshold;
   }
 };
 
 
-Supla::Condition *OnLess(double threshold, bool useAlternativeMeasurement) {
-  return new OnLessCond(threshold, useAlternativeMeasurement);
+Supla::Condition *OnEqual(double threshold, bool useAlternativeMeasurement) {
+  return new OnEqualCond(threshold, useAlternativeMeasurement);
 }
+
+
 

@@ -36,11 +36,13 @@ class Condition : public ActionHandler {
 
   void handleAction(int event, int action);
   bool deleteClient();
-
-  virtual bool checkConditionFor(double val) = 0;
+  virtual bool checkConditionFor(double val);
 
  protected:
+  virtual bool condition(double val) = 0;
+
   double threshold;
+  bool alreadyFired;
   bool useAlternativeMeasurement;
   Supla::ChannelElement *source;
   Supla::ActionHandler *client;
@@ -55,11 +57,6 @@ Supla::Condition *OnGreater(double threshold, bool useAlternativeMeasurement = f
 Supla::Condition *OnGreaterEq(double threshold, bool useAlternativeMeasurement = false);
 Supla::Condition *OnBetween(double threshold1, double threshold2, bool useAlternativeMeasurement = false);
 Supla::Condition *OnBetweenEq(double threshold1, double threshold2, bool useAlternativeMeasurement = false);
-Supla::Condition *WhileLess(double threshold, bool useAlternativeMeasurement = false);
-Supla::Condition *WhileLessEq(double threshold, bool useAlternativeMeasurement = false);
-Supla::Condition *WhileGreater(double threshold, bool useAlternativeMeasurement = false);
-Supla::Condition *WhileGreaterEq(double threshold, bool useAlternativeMeasurement = false);
-Supla::Condition *WhileBetween(double threshold1, double threshold2, bool useAlternativeMeasurement = false);
-Supla::Condition *WhileBetweenEq(double threshold1, double threshold2, bool useAlternativeMeasurement = false);
+Supla::Condition *OnEqual(double threshold, bool useAlternativeMeasurement = false);
 
 #endif

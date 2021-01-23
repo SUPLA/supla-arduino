@@ -34,14 +34,14 @@ using ::testing::ElementsAreArray;
 using ::testing::Args;
 using ::testing::ElementsAre;
 
-TEST(ConditionTests, handleActionTestsForInt32) {
+TEST(ConditionTests, handleActionTestsForDouble) {
   ActionHandlerMock ahMock;
   const int action1 = 15;
   const int action2 = 16;
   const int action3 = 17;
 
-  EXPECT_CALL(ahMock, handleAction(Supla::ON_CHANGE, action1)).Times(5);
-  EXPECT_CALL(ahMock, handleAction(Supla::ON_CHANGE, action3)).Times(5);
+  EXPECT_CALL(ahMock, handleAction(Supla::ON_CHANGE, action1)).Times(4);
+  EXPECT_CALL(ahMock, handleAction(Supla::ON_CHANGE, action3)).Times(4);
 
   Supla::ChannelElement channelElement;
   auto channel = channelElement.getChannel();
@@ -50,99 +50,81 @@ TEST(ConditionTests, handleActionTestsForInt32) {
   cond->setSource(channelElement);
   cond->setClient(ahMock);
 
-  // DISTANCE sensor use int type on channel value
-  channel->setType(SUPLA_CHANNELTYPE_DISTANCESENSOR);
-
-  // channel should be initialized to 0, so condition should be met
-  cond->handleAction(Supla::ON_CHANGE, action1);
-
-  channel->setNewValue(100);
-  
-  // 100 is not less than 15.1, so nothing should happen
-  cond->handleAction(Supla::ON_CHANGE, action2);
-
-  channel->setNewValue(15);
-  // 15 is less than 15.1
-  cond->handleAction(Supla::ON_CHANGE, action3);
-
-  // nothing should happen
-  channel->setNewValue(25);
-  cond->handleAction(Supla::ON_CHANGE, action1);
 
   // DISTANCE sensor use int type on channel value
   channel->setType(SUPLA_CHANNELTYPE_WINDSENSOR);
 
-  channel->setNewValue(0);
+  channel->setNewValue(0.0);
   // channel should be initialized to 0, so condition should be met
   cond->handleAction(Supla::ON_CHANGE, action1);
 
-  channel->setNewValue(100);
+  channel->setNewValue(100.0);
   
   // 100 is not less than 15.1, so nothing should happen
   cond->handleAction(Supla::ON_CHANGE, action2);
 
-  channel->setNewValue(15);
+  channel->setNewValue(15.0);
   // 15 is less than 15.1
   cond->handleAction(Supla::ON_CHANGE, action3);
 
   // nothing should happen
-  channel->setNewValue(25);
+  channel->setNewValue(25.0);
   cond->handleAction(Supla::ON_CHANGE, action1);
 
   // PRESSURE sensor use int type on channel value
   channel->setType(SUPLA_CHANNELTYPE_PRESSURESENSOR);
 
-  channel->setNewValue(0);
+  channel->setNewValue(0.0);
   // channel should be initialized to 0, so condition should be met
   cond->handleAction(Supla::ON_CHANGE, action1);
 
-  channel->setNewValue(100);
+  channel->setNewValue(100.0);
   
   // 100 is not less than 15.1, so nothing should happen
   cond->handleAction(Supla::ON_CHANGE, action2);
 
-  channel->setNewValue(15);
+  channel->setNewValue(15.0);
   // 15 is less than 15.1
   cond->handleAction(Supla::ON_CHANGE, action3);
 
   // nothing should happen
-  channel->setNewValue(25);
+  channel->setNewValue(25.0);
   cond->handleAction(Supla::ON_CHANGE, action1);
 
   // RAIN sensor use int type on channel value
   channel->setType(SUPLA_CHANNELTYPE_RAINSENSOR);
 
-  channel->setNewValue(0);
+  channel->setNewValue(0.0);
   // channel should be initialized to 0, so condition should be met
   cond->handleAction(Supla::ON_CHANGE, action1);
 
-  channel->setNewValue(100);
+  channel->setNewValue(100.0);
   
   // 100 is not less than 15.1, so nothing should happen
   cond->handleAction(Supla::ON_CHANGE, action2);
 
-  channel->setNewValue(15);
+  channel->setNewValue(15.0);
   // 15 is less than 15.1
   cond->handleAction(Supla::ON_CHANGE, action3);
 
   // nothing should happen
-  channel->setNewValue(25);
+  channel->setNewValue(25.0);
   cond->handleAction(Supla::ON_CHANGE, action1);
 
 
   // WEIGHT sensor use int type on channel value
   channel->setType(SUPLA_CHANNELTYPE_WEIGHTSENSOR);
 
-  channel->setNewValue(0);
+  channel->setNewValue(0.0);
   // channel should be initialized to 0, so condition should be met
   cond->handleAction(Supla::ON_CHANGE, action1);
 
-  channel->setNewValue(100);
+  channel->setNewValue(100.0);
   
   // 100 is not less than 15.1, so nothing should happen
   cond->handleAction(Supla::ON_CHANGE, action2);
 
-  channel->setNewValue(15);
+  channel->setNewValue(15.0);
   // 15 is less than 15.1
   cond->handleAction(Supla::ON_CHANGE, action3);
 
@@ -182,7 +164,7 @@ TEST(ConditionTests, handleActionTestsForInt64) {
   cond->handleAction(Supla::ON_CHANGE, action3);
 }
 
-TEST(ConditionTests, handleActionTestsForDouble) {
+TEST(ConditionTests, handleActionTestsForDouble2) {
   ActionHandlerMock ahMock;
   const int action1 = 15;
   const int action2 = 16;
@@ -210,6 +192,22 @@ TEST(ConditionTests, handleActionTestsForDouble) {
 
   channel->setNewValue(15.01);
   cond->handleAction(Supla::ON_CHANGE, action3);
+
+  // DISTANCE sensor use double type on channel value
+  channel->setType(SUPLA_CHANNELTYPE_DISTANCESENSOR);
+
+  channel->setNewValue(100);
+  
+  // 100 is not less than 15.1, so nothing should happen
+  cond->handleAction(Supla::ON_CHANGE, action2);
+
+  channel->setNewValue(15);
+  // 15 is less than 15.1
+  cond->handleAction(Supla::ON_CHANGE, action3);
+
+  // nothing should happen
+  channel->setNewValue(25);
+  cond->handleAction(Supla::ON_CHANGE, action1);
 }
 
 TEST(ConditionTests, handleActionTestsForNotSupportedChannel) {

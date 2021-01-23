@@ -14,21 +14,26 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "../condition.h"
+#include <gtest/gtest.h>
 
-class OnLessCond : public Supla::Condition {
- public:
-  OnLessCond(double threshold, bool useAlternativeMeasurement)
-      : Supla::Condition(threshold, useAlternativeMeasurement) {
-  }
+#include <supla/condition.h>
 
-  bool condition(double val) {
-    return val < threshold;
-  }
-};
+TEST(OnEqualTests, OnEqualConditionTests) {
+  auto cond = OnEqual(3.1415);
 
+  EXPECT_FALSE(cond->checkConditionFor(5));
+  EXPECT_FALSE(cond->checkConditionFor(15));
 
-Supla::Condition *OnLess(double threshold, bool useAlternativeMeasurement) {
-  return new OnLessCond(threshold, useAlternativeMeasurement);
+  EXPECT_TRUE(cond->checkConditionFor(3.1415));
+  EXPECT_FALSE(cond->checkConditionFor(20.001));
+  EXPECT_FALSE(cond->checkConditionFor(25));
+
+  EXPECT_FALSE(cond->checkConditionFor(5));
+  EXPECT_FALSE(cond->checkConditionFor(5));
+  EXPECT_FALSE(cond->checkConditionFor(5));
+
+  EXPECT_FALSE(cond->checkConditionFor(50));
+  EXPECT_TRUE(cond->checkConditionFor(3.1415));
+  EXPECT_FALSE(cond->checkConditionFor(5));
+
 }
-

@@ -11,7 +11,12 @@ set(SRCS
   supla/control/pin_status_led.cpp
   supla/condition.cpp
   supla/conditions/on_less.cpp
-  supla/conditions/while_less.cpp
+  supla/conditions/on_less_eq.cpp
+  supla/conditions/on_greater.cpp
+  supla/conditions/on_greater_eq.cpp
+  supla/conditions/on_between.cpp
+  supla/conditions/on_between_eq.cpp
+  supla/conditions/on_equal.cpp
 )
 
 add_library(supladevicelib SHARED ${SRCS})

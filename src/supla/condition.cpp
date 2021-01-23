@@ -19,7 +19,8 @@
 
 Supla::Condition::Condition(double threshold, bool useAlternativeMeasurement)
     : threshold(threshold),
-      useAlternativeMeasurement(useAlternativeMeasurement) {
+      useAlternativeMeasurement(useAlternativeMeasurement),
+      alreadyFired(false) {
 }
 
 Supla::Condition::~Condition() {
@@ -32,17 +33,15 @@ void Supla::Condition::handleAction(int event, int action) {
     double value = 0;
     switch (channelType) {
       case SUPLA_CHANNELTYPE_DISTANCESENSOR:
+      case SUPLA_CHANNELTYPE_THERMOMETER:
       case SUPLA_CHANNELTYPE_WINDSENSOR:
       case SUPLA_CHANNELTYPE_PRESSURESENSOR:
       case SUPLA_CHANNELTYPE_RAINSENSOR:
       case SUPLA_CHANNELTYPE_WEIGHTSENSOR:
-        value = source->getChannel()->getValueInt32();
+        value = source->getChannel()->getValueDouble();
         break;
       case SUPLA_CHANNELTYPE_IMPULSE_COUNTER:
         value = source->getChannel()->getValueInt64();
-        break;
-      case SUPLA_CHANNELTYPE_THERMOMETER:
-        value = source->getChannel()->getValueDouble();
         break;
       case SUPLA_CHANNELTYPE_HUMIDITYANDTEMPSENSOR:
         value = useAlternativeMeasurement
@@ -63,6 +62,19 @@ bool Supla::Condition::deleteClient() {
   return true;
 }
 
+bool Supla::Condition::checkConditionFor(double val) {
+  if (!alreadyFired && condition(val)) {
+    alreadyFired = true;
+    return true;
+  }
+  if (alreadyFired) {
+    if (!condition(val)) {
+      alreadyFired = false;
+    }
+  }
+  return false;
+}
+
 void Supla::Condition::setSource(Supla::ChannelElement *src) {
   source = src;
 }
@@ -78,4 +90,3 @@ void Supla::Condition::setSource(Supla::ChannelElement &src) {
 void Supla::Condition::setClient(Supla::ActionHandler &clientPtr) {
   setClient(&clientPtr);
 }
-
