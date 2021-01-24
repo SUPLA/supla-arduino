@@ -182,6 +182,11 @@ class DS18B20 : public Thermometer {
     channel.setNewValue(getValue());
   }
 
+
+  DallasTemperature &getHwSensors() {
+    return myBus->sensors;
+  }
+
  protected:
   static OneWireBus *oneWireBus;
   OneWireBus *myBus;
