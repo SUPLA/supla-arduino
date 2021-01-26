@@ -36,23 +36,34 @@ RGBWBase::RGBWBase()
       iterationDelayCounter(0),
       fadeEffect(1000),
       hwRed(0),
-      hwGreen(255),
+      hwGreen(0),
       hwBlue(0),
       hwColorBrightness(0),
       hwBrightness(0),
-      lastTick(0) {
+      lastTick(0),
+      lastMsgReceivedMs(0) {
   channel.setType(SUPLA_CHANNELTYPE_DIMMERANDRGBLED);
   channel.setDefault(SUPLA_CHANNELFNC_DIMMERANDRGBLIGHTING);
 }
 
 
 void RGBWBase::setRGBW(
-    int red, int green, int blue, int colorBrightness, int brightness) {
+    int red, int green, int blue, int colorBrightness, int brightness, bool toggle = false) {
+  if (toggle) {
+    lastMsgReceivedMs = 1;
+  } else { 
+    lastMsgReceivedMs = millis();
+  }
+
   // Store last non 0 brightness for turn on/toggle operations
-  if (colorBrightness > 0) {
+  if (toggle && colorBrightness == 100 && curColorBrightness == 0) {
+    colorBrightness = lastColorBrightness;
+  } else if (colorBrightness > 0) {
     lastColorBrightness = colorBrightness;
   }
-  if (brightness > 0) {
+  if (toggle && brightness == 100 && curBrightness == 0) {
+    brightness = lastBrightness;
+  } else if (brightness > 0) {
     lastBrightness = brightness;
   }
 
@@ -79,19 +90,27 @@ void RGBWBase::setRGBW(
         curRed, curGreen, curBlue, curColorBrightness, curBrightness);
   }
 
-  // Send to Supla server new values
-  channel.setNewValue(
-      curRed, curGreen, curBlue, curColorBrightness, curBrightness);
+}
+
+void RGBWBase::iterateAlways() {
+  if (lastMsgReceivedMs != 0 && millis() - lastMsgReceivedMs > 400) {
+    lastMsgReceivedMs = 0;
+    // Send to Supla server new values
+    channel.setNewValue(
+        curRed, curGreen, curBlue, curColorBrightness, curBrightness);
+  }
+
 }
 
 int RGBWBase::handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue) {
+  uint8_t toggle = static_cast<uint8_t>(newValue->value[5]);
   uint8_t red = static_cast<uint8_t>(newValue->value[4]);
   uint8_t green = static_cast<uint8_t>(newValue->value[3]);
   uint8_t blue = static_cast<uint8_t>(newValue->value[2]);
   uint8_t colorBrightness = static_cast<uint8_t>(newValue->value[1]);
   uint8_t brightness = static_cast<uint8_t>(newValue->value[0]);
 
-  setRGBW(red, green, blue, colorBrightness, brightness);
+  setRGBW(red, green, blue, colorBrightness, brightness, toggle == 1);
 
   return -1;
 }
@@ -418,6 +437,10 @@ void RGBWBase::onTimer() {
       setRGBWValueOnDevice(hwRed, hwGreen, hwBlue, hwColorBrightness, hwBrightness);
     }
   }
+}
+
+void RGBWBase::onInit() {
+    setRGBW(curRed, curGreen, curBlue, curColorBrightness, curBrightness);
 }
 
 };  // namespace Control
