@@ -47,7 +47,7 @@ RGBWBase::RGBWBase()
       hwBrightness(0),
       lastTick(0),
       lastMsgReceivedMs(0),
-      stateOnInit(RGBW_STATE_ON_INIT_OFF) {
+      stateOnInit(RGBW_STATE_ON_INIT_RESTORE) {
   channel.setType(SUPLA_CHANNELTYPE_DIMMERANDRGBLED);
   channel.setDefault(SUPLA_CHANNELFNC_DIMMERANDRGBLIGHTING);
 }

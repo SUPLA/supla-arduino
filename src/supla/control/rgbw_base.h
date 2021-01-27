@@ -51,10 +51,10 @@ class RGBWBase : public ChannelElement, public ActionHandler {
   void setStep(int step);
   void setDefaultDimmedBrightness(int dimmedBrightness);
   void setFadeEffectTime(int timeMs);
-  void onTimer();
-  void iterateAlways();
 
   void onInit();
+  void iterateAlways();
+  void onTimer();
   void onLoadState();
   void onSaveState();
 

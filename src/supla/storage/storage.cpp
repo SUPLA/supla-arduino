@@ -15,6 +15,7 @@
 */
 
 #include <Arduino.h>
+#include <string.h>
 
 #include "storage.h"
 

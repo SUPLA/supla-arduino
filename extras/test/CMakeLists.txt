@@ -43,6 +43,7 @@ file(GLOB TEST_SRC
   InternalPinOutputTests/*.cpp
   PinStatusLedTests/*.cpp
   ConditionTests/*.cpp
+  RgbwDimmerTests/*.cpp
   )
 
 file(GLOB DOUBLE_SRC doubles/*.cpp)
