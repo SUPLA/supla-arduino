@@ -18,12 +18,22 @@
 #include <gtest/gtest.h>
 #include <arduino_mock.h>
 #include <supla/control/rgbw_base.h>
+#include <supla/actions.h>
 
 using ::testing::Return;
 
 class RgbwBaseForTest : public Supla::Control::RGBWBase {
   public:
     MOCK_METHOD(void, setRGBWValueOnDevice, (uint8_t, uint8_t, uint8_t, uint8_t, uint8_t), (override));
+};
+
+class TimeInterfaceStub : public TimeInterface {
+  public:
+    virtual unsigned long millis() override {
+      static unsigned long value = 0;
+      value += 1000;
+      return value;
+    }
 };
 
 TEST(RgbwDimmerTests, InitializationWithDefaultValues) {
@@ -379,6 +389,669 @@ TEST(RgbwDimmerTests, TurnOnOffToggleTests) {
   EXPECT_EQ(ch->getValueBlue(), 0);
   EXPECT_EQ(ch->getValueColorBrightness(), 50);
   EXPECT_EQ(ch->getValueBrightness(), 40);
+}
 
+TEST(RgbwDimmerTests, HandleActionTests) {
+  // time stub will return +1000 ms on each call to millis
+  TimeInterfaceStub time;
+
+  RgbwBaseForTest rgb;
+
+  auto ch = rgb.getChannel();
+
+  rgb.onInit();
+  rgb.iterateAlways();
+
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 0);
+  EXPECT_EQ(ch->getValueBrightness(), 0);
+
+  rgb.handleAction(1, Supla::TURN_ON);
+  // channel values should be changed only after some time passed
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 0);
+  EXPECT_EQ(ch->getValueBrightness(), 0);
+
+  rgb.iterateAlways();
+
+  // a little bit later, values are set to channel
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 100);
+  EXPECT_EQ(ch->getValueBrightness(), 100);
+
+  rgb.handleAction(1, Supla::TURN_OFF);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 0);
+  EXPECT_EQ(ch->getValueBrightness(), 0);
+
+  rgb.handleAction(1, Supla::BRIGHTEN_ALL);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 10);
+  EXPECT_EQ(ch->getValueBrightness(), 10);
+
+  rgb.handleAction(1, Supla::BRIGHTEN_ALL);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 20);
+  EXPECT_EQ(ch->getValueBrightness(), 20);
+
+  rgb.handleAction(1, Supla::TOGGLE);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 0);
+  EXPECT_EQ(ch->getValueBrightness(), 0);
+
+  rgb.handleAction(1, Supla::TOGGLE);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 20);
+  EXPECT_EQ(ch->getValueBrightness(), 20);
+
+  rgb.handleAction(1, Supla::DIM_ALL);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 10);
+  EXPECT_EQ(ch->getValueBrightness(), 10);
+
+  rgb.handleAction(1, Supla::DIM_ALL);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 0);
+  EXPECT_EQ(ch->getValueBrightness(), 0);
+
+  rgb.handleAction(1, Supla::DIM_ALL);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 0);
+  EXPECT_EQ(ch->getValueBrightness(), 0);
+
+  rgb.handleAction(1, Supla::TURN_ON);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 10);
+  EXPECT_EQ(ch->getValueBrightness(), 10);
+
+  for (int i = 0; i < 20; i++) {
+    rgb.handleAction(1, Supla::BRIGHTEN_ALL);
+  };
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 100);
+  EXPECT_EQ(ch->getValueBrightness(), 100);
+
+  rgb.handleAction(1, Supla::BRIGHTEN_R);
+  rgb.handleAction(1, Supla::BRIGHTEN_R);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 20);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 100);
+  EXPECT_EQ(ch->getValueBrightness(), 100);
+
+  rgb.handleAction(1, Supla::DIM_R);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 100);
+  EXPECT_EQ(ch->getValueBrightness(), 100);
+
+  rgb.handleAction(1, Supla::DIM_G);
+  rgb.handleAction(1, Supla::DIM_G);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 235);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 100);
+  EXPECT_EQ(ch->getValueBrightness(), 100);
+
+  rgb.handleAction(1, Supla::BRIGHTEN_G);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 100);
+  EXPECT_EQ(ch->getValueBrightness(), 100);
+
+
+  rgb.handleAction(1, Supla::BRIGHTEN_B);
+  rgb.handleAction(1, Supla::BRIGHTEN_B);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 20);
+  EXPECT_EQ(ch->getValueColorBrightness(), 100);
+  EXPECT_EQ(ch->getValueBrightness(), 100);
+
+  rgb.handleAction(1, Supla::DIM_B);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 100);
+  EXPECT_EQ(ch->getValueBrightness(), 100);
+
+  rgb.handleAction(1, Supla::DIM_W);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 100);
+  EXPECT_EQ(ch->getValueBrightness(), 90);
+
+  rgb.handleAction(1, Supla::DIM_RGB);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 90);
+  EXPECT_EQ(ch->getValueBrightness(), 90);
+
+  rgb.handleAction(1, Supla::BRIGHTEN_W);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 90);
+  EXPECT_EQ(ch->getValueBrightness(), 100);
+
+  rgb.handleAction(1, Supla::BRIGHTEN_RGB);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 100);
+  EXPECT_EQ(ch->getValueBrightness(), 100);
+
+  rgb.handleAction(1, Supla::DIM_ALL);
+  rgb.handleAction(1, Supla::TURN_OFF_RGB);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 0);
+  EXPECT_EQ(ch->getValueBrightness(), 90);
+
+  rgb.handleAction(1, Supla::TURN_ON_RGB);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 90);
+  EXPECT_EQ(ch->getValueBrightness(), 90);
+
+  rgb.handleAction(1, Supla::TURN_OFF_W);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 90);
+  EXPECT_EQ(ch->getValueBrightness(), 0);
+
+  rgb.handleAction(1, Supla::TURN_ON_W);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 90);
+  EXPECT_EQ(ch->getValueBrightness(), 90);
+
+  rgb.handleAction(1, Supla::TOGGLE_RGB);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 0);
+  EXPECT_EQ(ch->getValueBrightness(), 90);
+
+  rgb.handleAction(1, Supla::TOGGLE_RGB);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 90);
+  EXPECT_EQ(ch->getValueBrightness(), 90);
+
+  rgb.handleAction(1, Supla::TOGGLE_W);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 90);
+  EXPECT_EQ(ch->getValueBrightness(), 0);
+
+  rgb.handleAction(1, Supla::TOGGLE_W);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 90);
+  EXPECT_EQ(ch->getValueBrightness(), 90);
+
+  rgb.handleAction(1, Supla::TURN_ON_RGB_DIMMED);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 90);
+  EXPECT_EQ(ch->getValueBrightness(), 90);
+
+  rgb.handleAction(1, Supla::TURN_ON_W_DIMMED);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 90);
+  EXPECT_EQ(ch->getValueBrightness(), 90);
+
+  rgb.handleAction(1, Supla::TURN_ON_ALL_DIMMED);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 90);
+  EXPECT_EQ(ch->getValueBrightness(), 90);
+
+  rgb.handleAction(1, Supla::TURN_OFF);
+  rgb.handleAction(1, Supla::TURN_ON_RGB_DIMMED);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 20);
+  EXPECT_EQ(ch->getValueBrightness(), 0);
+
+  rgb.handleAction(1, Supla::TURN_ON_W_DIMMED);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 20);
+  EXPECT_EQ(ch->getValueBrightness(), 20);
+
+  rgb.handleAction(1, Supla::TURN_OFF);
+  rgb.handleAction(1, Supla::TURN_ON_ALL_DIMMED);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 20);
+  EXPECT_EQ(ch->getValueBrightness(), 20);
+
+  rgb.handleAction(1, Supla::ITERATE_DIM_RGB);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 30);
+  EXPECT_EQ(ch->getValueBrightness(), 20);
+
+  rgb.handleAction(1, Supla::ITERATE_DIM_RGB);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 40);
+  EXPECT_EQ(ch->getValueBrightness(), 20);
+
+  for (int i = 0; i < 6; i++) {
+    rgb.handleAction(1, Supla::ITERATE_DIM_RGB);
+  }
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 100);
+  EXPECT_EQ(ch->getValueBrightness(), 20);
+
+  // after hitting 100%, iterate should stay 4 iterations before it goes down
+  for (int i = 0; i < 4; i++) {
+    rgb.handleAction(1, Supla::ITERATE_DIM_RGB);
+  }
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 100);
+  EXPECT_EQ(ch->getValueBrightness(), 20);
+
+  // next five iterations should change brightness to 50
+  for (int i = 0; i < 5; i++) {
+    rgb.handleAction(1, Supla::ITERATE_DIM_RGB);
+  }
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 50);
+  EXPECT_EQ(ch->getValueBrightness(), 20);
+
+  // next five iterations should change brightness to 0
+  for (int i = 0; i < 4; i++) {
+    rgb.handleAction(1, Supla::ITERATE_DIM_RGB);
+  }
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 10);
+  EXPECT_EQ(ch->getValueBrightness(), 20);
+
+  // next four iterations should keep 0
+  for (int i = 0; i < 4; i++) {
+    rgb.handleAction(1, Supla::ITERATE_DIM_RGB);
+  }
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 10);
+  EXPECT_EQ(ch->getValueBrightness(), 20);
+
+  rgb.handleAction(1, Supla::ITERATE_DIM_RGB);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 20);
+  EXPECT_EQ(ch->getValueBrightness(), 20);
+
+  // turn off
+  rgb.handleAction(1, Supla::TURN_OFF);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 0);
+  EXPECT_EQ(ch->getValueBrightness(), 0);
+
+  // after turn off, it should start from dimmed value
+  rgb.handleAction(1, Supla::ITERATE_DIM_RGB);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 10);
+  EXPECT_EQ(ch->getValueBrightness(), 0);
+
+  rgb.handleAction(1, Supla::ITERATE_DIM_RGB);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 20);
+  EXPECT_EQ(ch->getValueBrightness(), 0);
+
+  rgb.handleAction(1, Supla::ITERATE_DIM_W);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 20);
+  EXPECT_EQ(ch->getValueBrightness(), 10);
+
+  rgb.handleAction(1, Supla::ITERATE_DIM_W);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 20);
+  EXPECT_EQ(ch->getValueBrightness(), 20);
+
+  for (int i = 0; i < 12; i++) {
+    rgb.handleAction(1, Supla::ITERATE_DIM_W);
+  }
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 20);
+  EXPECT_EQ(ch->getValueBrightness(), 100);
+
+  // if we iterate all, colorBrightness is copied to brightness and it operated on both values in sync
+  rgb.handleAction(1, Supla::ITERATE_DIM_ALL);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 30);
+  EXPECT_EQ(ch->getValueBrightness(), 30);
+  
+  rgb.handleAction(1, Supla::ITERATE_DIM_ALL);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 10);
+  EXPECT_EQ(ch->getValueGreen(), 245);
+  EXPECT_EQ(ch->getValueBlue(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 40);
+  EXPECT_EQ(ch->getValueBrightness(), 40);
+}
+
+
+TEST(RgbwDimmerTests, DefaultDimmedValue) {
+  // time stub will return +1000 ms on each call to millis
+  TimeInterfaceStub time;
+
+  RgbwBaseForTest rgb;
+
+  auto ch = rgb.getChannel();
+
+  rgb.onInit();
+  rgb.iterateAlways();
+
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 0);
+  EXPECT_EQ(ch->getValueBrightness(), 0);
+
+  rgb.handleAction(1, Supla::TURN_ON_ALL_DIMMED);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 20);
+  EXPECT_EQ(ch->getValueBrightness(), 20);
+
+  rgb.handleAction(1, Supla::TURN_OFF);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 0);
+  EXPECT_EQ(ch->getValueBrightness(), 0);
+
+  rgb.setDefaultDimmedBrightness(64);
+  rgb.handleAction(1, Supla::TURN_ON_ALL_DIMMED);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 64);
+  EXPECT_EQ(ch->getValueBrightness(), 64);
+}
+
+TEST(RgbwDimmerTests, IterationSteps) {
+  // time stub will return +1000 ms on each call to millis
+  TimeInterfaceStub time;
+
+  RgbwBaseForTest rgb;
+
+  auto ch = rgb.getChannel();
+
+  rgb.onInit();
+  rgb.iterateAlways();
+
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 0);
+  EXPECT_EQ(ch->getValueBrightness(), 0);
+
+  rgb.handleAction(1, Supla::ITERATE_DIM_ALL);
+  rgb.handleAction(1, Supla::ITERATE_DIM_ALL);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 20);
+  EXPECT_EQ(ch->getValueBrightness(), 20);
+
+  rgb.setStep(5);
+  rgb.handleAction(1, Supla::ITERATE_DIM_ALL);
+  rgb.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 255);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 25);
+  EXPECT_EQ(ch->getValueBrightness(), 25);
+}
+
+TEST(RgbwDimmerTests, SetValueOnDeviceWithoutFading) {
+  // time stub will return +1000 ms on each call to millis
+  TimeInterfaceStub time;
+  ::testing::InSequence seq;
+
+  RgbwBaseForTest rgb;
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 0, 0));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 100, 100));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 0, 0));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 0, 20));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 0, 0));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 100, 20));
+
+
+  auto ch = rgb.getChannel();
+
+  // disable fade effect - so value setting on device should happen instantly
+  rgb.setFadeEffectTime(0);
+  rgb.onInit();
+  rgb.turnOn();
+  rgb.toggle();
+  rgb.handleAction(1, Supla::TURN_ON_W_DIMMED);
+  rgb.turnOff();
+  rgb.turnOn();
+
+  // channel value should be still empty, since no time elapsed (no calls to iterateAlways)
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 0);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 0);
+  EXPECT_EQ(ch->getValueBrightness(), 0);
+}
+
+TEST(RgbwDimmerTests, SetValueOnDeviceWithFading) {
+  // time stub will return +1000 ms on each call to millis
+  TimeInterfaceStub time;
+  ::testing::InSequence seq;
+
+  RgbwBaseForTest rgb;
+
+  // fade effect 1000 ms, time step 1000 ms
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 0, 0));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 100, 100));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 0, 0));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 0, 20));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 0, 0));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 100, 20));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 0, 0));
+
+  // fade effect 10000 ms, time step 1000 ms
+  // because turnOn calls millis once, we actually do 2 s step in first shot
+  // that is why (0, 255, 0, 10, 10) is missing
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 20, 20));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 30, 20));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 40, 20));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 50, 20));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 60, 20));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 70, 20));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 80, 20));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 90, 20));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 100, 20));
+
+  // fade effect 10000 ms, time step 1000 ms
+  // because turnOn calls millis once, we actually do 2 s step in first shot
+  // setting rgb values
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(51, 204, 0, 100, 20));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(76, 200, 0, 100, 20));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(100, 200, 0, 100, 20));
+
+  auto ch = rgb.getChannel();
+
+  // time stub gives +1000 ms on each call to millis, and fade time is 1000 ms,
+  // so it should set value on device as it is
+  rgb.onInit();
+  rgb.onTimer();
+  rgb.turnOn();
+  rgb.onTimer();
+  rgb.toggle();
+  rgb.onTimer();
+  rgb.handleAction(1, Supla::TURN_ON_W_DIMMED);
+  rgb.onTimer();
+  rgb.turnOff();
+  rgb.onTimer();
+  rgb.turnOn();
+  rgb.onTimer();
+  rgb.turnOff();
+  rgb.onTimer();
+
+  // change fade effect to 10000 ms, so we'll get 1/10 steps
+  rgb.setFadeEffectTime(10000);
+  rgb.turnOn();
+  rgb.onTimer();
+  rgb.onTimer();
+  rgb.onTimer();
+  rgb.onTimer();
+  rgb.onTimer();
+  rgb.onTimer();
+  rgb.onTimer();
+  rgb.onTimer();
+  rgb.onTimer();
+  rgb.onTimer();
+
+  rgb.setRGBW(100, 200, 0, -1, -1, false);
+  rgb.onTimer();
+  rgb.onTimer();
+  rgb.onTimer();
+  rgb.onTimer();
+  rgb.onTimer();
+  rgb.onTimer();
+  rgb.onTimer();
+  rgb.onTimer();
+  rgb.onTimer();
+  rgb.onTimer();
+
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 0);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 0);
+  EXPECT_EQ(ch->getValueBrightness(), 0);
 
 }
