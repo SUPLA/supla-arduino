@@ -19,6 +19,7 @@
 #include <arduino_mock.h>
 #include <supla/control/rgbw_base.h>
 #include <supla/actions.h>
+#include <supla/storage/storage.h>
 
 using ::testing::Return;
 
@@ -1053,5 +1054,66 @@ TEST(RgbwDimmerTests, SetValueOnDeviceWithFading) {
   EXPECT_EQ(ch->getValueBlue(), 0);
   EXPECT_EQ(ch->getValueColorBrightness(), 0);
   EXPECT_EQ(ch->getValueBrightness(), 0);
+}
+
+class StorageMock: public Supla::Storage {
+ public:
+  MOCK_METHOD(void, scheduleSave, (unsigned long), (override));
+  MOCK_METHOD(void, commit, (), (override));
+  MOCK_METHOD(int, readStorage, (unsigned int, unsigned char *, int, bool), (override));
+  MOCK_METHOD(int, writeStorage, (unsigned int, const unsigned char *, int), (override));
+  MOCK_METHOD(bool, readState, (unsigned char *, int), (override));
+  MOCK_METHOD(bool, writeState, (const unsigned char *, int), (override));
+
+};
+
+using ::testing::_;
+using ::testing::SetArgPointee;
+using ::testing::DoAll;
+using ::testing::Pointee;
+
+TEST(RgbwDimmerTests, RgbwStorageTests) {
+  // time stub will return +1000 ms on each call to millis
+  TimeInterfaceStub time;
+  ::testing::InSequence seq;
+
+  StorageMock storage;
+  RgbwBaseForTest rgb;
+
+  // setRGBW should call scheduleSave on storage once
+  EXPECT_CALL(storage, scheduleSave(5000));
+
+  uint8_t red = 1;
+  uint8_t green = 2;
+  uint8_t blue = 3;
+  uint8_t colorBrightness = 4;
+  uint8_t brightness = 5;
+  uint8_t lastColorBrightness = 6;
+  uint8_t lastBrightness = 7;
+
+  // onLoadState expectations
+  EXPECT_CALL(storage, readState(_, 1))
+     .WillOnce(DoAll(SetArgPointee<0>(red), Return(true)))
+     .WillOnce(DoAll(SetArgPointee<0>(green), Return(true)))
+     .WillOnce(DoAll(SetArgPointee<0>(blue), Return(true)))
+     .WillOnce(DoAll(SetArgPointee<0>(colorBrightness), Return(true)))
+     .WillOnce(DoAll(SetArgPointee<0>(brightness), Return(true)))
+     .WillOnce(DoAll(SetArgPointee<0>(lastColorBrightness), Return(true)))
+     .WillOnce(DoAll(SetArgPointee<0>(lastBrightness), Return(true)))
+     ;
+
+  // onSaveState expectations
+  EXPECT_CALL(storage, writeState(Pointee(red), 1));
+  EXPECT_CALL(storage, writeState(Pointee(green), 1));
+  EXPECT_CALL(storage, writeState(Pointee(blue), 1));
+  EXPECT_CALL(storage, writeState(Pointee(colorBrightness), 1));
+  EXPECT_CALL(storage, writeState(Pointee(brightness), 1));
+  EXPECT_CALL(storage, writeState(Pointee(lastColorBrightness), 1));
+  EXPECT_CALL(storage, writeState(Pointee(lastBrightness), 1));
+
+  rgb.setRGBW(1, 2, 3, 4, 5, false);
+
+  rgb.onLoadState();
+  rgb.onSaveState();
 
 }
