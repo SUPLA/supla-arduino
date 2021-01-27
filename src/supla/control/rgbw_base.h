@@ -55,6 +55,12 @@ class RGBWBase : public ChannelElement, public ActionHandler {
   void iterateAlways();
 
   void onInit();
+  void onLoadState();
+  void onSaveState();
+
+  virtual RGBWBase &setDefaultStateOn();
+  virtual RGBWBase &setDefaultStateOff();
+  virtual RGBWBase &setDefaultStateRestore();
 
  protected:
   uint8_t addWithLimit(int value, int addition, int limit = 255);
@@ -79,6 +85,7 @@ class RGBWBase : public ChannelElement, public ActionHandler {
   int hwBrightness;       // 0 - 100
   unsigned long lastTick;
   unsigned long lastMsgReceivedMs;
+  int8_t stateOnInit;
 };
 
 };  // namespace Control

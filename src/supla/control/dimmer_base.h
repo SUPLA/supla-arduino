@@ -24,11 +24,18 @@ namespace Supla {
 namespace Control {
 class DimmerBase : public RGBWBase {
  public:
-  DimmerBase() {
-    channel.setType(SUPLA_CHANNELTYPE_DIMMER);
-    channel.setDefault(SUPLA_CHANNELFNC_DIMMER);
-  }
+  DimmerBase();
 
+  void setRGBW(int red,
+               int green,
+               int blue,
+               int colorBrightness,
+               int brightness,
+               bool toggle);
+
+  void onLoadState();
+  void onSaveState();
+  
 };
 
 };  // namespace Control

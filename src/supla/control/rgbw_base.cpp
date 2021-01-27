@@ -17,7 +17,12 @@
 #include <Arduino.h>
 #include <stdint.h>
 
+#include "../storage/storage.h"
 #include "rgbw_base.h"
+
+#define RGBW_STATE_ON_INIT_RESTORE -1
+#define RGBW_STATE_ON_INIT_OFF 0
+#define RGBW_STATE_ON_INIT_ON 1
 
 namespace Supla {
 namespace Control {
@@ -41,17 +46,21 @@ RGBWBase::RGBWBase()
       hwColorBrightness(0),
       hwBrightness(0),
       lastTick(0),
-      lastMsgReceivedMs(0) {
+      lastMsgReceivedMs(0),
+      stateOnInit(RGBW_STATE_ON_INIT_OFF) {
   channel.setType(SUPLA_CHANNELTYPE_DIMMERANDRGBLED);
   channel.setDefault(SUPLA_CHANNELFNC_DIMMERANDRGBLIGHTING);
 }
 
-
-void RGBWBase::setRGBW(
-    int red, int green, int blue, int colorBrightness, int brightness, bool toggle = false) {
+void RGBWBase::setRGBW(int red,
+                       int green,
+                       int blue,
+                       int colorBrightness,
+                       int brightness,
+                       bool toggle = false) {
   if (toggle) {
     lastMsgReceivedMs = 1;
-  } else { 
+  } else {
     lastMsgReceivedMs = millis();
   }
 
@@ -90,6 +99,8 @@ void RGBWBase::setRGBW(
         curRed, curGreen, curBlue, curColorBrightness, curBrightness);
   }
 
+  // Schedule save in 5 s after state change
+  Supla::Storage::ScheduleSave(5000);
 }
 
 void RGBWBase::iterateAlways() {
@@ -99,7 +110,6 @@ void RGBWBase::iterateAlways() {
     channel.setNewValue(
         curRed, curGreen, curBlue, curColorBrightness, curBrightness);
   }
-
 }
 
 int RGBWBase::handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue) {
@@ -321,10 +331,10 @@ void RGBWBase::iterateDimmerRGBW(int rgbStep, int wStep) {
   }
 
   setRGBW(-1,
-      -1,
-      -1,
-      addWithLimit(curColorBrightness, rgbStep, 100),
-      addWithLimit(curBrightness, wStep, 100));
+          -1,
+          -1,
+          addWithLimit(curColorBrightness, rgbStep, 100),
+          addWithLimit(curBrightness, wStep, 100));
 }
 
 void RGBWBase::setStep(int step) {
@@ -434,13 +444,73 @@ void RGBWBase::onTimer() {
     }
 
     if (valueChanged) {
-      setRGBWValueOnDevice(hwRed, hwGreen, hwBlue, hwColorBrightness, hwBrightness);
+      setRGBWValueOnDevice(
+          hwRed, hwGreen, hwBlue, hwColorBrightness, hwBrightness);
     }
   }
 }
 
 void RGBWBase::onInit() {
-    setRGBW(curRed, curGreen, curBlue, curColorBrightness, curBrightness);
+  if (stateOnInit == RGBW_STATE_ON_INIT_ON) {
+    curColorBrightness = 100;
+    curBrightness = 100;
+  } else if (stateOnInit == RGBW_STATE_ON_INIT_OFF) {
+    curColorBrightness = 0;
+    curBrightness = 0;
+  }
+
+  setRGBW(curRed, curGreen, curBlue, curColorBrightness, curBrightness);
+}
+
+void RGBWBase::onSaveState() {
+  /*
+  uint8_t curRed;                   // 0 - 255
+  uint8_t curGreen;                 // 0 - 255
+  uint8_t curBlue;                  // 0 - 255
+  uint8_t curColorBrightness;       // 0 - 100
+  uint8_t curBrightness;            // 0 - 100
+  uint8_t lastColorBrightness;      // 0 - 100
+  uint8_t lastBrightness;           // 0 - 100
+  */
+  Supla::Storage::WriteState((unsigned char *)&curRed, sizeof(curRed));
+  Supla::Storage::WriteState((unsigned char *)&curGreen, sizeof(curGreen));
+  Supla::Storage::WriteState((unsigned char *)&curBlue, sizeof(curBlue));
+  Supla::Storage::WriteState((unsigned char *)&curColorBrightness,
+                             sizeof(curColorBrightness));
+  Supla::Storage::WriteState((unsigned char *)&curBrightness,
+                             sizeof(curBrightness));
+  Supla::Storage::WriteState((unsigned char *)&lastColorBrightness,
+                             sizeof(lastColorBrightness));
+  Supla::Storage::WriteState((unsigned char *)&lastBrightness, sizeof(lastBrightness));
+}
+
+void RGBWBase::onLoadState() {
+  Supla::Storage::ReadState((unsigned char *)&curRed, sizeof(curRed));
+  Supla::Storage::ReadState((unsigned char *)&curGreen, sizeof(curGreen));
+  Supla::Storage::ReadState((unsigned char *)&curBlue, sizeof(curBlue));
+  Supla::Storage::ReadState((unsigned char *)&curColorBrightness,
+                             sizeof(curColorBrightness));
+  Supla::Storage::ReadState((unsigned char *)&curBrightness,
+                             sizeof(curBrightness));
+  Supla::Storage::ReadState((unsigned char *)&lastColorBrightness,
+                             sizeof(lastColorBrightness));
+  Supla::Storage::ReadState((unsigned char *)&lastBrightness, sizeof(lastBrightness));
+
+}
+
+RGBWBase &RGBWBase::setDefaultStateOn() {
+  stateOnInit = RGBW_STATE_ON_INIT_ON;
+  return *this;
+}
+
+RGBWBase &RGBWBase::setDefaultStateOff() {
+  stateOnInit = RGBW_STATE_ON_INIT_OFF;
+  return *this;
+}
+
+RGBWBase &RGBWBase::setDefaultStateRestore() {
+  stateOnInit = RGBW_STATE_ON_INIT_RESTORE;
+  return *this;
 }
 
 };  // namespace Control
