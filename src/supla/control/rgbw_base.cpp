@@ -57,7 +57,7 @@ void RGBWBase::setRGBW(int red,
                        int blue,
                        int colorBrightness,
                        int brightness,
-                       bool toggle = false) {
+                       bool toggle) {
   if (toggle) {
     lastMsgReceivedMs = 1;
   } else {

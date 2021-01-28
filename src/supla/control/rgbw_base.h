@@ -41,7 +41,7 @@ class RGBWBase : public ChannelElement, public ActionHandler {
                        int blue,
                        int colorBrightness,
                        int brightness,
-                       bool toggle);
+                       bool toggle = false);
 
   int handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue);
   virtual void turnOn();

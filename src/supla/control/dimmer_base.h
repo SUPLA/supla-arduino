@@ -31,7 +31,7 @@ class DimmerBase : public RGBWBase {
                int blue,
                int colorBrightness,
                int brightness,
-               bool toggle);
+               bool toggle = false);
 
   void onLoadState();
   void onSaveState();

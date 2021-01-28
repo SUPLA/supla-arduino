@@ -13,6 +13,8 @@ set(SRCS
   supla/control/internal_pin_output.cpp
   supla/control/pin_status_led.cpp
   supla/control/rgbw_base.cpp
+  supla/control/rgb_base.cpp
+  supla/control/dimmer_base.cpp
 
   supla/condition.cpp
   supla/conditions/on_less.cpp
