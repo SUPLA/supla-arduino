@@ -28,7 +28,7 @@ namespace Supla {
 namespace Control {
 
 RGBWBase::RGBWBase()
-    : buttonStep(10),
+    : buttonStep(5),
       curRed(0),
       curGreen(255),
       curBlue(0),

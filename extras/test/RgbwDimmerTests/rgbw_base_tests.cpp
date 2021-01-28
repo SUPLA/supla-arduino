@@ -400,6 +400,7 @@ TEST(RgbwDimmerTests, HandleActionTests) {
 
   auto ch = rgb.getChannel();
 
+  rgb.setStep(10);
   rgb.onInit();
   rgb.iterateAlways();
 
@@ -904,6 +905,7 @@ TEST(RgbwDimmerTests, IterationSteps) {
   TimeInterfaceStub time;
 
   RgbwBaseForTest rgb;
+  rgb.setStep(10);
 
   auto ch = rgb.getChannel();
 
