@@ -16,6 +16,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "dimmer_leds.h"
 
+#ifdef ARDUINO_ARCH_ESP32
+extern int esp32PwmChannelCouner;
+#endif
+
 Supla::Control::DimmerLeds::DimmerLeds(int brightnessPin)
     : brightnessPin(brightnessPin) {
 }
@@ -25,14 +29,32 @@ void Supla::Control::DimmerLeds::setRGBWValueOnDevice(uint8_t red,
                                                       uint8_t blue,
                                                       uint8_t colorBrightness,
                                                       uint8_t brightness) {
+#ifdef ARDUINO_ARCH_ESP32
+  ledcWrite(brightnessPin, (brightness * 255) / 100);
+#else
   analogWrite(brightnessPin, (brightness * 255) / 100);
+#endif
 }
 
 void Supla::Control::DimmerLeds::onInit() {
+#ifdef ARDUINO_ARCH_ESP32
+  Serial.print(F("Dimmer: attaching pin "));
+  Serial.print(brightnessPin);
+  Serial.print(F(" to PWM channel: "));
+  Serial.println(esp32PwmChannelCouner);
+
+  ledcSetup(esp32PwmChannelCouner, 12000, 8);
+  ledcAttachPin(brightnessPin, esp32PwmChannelCouner);
+  // on ESP32 we write to PWM channels instead of pins, so we copy channel
+  // number as pin in order to reuse variable
+  brightnessPin = esp32PwmChannelCouner;
+  esp32PwmChannelCouner++;
+#else
   pinMode(brightnessPin, OUTPUT);
 
 #ifdef ARDUINO_ARCH_ESP8266
   analogWriteRange(255);
+#endif
 #endif
 
   Supla::Control::DimmerBase::onInit();
