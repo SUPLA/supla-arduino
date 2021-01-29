@@ -39,6 +39,7 @@ class Storage {
   static void ScheduleSave(unsigned long delayMs);
 
   Storage(unsigned int storageStartingOffset = 0);
+  virtual ~Storage();
 
   // Changes default state save period time
   virtual void setStateSavePeriod(unsigned long periodMs);

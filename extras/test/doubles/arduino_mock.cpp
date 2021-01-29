@@ -41,6 +41,10 @@ TimeInterface::~TimeInterface() {
 
 TimeInterface *TimeInterface::instance = nullptr;
 
+void analogWrite(uint8_t pin, int val) {
+  DigitalInterface::instance->analogWrite(pin, val);
+}
+
 void digitalWrite(uint8_t pin, uint8_t val) {
   DigitalInterface::instance->digitalWrite(pin, val);
 }

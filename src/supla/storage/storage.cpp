@@ -107,6 +107,10 @@ Storage::Storage(unsigned int storageStartingOffset)
   instance = this;
 }
 
+Storage::~Storage() {
+  instance = nullptr;
+}
+
 void Storage::prepareState(bool performDryRun) {
   dryRun = performDryRun;
   newSectionSize = 0;

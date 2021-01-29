@@ -26,6 +26,7 @@ class DigitalInterface {
     virtual ~DigitalInterface();
     virtual void digitalWrite(uint8_t, uint8_t) = 0;
     virtual int digitalRead(uint8_t) = 0;
+    virtual void analogWrite(uint8_t pin, int val) = 0;
     virtual void pinMode(uint8_t, uint8_t) = 0;
     
     static DigitalInterface *instance;
@@ -44,6 +45,7 @@ class TimeInterface {
 class DigitalInterfaceMock : public DigitalInterface {
   public:
   MOCK_METHOD(void, digitalWrite, (uint8_t, uint8_t), (override));
+  MOCK_METHOD(void, analogWrite, (uint8_t, int), (override));
   MOCK_METHOD(int, digitalRead, (uint8_t), (override));
   MOCK_METHOD(void, pinMode, (uint8_t, uint8_t), (override));
 

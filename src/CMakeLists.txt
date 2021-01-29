@@ -15,6 +15,9 @@ set(SRCS
   supla/control/rgbw_base.cpp
   supla/control/rgb_base.cpp
   supla/control/dimmer_base.cpp
+  supla/control/rgbw_leds.cpp
+  supla/control/rgb_leds.cpp
+  supla/control/dimmer_leds.cpp
 
   supla/condition.cpp
   supla/conditions/on_less.cpp
