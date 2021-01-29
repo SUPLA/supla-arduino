@@ -16,6 +16,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <SuplaDevice.h>
 #include <supla/control/rgbw_leds.h>
+#include <supla/control/button.h>
 
 // Choose proper network interface for your card:
 #ifdef ARDUINO_ARCH_AVR
@@ -39,11 +40,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * Youtube example was done on older version of SuplaDevice library
  */
 
-#define RED_PIN              44
-#define GREEN_PIN            45
-#define BLUE_PIN             46
-#define BRIGHTNESS_PIN       7
-#define COLOR_BRIGHTNESS_PIN 8
+#define RED_PIN              4
+#define GREEN_PIN            5
+#define BLUE_PIN             12
+#define BRIGHTNESS_PIN       13
+#define COLOR_BRIGHTNESS_PIN 14
+#define BUTTON_PIN           0
 
 void setup() {
   Serial.begin(115200);
@@ -62,8 +64,16 @@ void setup() {
    */
 
   // CHANNEL0 - RGB controller and dimmer (RGBW)
-  new Supla::Control::RGBWLeds(
+  auto rgbw = new Supla::Control::RGBWLeds(
       RED_PIN, GREEN_PIN, BLUE_PIN, COLOR_BRIGHTNESS_PIN, BRIGHTNESS_PIN);
+
+  auto button = new Supla::Control::Button(BUTTON_PIN, true, true);
+  button->setMulticlickTime(200);
+  button->setHoldTime(400);
+  button->repeatOnHoldEvery(200);
+
+  button->addAction(Supla::ITERATE_DIM_ALL, rgbw, Supla::ON_HOLD);
+  button->addAction(Supla::TOGGLE, rgbw, Supla::ON_CLICK_1);
 
   /*
    * SuplaDevice Initialization.
