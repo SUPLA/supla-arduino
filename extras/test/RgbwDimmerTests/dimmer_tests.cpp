@@ -117,4 +117,57 @@ TEST(DimmerTests, DimmerShouldIgnoreRGBValues) {
 
 }
 
+TEST(DimmerTests, HandleActionTests) {
+  // time stub will return +1000 ms on each call to millis
+  TimeInterfaceStub time;
+
+  DimmerBaseForTest dimmer;
+
+  auto ch = dimmer.getChannel();
+
+  dimmer.setStep(10);
+  dimmer.onInit();
+  dimmer.iterateAlways();
+
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 0);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 0);
+  EXPECT_EQ(ch->getValueBrightness(), 0);
+
+  dimmer.handleAction(1, Supla::ITERATE_DIM_ALL);
+  dimmer.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 0);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 0);
+  EXPECT_EQ(ch->getValueBrightness(), 10);
+  
+  dimmer.handleAction(1, Supla::ITERATE_DIM_ALL);
+  dimmer.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 0);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 0);
+  EXPECT_EQ(ch->getValueBrightness(), 20);
+
+  dimmer.handleAction(1, Supla::ITERATE_DIM_ALL);
+  dimmer.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 0);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 0);
+  EXPECT_EQ(ch->getValueBrightness(), 30);
+
+  dimmer.handleAction(1, Supla::ITERATE_DIM_ALL);
+  dimmer.iterateAlways();
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 0);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 0);
+  EXPECT_EQ(ch->getValueBrightness(), 40);
+
+  
+}
+
 

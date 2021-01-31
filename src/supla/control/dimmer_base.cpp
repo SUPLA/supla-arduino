@@ -42,3 +42,7 @@ void Supla::Control::DimmerBase::onSaveState() {
                              sizeof(curBrightness));
   Supla::Storage::WriteState((unsigned char *)&lastBrightness, sizeof(lastBrightness));
 }
+
+void Supla::Control::DimmerBase::iterateDimmerRGBW(int rgbStep, int wStep) {
+  Supla::Control::RGBWBase::iterateDimmerRGBW(0, wStep);
+}
