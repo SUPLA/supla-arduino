@@ -44,7 +44,7 @@ RGBWBase::RGBWBase()
       defaultDimmedBrightness(20),
       dimIterationDirection(false),
       iterationDelayCounter(0),
-      fadeEffect(1000),
+      fadeEffect(500),
       hwRed(0),
       hwGreen(0),
       hwBlue(0),
