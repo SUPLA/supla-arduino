@@ -15,6 +15,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "rgbw_leds.h"
+#include <Arduino.h>
 
 #ifdef ARDUINO_ARCH_ESP32
 extern int esp32PwmChannelCouner;
@@ -23,12 +24,10 @@ extern int esp32PwmChannelCouner;
 Supla::Control::RGBWLeds::RGBWLeds(int redPin,
                                    int greenPin,
                                    int bluePin,
-                                   int colorBrightnessPin,
                                    int brightnessPin)
     : redPin(redPin),
       greenPin(greenPin),
       bluePin(bluePin),
-      colorBrightnessPin(colorBrightnessPin),
       brightnessPin(brightnessPin) {
 }
 
@@ -37,18 +36,28 @@ void Supla::Control::RGBWLeds::setRGBWValueOnDevice(uint8_t red,
                           uint8_t blue,
                           uint8_t colorBrightness,
                           uint8_t brightness) {
+  int multiplier = 1;
+#ifdef ARDUINO_ARCH_ESP8266
+  multiplier = 4;
+#endif
 #ifdef ARDUINO_ARCH_ESP32
-  ledcWrite(redPin, red);
-  ledcWrite(greenPin, green);
-  ledcWrite(bluePin, blue);
-  ledcWrite(colorBrightnessPin, (colorBrightness * 255) / 100);
-  ledcWrite(brightnessPin, (brightness * 255) / 100);
+  multiplier = 4;
+#endif
+
+  int redAdj = red * multiplier * colorBrightness / 100;
+  int greenAdj = green* multiplier * colorBrightness / 100;
+  int blueAdj = blue * multiplier * colorBrightness / 100;
+  int brightnessAdj = brightness * multiplier * 255 / 100;
+#ifdef ARDUINO_ARCH_ESP32
+  ledcWrite(redPin, redAdj);
+  ledcWrite(greenPin, greenAdj);
+  ledcWrite(bluePin, blueAdj);
+  ledcWrite(brightnessPin, brightnessAdj);
 #else
-  analogWrite(redPin, red);
-  analogWrite(greenPin, green);
-  analogWrite(bluePin, blue);
-  analogWrite(brightnessPin, (brightness * 255) / 100);
-  analogWrite(colorBrightnessPin, (colorBrightness * 255) / 100);
+  analogWrite(redPin, redAdj);
+  analogWrite(greenPin, greenAdj);
+  analogWrite(bluePin, blueAdj);
+  analogWrite(brightnessPin, brightnessAdj);
 #endif
 }
 
@@ -59,29 +68,24 @@ void Supla::Control::RGBWLeds::onInit() {
   Serial.print(F(" to PWM channel: "));
   Serial.println(esp32PwmChannelCouner);
 
-  ledcSetup(esp32PwmChannelCouner, 12000, 8);
+  ledcSetup(esp32PwmChannelCouner, 12000, 10);
   ledcAttachPin(redPin, esp32PwmChannelCouner);
   // on ESP32 we write to PWM channels instead of pins, so we copy channel
   // number as pin in order to reuse variable
   redPin = esp32PwmChannelCouner;
   esp32PwmChannelCouner++;
 
-  ledcSetup(esp32PwmChannelCouner, 12000, 8);
+  ledcSetup(esp32PwmChannelCouner, 12000, 10);
   ledcAttachPin(greenPin, esp32PwmChannelCouner);
   greenPin = esp32PwmChannelCouner;
   esp32PwmChannelCouner++;
 
-  ledcSetup(esp32PwmChannelCouner, 12000, 8);
+  ledcSetup(esp32PwmChannelCouner, 12000, 10);
   ledcAttachPin(bluePin, esp32PwmChannelCouner);
   bluePin = esp32PwmChannelCouner;
   esp32PwmChannelCouner++;
 
-  ledcSetup(esp32PwmChannelCouner, 12000, 8);
-  ledcAttachPin(colorBrightnessPin, esp32PwmChannelCouner);
-  colorBrightnessPin = esp32PwmChannelCouner;
-  esp32PwmChannelCouner++;
-
-  ledcSetup(esp32PwmChannelCouner, 12000, 8);
+  ledcSetup(esp32PwmChannelCouner, 12000, 10);
   ledcAttachPin(brightnessPin, esp32PwmChannelCouner);
   brightnessPin = esp32PwmChannelCouner;
   esp32PwmChannelCouner++;
@@ -90,11 +94,10 @@ void Supla::Control::RGBWLeds::onInit() {
   pinMode(redPin, OUTPUT); 
   pinMode(greenPin, OUTPUT); 
   pinMode(bluePin, OUTPUT); 
-  pinMode(colorBrightnessPin, OUTPUT); 
   pinMode(brightnessPin, OUTPUT); 
 
  #ifdef ARDUINO_ARCH_ESP8266
-  analogWriteRange(255);
+  analogWriteRange(1024);
  #endif 
 #endif
 

@@ -26,7 +26,6 @@ class RGBWLeds : public RGBWBase {
   RGBWLeds(int redPin,
            int greenPin,
            int bluePin,
-           int colorBrightnessPin,
            int brightnessPin);
 
   void setRGBWValueOnDevice(uint8_t red,
@@ -42,7 +41,6 @@ class RGBWLeds : public RGBWBase {
   int greenPin;
   int bluePin;
   int brightnessPin;
-  int colorBrightnessPin;
 };
 
 };  // namespace Control

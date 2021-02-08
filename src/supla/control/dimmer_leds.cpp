@@ -29,10 +29,19 @@ void Supla::Control::DimmerLeds::setRGBWValueOnDevice(uint8_t red,
                                                       uint8_t blue,
                                                       uint8_t colorBrightness,
                                                       uint8_t brightness) {
+  int multiplier = 1;
+#ifdef ARDUINO_ARCH_ESP8266
+  multiplier = 4;
+#endif
 #ifdef ARDUINO_ARCH_ESP32
-  ledcWrite(brightnessPin, (brightness * 255) / 100);
+  multiplier = 4;
+#endif
+
+  int brightnessAdj = brightness * multiplier * 255 / 100;
+#ifdef ARDUINO_ARCH_ESP32
+  ledcWrite(brightnessPin, brightnessAdj);
 #else
-  analogWrite(brightnessPin, (brightness * 255) / 100);
+  analogWrite(brightnessPin, brightnessAdj);
 #endif
 }
 
@@ -43,7 +52,7 @@ void Supla::Control::DimmerLeds::onInit() {
   Serial.print(F(" to PWM channel: "));
   Serial.println(esp32PwmChannelCouner);
 
-  ledcSetup(esp32PwmChannelCouner, 12000, 8);
+  ledcSetup(esp32PwmChannelCouner, 12000, 10);
   ledcAttachPin(brightnessPin, esp32PwmChannelCouner);
   // on ESP32 we write to PWM channels instead of pins, so we copy channel
   // number as pin in order to reuse variable
@@ -53,7 +62,7 @@ void Supla::Control::DimmerLeds::onInit() {
   pinMode(brightnessPin, OUTPUT);
 
 #ifdef ARDUINO_ARCH_ESP8266
-  analogWriteRange(255);
+  analogWriteRange(1024);
 #endif
 #endif
 

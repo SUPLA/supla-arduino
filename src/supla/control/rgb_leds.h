@@ -23,7 +23,7 @@ namespace Supla {
 namespace Control {
 class RGBLeds : public RGBBase {
  public:
-  RGBLeds(int redPin, int greenPin, int bluePin, int colorBrightnessPin);
+  RGBLeds(int redPin, int greenPin, int bluePin);
 
   void setRGBWValueOnDevice(uint8_t red,
                             uint8_t green,
@@ -37,7 +37,6 @@ class RGBLeds : public RGBBase {
   int redPin;
   int greenPin;
   int bluePin;
-  int colorBrightnessPin;
 };
 
 };  // namespace Control

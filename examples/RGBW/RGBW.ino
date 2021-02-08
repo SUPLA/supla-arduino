@@ -44,7 +44,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define GREEN_PIN            5
 #define BLUE_PIN             12
 #define BRIGHTNESS_PIN       13
-#define COLOR_BRIGHTNESS_PIN 14
 #define BUTTON_PIN           0
 
 void setup() {
@@ -65,7 +64,7 @@ void setup() {
 
   // CHANNEL0 - RGB controller and dimmer (RGBW)
   auto rgbw = new Supla::Control::RGBWLeds(
-      RED_PIN, GREEN_PIN, BLUE_PIN, COLOR_BRIGHTNESS_PIN, BRIGHTNESS_PIN);
+      RED_PIN, GREEN_PIN, BLUE_PIN, BRIGHTNESS_PIN);
 
   auto button = new Supla::Control::Button(BUTTON_PIN, true, true);
   button->setMulticlickTime(200);
