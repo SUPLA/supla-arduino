@@ -19,11 +19,10 @@
 namespace Supla {
 namespace Sensor {
 MAX6675_K::MAX6675_K(uint8_t pin_CLK, uint8_t pin_CS, uint8_t pin_DO)
-    : pin_CLK(pin_CLK), pin_CS(pin_CS), pin_DO(pin_DO) {
-}
+    : pin_CLK(pin_CLK), pin_CS(pin_CS), pin_DO(pin_DO) {}
 
 double MAX6675_K::getValue() {
-  uint16_t value;
+  uint32_t value;
 
   digitalWrite(pin_CS, LOW);
   delay(1);
@@ -31,16 +30,39 @@ double MAX6675_K::getValue() {
   value = spiRead();
   value <<= 8;
   value |= spiRead();
+  value <<= 8;
+  value |= spiRead();
+  value <<= 8;
+  value |= spiRead();
 
   digitalWrite(pin_CS, HIGH);
 
-  if (value & 0x4) {  // this means there is no probe connected to Max6675
-    Serial.print(F("no probe connected to Max6675"));
-    return TEMPERATURE_NOT_AVAILABLE;
-  }
-  value >>= 3;
+  if ((value >> 16) == (value & 0xffff)) { // MAX6675
+    value >>= 16;
 
-  return value * 0.25;
+    if (value & 0x4) { // this means there is no probe connected to Max6675
+      Serial.print(F("no probe connected to Max6675"));
+      return TEMPERATURE_NOT_AVAILABLE;
+    }
+    value >>= 3;
+
+    return (double)value * 0.25;
+
+  } else { // MAX31655
+
+    if (value & 0x7) {
+      Serial.print(F("Max31855 Error"));
+      return TEMPERATURE_NOT_AVAILABLE;
+    } else {
+
+      value >>= 18;
+      if (value & 0x2000) { // is -
+        value |= 0xffffc000;
+      }
+
+      return (double)value * 0.25;
+    }
+  }
 }
 
 void MAX6675_K::onInit() {
@@ -70,5 +92,5 @@ byte MAX6675_K::spiRead() {
   return d;
 }
 
-};  // namespace Sensor
-};  // namespace Supla
+}; // namespace Sensor
+}; // namespace Supla
