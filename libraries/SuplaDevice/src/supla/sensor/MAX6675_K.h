@@ -29,7 +29,7 @@ class MAX6675_K : public Thermometer {
 
  private:
   void onInit();
-  byte spiRead();
+  uint32_t spiRead();
 
  protected:
   int8_t pin_CLK;
