@@ -23,7 +23,7 @@ MAX6675_K::MAX6675_K(uint8_t pin_CLK, uint8_t pin_CS, uint8_t pin_DO)
 }
 
 double MAX6675_K::getValue() {
-  uint32_t value;
+  int32_t value;
 
   digitalWrite(pin_CS, LOW);
   delay(1);
