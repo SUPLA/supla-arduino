@@ -78,10 +78,7 @@ uint32_t MAX6675_K::spiRead() {
     digitalWrite(pin_CLK, LOW);
     delay(1);
     d <<= 1;
-    if (digitalRead(pin_DO)) {
-      d |= 1;
-    }
-
+    d |= digitalRead(pin_DO);
     digitalWrite(pin_CLK, HIGH);
     delay(1);
   }
