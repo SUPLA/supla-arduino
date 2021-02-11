@@ -60,18 +60,32 @@ TEST(SimpleButtonTests, PullupInitAndPress) {
   EXPECT_CALL(ioMock, pinMode(5, INPUT_PULLUP));
   EXPECT_CALL(ioMock, digitalRead(5))
     .WillOnce(Return(1))
-    .WillOnce(Return(0))
-    .WillOnce(Return(0))
+    .WillOnce(Return(0)) // time 1000 - first read
+    .WillOnce(Return(0)) // second read, should be ignored
+    .WillOnce(Return(0)) // third read, should trigger on_press
+    .WillOnce(Return(0)) // time 1090 
+    .WillOnce(Return(1)) // time 1100 
+    .WillOnce(Return(1)) // time 1110 
+    .WillOnce(Return(1)) // time 1150 
     ;
 
   EXPECT_CALL(time, millis)
-    .WillOnce(Return(1000))
-    .WillOnce(Return(1100))
+    .WillOnce(Return(1000)) // first read
+    .WillOnce(Return(1010)) // should be ignored by filtering time
+    .WillOnce(Return(1030)) // should trigger on press
+    .WillOnce(Return(1040)) // 
+    .WillOnce(Return(1050)) // 
+    .WillOnce(Return(1060)) // 
+    .WillOnce(Return(1090)) // 
+    .WillOnce(Return(1100)) // 
+    .WillOnce(Return(1110)) // 
+    .WillOnce(Return(1150)) // 
     ;
 
 
   EXPECT_CALL(mock1, handleAction(Supla::ON_PRESS, 1)).Times(1);
-  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, 2)).Times(1);
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, 2)).Times(2);
+  EXPECT_CALL(mock1, handleAction(Supla::ON_RELEASE, 3)).Times(1);
 
   Supla::Control::SimpleButton button(5, true, true);
   button.onInit();
@@ -79,6 +93,100 @@ TEST(SimpleButtonTests, PullupInitAndPress) {
   button.addAction(2, mock1, Supla::ON_CHANGE);
   button.addAction(3, mock1, Supla::ON_RELEASE);
 
+  button.onTimer();
+  button.onTimer();
+  button.onTimer();
+  button.onTimer();
+  button.onTimer();
+  button.onTimer();
+  button.onTimer();
+  button.onTimer();
+  button.onTimer();
+  button.onTimer();
+
+}
+
+TEST(SimpleButtonTests, PullupInitAndPressWithoutNoiseFilter) {
+  TimeInterfaceMock time;
+  DigitalInterfaceMock ioMock;
+  ActionHandlerMock mock1;
+
+  EXPECT_CALL(ioMock, pinMode(5, INPUT_PULLUP));
+  EXPECT_CALL(ioMock, digitalRead(5))
+    .WillOnce(Return(1))
+    .WillOnce(Return(0))
+    .WillOnce(Return(0))
+    .WillOnce(Return(0))
+    .WillOnce(Return(1))
+    ;
+
+  EXPECT_CALL(time, millis)
+    .WillOnce(Return(1000))
+    .WillOnce(Return(1010))
+    .WillOnce(Return(1100))
+    .WillOnce(Return(1200))
+    .WillOnce(Return(1300))
+    ;
+
+
+  EXPECT_CALL(mock1, handleAction(Supla::ON_PRESS, 1)).Times(1);
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, 2)).Times(2);
+  EXPECT_CALL(mock1, handleAction(Supla::ON_RELEASE, 3)).Times(1);
+
+  Supla::Control::SimpleButton button(5, true, true);
+  button.setSwNoiseFilterDelay(0);
+  button.onInit();
+  button.addAction(1, mock1, Supla::ON_PRESS);
+  button.addAction(2, mock1, Supla::ON_CHANGE);
+  button.addAction(3, mock1, Supla::ON_RELEASE);
+
+  button.onTimer();
+  button.onTimer();
+  button.onTimer();
+  button.onTimer();
+  button.onTimer();
+
+}
+
+TEST(SimpleButtonTests, PullupInitAndPressWithoutDebounce) {
+  TimeInterfaceMock time;
+  DigitalInterfaceMock ioMock;
+  ActionHandlerMock mock1;
+
+  EXPECT_CALL(ioMock, pinMode(5, INPUT_PULLUP));
+  EXPECT_CALL(ioMock, digitalRead(5))
+    .WillOnce(Return(1))
+    
+    .WillOnce(Return(0))
+    .WillOnce(Return(0))
+    .WillOnce(Return(0))
+    .WillOnce(Return(1))
+    .WillOnce(Return(1))
+    ;
+
+  EXPECT_CALL(time, millis)
+    .WillOnce(Return(1000))
+    .WillOnce(Return(1010))
+    .WillOnce(Return(1100))
+    .WillOnce(Return(1101))
+    .WillOnce(Return(1145))
+    ;
+
+
+  EXPECT_CALL(mock1, handleAction(Supla::ON_PRESS, 1)).Times(1);
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, 2)).Times(2);
+  EXPECT_CALL(mock1, handleAction(Supla::ON_RELEASE, 3)).Times(1);
+
+  Supla::Control::SimpleButton button(5, true, true);
+  button.setDebounceDelay(0);
+  button.onInit();
+  button.addAction(1, mock1, Supla::ON_PRESS);
+  button.addAction(2, mock1, Supla::ON_CHANGE);
+  button.addAction(3, mock1, Supla::ON_RELEASE);
+
+  button.onTimer();
+  button.onTimer();
+  button.onTimer();
   button.onTimer();
   button.onTimer();
 
