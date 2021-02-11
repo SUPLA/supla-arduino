@@ -43,7 +43,7 @@ double MAXThermocouple::getValue() {
 
     return (double)value * 0.25;
 
-  } else {  // MAX31655
+  } else {  // MAX31855
 
     if (value & 0x7) {
       Serial.println(F("Max31855 Error"));
