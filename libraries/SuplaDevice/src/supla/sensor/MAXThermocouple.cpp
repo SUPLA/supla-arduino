@@ -35,8 +35,8 @@ double MAXThermocouple::getValue() {
   if ((value >> 16) == (value & 0xffff)) {  // MAX6675
     value >>= 16;
 
-    if (value & 0x4) {  // this means there is no probe connected to Max6675
-      Serial.println(F("no probe connected to Max6675"));
+    if ((value & 0x4) || (value <= 0)) {  // this means there is no probe connected to Max6675
+      Serial.println(F("Max6675 Error"));
       return TEMPERATURE_NOT_AVAILABLE;
     }
     value >>= 3;
