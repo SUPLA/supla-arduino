@@ -36,7 +36,7 @@ double MAX6675_K::getValue() {
     value >>= 16;
 
     if (value & 0x4) {  // this means there is no probe connected to Max6675
-      Serial.print(F("no probe connected to Max6675"));
+      Serial.println(F("no probe connected to Max6675"));
       return TEMPERATURE_NOT_AVAILABLE;
     }
     value >>= 3;
@@ -46,7 +46,7 @@ double MAX6675_K::getValue() {
   } else {  // MAX31655
 
     if (value & 0x7) {
-      Serial.print(F("Max31855 Error"));
+      Serial.println(F("Max31855 Error"));
       return TEMPERATURE_NOT_AVAILABLE;
     } else {
       uint16_t _internTemp = (value >> 4) & 0xfff;
@@ -72,10 +72,9 @@ void MAX6675_K::onInit() {
 }
 
 uint32_t MAX6675_K::spiRead() {
-  int i;
   uint32_t d = 0;
 
-  for (i = 31; i >= 0; i--) {
+  for (int i = 31; i >= 0; i--) {
     digitalWrite(pin_CLK, LOW);
     delay(1);
     d <<= 1;
