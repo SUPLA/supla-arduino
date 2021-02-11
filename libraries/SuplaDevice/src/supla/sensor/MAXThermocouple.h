@@ -14,22 +14,22 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _max6675_k_h
-#define _max6675_k_h
+#ifndef _maxThermocouple_k_h
+#define _maxThermocouple_k_h
 
 #include <Arduino.h>
 #include <supla/sensor/thermometer.h>
 
 namespace Supla {
 namespace Sensor {
-class MAX6675_K : public Thermometer {
+class MAXThermocouple : public Thermometer {
  public:
-  MAX6675_K(uint8_t pin_CLK, uint8_t pin_CS, uint8_t pin_DO);
+  MAXThermocouple(uint8_t pin_CLK, uint8_t pin_CS, uint8_t pin_DO);
   double getValue();
 
  private:
   void onInit();
-  uint32_t spiRead();
+  uint32_t spiRead(void);
 
  protected:
   int8_t pin_CLK;
