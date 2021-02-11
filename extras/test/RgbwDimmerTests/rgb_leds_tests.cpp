@@ -41,15 +41,15 @@ TEST(RgbLedsTests, SettingNewRGBValue) {
   EXPECT_CALL(ioMock, analogWrite(2, 0));
   EXPECT_CALL(ioMock, analogWrite(3, 0));
 
-  EXPECT_CALL(ioMock, analogWrite(1, 1));
-  EXPECT_CALL(ioMock, analogWrite(2, 2));
-  EXPECT_CALL(ioMock, analogWrite(3, 3));
+  EXPECT_CALL(ioMock, analogWrite(1, (1*1023/255)));
+  EXPECT_CALL(ioMock, analogWrite(2, (2*1023/255)));
+  EXPECT_CALL(ioMock, analogWrite(3, (3*1023/255)));
 
-  Supla::Control::RGBLeds rgbw(1, 2, 3);
+  Supla::Control::RGBLeds rgb(1, 2, 3);
 
-  auto ch = rgbw.getChannel();
+  auto ch = rgb.getChannel();
   // disable fading effect so we'll get instant setting value on device call
-  rgbw.setFadeEffectTime(0);
+  rgb.setFadeEffectTime(0);
 
   EXPECT_EQ(ch->getValueRed(), 0);
   EXPECT_EQ(ch->getValueGreen(), 0);
@@ -57,7 +57,8 @@ TEST(RgbLedsTests, SettingNewRGBValue) {
   EXPECT_EQ(ch->getValueColorBrightness(), 0);
   EXPECT_EQ(ch->getValueBrightness(), 0);
 
-  rgbw.onInit();
+  rgb.onInit();
+  rgb.onTimer();
 
   EXPECT_EQ(ch->getValueRed(), 0);
   EXPECT_EQ(ch->getValueGreen(), 0);
@@ -65,7 +66,7 @@ TEST(RgbLedsTests, SettingNewRGBValue) {
   EXPECT_EQ(ch->getValueColorBrightness(), 0);
   EXPECT_EQ(ch->getValueBrightness(), 0);
 
-  rgbw.iterateAlways();
+  rgb.iterateAlways();
 
   EXPECT_EQ(ch->getValueRed(), 0);
   EXPECT_EQ(ch->getValueGreen(), 255);
@@ -73,9 +74,10 @@ TEST(RgbLedsTests, SettingNewRGBValue) {
   EXPECT_EQ(ch->getValueColorBrightness(), 0);
   EXPECT_EQ(ch->getValueBrightness(), 0);
 
-  rgbw.setRGBW(1, 2, 3, 100, 5);
+  rgb.setRGBW(1, 2, 3, 100, 5);
 
-  rgbw.iterateAlways();
+  rgb.iterateAlways();
+  rgb.onTimer();
 
   EXPECT_EQ(ch->getValueRed(), 1);
   EXPECT_EQ(ch->getValueGreen(), 2);

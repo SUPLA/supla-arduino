@@ -28,11 +28,11 @@ class RGBWLeds : public RGBWBase {
            int bluePin,
            int brightnessPin);
 
-  void setRGBWValueOnDevice(uint8_t red,
-                            uint8_t green,
-                            uint8_t blue,
-                            uint8_t colorBrightness,
-                            uint8_t brightness);
+  void setRGBWValueOnDevice(uint32_t red,
+                            uint32_t green,
+                            uint32_t blue,
+                            uint32_t colorBrightness,
+                            uint32_t brightness);
 
   void onInit();
 

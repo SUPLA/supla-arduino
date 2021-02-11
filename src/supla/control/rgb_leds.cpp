@@ -20,30 +20,24 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 extern int esp32PwmChannelCouner;
 #endif
 
-Supla::Control::RGBLeds::RGBLeds(int redPin,
-                                   int greenPin,
-                                   int bluePin)
-    : redPin(redPin),
-      greenPin(greenPin),
-      bluePin(bluePin)
-{}
+Supla::Control::RGBLeds::RGBLeds(int redPin, int greenPin, int bluePin)
+    : redPin(redPin), greenPin(greenPin), bluePin(bluePin) {
+}
 
-void Supla::Control::RGBLeds::setRGBWValueOnDevice(uint8_t red,
-                          uint8_t green,
-                          uint8_t blue,
-                          uint8_t colorBrightness,
-                          uint8_t brightness) {
-  int multiplier = 1;
-#ifdef ARDUINO_ARCH_ESP8266
-  multiplier = 4;
-#endif
-#ifdef ARDUINO_ARCH_ESP32
-  multiplier = 4;
-#endif
+void Supla::Control::RGBLeds::setRGBWValueOnDevice(uint32_t red,
+                                                   uint32_t green,
+                                                   uint32_t blue,
+                                                   uint32_t colorBrightness,
+                                                   uint32_t brightness) {
+  uint32_t redAdj =   red   * colorBrightness / 1023;
+  uint32_t greenAdj = green * colorBrightness / 1023;
+  uint32_t blueAdj =  blue  * colorBrightness / 1023;
 
-  int redAdj = red * multiplier * colorBrightness / 100;
-  int greenAdj = green* multiplier * colorBrightness / 100;
-  int blueAdj = blue * multiplier * colorBrightness / 100;
+#ifdef ARDUINO_ARCH_AVR
+  redAdj = map(redAdj, 0, 1023, 0, 255);
+  greenAdj = map(greenAdj, 0, 1023, 0, 255);
+  blueAdj = map(blueAdj, 0, 1023, 0, 255);
+#endif
 
 #ifdef ARDUINO_ARCH_ESP32
   ledcWrite(redPin, redAdj);
@@ -81,15 +75,14 @@ void Supla::Control::RGBLeds::onInit() {
   esp32PwmChannelCouner++;
 
 #else
-  pinMode(redPin, OUTPUT); 
-  pinMode(greenPin, OUTPUT); 
-  pinMode(bluePin, OUTPUT); 
+  pinMode(redPin, OUTPUT);
+  pinMode(greenPin, OUTPUT);
+  pinMode(bluePin, OUTPUT);
 
- #ifdef ARDUINO_ARCH_ESP8266
+#ifdef ARDUINO_ARCH_ESP8266
   analogWriteRange(1024);
- #endif 
+#endif
 #endif
 
   Supla::Control::RGBBase::onInit();
 }
-

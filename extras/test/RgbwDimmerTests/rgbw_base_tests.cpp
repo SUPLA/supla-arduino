@@ -25,7 +25,7 @@ using ::testing::Return;
 
 class RgbwBaseForTest : public Supla::Control::RGBWBase {
   public:
-    MOCK_METHOD(void, setRGBWValueOnDevice, (uint8_t, uint8_t, uint8_t, uint8_t, uint8_t), (override));
+    MOCK_METHOD(void, setRGBWValueOnDevice, (uint32_t, uint32_t, uint32_t, uint32_t, uint32_t), (override));
 };
 
 class TimeInterfaceStub : public TimeInterface {
@@ -943,12 +943,12 @@ TEST(RgbwDimmerTests, SetValueOnDeviceWithoutFading) {
   ::testing::InSequence seq;
 
   RgbwBaseForTest rgb;
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 0, 0));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 100, 100));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 0, 0));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 0, 20));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 0, 0));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 100, 20));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 0, 0));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 1023, 1023));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 0, 0));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 0, (20*1023/100)));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 0, 0));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 1023, (20*1023/100)));
 
 
   auto ch = rgb.getChannel();
@@ -956,11 +956,17 @@ TEST(RgbwDimmerTests, SetValueOnDeviceWithoutFading) {
   // disable fade effect - so value setting on device should happen instantly
   rgb.setFadeEffectTime(0);
   rgb.onInit();
+  rgb.onTimer();
   rgb.turnOn();
+  rgb.onTimer();
   rgb.toggle();
+  rgb.onTimer();
   rgb.handleAction(1, Supla::TURN_ON_W_DIMMED);
+  rgb.onTimer();
   rgb.turnOff();
+  rgb.onTimer();
   rgb.turnOn();
+  rgb.onTimer();
 
   // channel value should be still empty, since no time elapsed (no calls to iterateAlways)
   EXPECT_EQ(ch->getValueRed(), 0);
@@ -978,33 +984,34 @@ TEST(RgbwDimmerTests, SetValueOnDeviceWithFading) {
   RgbwBaseForTest rgb;
 
   // fade effect 1000 ms, time step 1000 ms
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 0, 0));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 100, 100));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 0, 0));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 0, 20));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 0, 0));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 100, 20));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 0, 0));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 0, 0));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 1023, 1023));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 0, 0));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 0, (20*1023/100)));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 0, 0));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 1023, (20*1023/100)));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 0, 0));
 
   // fade effect 10000 ms, time step 1000 ms
   // because turnOn calls millis once, we actually do 2 s step in first shot
   // that is why (0, 255, 0, 10, 10) is missing
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 20, 20));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 30, 20));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 40, 20));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 50, 20));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 60, 20));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 70, 20));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 80, 20));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 90, 20));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 100, 20));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 204, (20*1023/100)));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 306, (20*1023/100)));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 408, (20*1023/100)));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 510, (20*1023/100)));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 612, (20*1023/100)));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 714, (20*1023/100)));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 816, (20*1023/100)));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 918, (20*1023/100)));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 1020, (20*1023/100)));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 1023, (20*1023/100)));
 
   // fade effect 10000 ms, time step 1000 ms
   // because turnOn calls millis once, we actually do 2 s step in first shot
   // setting rgb values
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(51, 204, 0, 100, 20));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(76, 200, 0, 100, 20));
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(100, 200, 0, 100, 20));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(204, 818, 0, (100*1023/100), (20*1023/100)));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(306, 802, 0, (100*1023/100), (20*1023/100)));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(401, (1023*200/255), 0, (100*1023/100), (20*1023/100)));
 
   auto ch = rgb.getChannel();
 

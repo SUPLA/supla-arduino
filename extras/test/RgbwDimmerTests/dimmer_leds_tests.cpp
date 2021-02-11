@@ -37,7 +37,7 @@ TEST(DimmerLedsTests, SettingNewDimValue) {
   EXPECT_CALL(ioMock, pinMode(1, OUTPUT));
   EXPECT_CALL(ioMock, analogWrite(1, 0));
 
-  EXPECT_CALL(ioMock, analogWrite(1, (255*10)/100));
+  EXPECT_CALL(ioMock, analogWrite(1, (1023*10)/100));
 
   Supla::Control::DimmerLeds dim(1);
 
@@ -60,6 +60,7 @@ TEST(DimmerLedsTests, SettingNewDimValue) {
   EXPECT_EQ(ch->getValueBrightness(), 0);
 
   dim.iterateAlways();
+  dim.onTimer();
 
   EXPECT_EQ(ch->getValueRed(), 0);
   EXPECT_EQ(ch->getValueGreen(), 0);
@@ -70,6 +71,7 @@ TEST(DimmerLedsTests, SettingNewDimValue) {
   dim.setRGBW(1, 2, 3, 4, 10);
 
   dim.iterateAlways();
+  dim.onTimer();
 
   EXPECT_EQ(ch->getValueRed(), 0);
   EXPECT_EQ(ch->getValueGreen(), 0);

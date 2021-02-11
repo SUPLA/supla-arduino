@@ -25,7 +25,7 @@ using ::testing::Return;
 
 class RgbBaseForTest : public Supla::Control::RGBBase {
   public:
-    MOCK_METHOD(void, setRGBWValueOnDevice, (uint8_t, uint8_t, uint8_t, uint8_t, uint8_t), (override));
+    MOCK_METHOD(void, setRGBWValueOnDevice, (uint32_t, uint32_t, uint32_t, uint32_t, uint32_t), (override));
 };
 
 class TimeInterfaceStub : public TimeInterface {
@@ -79,8 +79,8 @@ TEST(RgbTests, RgbShouldIgnoreBrightnessValue) {
   // disable fading effect so we'll get instant setting value on device call
   rgb.setFadeEffectTime(0);
 
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 255, 0, 0, 0)).Times(1);
-  EXPECT_CALL(rgb, setRGBWValueOnDevice(1, 2, 3, 4, 0)).Times(1);
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 0, 0)).Times(1);
+  EXPECT_CALL(rgb, setRGBWValueOnDevice((1*1023/255), (2*1023/255), (3*1023/255), (4*1023/100), 0)).Times(1);
 
   EXPECT_EQ(ch->getValueRed(), 0);
   EXPECT_EQ(ch->getValueGreen(), 0);
@@ -97,6 +97,7 @@ TEST(RgbTests, RgbShouldIgnoreBrightnessValue) {
   EXPECT_EQ(ch->getValueBrightness(), 0);
 
   rgb.iterateAlways();
+  rgb.onTimer();
 
   EXPECT_EQ(ch->getValueRed(), 0);
   EXPECT_EQ(ch->getValueGreen(), 255);
@@ -108,6 +109,7 @@ TEST(RgbTests, RgbShouldIgnoreBrightnessValue) {
   rgb.setRGBW(1, 2, 3, 4, 5);
 
   rgb.iterateAlways();
+  rgb.onTimer();
 
   EXPECT_EQ(ch->getValueRed(), 1);
   EXPECT_EQ(ch->getValueGreen(), 2);

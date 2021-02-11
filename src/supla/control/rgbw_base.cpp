@@ -45,7 +45,7 @@ RGBWBase::RGBWBase()
       dimIterationDirection(false),
       iterationDelayCounter(0),
       fadeEffect(500),
-      hwRed(0),
+      hwRed(-1),
       hwGreen(0),
       hwBlue(0),
       hwColorBrightness(0),
@@ -96,12 +96,6 @@ void RGBWBase::setRGBW(int red,
   }
   if (brightness >= 0) {
     curBrightness = brightness;
-  }
-
-  // If fade effect is disabled, then set new values to device directly
-  if (fadeEffect <= 0) {
-    setRGBWValueOnDevice(
-        curRed, curGreen, curBlue, curColorBrightness, curBrightness);
   }
 
   // Schedule save in 5 s after state change
@@ -355,96 +349,94 @@ void RGBWBase::setFadeEffectTime(int timeMs) {
 }
 
 void RGBWBase::onTimer() {
-  // exit it fade effect is disabled
-  if (fadeEffect <= 0) {
-    return;
-  }
   unsigned long timeDiff = millis() - lastTick;
   lastTick = millis();
 
   if (timeDiff > 0) {
-    int divider = fadeEffect / timeDiff;
+    double divider = 1.0* fadeEffect / timeDiff;
     if (divider <= 0) {
       divider = 1;
     }
 
-    uint8_t rgbStep = 255 / divider;
-    uint8_t brightnessStep = 100 / divider;
+    double step = 1023 / divider;
     bool valueChanged = false;
-    if (rgbStep < 1) {
-      rgbStep = 1;
-    }
-    if (brightnessStep < 1) {
-      brightnessStep = 1;
+    if (step < 1) {
+      step = 1;
     }
 
-    if (curRed > hwRed) {
-      valueChanged = true;
-      hwRed += rgbStep;
-      if (hwRed > curRed) {
-        hwRed = curRed;
-      }
-    } else if (curRed < hwRed) {
-      valueChanged = true;
-      hwRed -= rgbStep;
-      if (hwRed < curRed) {
-        hwRed = curRed;
-      }
-    }
+    int curRedAdj = map(curRed, 0, 255, 0, 1023);
+    int curGreenAdj = map(curGreen, 0, 255, 0 , 1023);
+    int curBlueAdj = map(curBlue, 0, 255, 0, 1023);
+    int curColorBrightnessAdj = map(curColorBrightness, 0, 100, 0, 1023);
+    int curBrightnessAdj = map(curBrightness, 0, 100, 0, 1023);
 
-    if (curGreen > hwGreen) {
+    if (curRedAdj > hwRed) {
       valueChanged = true;
-      hwGreen += rgbStep;
-      if (hwGreen > curGreen) {
-        hwGreen = curGreen;
+      hwRed += step;
+      if (hwRed > curRedAdj) {
+        hwRed = curRedAdj;
       }
-    } else if (curGreen < hwGreen) {
+    } else if (curRedAdj < hwRed) {
       valueChanged = true;
-      hwGreen -= rgbStep;
-      if (hwGreen < curGreen) {
-        hwGreen = curGreen;
+      hwRed -= step;
+      if (hwRed < curRedAdj) {
+        hwRed = curRedAdj;
       }
     }
 
-    if (curBlue > hwBlue) {
+    if (curGreenAdj > hwGreen) {
       valueChanged = true;
-      hwBlue += rgbStep;
-      if (hwBlue > curBlue) {
-        hwBlue = curBlue;
+      hwGreen += step;
+      if (hwGreen > curGreenAdj) {
+        hwGreen = curGreenAdj;
       }
-    } else if (curBlue < hwBlue) {
+    } else if (curGreenAdj < hwGreen) {
       valueChanged = true;
-      hwBlue -= rgbStep;
-      if (hwBlue < curBlue) {
-        hwBlue = curBlue;
-      }
-    }
-
-    if (curColorBrightness > hwColorBrightness) {
-      valueChanged = true;
-      hwColorBrightness += brightnessStep;
-      if (hwColorBrightness > curColorBrightness) {
-        hwColorBrightness = curColorBrightness;
-      }
-    } else if (curColorBrightness < hwColorBrightness) {
-      valueChanged = true;
-      hwColorBrightness -= brightnessStep;
-      if (hwColorBrightness < curColorBrightness) {
-        hwColorBrightness = curColorBrightness;
+      hwGreen -= step;
+      if (hwGreen < curGreenAdj) {
+        hwGreen = curGreenAdj;
       }
     }
 
-    if (curBrightness > hwBrightness) {
+    if (curBlueAdj > hwBlue) {
       valueChanged = true;
-      hwBrightness += brightnessStep;
-      if (hwBrightness > curBrightness) {
-        hwBrightness = curBrightness;
+      hwBlue += step;
+      if (hwBlue > curBlueAdj) {
+        hwBlue = curBlueAdj;
       }
-    } else if (curBrightness < hwBrightness) {
+    } else if (curBlueAdj < hwBlue) {
       valueChanged = true;
-      hwBrightness -= brightnessStep;
-      if (hwBrightness < curBrightness) {
-        hwBrightness = curBrightness;
+      hwBlue -= step;
+      if (hwBlue < curBlueAdj) {
+        hwBlue = curBlueAdj;
+      }
+    }
+
+    if (curColorBrightnessAdj > hwColorBrightness) {
+      valueChanged = true;
+      hwColorBrightness += step;
+      if (hwColorBrightness > curColorBrightnessAdj) {
+        hwColorBrightness = curColorBrightnessAdj;
+      }
+    } else if (curColorBrightnessAdj < hwColorBrightness) {
+      valueChanged = true;
+      hwColorBrightness -= step;
+      if (hwColorBrightness < curColorBrightnessAdj) {
+        hwColorBrightness = curColorBrightnessAdj;
+      }
+    }
+
+    if (curBrightnessAdj > hwBrightness) {
+      valueChanged = true;
+      hwBrightness += step;
+      if (hwBrightness > curBrightnessAdj) {
+        hwBrightness = curBrightnessAdj;
+      }
+    } else if (curBrightnessAdj < hwBrightness) {
+      valueChanged = true;
+      hwBrightness -= step;
+      if (hwBrightness < curBrightnessAdj) {
+        hwBrightness = curBrightnessAdj;
       }
     }
 

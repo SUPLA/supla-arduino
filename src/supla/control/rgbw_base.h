@@ -30,11 +30,11 @@ class RGBWBase : public ChannelElement, public ActionHandler {
  public:
   RGBWBase();
 
-  virtual void setRGBWValueOnDevice(uint8_t red,
-                                    uint8_t green,
-                                    uint8_t blue,
-                                    uint8_t colorBrightness,
-                                    uint8_t brightness) = 0;
+  virtual void setRGBWValueOnDevice(uint32_t red,
+                                    uint32_t green,
+                                    uint32_t blue,
+                                    uint32_t colorBrightness,
+                                    uint32_t brightness) = 0;
 
   virtual void setRGBW(int red,
                        int green,

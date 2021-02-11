@@ -22,7 +22,8 @@ int digitalRead(uint8_t pin);
 void analogWrite(uint8_t pin, int val);
 void pinMode(uint8_t pin, uint8_t mode);
 unsigned long millis();
-
+void delay(unsigned long ms);
+long map(long, long, long, long, long);
 
 class SerialStub {
  public:

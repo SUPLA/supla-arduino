@@ -25,7 +25,7 @@ using ::testing::Return;
 
 class DimmerBaseForTest : public Supla::Control::DimmerBase {
   public:
-    MOCK_METHOD(void, setRGBWValueOnDevice, (uint8_t, uint8_t, uint8_t, uint8_t, uint8_t), (override));
+    MOCK_METHOD(void, setRGBWValueOnDevice, (uint32_t, uint32_t, uint32_t, uint32_t, uint32_t), (override));
 };
 
 class TimeInterfaceStub : public TimeInterface {
@@ -80,7 +80,7 @@ TEST(DimmerTests, DimmerShouldIgnoreRGBValues) {
   dimmer.setFadeEffectTime(0);
 
   EXPECT_CALL(dimmer, setRGBWValueOnDevice(0, 0, 0, 0, 0)).Times(1);
-  EXPECT_CALL(dimmer, setRGBWValueOnDevice(0, 0, 0, 0, 5)).Times(1);
+  EXPECT_CALL(dimmer, setRGBWValueOnDevice(0, 0, 0, 0, (5*1023/100))).Times(1);
 
   EXPECT_EQ(ch->getValueRed(), 0);
   EXPECT_EQ(ch->getValueGreen(), 0);
@@ -97,6 +97,7 @@ TEST(DimmerTests, DimmerShouldIgnoreRGBValues) {
   EXPECT_EQ(ch->getValueBrightness(), 0);
 
   dimmer.iterateAlways();
+  dimmer.onTimer();
 
   EXPECT_EQ(ch->getValueRed(), 0);
   EXPECT_EQ(ch->getValueGreen(), 0);
@@ -108,6 +109,7 @@ TEST(DimmerTests, DimmerShouldIgnoreRGBValues) {
   dimmer.setRGBW(1, 2, 3, 4, 5);
 
   dimmer.iterateAlways();
+  dimmer.onTimer();
 
   EXPECT_EQ(ch->getValueRed(), 0);
   EXPECT_EQ(ch->getValueGreen(), 0);

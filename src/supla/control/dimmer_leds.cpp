@@ -24,20 +24,17 @@ Supla::Control::DimmerLeds::DimmerLeds(int brightnessPin)
     : brightnessPin(brightnessPin) {
 }
 
-void Supla::Control::DimmerLeds::setRGBWValueOnDevice(uint8_t red,
-                                                      uint8_t green,
-                                                      uint8_t blue,
-                                                      uint8_t colorBrightness,
-                                                      uint8_t brightness) {
-  int multiplier = 1;
-#ifdef ARDUINO_ARCH_ESP8266
-  multiplier = 4;
-#endif
-#ifdef ARDUINO_ARCH_ESP32
-  multiplier = 4;
+void Supla::Control::DimmerLeds::setRGBWValueOnDevice(uint32_t red,
+                                                      uint32_t green,
+                                                      uint32_t blue,
+                                                      uint32_t colorBrightness,
+                                                      uint32_t brightness) {
+  uint32_t brightnessAdj = brightness;
+
+#ifdef ARDUINO_ARCH_AVR
+  brightnessAdj = map(brightnessAdj, 0, 1023, 0, 255);
 #endif
 
-  int brightnessAdj = brightness * multiplier * 255 / 100;
 #ifdef ARDUINO_ARCH_ESP32
   ledcWrite(brightnessPin, brightnessAdj);
 #else

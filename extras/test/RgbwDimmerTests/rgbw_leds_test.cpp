@@ -43,10 +43,10 @@ TEST(RgbwLedsTests, SettingNewRGBWValue) {
   EXPECT_CALL(ioMock, analogWrite(3, 0));
   EXPECT_CALL(ioMock, analogWrite(4, 0));
 
-  EXPECT_CALL(ioMock, analogWrite(1, 1));
-  EXPECT_CALL(ioMock, analogWrite(2, 2));
-  EXPECT_CALL(ioMock, analogWrite(3, 3));
-  EXPECT_CALL(ioMock, analogWrite(4, 255));
+  EXPECT_CALL(ioMock, analogWrite(1, (1*1023/255)));
+  EXPECT_CALL(ioMock, analogWrite(2, (2*1023/255)));
+  EXPECT_CALL(ioMock, analogWrite(3, (3*1023/255)));
+  EXPECT_CALL(ioMock, analogWrite(4, 1023));
 
   Supla::Control::RGBWLeds rgbw(1, 2, 3, 4);
 
@@ -69,6 +69,7 @@ TEST(RgbwLedsTests, SettingNewRGBWValue) {
   EXPECT_EQ(ch->getValueBrightness(), 0);
 
   rgbw.iterateAlways();
+  rgbw.onTimer();
 
   EXPECT_EQ(ch->getValueRed(), 0);
   EXPECT_EQ(ch->getValueGreen(), 255);
@@ -79,6 +80,7 @@ TEST(RgbwLedsTests, SettingNewRGBWValue) {
   rgbw.setRGBW(1, 2, 3, 100, 100);
 
   rgbw.iterateAlways();
+  rgbw.onTimer();
 
   EXPECT_EQ(ch->getValueRed(), 1);
   EXPECT_EQ(ch->getValueGreen(), 2);

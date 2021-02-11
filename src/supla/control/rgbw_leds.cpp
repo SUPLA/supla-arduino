@@ -31,23 +31,23 @@ Supla::Control::RGBWLeds::RGBWLeds(int redPin,
       brightnessPin(brightnessPin) {
 }
 
-void Supla::Control::RGBWLeds::setRGBWValueOnDevice(uint8_t red,
-                          uint8_t green,
-                          uint8_t blue,
-                          uint8_t colorBrightness,
-                          uint8_t brightness) {
-  int multiplier = 1;
-#ifdef ARDUINO_ARCH_ESP8266
-  multiplier = 4;
-#endif
-#ifdef ARDUINO_ARCH_ESP32
-  multiplier = 4;
+void Supla::Control::RGBWLeds::setRGBWValueOnDevice(uint32_t red,
+                          uint32_t green,
+                          uint32_t blue,
+                          uint32_t colorBrightness,
+                          uint32_t brightness) {
+  uint32_t redAdj =   red   * colorBrightness / 1023;
+  uint32_t greenAdj = green * colorBrightness / 1023;
+  uint32_t blueAdj =  blue  * colorBrightness / 1023;
+  uint32_t brightnessAdj = brightness;
+
+#ifdef ARDUINO_ARCH_AVR
+  redAdj = map(redAdj, 0, 1023, 0, 255);
+  greenAdj = map(greenAdj, 0, 1023, 0, 255);
+  blueAdj = map(blueAdj, 0, 1023, 0, 255);
+  brightnessAdj = map(brightnessAdj, 0, 1023, 0, 255);
 #endif
 
-  int redAdj = red * multiplier * colorBrightness / 100;
-  int greenAdj = green* multiplier * colorBrightness / 100;
-  int blueAdj = blue * multiplier * colorBrightness / 100;
-  int brightnessAdj = brightness * multiplier * 255 / 100;
 #ifdef ARDUINO_ARCH_ESP32
   ledcWrite(redPin, redAdj);
   ledcWrite(greenPin, greenAdj);
