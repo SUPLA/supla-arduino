@@ -14,15 +14,15 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "MAX6675_K.h"
+#include "MAXThermocouple.h"
 
 namespace Supla {
 namespace Sensor {
-MAX6675_K::MAX6675_K(uint8_t pin_CLK, uint8_t pin_CS, uint8_t pin_DO)
+MAXThermocouple::MAXThermocouple(uint8_t pin_CLK, uint8_t pin_CS, uint8_t pin_DO)
     : pin_CLK(pin_CLK), pin_CS(pin_CS), pin_DO(pin_DO) {
 }
 
-double MAX6675_K::getValue() {
+double MAXThermocouple::getValue() {
   int32_t value;
 
   digitalWrite(pin_CS, LOW);
@@ -61,7 +61,7 @@ double MAX6675_K::getValue() {
   }
 }
 
-void MAX6675_K::onInit() {
+void MAXThermocouple::onInit() {
   digitalWrite(pin_CS, HIGH);
 
   pinMode(pin_CS, OUTPUT);
@@ -71,7 +71,7 @@ void MAX6675_K::onInit() {
   channel.setNewValue(getValue());
 }
 
-uint32_t MAX6675_K::spiRead() {
+uint32_t MAXThermocouple::spiRead() {
   uint32_t d = 0;
 
   for (int i = 31; i >= 0; i--) {
@@ -79,6 +79,7 @@ uint32_t MAX6675_K::spiRead() {
     delay(1);
     d <<= 1;
     d |= digitalRead(pin_DO);
+
     digitalWrite(pin_CLK, HIGH);
     delay(1);
   }
