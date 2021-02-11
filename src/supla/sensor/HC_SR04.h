@@ -45,8 +45,8 @@ class HC_SR04 : public Distance {
   int16_t _minOut;
   int16_t _maxOut;
   char failCount;
-  bool ready;
-  unsigned long lastDuration;
+  unsigned long readouts[5];
+  int index;
 };
 
 };  // namespace Sensor

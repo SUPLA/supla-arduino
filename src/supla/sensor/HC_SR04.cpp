@@ -26,7 +26,7 @@ HC_SR04::HC_SR04(int8_t trigPin,
                  int16_t maxIn,
                  int16_t minOut,
                  int16_t maxOut)
-    : failCount(0), lastDuration(0) {
+    : failCount(0), readouts{}, index(0) {
   _trigPin = trigPin;
   _echoPin = echoPin;
   _minIn = minIn;
@@ -46,17 +46,45 @@ void HC_SR04::onInit() {
 }
 
 double HC_SR04::getValue() {
+  noInterrupts();
   digitalWrite(_trigPin, HIGH);
   delayMicroseconds(10);
   digitalWrite(_trigPin, LOW);
   unsigned long duration = pulseIn(_echoPin, HIGH, 60000);
+  interrupts();
   if (duration > 50) {
-    lastDuration = duration;
+    index++;
+    if (index > 4) index = 0;
+    readouts[index] = duration;
     failCount = 0;
   } else {
-    duration = lastDuration;
     failCount++;
   }
+
+  unsigned long min = 0, max = 0, sum = 0;
+  int count = 0;
+  for (int i = 0; i < 5; i++) {
+    if (readouts[i] > 0) {
+      count++;
+      if (min > readouts[i] || min == 0) min = readouts[i];
+      if (max < readouts[i]) max = readouts[i];
+      sum += readouts[i];
+    }
+  }
+
+  if (count == 5) {
+    if (min > 0) {
+      sum -= min;
+      count--;
+    }
+    if (max > 0) {
+      sum -= max;
+      count--;
+    }
+  }
+  if (count > 0) {
+    duration = sum / count;
+  } 
 
   long distance = (duration / 2.0) / 29.1;
   long value = map(distance, _minIn, _maxIn, _minOut, _maxOut);
@@ -65,7 +93,8 @@ double HC_SR04::getValue() {
   } else {
     value = constrain(value, _maxOut, _minOut);
   }
-  return failCount <= 3 ? (float)value / 100.0 : DISTANCE_NOT_AVAILABLE;
+  return failCount <= 3 ? static_cast<double>(value) / 100.0
+                        : DISTANCE_NOT_AVAILABLE;
 }
 
 void HC_SR04::setMinMaxIn(int16_t minIn, int16_t maxIn) {
