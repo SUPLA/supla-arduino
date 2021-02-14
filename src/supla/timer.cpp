@@ -23,6 +23,10 @@
 #include <Ticker.h>
 #endif
 
+#ifdef ARDUINO_ARCH_ESP8266
+#include <os_type.h>
+#endif
+
 namespace {
 #if defined(ARDUINO_ARCH_ESP8266)
 ETSTimer supla_esp_timer;

@@ -17,8 +17,6 @@
 #ifndef SUPLADEVICE_H
 #define SUPLADEVICE_H
 
-#include <IPAddress.h>
-
 #include "supla-common/proto.h"
 #include "supla/network/network.h"
 #include "supla/uptime.h"

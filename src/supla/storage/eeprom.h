@@ -23,7 +23,7 @@ namespace Supla {
 
 class Eeprom : public Storage {
  public:
-  Eeprom(unsigned int storageStartingOffset = 0);
+  Eeprom(unsigned int storageStartingOffset = 0, int reservedSize = -1);
   bool init();
   void commit();
 
@@ -31,6 +31,7 @@ class Eeprom : public Storage {
   int readStorage(unsigned int, unsigned char *, int, bool);
   int writeStorage(unsigned int, const unsigned char *, int);
 
+  int reservedSize;
   bool dataChanged;
 };
 

@@ -65,7 +65,6 @@ Element *Element::getElementByChannelNumber(int channelNumber) {
 }
 
 Element *Element::next() {
-  delay(0);
   return nextPtr;
 }
 

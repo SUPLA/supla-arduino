@@ -17,8 +17,6 @@
 #ifndef _network_interface_h
 #define _network_interface_h
 
-#include <IPAddress.h>
-
 #include "supla-common/log.h"
 #include "supla-common/proto.h"
 
@@ -99,7 +97,7 @@ class Network {
     return false;
   }
 
-  Network(IPAddress *ip);
+  Network(uint8_t ip[4]);
   virtual int read(void *buf, int count) = 0;
   virtual int write(void *buf, int count) = 0;
   virtual int connect(const char *server, int port = -1) = 0;
@@ -129,7 +127,7 @@ class Network {
   void *srpc;
 
   bool useLocalIp;
-  IPAddress localIp;
+  unsigned char localIp[4];
 };
 
 // Method passed to SRPC as a callback to read raw data from network interface

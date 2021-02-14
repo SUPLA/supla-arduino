@@ -44,7 +44,7 @@ class ESPWifi : public Supla::Network {
  public:
   ESPWifi(const char *wifiSsid = nullptr,
           const char *wifiPassword = nullptr,
-          IPAddress *ip = nullptr)
+          unsigned char *ip = nullptr)
       : Network(ip), client(nullptr), isSecured(true), wifiConfigured(false) {
     ssid[0] = '\0';
     password[0] = '\0';

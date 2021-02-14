@@ -145,7 +145,7 @@ void message_received(void *_srpc,
   }
 }
 
-Network::Network(IPAddress *ip) {
+Network::Network(unsigned char *ip) {
   lastSentMs = 0;
   srpc = NULL;
   lastPingTimeMs = 0;
@@ -158,7 +158,7 @@ Network::Network(IPAddress *ip) {
     useLocalIp = false;
   } else {
     useLocalIp = true;
-    localIp = *ip;
+    memcpy(localIp, ip, 4);
   }
 }
 

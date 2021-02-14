@@ -94,22 +94,27 @@ bool SuplaDeviceClass::begin(unsigned char version) {
   // Supla::Storage::LoadDeviceConfig();
   // Supla::Storage::LoadElementConfig();
 
-  // Pefrorm dry run of write state to validate stored state section with current
-  // device configuration
-  Serial.println(F("Validating storage state section with current device configuration"));
+  // Pefrorm dry run of write state to validate stored state section with
+  // current device configuration
+  Serial.println(
+      F("Validating storage state section with current device configuration"));
   Supla::Storage::PrepareState(true);
   for (auto element = Supla::Element::begin(); element != nullptr;
-      element = element->next()) {
+       element = element->next()) {
     element->onSaveState();
+    delay(0);
   }
   // If state storage validation was successful, perform read state
   if (Supla::Storage::FinalizeSaveState()) {
-    Serial.println(F("Storage state section validation completed. Loading elements state..."));
+    Serial.println(
+        F("Storage state section validation completed. Loading elements "
+          "state..."));
     // Iterate all elements and load state
     Supla::Storage::PrepareState();
     for (auto element = Supla::Element::begin(); element != nullptr;
-        element = element->next()) {
+         element = element->next()) {
       element->onLoadState();
+      delay(0);
     }
   }
 
@@ -117,11 +122,11 @@ bool SuplaDeviceClass::begin(unsigned char version) {
   for (auto element = Supla::Element::begin(); element != nullptr;
        element = element->next()) {
     element->onInit();
+    delay(0);
   }
 
   // Enable timers
   Supla::initTimers();
-
 
   bool emptyGuidDetected = true;
   for (int i = 0; i < SUPLA_GUID_SIZE; i++) {
@@ -244,6 +249,7 @@ void SuplaDeviceClass::iterate(void) {
   for (auto element = Supla::Element::begin(); element != nullptr;
        element = element->next()) {
     element->iterateAlways();
+    delay(0);
   }
 
   // Iterate all elements and saves state
@@ -252,6 +258,7 @@ void SuplaDeviceClass::iterate(void) {
     for (auto element = Supla::Element::begin(); element != nullptr;
          element = element->next()) {
       element->onSaveState();
+      delay(0);
     }
     Supla::Storage::FinalizeSaveState();
   }
@@ -346,6 +353,7 @@ void SuplaDeviceClass::iterate(void) {
         if (!element->iterateConnected(srpc)) {
           break;
         }
+        delay(0);
       }
 
       last_iterate_time = millis();
@@ -501,7 +509,8 @@ void SuplaDeviceClass::setServer(const char *server) {
       Supla::Channel::reg_dev.ServerName, server, SUPLA_SERVER_NAME_MAXSIZE);
 }
 
-void SuplaDeviceClass::onGetUserLocaltimeResult(TSDC_UserLocalTimeResult *result) {
+void SuplaDeviceClass::onGetUserLocaltimeResult(
+    TSDC_UserLocalTimeResult *result) {
   if (clock) {
     clock->parseLocaltimeFromServer(result);
   }
@@ -512,7 +521,7 @@ void SuplaDeviceClass::addClock(Supla::Clock *_clock) {
   clock = _clock;
 }
 
-Supla::Clock * SuplaDeviceClass::getClock() {
+Supla::Clock *SuplaDeviceClass::getClock() {
   return clock;
 }
 
