@@ -23,10 +23,11 @@ _supla_int_t SRPC_ICACHE_FLASH srpc_ds_async_channel_extendedvalue_changed(
   return 0;
 }
          
-_supla_int_t SRPC_ICACHE_FLASH srpc_ds_async_channel_value_changed(
-    void *_srpc, unsigned char channel_number, char *value) {
+_supla_int_t SRPC_ICACHE_FLASH srpc_ds_async_channel_value_changed_c(
+    void *_srpc, unsigned char channel_number, char *value,
+    unsigned char offline, unsigned _supla_int_t validity_time_sec) {
   std::vector<char> vec(value, value + 8);
-  return SrpcInterface::instance->valueChanged(_srpc, channel_number, vec);
+  return SrpcInterface::instance->valueChanged(_srpc, channel_number, vec, offline, validity_time_sec);
 }
 
 SrpcInterface::SrpcInterface() {

@@ -19,21 +19,34 @@
 
 #include <gmock/gmock.h>
 #include <supla-common/proto.h>
+
 #include <vector>
 
 class SrpcInterface {
-  public:
-    SrpcInterface();
-    virtual ~SrpcInterface();
+ public:
+  SrpcInterface();
+  virtual ~SrpcInterface();
 
-    virtual _supla_int_t valueChanged(void *srpc, unsigned char channelNumber, std::vector<char> value) = 0;
-    
-    static SrpcInterface *instance;
+  virtual _supla_int_t valueChanged(void *srpc,
+                                    unsigned char channelNumber,
+                                    std::vector<char> value,
+                                    unsigned char offline,
+                                    unsigned _supla_int_t
+                                        validity_time_sec) = 0;
+
+  static SrpcInterface *instance;
 };
 
 class SrpcMock : public SrpcInterface {
-  public:
-    MOCK_METHOD(_supla_int_t, valueChanged, (void *, unsigned char, std::vector<char>), (override));
+ public:
+  MOCK_METHOD(_supla_int_t,
+              valueChanged,
+              (void *,
+               unsigned char,
+               std::vector<char>,
+               unsigned char,
+               unsigned _supla_int_t),
+              (override));
 };
 
 #endif

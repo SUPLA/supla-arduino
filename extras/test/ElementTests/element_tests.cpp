@@ -163,8 +163,8 @@ TEST(ElementTests, ChannelElementMethods) {
   char array0[SUPLA_CHANNELVALUE_SIZE] = {};
   char array1[SUPLA_CHANNELVALUE_SIZE] = {};
   array1[0] = 1;
-  EXPECT_CALL(srpc, valueChanged(nullptr, 0, ElementsAreArray(array1))); // value at #2
-  EXPECT_CALL(srpc, valueChanged(nullptr, 0, ElementsAreArray(array0))); // value at #5
+  EXPECT_CALL(srpc, valueChanged(nullptr, 0, ElementsAreArray(array1), 0, 0)); // value at #2
+  EXPECT_CALL(srpc, valueChanged(nullptr, 0, ElementsAreArray(array0), 0, 0)); // value at #5
 
 
   EXPECT_EQ(el1.iterateConnected(nullptr), true);  // #1

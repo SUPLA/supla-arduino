@@ -45,6 +45,7 @@ file(GLOB TEST_SRC
   ConditionTests/*.cpp
   RgbwDimmerTests/*.cpp
   ButtonTests/*.cpp
+  SuplaDeviceTests/*.cpp
   )
 
 file(GLOB DOUBLE_SRC doubles/*.cpp)
