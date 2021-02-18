@@ -33,7 +33,7 @@ class Storage {
   static bool WriteState(const unsigned char *, int);
   static bool LoadDeviceConfig();
   static bool LoadElementConfig();
-  static void PrepareState(bool dryRun = false);
+  static bool PrepareState(bool dryRun = false);
   static bool FinalizeSaveState();
   static bool SaveStateAllowed(unsigned long);
   static void ScheduleSave(unsigned long delayMs);
@@ -50,7 +50,7 @@ class Storage {
 
   virtual bool loadDeviceConfig();
   virtual bool loadElementConfig();
-  virtual void prepareState(bool performDryRun);
+  virtual bool prepareState(bool performDryRun);
   virtual bool finalizeSaveState();
   virtual bool saveStateAllowed(unsigned long);
   virtual void scheduleSave(unsigned long delayMs);

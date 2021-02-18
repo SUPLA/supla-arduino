@@ -16,6 +16,8 @@
 
 #include <Arduino.h>
 
+#include <string.h>
+
 #include "SuplaDevice.h"
 #include "supla-common/IEEE754tools.h"
 #include "supla-common/log.h"
@@ -41,7 +43,9 @@ SuplaDeviceClass::SuplaDeviceClass()
     : port(-1),
       connectionFailCounter(0),
       networkIsNotReadyCounter(0),
-      currentStatus(STATUS_UNKNOWN) {
+      currentStatus(STATUS_UNKNOWN),
+      clock(nullptr),
+      impl_arduino_status(nullptr) {
   srpc = NULL;
   registered = 0;
   last_iterate_time = 0;
@@ -86,47 +90,50 @@ bool SuplaDeviceClass::begin(unsigned char version) {
 
   Supla::Storage::Init();
 
-  if (Supla::Network::Instance() == NULL) {
-    status(STATUS_MISSING_NETWORK_INTERFACE, "Network Interface not defined!");
-    return false;
-  }
-
   // Supla::Storage::LoadDeviceConfig();
   // Supla::Storage::LoadElementConfig();
 
   // Pefrorm dry run of write state to validate stored state section with
   // current device configuration
-  Serial.println(
-      F("Validating storage state section with current device configuration"));
-  Supla::Storage::PrepareState(true);
-  for (auto element = Supla::Element::begin(); element != nullptr;
-       element = element->next()) {
-    element->onSaveState();
-    delay(0);
-  }
-  // If state storage validation was successful, perform read state
-  if (Supla::Storage::FinalizeSaveState()) {
+  if (Supla::Storage::PrepareState(true)) {
     Serial.println(
-        F("Storage state section validation completed. Loading elements "
-          "state..."));
-    // Iterate all elements and load state
-    Supla::Storage::PrepareState();
+        F("Validating storage state section with current device configuration"));
     for (auto element = Supla::Element::begin(); element != nullptr;
-         element = element->next()) {
-      element->onLoadState();
+        element = element->next()) {
+      element->onSaveState();
       delay(0);
     }
+    // If state storage validation was successful, perform read state
+    if (Supla::Storage::FinalizeSaveState()) {
+      Serial.println(
+          F("Storage state section validation completed. Loading elements "
+            "state..."));
+      // Iterate all elements and load state
+      Supla::Storage::PrepareState();
+      for (auto element = Supla::Element::begin(); element != nullptr;
+          element = element->next()) {
+        element->onLoadState();
+        delay(0);
+      }
+    }
+  } else {
+    Serial.println(F("Storage not found. Running without state memory"));
   }
 
   // Initialize elements
   for (auto element = Supla::Element::begin(); element != nullptr;
-       element = element->next()) {
+      element = element->next()) {
     element->onInit();
     delay(0);
   }
 
   // Enable timers
   Supla::initTimers();
+
+  if (Supla::Network::Instance() == NULL) {
+    status(STATUS_MISSING_NETWORK_INTERFACE, "Network Interface not defined!");
+    return false;
+  }
 
   bool emptyGuidDetected = true;
   for (int i = 0; i < SUPLA_GUID_SIZE; i++) {
@@ -175,8 +182,8 @@ bool SuplaDeviceClass::begin(unsigned char version) {
 
   if (strnlen(Supla::Channel::reg_dev.SoftVer, SUPLA_SOFTVER_MAXSIZE) == 0) {
     setString(Supla::Channel::reg_dev.SoftVer,
-              "User SW, lib 2.3.2",
-              SUPLA_SOFTVER_MAXSIZE);
+        "User SW, lib 2.3.3",
+        SUPLA_SOFTVER_MAXSIZE);
   }
 
   Serial.println(F("Initializing network layer"));

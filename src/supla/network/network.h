@@ -98,6 +98,7 @@ class Network {
   }
 
   Network(uint8_t ip[4]);
+  virtual ~Network();
   virtual int read(void *buf, int count) = 0;
   virtual int write(void *buf, int count) = 0;
   virtual int connect(const char *server, int port = -1) = 0;

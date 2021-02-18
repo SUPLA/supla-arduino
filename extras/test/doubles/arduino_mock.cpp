@@ -42,22 +42,27 @@ TimeInterface::~TimeInterface() {
 TimeInterface *TimeInterface::instance = nullptr;
 
 void analogWrite(uint8_t pin, int val) {
+  assert(DigitalInterface::instance);
   DigitalInterface::instance->analogWrite(pin, val);
 }
 
 void digitalWrite(uint8_t pin, uint8_t val) {
+  assert(DigitalInterface::instance);
   DigitalInterface::instance->digitalWrite(pin, val);
 }
 
 int digitalRead(uint8_t pin) {
+  assert(DigitalInterface::instance);
   return DigitalInterface::instance->digitalRead(pin);
 }
 
 void pinMode(uint8_t pin, uint8_t mode) {
+  assert(DigitalInterface::instance);
   DigitalInterface::instance->pinMode(pin, mode);
 }
 
 unsigned long millis() {
+  assert(TimeInterface::instance);
   return TimeInterface::instance->millis();
 }
 
