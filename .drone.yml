@@ -8,7 +8,7 @@ steps:
   - mkdir extras/test/build
   - cd extras/test/build
   - cmake ..
-  - make
+  - make -j32
 
 - name: test
   image: rikorose/gcc-cmake
