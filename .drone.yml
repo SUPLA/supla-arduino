@@ -7,11 +7,11 @@ steps:
   commands:
   - mkdir extras/test/build
   - cd extras/test/build
-  - cmake ..
-  - make -j32
+  - cmake .. | ts '[%Y-%m-%d %H:%M:%S]'
+  - make -j32 | ts '[%Y-%m-%d %H:%M:%S]'
 
 - name: test
   image: rikorose/gcc-cmake
   commands:
   - cd extras/test/build
-  - ./supladevicetests
+  - ./supladevicetests --gtest_repeat=50 --gtest_shuffle | ts '[%Y-%m-%d %H:%M:%S]'

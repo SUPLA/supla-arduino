@@ -26,6 +26,19 @@
 using ::testing::Return;
 using ::testing::_;
 
+class SuplaDeviceTests : public ::testing::Test {
+  protected:
+    virtual void SetUp() {
+      Supla::Channel::lastCommunicationTimeMs = 0;
+      memset(&(Supla::Channel::reg_dev), 0, sizeof(Supla::Channel::reg_dev));
+    }
+    virtual void TearDown() {
+      Supla::Channel::lastCommunicationTimeMs = 0;
+      memset(&(Supla::Channel::reg_dev), 0, sizeof(Supla::Channel::reg_dev));
+    }
+
+};
+
 class TimeInterfaceStub : public TimeInterface {
   public:
     virtual unsigned long millis() override {
@@ -35,7 +48,7 @@ class TimeInterfaceStub : public TimeInterface {
     }
 };
 
-TEST(SuplaDeviceTests, DefaultValuesTest) {
+TEST_F(SuplaDeviceTests, DefaultValuesTest) {
   SuplaDeviceClass sd;
   SrpcMock srpc;
   TimerMock timer;
@@ -51,7 +64,7 @@ class ClockMock : public Supla::Clock {
     MOCK_METHOD(void,  parseLocaltimeFromServer, (TSDC_UserLocalTimeResult *result), (override));
 };
 
-TEST(SuplaDeviceTests, ClockMethods) {
+TEST_F(SuplaDeviceTests, ClockMethods) {
   SuplaDeviceClass sd;
   ClockMock clock;
 
@@ -66,7 +79,7 @@ TEST(SuplaDeviceTests, ClockMethods) {
   sd.onGetUserLocaltimeResult(nullptr);
 }
 
-TEST(SuplaDeviceTests, StartWithoutNetworkInterfaceNoElements) {
+TEST_F(SuplaDeviceTests, StartWithoutNetworkInterfaceNoElements) {
   SuplaDeviceClass sd;
   TimerMock timer;
 
@@ -88,7 +101,7 @@ class StorageMock2: public Supla::Storage {
 
 };
 
-TEST(SuplaDeviceTests, StartWithoutNetworkInterfaceNoElementsWithStorage) {
+TEST_F(SuplaDeviceTests, StartWithoutNetworkInterfaceNoElementsWithStorage) {
   ::testing::InSequence seq;
   SuplaDeviceClass sd;
   TimerMock timer;
@@ -105,7 +118,7 @@ TEST(SuplaDeviceTests, StartWithoutNetworkInterfaceNoElementsWithStorage) {
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_MISSING_NETWORK_INTERFACE);
 }
 
-TEST(SuplaDeviceTests, StartWithoutNetworkInterfaceNoElementsWithStorageAndDataLoadAttempt) {
+TEST_F(SuplaDeviceTests, StartWithoutNetworkInterfaceNoElementsWithStorageAndDataLoadAttempt) {
   ::testing::InSequence seq;
   SuplaDeviceClass sd;
   TimerMock timer;
@@ -138,7 +151,7 @@ class ElementMock : public Supla::Element {
     
 };
 
-TEST(SuplaDeviceTests, StartWithoutNetworkInterfaceWithElements) {
+TEST_F(SuplaDeviceTests, StartWithoutNetworkInterfaceWithElements) {
   ::testing::InSequence seq;
   SuplaDeviceClass sd;
   TimerMock timer;
@@ -156,7 +169,7 @@ TEST(SuplaDeviceTests, StartWithoutNetworkInterfaceWithElements) {
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_MISSING_NETWORK_INTERFACE);
 }
 
-TEST(SuplaDeviceTests, StartWithoutNetworkInterfaceWithElementsWithStorage) {
+TEST_F(SuplaDeviceTests, StartWithoutNetworkInterfaceWithElementsWithStorage) {
   ::testing::InSequence seq;
   StorageMock2 storage;
   SuplaDeviceClass sd;
@@ -202,7 +215,7 @@ class NetworkMock : public Supla::Network {
 
 };
 
-TEST(SuplaDeviceTEsts, BeginStopsAtEmptyGUID) {
+TEST_F(SuplaDeviceTests, BeginStopsAtEmptyGUID) {
   ::testing::InSequence seq;
   NetworkMock net;
   TimerMock timer;
@@ -215,7 +228,7 @@ TEST(SuplaDeviceTEsts, BeginStopsAtEmptyGUID) {
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_INVALID_GUID);
 }
 
-TEST(SuplaDeviceTEsts, BeginStopsAtEmptyServer) {
+TEST_F(SuplaDeviceTests, BeginStopsAtEmptyServer) {
   ::testing::InSequence seq;
   NetworkMock net;
   TimerMock timer;
@@ -230,7 +243,7 @@ TEST(SuplaDeviceTEsts, BeginStopsAtEmptyServer) {
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_UNKNOWN_SERVER_ADDRESS);
 }
 
-TEST(SuplaDeviceTEsts, BeginStopsAtEmptyEmail) {
+TEST_F(SuplaDeviceTests, BeginStopsAtEmptyEmail) {
   ::testing::InSequence seq;
   NetworkMock net;
   TimerMock timer;
@@ -247,7 +260,7 @@ TEST(SuplaDeviceTEsts, BeginStopsAtEmptyEmail) {
 }
 
 
-TEST(SuplaDeviceTEsts, BeginStopsAtEmptyAuthkey) {
+TEST_F(SuplaDeviceTests, BeginStopsAtEmptyAuthkey) {
   ::testing::InSequence seq;
   NetworkMock net;
   TimerMock timer;
@@ -265,7 +278,7 @@ TEST(SuplaDeviceTEsts, BeginStopsAtEmptyAuthkey) {
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_MISSING_CREDENTIALS);
 }
 
-TEST(SuplaDeviceTEsts, SuccessfulBegin) {
+TEST_F(SuplaDeviceTests, SuccessfulBegin) {
   ::testing::InSequence seq;
   SrpcMock srpc;
   NetworkMock net;
