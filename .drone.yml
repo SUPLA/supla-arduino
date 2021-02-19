@@ -7,11 +7,11 @@ steps:
   commands:
   - mkdir extras/test/build
   - cd extras/test/build
-  - cmake .. | ts '[%Y-%m-%d %H:%M:%S]'
-  - make -j32 | ts '[%Y-%m-%d %H:%M:%S]'
+  - cmake .. | perl -pe 'use POSIX strftime;   $|=1;   select((select(STDERR), $| = 1)[0]); print strftime "[%Y-%m-%d %H:%M:%S] ", localtime'
+  - make -j32 | perl -pe 'use POSIX strftime;   $|=1;   select((select(STDERR), $| = 1)[0]); print strftime "[%Y-%m-%d %H:%M:%S] ", localtime'
 
 - name: test
   image: rikorose/gcc-cmake
   commands:
   - cd extras/test/build
-  - ./supladevicetests --gtest_repeat=50 --gtest_shuffle | ts '[%Y-%m-%d %H:%M:%S]'
+  - ./supladevicetests --gtest_repeat=50 --gtest_shuffle | perl -pe 'use POSIX strftime;   $|=1;   select((select(STDERR), $| = 1)[0]); print strftime "[%Y-%m-%d %H:%M:%S] ", localtime' 
