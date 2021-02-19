@@ -24,6 +24,7 @@
 #include <supla/storage/storage.h>
 
 using ::testing::Return;
+using ::testing::_;
 
 class TimeInterfaceStub : public TimeInterface {
   public:
@@ -197,7 +198,7 @@ class NetworkMock : public Supla::Network {
 
   MOCK_METHOD(bool, isReady, (), (override));
   MOCK_METHOD(bool, iterate, (), (override));
-  MOCK_METHOD(bool, ping, (), (override));
+  MOCK_METHOD(bool, ping, (void *), (override));
 
 };
 
@@ -245,7 +246,7 @@ TEST(SuplaDeviceTEsts, BeginStopsAtEmptyEmail) {
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_MISSING_CREDENTIALS);
 }
 
-/*
+
 TEST(SuplaDeviceTEsts, BeginStopsAtEmptyAuthkey) {
   ::testing::InSequence seq;
   NetworkMock net;
@@ -260,8 +261,32 @@ TEST(SuplaDeviceTEsts, BeginStopsAtEmptyAuthkey) {
   sd.setGUID(GUID);
   sd.setServer("supla.rulez");
   sd.setEmail("john@supla");
+  EXPECT_FALSE(sd.begin());
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_MISSING_CREDENTIALS);
+}
+
+TEST(SuplaDeviceTEsts, SuccessfulBegin) {
+  ::testing::InSequence seq;
+  SrpcMock srpc;
+  NetworkMock net;
+  TimerMock timer;
+
+  SuplaDeviceClass sd;
+  int dummy;
+
+  EXPECT_CALL(timer, initTimers());
+  EXPECT_CALL(net, setup());
+  EXPECT_CALL(srpc, srpc_params_init(_));
+  EXPECT_CALL(srpc, srpc_init(_)).WillOnce(Return(&dummy));
+  EXPECT_CALL(srpc, srpc_set_proto_version(&dummy, 12));
+
+  char GUID[SUPLA_GUID_SIZE] = {1};
+  char AUTHKEY[SUPLA_AUTHKEY_SIZE] = {2};
+  sd.setGUID(GUID);
+  sd.setServer("supla.rulez");
+  sd.setEmail("john@supla");
   sd.setAuthKey(AUTHKEY);
   EXPECT_TRUE(sd.begin());
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_INITIALIZED);
 }
-*/
+

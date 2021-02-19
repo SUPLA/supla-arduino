@@ -148,7 +148,6 @@ void message_received(void *_srpc,
 
 Network::Network(unsigned char *ip) {
   lastSentMs = 0;
-  srpc = NULL;
   lastPingTimeMs = 0;
   serverActivityTimeoutS = 30;
   lastResponseMs = 0;
@@ -179,11 +178,7 @@ void Network::updateLastResponse() {
   lastResponseMs = millis();
 }
 
-void Network::setSrpc(void *_srpc) {
-  srpc = _srpc;
-}
-
-bool Network::ping() {
+bool Network::ping(void *srpc) {
   _supla_int64_t _millis = millis();
   // If time from last response is longer than "server_activity_timeout + 10 s",
   // then inform about failure in communication

@@ -90,9 +90,9 @@ class Network {
     }
   }
 
-  static bool Ping() {
+  static bool Ping(void *srpc) {
     if (Instance() != NULL) {
-      return Instance()->ping();
+      return Instance()->ping(srpc);
     }
     return false;
   }
@@ -109,7 +109,7 @@ class Network {
 
   virtual bool isReady() = 0;
   virtual bool iterate();
-  virtual bool ping();
+  virtual bool ping(void *);
 
   virtual void fillStateData(TDSC_ChannelState &channelState);
 

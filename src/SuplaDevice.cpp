@@ -197,7 +197,6 @@ bool SuplaDeviceClass::begin(unsigned char version) {
   srpc_params.user_params = this;
 
   srpc = srpc_init(&srpc_params);
-  Supla::Network::SetSrpc(srpc);
 
   // Set Supla protocol interface version
   srpc_set_proto_version(srpc, version);
@@ -346,7 +345,7 @@ void SuplaDeviceClass::iterate(void) {
     }
 
   } else if (registered == 1) {
-    if (Supla::Network::Ping() == false) {
+    if (Supla::Network::Ping(srpc) == false) {
       uptime.setConnectionLostCause(
           SUPLA_LASTCONNECTIONRESETCAUSE_ACTIVITY_TIMEOUT);
       supla_log(LOG_DEBUG, "TIMEOUT - lost connection with server");
