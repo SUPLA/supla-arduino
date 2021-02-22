@@ -7,14 +7,14 @@ steps:
   commands:
   - mkdir extras/test/build
   - cd extras/test/build
-  - cmake .. | perl -pe 'use POSIX strftime;   $|=1;   select((select(STDERR), $| = 1)[0]); print strftime "[%Y-%m-%d %H:%M:%S] ", localtime'
-  - make -j32 | perl -pe 'use POSIX strftime;   $|=1;   select((select(STDERR), $| = 1)[0]); print strftime "[%Y-%m-%d %H:%M:%S] ", localtime'
+  - cmake ..
+  - make -j32
 
 - name: test
   image: rikorose/gcc-cmake
   commands:
   - cd extras/test/build
-  - ./supladevicetests --gtest_repeat=50 --gtest_shuffle | perl -pe 'use POSIX strftime;   $|=1;   select((select(STDERR), $| = 1)[0]); print strftime "[%Y-%m-%d %H:%M:%S] ", localtime' 
+  - ./supladevicetests --gtest_repeat=50 --gtest_shuffle
 
 - name: slack
   image: plugins/slack
