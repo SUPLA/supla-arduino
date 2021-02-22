@@ -25,6 +25,9 @@
 
 using ::testing::Return;
 using ::testing::_;
+using ::testing::DoAll;
+using ::testing::Assign;
+using ::testing::ReturnPointee;
 
 class SuplaDeviceTests : public ::testing::Test {
   protected:
@@ -164,9 +167,17 @@ TEST_F(SuplaDeviceTests, StartWithoutNetworkInterfaceWithElements) {
   EXPECT_CALL(el2, onInit());
   
   EXPECT_CALL(timer, initTimers());
+  EXPECT_CALL(el1, onTimer());
+  EXPECT_CALL(el2, onTimer());
+  EXPECT_CALL(el1, onFastTimer());
+  EXPECT_CALL(el2, onFastTimer());
+
+
 
   EXPECT_FALSE(sd.begin());
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_MISSING_NETWORK_INTERFACE);
+  sd.onTimer();
+  sd.onFastTimer();
 }
 
 TEST_F(SuplaDeviceTests, StartWithoutNetworkInterfaceWithElementsWithStorage) {
@@ -301,5 +312,91 @@ TEST_F(SuplaDeviceTests, SuccessfulBegin) {
   sd.setAuthKey(AUTHKEY);
   EXPECT_TRUE(sd.begin());
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_INITIALIZED);
+}
+
+
+
+TEST_F(SuplaDeviceTests, SuccessfulBeginAlternative) {
+  ::testing::InSequence seq;
+  SrpcMock srpc;
+  NetworkMock net;
+  TimerMock timer;
+
+  SuplaDeviceClass sd;
+  int dummy;
+
+  EXPECT_CALL(timer, initTimers());
+  EXPECT_CALL(net, setup());
+  EXPECT_CALL(srpc, srpc_params_init(_));
+  EXPECT_CALL(srpc, srpc_init(_)).WillOnce(Return(&dummy));
+  EXPECT_CALL(srpc, srpc_set_proto_version(&dummy, 12));
+
+  char GUID[SUPLA_GUID_SIZE] = {1};
+  char AUTHKEY[SUPLA_AUTHKEY_SIZE] = {2};
+  EXPECT_TRUE(sd.begin(GUID, "supla.rulez", "superman@supla.org", AUTHKEY));
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_INITIALIZED);
+}
+
+
+TEST_F(SuplaDeviceTests, FailedBeginAlternativeOnEmptyAUTHKEY) {
+  ::testing::InSequence seq;
+  SrpcMock srpc;
+  NetworkMock net;
+  TimerMock timer;
+
+  SuplaDeviceClass sd;
+  int dummy;
+
+  EXPECT_CALL(timer, initTimers());
+
+  char GUID[SUPLA_GUID_SIZE] = {1};
+  char AUTHKEY[SUPLA_AUTHKEY_SIZE] = {0};
+  EXPECT_FALSE(sd.begin(GUID, "supla.rulez", "superman@supla.org", AUTHKEY));
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_MISSING_CREDENTIALS);
+}
+
+TEST_F(SuplaDeviceTests, TwoChannelElementsNoNetworkWithStorage) {
+  SrpcMock srpc;
+  NetworkMock net;
+  StorageMock2 storage;
+  TimerMock timer;
+  TimeInterfaceStub time;
+  SuplaDeviceClass sd;
+  ElementMock el1;
+  ElementMock el2;
+  int dummy;
+  EXPECT_CALL(storage, prepareState(true)).WillOnce(Return(true));
+  EXPECT_CALL(storage, init());
+  EXPECT_CALL(el1, onSaveState());
+  EXPECT_CALL(el2, onSaveState());
+
+  EXPECT_CALL(storage, finalizeSaveState()).WillOnce(Return(true));
+  EXPECT_CALL(storage, prepareState(false));
+  EXPECT_CALL(el1, onLoadState());
+  EXPECT_CALL(el2, onLoadState());
+
+  EXPECT_CALL(el1, onInit());
+  EXPECT_CALL(el2, onInit());
+
+  EXPECT_CALL(timer, initTimers());
+  EXPECT_CALL(net, setup());
+  EXPECT_CALL(srpc, srpc_params_init(_));
+  EXPECT_CALL(srpc, srpc_init(_)).WillOnce(Return(&dummy));
+  EXPECT_CALL(srpc, srpc_set_proto_version(&dummy, 12));
+
+  char GUID[SUPLA_GUID_SIZE] = {1};
+  char AUTHKEY[SUPLA_AUTHKEY_SIZE] = {2};
+  EXPECT_TRUE(sd.begin(GUID, "supla.rulez", "superman@supla.org", AUTHKEY));
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_INITIALIZED);
+  EXPECT_CALL(el1, iterateAlways()).Times(2);
+  EXPECT_CALL(el2, iterateAlways()).Times(2);
+  EXPECT_CALL(net, isReady()).WillRepeatedly(Return(false));
+
+  EXPECT_CALL(storage, prepareState(false));
+  EXPECT_CALL(el1, onSaveState());
+  EXPECT_CALL(el2, onSaveState());
+  EXPECT_CALL(storage, finalizeSaveState());
+
+  for (int i = 0; i < 2; i++) sd.iterate();
 }
 

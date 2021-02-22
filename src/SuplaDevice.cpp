@@ -15,7 +15,6 @@
 */
 
 #include <Arduino.h>
-
 #include <string.h>
 
 #include "SuplaDevice.h"
@@ -48,8 +47,8 @@ SuplaDeviceClass::SuplaDeviceClass()
       impl_arduino_status(nullptr) {
   srpc = NULL;
   registered = 0;
-  last_iterate_time = 0;
-  wait_for_iterate = 0;
+  lastIterateTime = 0;
+  waitForIterate = 0;
 }
 
 SuplaDeviceClass::~SuplaDeviceClass() {
@@ -96,10 +95,10 @@ bool SuplaDeviceClass::begin(unsigned char version) {
   // Pefrorm dry run of write state to validate stored state section with
   // current device configuration
   if (Supla::Storage::PrepareState(true)) {
-    Serial.println(
-        F("Validating storage state section with current device configuration"));
+    Serial.println(F(
+        "Validating storage state section with current device configuration"));
     for (auto element = Supla::Element::begin(); element != nullptr;
-        element = element->next()) {
+         element = element->next()) {
       element->onSaveState();
       delay(0);
     }
@@ -111,7 +110,7 @@ bool SuplaDeviceClass::begin(unsigned char version) {
       // Iterate all elements and load state
       Supla::Storage::PrepareState();
       for (auto element = Supla::Element::begin(); element != nullptr;
-          element = element->next()) {
+           element = element->next()) {
         element->onLoadState();
         delay(0);
       }
@@ -122,7 +121,7 @@ bool SuplaDeviceClass::begin(unsigned char version) {
 
   // Initialize elements
   for (auto element = Supla::Element::begin(); element != nullptr;
-      element = element->next()) {
+       element = element->next()) {
     element->onInit();
     delay(0);
   }
@@ -182,8 +181,8 @@ bool SuplaDeviceClass::begin(unsigned char version) {
 
   if (strnlen(Supla::Channel::reg_dev.SoftVer, SUPLA_SOFTVER_MAXSIZE) == 0) {
     setString(Supla::Channel::reg_dev.SoftVer,
-        "User SW, lib 2.3.3",
-        SUPLA_SOFTVER_MAXSIZE);
+              "User SW, lib 2.3.3",
+              SUPLA_SOFTVER_MAXSIZE);
   }
 
   Serial.println(F("Initializing network layer"));
@@ -247,7 +246,7 @@ void SuplaDeviceClass::iterate(void) {
   if (!isInitialized(false)) return;
 
   unsigned long _millis = millis();
-  unsigned long time_diff = abs(_millis - last_iterate_time);
+  unsigned long timeDiff = abs(_millis - lastIterateTime);
 
   uptime.iterate(_millis);
 
@@ -269,11 +268,10 @@ void SuplaDeviceClass::iterate(void) {
     Supla::Storage::FinalizeSaveState();
   }
 
-  if (wait_for_iterate != 0 && _millis < wait_for_iterate) {
+  if (waitForIterate != 0 && _millis < waitForIterate) {
     return;
-
   } else {
-    wait_for_iterate = 0;
+    waitForIterate = 0;
   }
 
   // Restart network after >1 min of failed connection attempts
@@ -289,7 +287,7 @@ void SuplaDeviceClass::iterate(void) {
   if (!Supla::Network::IsReady()) {
     uptime.setConnectionLostCause(
         SUPLA_LASTCONNECTIONRESETCAUSE_WIFI_CONNECTION_LOST);
-    wait_for_iterate = millis() + 100;
+    waitForIterate = _millis + 100;
     status(STATUS_NETWORK_DISCONNECTED, "No connection to network");
     networkIsNotReadyCounter++;
     if (networkIsNotReadyCounter > 20) {
@@ -321,7 +319,7 @@ void SuplaDeviceClass::iterate(void) {
                 Supla::Channel::reg_dev.ServerName);
 
       Supla::Network::Disconnect();
-      wait_for_iterate = millis() + 2000;
+      waitForIterate = _millis + 2000;
       connectionFailCounter++;
       return;
     }
@@ -333,18 +331,30 @@ void SuplaDeviceClass::iterate(void) {
     status(STATUS_ITERATE_FAIL, "Iterate fail");
     Supla::Network::Disconnect();
 
-    wait_for_iterate = millis() + 5000;
+    waitForIterate = _millis + 5000;
     return;
   }
 
   if (registered == 0) {
+    // Perform registration if we are not yet registered
     registered = -1;
+    lastIterateTime = _millis;
     status(STATUS_REGISTER_IN_PROGRESS, "Register in progress");
     if (!srpc_ds_async_registerdevice_e(srpc, &Supla::Channel::reg_dev)) {
       supla_log(LOG_DEBUG, "Fatal SRPC failure!");
     }
+  } else if (registered == -1) {
+    // Handle registration timeout (in case of no reply received)
+    if (timeDiff > 10*1000) {
+      supla_log(LOG_DEBUG, "No reply to registration message. Resetting connection.");
+      Supla::Network::Disconnect();
+
+      waitForIterate = _millis + 2000;
+      connectionFailCounter++;
+    }
 
   } else if (registered == 1) {
+    // Device is registered and everything is correct
     if (Supla::Network::Ping(srpc) == false) {
       uptime.setConnectionLostCause(
           SUPLA_LASTCONNECTIONRESETCAUSE_ACTIVITY_TIMEOUT);
@@ -352,7 +362,7 @@ void SuplaDeviceClass::iterate(void) {
       Supla::Network::Disconnect();
     }
 
-    if (time_diff > 0) {
+    if (timeDiff > 0) {
       // Iterate all elements
       for (auto element = Supla::Element::begin(); element != nullptr;
            element = element->next()) {
@@ -362,7 +372,7 @@ void SuplaDeviceClass::iterate(void) {
         delay(0);
       }
 
-      last_iterate_time = millis();
+      lastIterateTime = _millis;
     }
   }
 }
@@ -376,7 +386,7 @@ void SuplaDeviceClass::onVersionError(TSDC_SuplaVersionError *version_error) {
 
   Supla::Network::Disconnect();
 
-  wait_for_iterate = millis() + 5000;
+  waitForIterate = millis() + 5000;
 }
 
 void SuplaDeviceClass::onRegisterResult(
@@ -395,7 +405,7 @@ void SuplaDeviceClass::onRegisterResult(
                 register_device_result->activity_timeout,
                 register_device_result->version,
                 register_device_result->version_min);
-      last_iterate_time = millis();
+      lastIterateTime = millis();
       status(STATUS_REGISTERED_AND_READY, "Registered and ready.");
 
       if (activity_timeout != ACTIVITY_TIMEOUT) {
@@ -464,7 +474,7 @@ void SuplaDeviceClass::onRegisterResult(
   }
 
   Supla::Network::Disconnect();
-  wait_for_iterate = millis() + 5000;
+  waitForIterate = millis() + 5000;
 }
 
 void SuplaDeviceClass::channelSetActivityTimeoutResult(

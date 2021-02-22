@@ -58,8 +58,8 @@ class SuplaDeviceClass {
   int connectionFailCounter;
   int networkIsNotReadyCounter;
 
-  unsigned long last_iterate_time;
-  unsigned long wait_for_iterate;
+  unsigned long lastIterateTime;
+  unsigned long waitForIterate;
 
   _impl_arduino_status impl_arduino_status;
   int currentStatus;
