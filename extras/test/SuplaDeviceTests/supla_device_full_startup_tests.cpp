@@ -187,4 +187,7 @@ TEST_F(SuplaDeviceTestsFullStartup, NoReplyForDeviceRegistrationShoudResetConnec
   for (int i = 0; i < 15; i++) sd.iterate();
 }
 
+TEST(SuperTest, TestEverything) {
 
+  ASSERT_TRUE(false);
+}
