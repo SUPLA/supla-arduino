@@ -187,3 +187,38 @@ TEST_F(SuplaDeviceTestsFullStartup, NoReplyForDeviceRegistrationShoudResetConnec
   for (int i = 0; i < 15; i++) sd.iterate();
 }
 
+
+TEST_F(SuplaDeviceTestsFullStartup, SuccessfulStartup) {
+  bool isConnected = false;
+  EXPECT_CALL(net, isReady()).WillRepeatedly(Return(true));
+  EXPECT_CALL(net, connected()).WillRepeatedly(ReturnPointee(&isConnected));
+  EXPECT_CALL(net, connect(_, _)).WillRepeatedly(DoAll(Assign(&isConnected, true), Return(1)));
+
+  EXPECT_CALL(net, iterate()).Times(AtLeast(1));
+  EXPECT_CALL(srpc, srpc_iterate(_)).WillRepeatedly(Return(SUPLA_RESULT_TRUE));
+  
+  EXPECT_CALL(el1, iterateAlways()).Times(35);
+  EXPECT_CALL(el2, iterateAlways()).Times(35);
+
+  EXPECT_CALL(srpc, srpc_ds_async_registerdevice_e(_, _)).Times(1);
+  EXPECT_CALL(srpc, srpc_dcs_async_set_activity_timeout(_, _)).Times(1);
+
+  EXPECT_CALL(net, ping(_)).WillRepeatedly(Return(true));
+  EXPECT_CALL(el1, iterateConnected(_)).Times(30).WillRepeatedly(Return(true));
+  EXPECT_CALL(el2, iterateConnected(_)).Times(30).WillRepeatedly(Return(true));
+
+  for (int i = 0; i < 5; i++) sd.iterate();
+
+  TSD_SuplaRegisterDeviceResult register_device_result{};
+  register_device_result.result_code = SUPLA_RESULTCODE_TRUE;
+  register_device_result.activity_timeout = 45;
+  register_device_result.version = 12;
+  register_device_result.version_min = 1;
+
+  sd.onRegisterResult(&register_device_result);
+
+  for (int i = 0; i < 30; i++) sd.iterate();
+
+
+}
+
