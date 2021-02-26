@@ -29,9 +29,9 @@ steps:
     # you may adjust it accordingly.
     template: >
       {{#if build.pull }}
-        *{{#success build.status}}✔{{ else }}✘{{/success}} {{ uppercasefirst build.status }}*: <https://github.com/{{ repo.owner }}/{{ repo.name }}/pull/{{ build.pull }}|Pull Request #{{ build.pull }}> in {{since build.started}}
+        *{{#success build.status}}✔{{ else }}✘{{/success}} {{ uppercasefirst build.status }}*: <https://github.com/{{ repo.owner }}/{{ repo.name }}/pull/{{ build.pull }}|Pull Request #{{ build.pull }}> in {{since build.created}}
       {{else}}
-        *{{#success build.status}}✔{{ else }}✘{{/success}} {{ uppercasefirst build.status }}: Build #{{ build.number }}* (type: `{{ build.event }}`) in {{since build.started}}
+        *{{#success build.status}}✔{{ else }}✘{{/success}} {{ uppercasefirst build.status }}: Build #{{ build.number }}* (type: `{{ build.event }}`) in {{since build.created}}
       {{/if}}
 
       Commit: <https://github.com/{{ repo.owner }}/{{ repo.name }}/commit/{{ build.commit }}|{{ truncate build.commit 8 }}> at: <https://github.com/{{ repo.owner }}/{{ repo.name }}/commits/{{ build.branch }}|{{repo.owner}}/{{repo.name}}/{{ build.branch }}> by: {{ build.author }}
