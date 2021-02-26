@@ -347,6 +347,7 @@ void SuplaDeviceClass::iterate(void) {
     // Handle registration timeout (in case of no reply received)
     if (timeDiff > 10*1000) {
       supla_log(LOG_DEBUG, "No reply to registration message. Resetting connection.");
+      status(STATUS_SERVER_DISCONNECTED, "Not connected to Supla server");
       Supla::Network::Disconnect();
 
       waitForIterate = _millis + 2000;
@@ -359,6 +360,7 @@ void SuplaDeviceClass::iterate(void) {
       uptime.setConnectionLostCause(
           SUPLA_LASTCONNECTIONRESETCAUSE_ACTIVITY_TIMEOUT);
       supla_log(LOG_DEBUG, "TIMEOUT - lost connection with server");
+      status(STATUS_SERVER_DISCONNECTED, "Not connected to Supla server");
       Supla::Network::Disconnect();
     }
 
@@ -455,7 +457,7 @@ void SuplaDeviceClass::onRegisterResult(
       break;
 
     case SUPLA_RESULTCODE_REGISTRATION_DISABLED:
-      status(STATUS_INVALID_GUID, "Registration disabled!");
+      status(STATUS_REGISTRATION_DISABLED, "Registration disabled!");
       break;
 
     case SUPLA_RESULTCODE_NO_LOCATION_AVAILABLE:
@@ -467,6 +469,7 @@ void SuplaDeviceClass::onRegisterResult(
       break;
 
     default:
+      status(STATUS_UNKNOWN_ERROR, "Unknown registration error");
       supla_log(LOG_ERR,
                 "Register result code %i",
                 register_device_result->result_code);

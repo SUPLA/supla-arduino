@@ -138,6 +138,7 @@ TEST_F(SuplaDeviceTestsFullStartup, NoNetworkShouldCallSetupAgain) {
   EXPECT_CALL(el2, iterateAlways()).Times(AtLeast(1));
 
   for (int i = 0; i < 50*30; i++) sd.iterate();
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_NETWORK_DISCONNECTED);
 }
 
 TEST_F(SuplaDeviceTestsFullStartup, FailedConnectionShouldSetupNetworkAgain) {
@@ -151,6 +152,7 @@ TEST_F(SuplaDeviceTestsFullStartup, FailedConnectionShouldSetupNetworkAgain) {
   EXPECT_CALL(el2, iterateAlways()).Times(AtLeast(1));
 
   for (int i = 0; i < 2*31; i++) sd.iterate();
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_SERVER_DISCONNECTED);
 }
 
 TEST_F(SuplaDeviceTestsFullStartup, SrpcFailureShouldCallDisconnect) {
@@ -166,6 +168,7 @@ TEST_F(SuplaDeviceTestsFullStartup, SrpcFailureShouldCallDisconnect) {
   EXPECT_CALL(el2, iterateAlways()).Times(AtLeast(1));
 
   sd.iterate();
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_ITERATE_FAIL);
 }
 
 TEST_F(SuplaDeviceTestsFullStartup, NoReplyForDeviceRegistrationShoudResetConnection) {
@@ -184,7 +187,10 @@ TEST_F(SuplaDeviceTestsFullStartup, NoReplyForDeviceRegistrationShoudResetConnec
 
   EXPECT_CALL(srpc, srpc_ds_async_registerdevice_e(_, _)).Times(2);
 
-  for (int i = 0; i < 15; i++) sd.iterate();
+  for (int i = 0; i < 11; i++) sd.iterate();
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_SERVER_DISCONNECTED);
+  for (int i = 0; i < 2; i++) sd.iterate();
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_REGISTER_IN_PROGRESS);
 }
 
 
@@ -207,7 +213,9 @@ TEST_F(SuplaDeviceTestsFullStartup, SuccessfulStartup) {
   EXPECT_CALL(el1, iterateConnected(_)).Times(30).WillRepeatedly(Return(true));
   EXPECT_CALL(el2, iterateConnected(_)).Times(30).WillRepeatedly(Return(true));
 
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_INITIALIZED);
   for (int i = 0; i < 5; i++) sd.iterate();
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_REGISTER_IN_PROGRESS);
 
   TSD_SuplaRegisterDeviceResult register_device_result{};
   register_device_result.result_code = SUPLA_RESULTCODE_TRUE;
@@ -217,8 +225,10 @@ TEST_F(SuplaDeviceTestsFullStartup, SuccessfulStartup) {
 
   sd.onRegisterResult(&register_device_result);
 
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_REGISTERED_AND_READY);
+
   for (int i = 0; i < 30; i++) sd.iterate();
 
-
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_REGISTERED_AND_READY);
 }
 

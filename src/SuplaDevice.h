@@ -47,6 +47,7 @@
 #define STATUS_NETWORK_DISCONNECTED      21
 #define STATUS_REGISTRATION_DISABLED     22
 #define STATUS_MISSING_CREDENTIALS       23
+#define STATUS_UNKNOWN_ERROR             24
 
 typedef void (*_impl_arduino_status)(int status, const char *msg);
 

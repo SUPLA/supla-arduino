@@ -58,8 +58,6 @@ TEST_F(SuplaDeviceTests, DefaultValuesTest) {
 
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_UNKNOWN);
   EXPECT_EQ(sd.getClock(), nullptr);
-  
-
 }
 
 class ClockMock : public Supla::Clock {
@@ -400,3 +398,294 @@ TEST_F(SuplaDeviceTests, TwoChannelElementsNoNetworkWithStorage) {
   for (int i = 0; i < 2; i++) sd.iterate();
 }
 
+TEST_F(SuplaDeviceTests, OnVersionErrorShouldCallDisconnect) {
+  NetworkMock net;
+  TimeInterfaceStub time;
+
+  EXPECT_CALL(net, disconnect()).Times(1);
+
+  SuplaDeviceClass sd;
+  TSDC_SuplaVersionError versionError{};
+
+  sd.onVersionError(&versionError);
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_PROTOCOL_VERSION_ERROR);
+}
+
+TEST_F(SuplaDeviceTests, OnRegisterResultOK) {
+  NetworkMock net;
+  SrpcMock srpc;
+  TimeInterfaceStub time;
+  SuplaDeviceClass sd;
+
+  EXPECT_CALL(srpc, srpc_dcs_async_set_activity_timeout(_, _)).Times(1);
+
+  TSD_SuplaRegisterDeviceResult register_device_result{};
+  register_device_result.result_code = SUPLA_RESULTCODE_TRUE;
+  register_device_result.activity_timeout = 45;
+  register_device_result.version = 12;
+  register_device_result.version_min = 1;
+
+  sd.onRegisterResult(&register_device_result);
+
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_REGISTERED_AND_READY);
+}
+
+TEST_F(SuplaDeviceTests, OnRegisterResultBadCredentials) {
+  NetworkMock net;
+  SrpcMock srpc;
+  TimeInterfaceStub time;
+  SuplaDeviceClass sd;
+
+  EXPECT_CALL(srpc, srpc_dcs_async_set_activity_timeout(_, _)).Times(0);
+  EXPECT_CALL(net, disconnect()).Times(1);
+
+  TSD_SuplaRegisterDeviceResult register_device_result{};
+  register_device_result.result_code = SUPLA_RESULTCODE_BAD_CREDENTIALS;
+  register_device_result.activity_timeout = 45;
+  register_device_result.version = 12;
+  register_device_result.version_min = 1;
+
+  sd.onRegisterResult(&register_device_result);
+
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_BAD_CREDENTIALS);
+}
+
+TEST_F(SuplaDeviceTests, OnRegisterResultTemporairlyUnavailable) {
+  NetworkMock net;
+  SrpcMock srpc;
+  TimeInterfaceStub time;
+  SuplaDeviceClass sd;
+
+  EXPECT_CALL(srpc, srpc_dcs_async_set_activity_timeout(_, _)).Times(0);
+  EXPECT_CALL(net, disconnect()).Times(1);
+
+  TSD_SuplaRegisterDeviceResult register_device_result{};
+  register_device_result.result_code = SUPLA_RESULTCODE_TEMPORARILY_UNAVAILABLE;
+  register_device_result.activity_timeout = 45;
+  register_device_result.version = 12;
+  register_device_result.version_min = 1;
+
+  sd.onRegisterResult(&register_device_result);
+
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_TEMPORARILY_UNAVAILABLE);
+}
+
+TEST_F(SuplaDeviceTests, OnRegisterResultLocationConflict) {
+  NetworkMock net;
+  SrpcMock srpc;
+  TimeInterfaceStub time;
+  SuplaDeviceClass sd;
+
+  EXPECT_CALL(srpc, srpc_dcs_async_set_activity_timeout(_, _)).Times(0);
+  EXPECT_CALL(net, disconnect()).Times(1);
+
+  TSD_SuplaRegisterDeviceResult register_device_result{};
+  register_device_result.result_code = SUPLA_RESULTCODE_LOCATION_CONFLICT;
+  register_device_result.activity_timeout = 45;
+  register_device_result.version = 12;
+  register_device_result.version_min = 1;
+
+  sd.onRegisterResult(&register_device_result);
+
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_LOCATION_CONFLICT);
+}
+
+TEST_F(SuplaDeviceTests, OnRegisterResultChannelConflict) {
+  NetworkMock net;
+  SrpcMock srpc;
+  TimeInterfaceStub time;
+  SuplaDeviceClass sd;
+
+  EXPECT_CALL(srpc, srpc_dcs_async_set_activity_timeout(_, _)).Times(0);
+  EXPECT_CALL(net, disconnect()).Times(1);
+
+  TSD_SuplaRegisterDeviceResult register_device_result{};
+  register_device_result.result_code = SUPLA_RESULTCODE_CHANNEL_CONFLICT;
+  register_device_result.activity_timeout = 45;
+  register_device_result.version = 12;
+  register_device_result.version_min = 1;
+
+  sd.onRegisterResult(&register_device_result);
+
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_CHANNEL_CONFLICT);
+}
+
+TEST_F(SuplaDeviceTests, OnRegisterResultDeviceDisabled) {
+  NetworkMock net;
+  SrpcMock srpc;
+  TimeInterfaceStub time;
+  SuplaDeviceClass sd;
+
+  EXPECT_CALL(srpc, srpc_dcs_async_set_activity_timeout(_, _)).Times(0);
+  EXPECT_CALL(net, disconnect()).Times(1);
+
+  TSD_SuplaRegisterDeviceResult register_device_result{};
+  register_device_result.result_code = SUPLA_RESULTCODE_DEVICE_DISABLED;
+  register_device_result.activity_timeout = 45;
+  register_device_result.version = 12;
+  register_device_result.version_min = 1;
+
+  sd.onRegisterResult(&register_device_result);
+
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_DEVICE_IS_DISABLED);
+}
+
+TEST_F(SuplaDeviceTests, OnRegisterResultLocationDisabled) {
+  NetworkMock net;
+  SrpcMock srpc;
+  TimeInterfaceStub time;
+  SuplaDeviceClass sd;
+
+  EXPECT_CALL(srpc, srpc_dcs_async_set_activity_timeout(_, _)).Times(0);
+  EXPECT_CALL(net, disconnect()).Times(1);
+
+  TSD_SuplaRegisterDeviceResult register_device_result{};
+  register_device_result.result_code = SUPLA_RESULTCODE_LOCATION_DISABLED;
+  register_device_result.activity_timeout = 45;
+  register_device_result.version = 12;
+  register_device_result.version_min = 1;
+
+  sd.onRegisterResult(&register_device_result);
+
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_LOCATION_IS_DISABLED);
+}
+
+TEST_F(SuplaDeviceTests, OnRegisterResultDeviceLimitExceeded) {
+  NetworkMock net;
+  SrpcMock srpc;
+  TimeInterfaceStub time;
+  SuplaDeviceClass sd;
+
+  EXPECT_CALL(srpc, srpc_dcs_async_set_activity_timeout(_, _)).Times(0);
+  EXPECT_CALL(net, disconnect()).Times(1);
+
+  TSD_SuplaRegisterDeviceResult register_device_result{};
+  register_device_result.result_code = SUPLA_RESULTCODE_DEVICE_LIMITEXCEEDED;
+  register_device_result.activity_timeout = 45;
+  register_device_result.version = 12;
+  register_device_result.version_min = 1;
+
+  sd.onRegisterResult(&register_device_result);
+
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_DEVICE_LIMIT_EXCEEDED);
+}
+
+TEST_F(SuplaDeviceTests, OnRegisterResultGuidError) {
+  NetworkMock net;
+  SrpcMock srpc;
+  TimeInterfaceStub time;
+  SuplaDeviceClass sd;
+
+  EXPECT_CALL(srpc, srpc_dcs_async_set_activity_timeout(_, _)).Times(0);
+  EXPECT_CALL(net, disconnect()).Times(1);
+
+  TSD_SuplaRegisterDeviceResult register_device_result{};
+  register_device_result.result_code = SUPLA_RESULTCODE_GUID_ERROR;
+  register_device_result.activity_timeout = 45;
+  register_device_result.version = 12;
+  register_device_result.version_min = 1;
+
+  sd.onRegisterResult(&register_device_result);
+
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_INVALID_GUID);
+}
+
+TEST_F(SuplaDeviceTests, OnRegisterResultAuthKeyError) {
+  NetworkMock net;
+  SrpcMock srpc;
+  TimeInterfaceStub time;
+  SuplaDeviceClass sd;
+
+  EXPECT_CALL(srpc, srpc_dcs_async_set_activity_timeout(_, _)).Times(0);
+  EXPECT_CALL(net, disconnect()).Times(1);
+
+  TSD_SuplaRegisterDeviceResult register_device_result{};
+  register_device_result.result_code = SUPLA_RESULTCODE_AUTHKEY_ERROR;
+  register_device_result.activity_timeout = 45;
+  register_device_result.version = 12;
+  register_device_result.version_min = 1;
+
+  sd.onRegisterResult(&register_device_result);
+
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_INVALID_GUID);
+}
+
+TEST_F(SuplaDeviceTests, OnRegisterResultRegistrationDisabled) {
+  NetworkMock net;
+  SrpcMock srpc;
+  TimeInterfaceStub time;
+  SuplaDeviceClass sd;
+
+  EXPECT_CALL(srpc, srpc_dcs_async_set_activity_timeout(_, _)).Times(0);
+  EXPECT_CALL(net, disconnect()).Times(1);
+
+  TSD_SuplaRegisterDeviceResult register_device_result{};
+  register_device_result.result_code = SUPLA_RESULTCODE_REGISTRATION_DISABLED;
+  register_device_result.activity_timeout = 45;
+  register_device_result.version = 12;
+  register_device_result.version_min = 1;
+
+  sd.onRegisterResult(&register_device_result);
+
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_REGISTRATION_DISABLED);
+}
+
+TEST_F(SuplaDeviceTests, OnRegisterResultNoLocationAvailable) {
+  NetworkMock net;
+  SrpcMock srpc;
+  TimeInterfaceStub time;
+  SuplaDeviceClass sd;
+
+  EXPECT_CALL(srpc, srpc_dcs_async_set_activity_timeout(_, _)).Times(0);
+  EXPECT_CALL(net, disconnect()).Times(1);
+
+  TSD_SuplaRegisterDeviceResult register_device_result{};
+  register_device_result.result_code = SUPLA_RESULTCODE_NO_LOCATION_AVAILABLE;
+  register_device_result.activity_timeout = 45;
+  register_device_result.version = 12;
+  register_device_result.version_min = 1;
+
+  sd.onRegisterResult(&register_device_result);
+
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_INVALID_GUID);
+}
+
+TEST_F(SuplaDeviceTests, OnRegisterResultUserConflict) {
+  NetworkMock net;
+  SrpcMock srpc;
+  TimeInterfaceStub time;
+  SuplaDeviceClass sd;
+
+  EXPECT_CALL(srpc, srpc_dcs_async_set_activity_timeout(_, _)).Times(0);
+  EXPECT_CALL(net, disconnect()).Times(1);
+
+  TSD_SuplaRegisterDeviceResult register_device_result{};
+  register_device_result.result_code = SUPLA_RESULTCODE_USER_CONFLICT;
+  register_device_result.activity_timeout = 45;
+  register_device_result.version = 12;
+  register_device_result.version_min = 1;
+
+  sd.onRegisterResult(&register_device_result);
+
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_INVALID_GUID);
+}
+
+TEST_F(SuplaDeviceTests, OnRegisterResultUnknownError) {
+  NetworkMock net;
+  SrpcMock srpc;
+  TimeInterfaceStub time;
+  SuplaDeviceClass sd;
+
+  EXPECT_CALL(srpc, srpc_dcs_async_set_activity_timeout(_, _)).Times(0);
+  EXPECT_CALL(net, disconnect()).Times(1);
+
+  TSD_SuplaRegisterDeviceResult register_device_result{};
+  register_device_result.result_code = 666;
+  register_device_result.activity_timeout = 45;
+  register_device_result.version = 12;
+  register_device_result.version_min = 1;
+
+  sd.onRegisterResult(&register_device_result);
+
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_UNKNOWN_ERROR);
+}
