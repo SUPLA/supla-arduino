@@ -18,29 +18,91 @@
 
 namespace Supla {
 
-LocalAction::LocalAction() : registeredClientsCount(0) {
-}
+class ActionHandlerClient;
 
-void LocalAction::addAction(int action, Triggerable &client, int event) {
-  if (registeredClientsCount < MAX_TRIGGERABLE_CLIENTS) {
-    clients[registeredClientsCount].client = &client;
-    clients[registeredClientsCount].onEvent = event;
-    clients[registeredClientsCount].action = action;
-    registeredClientsCount++;
+class ActionHandlerClient {
+ public:
+  ActionHandlerClient()
+      : trigger(nullptr),
+        client(nullptr),
+        next(nullptr),
+        onEvent(0),
+        action(0) {
+    if (begin == nullptr) {
+      begin = this;
+    } else {
+      auto ptr = begin;
+      while (ptr->next) {
+        ptr = ptr->next;
+      }
+      ptr->next = this;
+    }
   }
-}
 
-void LocalAction::addAction(int action, Triggerable *client, int event) {
-  addAction(action, *client, event);
-}
+  ~ActionHandlerClient() {
+    if (begin == this) {
+      begin = next;
+      return;
+    }
 
-void LocalAction::runAction(int event) {
-  for (int i = 0; i < registeredClientsCount; i++) {
-    if (clients[i].onEvent == event) {
-      clients[i].client->runAction(event, clients[i].action);
+    auto ptr = begin;
+    while (ptr->next != this) {
+      ptr = ptr->next;
+    }
+
+    ptr->next = ptr->next->next;
+  }
+
+  LocalAction *trigger;
+  ActionHandler *client;
+  ActionHandlerClient *next;
+  uint8_t onEvent;
+  uint8_t action;
+  static ActionHandlerClient *begin;
+};
+
+ActionHandlerClient *ActionHandlerClient::begin = nullptr;
+
+LocalAction::~LocalAction() {
+  auto ptr = ActionHandlerClient::begin;
+  while (ptr) {
+    if (ptr->trigger == this) {
+      auto tbdptr = ptr;
+      ptr = ptr->next;
+      if (tbdptr->client->deleteClient()) {
+        delete tbdptr->client;
+      }
+      delete tbdptr;
+    } else {
+      ptr = ptr->next;
     }
   }
 }
 
-};  // namespace Supla
+void LocalAction::addAction(int action, ActionHandler &client, int event) {
+  auto ptr = new ActionHandlerClient;
+  ptr->trigger = this;
+  ptr->client = &client;
+  ptr->onEvent = event;
+  ptr->action = action;
+}
 
+void LocalAction::addAction(int action, ActionHandler *client, int event) {
+  addAction(action, *client, event);
+}
+
+void LocalAction::runAction(int event) {
+  auto ptr = ActionHandlerClient::begin;
+  while (ptr) {
+    if (ptr->trigger == this && ptr->onEvent == event) {
+      ptr->client->handleAction(event, ptr->action);
+    }
+    ptr = ptr->next;
+  }
+}
+
+ActionHandlerClient *LocalAction::getClientListPtr() {
+  return ActionHandlerClient::begin;
+}
+
+};  // namespace Supla

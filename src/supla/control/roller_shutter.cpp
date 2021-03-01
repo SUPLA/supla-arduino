@@ -127,7 +127,7 @@ void RollerShutter::setOpenCloseTime(uint32_t newClosingTimeMs,
   }
 }
 
-void RollerShutter::runAction(int event, int action) {
+void RollerShutter::handleAction(int event, int action) {
   (void)(event);
   switch (action) {
     case CLOSE_OR_STOP: {
@@ -466,10 +466,6 @@ void RollerShutter::onTimer() {
       currentPosition));  // value set on channel will be send to server
                           // during iterateConnected() execution
                           // }
-}
-
-Channel *RollerShutter::getChannel() {
-  return &channel;
 }
 
 void RollerShutter::configComfortUpValue(uint8_t position) {

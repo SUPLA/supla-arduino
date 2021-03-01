@@ -20,23 +20,21 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <supla/sensor/HC_SR04.h>
 
 // Choose proper network interface for your card:
-// Arduino Mega with EthernetShield W5100:
-#include <supla/network/ethernet_shield.h>
-// Ethernet MAC address
-uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
-Supla::EthernetShield ethernet(mac);
-//
-// Arduino Mega with ENC28J60:
-// #include <supla/network/ENC28J60.h>
-// Supla::ENC28J60 ethernet(mac);
-//
-// ESP8266 based board:
-// #include <supla/network/esp_wifi.h>
-// Supla::ESPWifi wifi("your_wifi_ssid", "your_wifi_password");
-//
-// ESP32 based board:
-// #include <supla/network/esp32_wifi.h>
-// Supla::ESP32Wifi wifi("your_wifi_ssid", "your_wifi_password");
+#ifdef ARDUINO_ARCH_AVR
+  // Arduino Mega with EthernetShield W5100:
+  #include <supla/network/ethernet_shield.h>
+  // Ethernet MAC address
+  uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
+  Supla::EthernetShield ethernet(mac);
+
+  // Arduino Mega with ENC28J60:
+  // #include <supla/network/ENC28J60.h>
+  // Supla::ENC28J60 ethernet(mac);
+#elif defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+  // ESP8266 and ESP32 based board:
+  #include <supla/network/esp_wifi.h>
+  Supla::ESPWifi wifi("your_wifi_ssid", "your_wifi_password");
+#endif
 
 int8_t trigPin = 13;
 int8_t echoPin = 12;

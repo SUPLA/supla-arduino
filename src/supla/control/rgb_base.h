@@ -28,6 +28,15 @@ class RGBBase : public RGBWBase {
     channel.setDefault(SUPLA_CHANNELFNC_RGBLIGHTING);
   }
 
+  void setRGBW(int red,
+               int green,
+               int blue,
+               int colorBrightness,
+               int brightness,
+               bool toggle) {
+    RGBWBase::setRGBW(red, green, blue, colorBrightness, 0, toggle);
+  }
+
 };
 
 };  // namespace Control

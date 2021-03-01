@@ -14,6 +14,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#include <supla/events.h>
+
 #include "therm_hygro_press_meter.h"
 
 Supla::Sensor::ThermHygroPressMeter::ThermHygroPressMeter() {
@@ -54,4 +56,24 @@ Supla::Element &Supla::Sensor::ThermHygroPressMeter::disableChannelState() {
 
 Supla::Channel *Supla::Sensor::ThermHygroPressMeter::getSecondaryChannel() {
   return &pressureChannel;
+}
+
+void Supla::Sensor::ThermHygroPressMeter::addAction(int action,
+                                            ActionHandler &client,
+                                            int event) {
+  // delegate secondary channel event registration to secondary channel
+  switch (event) {
+    case Supla::ON_SECONDARY_CHANNEL_CHANGE: {
+      getSecondaryChannel()->addAction(action, client, event);
+      return;
+    }
+  }
+  // delegate all other events to primary channel
+  channel.addAction(action, client, event);
+}
+
+void Supla::Sensor::ThermHygroPressMeter::addAction(int action,
+                                            ActionHandler *client,
+                                            int event) {
+  addAction(action, *client, event);
 }

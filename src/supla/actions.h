@@ -17,9 +17,9 @@
 #ifndef _actions_h
 #define _actions_h
 
-// Actions are used in triggerable elements. They are grouped by most common
+// Actions are used in ActionHandler elements. They are grouped by most common
 // usage, but you should not rely on it. Please check exact supported actions
-// in triggerable element documentation
+// in ActionHandler's element documentation
 
 namespace Supla {
 enum Action {

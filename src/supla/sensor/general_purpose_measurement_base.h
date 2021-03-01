@@ -17,12 +17,11 @@
 #ifndef _general_purpose_measurement_h
 #define _general_purpose_measurement_h
 
-#include "supla/element.h"
-#include "supla/channel.h"
+#include "supla/channel_element.h"
 
 namespace Supla {
 namespace Sensor {
-class GeneralPurposeMeasurementBase : public Element {
+class GeneralPurposeMeasurementBase : public ChannelElement {
  public:
    GeneralPurposeMeasurementBase() : lastReadTime(0) {
      channel.setType(SUPLA_CHANNELTYPE_GENERAL_PURPOSE_MEASUREMENT);
@@ -37,12 +36,7 @@ class GeneralPurposeMeasurementBase : public Element {
     }
   }
 
-  Channel *getChannel() {
-    return &channel;
-  }
-
  protected:
-  Channel channel;
   unsigned long lastReadTime;
 };
 

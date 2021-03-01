@@ -20,14 +20,13 @@
 #include <Arduino.h>
 #include <stdint.h>
 
+#include "../action_handler.h"
 #include "../actions.h"
-#include "../channel.h"
-#include "../element.h"
-#include "../triggerable.h"
+#include "../channel_element.h"
 
 namespace Supla {
 namespace Control {
-class RGBWBase : public Element, public Triggerable {
+class RGBWBase : public ChannelElement, public ActionHandler {
  public:
   RGBWBase();
 
@@ -37,32 +36,36 @@ class RGBWBase : public Element, public Triggerable {
                                     uint8_t colorBrightness,
                                     uint8_t brightness) = 0;
 
-  virtual void setRGBW(
-      int red, int green, int blue, int colorBrightness, int brightness);
+  virtual void setRGBW(int red,
+                       int green,
+                       int blue,
+                       int colorBrightness,
+                       int brightness,
+                       bool toggle);
 
   int handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue);
   virtual void turnOn();
   virtual void turnOff();
   virtual void toggle();
-  void runAction(int event, int action);
+  void handleAction(int event, int action);
   void setStep(int step);
   void setDefaultDimmedBrightness(int dimmedBrightness);
   void setFadeEffectTime(int timeMs);
   void onTimer();
+  void iterateAlways();
 
-  void onInit() {
-    // Send to Supla server new values
-    channel.setNewValue(
-        curRed, curGreen, curBlue, curColorBrightness, curBrightness);
-  }
+  void onInit();
+  void onLoadState();
+  void onSaveState();
 
-  Channel *getChannel();
+  virtual RGBWBase &setDefaultStateOn();
+  virtual RGBWBase &setDefaultStateOff();
+  virtual RGBWBase &setDefaultStateRestore();
 
  protected:
   uint8_t addWithLimit(int value, int addition, int limit = 255);
   void iterateDimmerRGBW(int rgbStep, int wStep);
 
-  Channel channel;
   uint8_t buttonStep;               // 10
   uint8_t curRed;                   // 0 - 255
   uint8_t curGreen;                 // 0 - 255
@@ -81,6 +84,8 @@ class RGBWBase : public Element, public Triggerable {
   int hwColorBrightness;  // 0 - 100
   int hwBrightness;       // 0 - 100
   unsigned long lastTick;
+  unsigned long lastMsgReceivedMs;
+  int8_t stateOnInit;
 };
 
 };  // namespace Control

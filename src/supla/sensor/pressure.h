@@ -17,14 +17,13 @@
 #ifndef _pressure_h
 #define _pressure_h
 
-#include "supla/channel.h"
-#include "supla/element.h"
+#include "supla/channel_element.h"
 
 #define PRESSURE_NOT_AVAILABLE -1
 
 namespace Supla {
 namespace Sensor {
-class Pressure : public Element {
+class Pressure : public ChannelElement {
  public:
   Pressure() : lastReadTime(0) {
     channel.setType(SUPLA_CHANNELTYPE_PRESSURESENSOR);
@@ -43,12 +42,7 @@ class Pressure : public Element {
     }
   }
 
-  Channel *getChannel() {
-    return &channel;
-  }
-
  protected:
-  Channel channel;
   unsigned long lastReadTime;
 };
 

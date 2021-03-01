@@ -4,6 +4,19 @@ set(SRCS
   supla/channel_extended.cpp
   supla/io.cpp
   supla/tools.cpp
+  supla/element.cpp
+  supla/local_action.cpp
+  supla/channel_element.cpp
+  supla/control/internal_pin_output.cpp
+  supla/control/pin_status_led.cpp
+  supla/condition.cpp
+  supla/conditions/on_less.cpp
+  supla/conditions/on_less_eq.cpp
+  supla/conditions/on_greater.cpp
+  supla/conditions/on_greater_eq.cpp
+  supla/conditions/on_between.cpp
+  supla/conditions/on_between_eq.cpp
+  supla/conditions/on_equal.cpp
 )
 
 add_library(supladevicelib SHARED ${SRCS})

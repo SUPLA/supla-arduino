@@ -17,14 +17,13 @@
 #ifndef _distance_h
 #define _distance_h
 
-#include "supla/channel.h"
-#include "supla/element.h"
+#include "supla/channel_element.h"
 
 #define DISTANCE_NOT_AVAILABLE -1.0
 
 namespace Supla {
 namespace Sensor {
-class Distance : public Element {
+class Distance : public ChannelElement {
  public:
   Distance() : lastReadTime(0) {
     channel.setType(SUPLA_CHANNELTYPE_DISTANCESENSOR);
@@ -37,18 +36,13 @@ class Distance : public Element {
   }
 
   void iterateAlways() {
-    if (lastReadTime + 500 < millis()) {
+    if (lastReadTime + 100 < millis()) {
       lastReadTime = millis();
       channel.setNewValue(getValue());
     }
   }
 
-  Channel *getChannel() {
-    return &channel;
-  }
-
  protected:
-  Channel channel;
   unsigned long lastReadTime;
 };
 

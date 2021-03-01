@@ -19,11 +19,12 @@
 
 #include <stdint.h>
 
-#include "../supla-common/proto.h"
+#include "supla-common/proto.h"
+#include "local_action.h"
 
 namespace Supla {
 
-class Channel {
+class Channel : public LocalAction {
  public:
   Channel();
   ~Channel();

@@ -14,16 +14,23 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include <supla-common/srpc.h>
+#include "../condition.h"
 
-_supla_int_t SRPC_ICACHE_FLASH srpc_ds_async_channel_extendedvalue_changed(
-    void *_srpc, unsigned char channel_number,
-    TSuplaChannelExtendedValue *value) {
-  return 0;
+class OnEqualCond : public Supla::Condition {
+ public:
+  OnEqualCond(double threshold, bool useAlternativeMeasurement)
+      : Supla::Condition(threshold, useAlternativeMeasurement) {
+  }
+
+  bool condition(double val) {
+    return val == threshold;
+  }
+};
+
+
+Supla::Condition *OnEqual(double threshold, bool useAlternativeMeasurement) {
+  return new OnEqualCond(threshold, useAlternativeMeasurement);
 }
-         
-_supla_int_t SRPC_ICACHE_FLASH srpc_ds_async_channel_value_changed(
-    void *_srpc, unsigned char channel_number, char *value) {
-  return 0;
-}
+
+
 

@@ -17,14 +17,14 @@
 #ifndef _weight_h
 #define _weight_h
 
-#include "supla/channel.h"
+#include "supla/channel_element.h"
 #include "supla/element.h"
 
 #define WEIGHT_NOT_AVAILABLE -1
 
 namespace Supla {
 namespace Sensor {
-class Weight : public Element {
+class Weight : public ChannelElement {
  public:
   Weight() : lastReadTime(0) {
     channel.setType(SUPLA_CHANNELTYPE_WEIGHTSENSOR);
@@ -43,12 +43,7 @@ class Weight : public Element {
     }
   }
 
-  Channel *getChannel() {
-    return &channel;
-  }
-
  protected:
-  Channel channel;
   unsigned long lastReadTime;
 };
 

@@ -17,7 +17,12 @@
 #include <Arduino.h>
 #include <stdint.h>
 
+#include "../storage/storage.h"
 #include "rgbw_base.h"
+
+#define RGBW_STATE_ON_INIT_RESTORE -1
+#define RGBW_STATE_ON_INIT_OFF 0
+#define RGBW_STATE_ON_INIT_ON 1
 
 namespace Supla {
 namespace Control {
@@ -36,23 +41,38 @@ RGBWBase::RGBWBase()
       iterationDelayCounter(0),
       fadeEffect(1000),
       hwRed(0),
-      hwGreen(255),
+      hwGreen(0),
       hwBlue(0),
       hwColorBrightness(0),
       hwBrightness(0),
-      lastTick(0) {
+      lastTick(0),
+      lastMsgReceivedMs(0),
+      stateOnInit(RGBW_STATE_ON_INIT_OFF) {
   channel.setType(SUPLA_CHANNELTYPE_DIMMERANDRGBLED);
   channel.setDefault(SUPLA_CHANNELFNC_DIMMERANDRGBLIGHTING);
 }
 
+void RGBWBase::setRGBW(int red,
+                       int green,
+                       int blue,
+                       int colorBrightness,
+                       int brightness,
+                       bool toggle = false) {
+  if (toggle) {
+    lastMsgReceivedMs = 1;
+  } else {
+    lastMsgReceivedMs = millis();
+  }
 
-void RGBWBase::setRGBW(
-    int red, int green, int blue, int colorBrightness, int brightness) {
   // Store last non 0 brightness for turn on/toggle operations
-  if (colorBrightness > 0) {
+  if (toggle && colorBrightness == 100 && curColorBrightness == 0) {
+    colorBrightness = lastColorBrightness;
+  } else if (colorBrightness > 0) {
     lastColorBrightness = colorBrightness;
   }
-  if (brightness > 0) {
+  if (toggle && brightness == 100 && curBrightness == 0) {
+    brightness = lastBrightness;
+  } else if (brightness > 0) {
     lastBrightness = brightness;
   }
 
@@ -79,19 +99,28 @@ void RGBWBase::setRGBW(
         curRed, curGreen, curBlue, curColorBrightness, curBrightness);
   }
 
-  // Send to Supla server new values
-  channel.setNewValue(
-      curRed, curGreen, curBlue, curColorBrightness, curBrightness);
+  // Schedule save in 5 s after state change
+  Supla::Storage::ScheduleSave(5000);
+}
+
+void RGBWBase::iterateAlways() {
+  if (lastMsgReceivedMs != 0 && millis() - lastMsgReceivedMs > 400) {
+    lastMsgReceivedMs = 0;
+    // Send to Supla server new values
+    channel.setNewValue(
+        curRed, curGreen, curBlue, curColorBrightness, curBrightness);
+  }
 }
 
 int RGBWBase::handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue) {
+  uint8_t toggle = static_cast<uint8_t>(newValue->value[5]);
   uint8_t red = static_cast<uint8_t>(newValue->value[4]);
   uint8_t green = static_cast<uint8_t>(newValue->value[3]);
   uint8_t blue = static_cast<uint8_t>(newValue->value[2]);
   uint8_t colorBrightness = static_cast<uint8_t>(newValue->value[1]);
   uint8_t brightness = static_cast<uint8_t>(newValue->value[0]);
 
-  setRGBW(red, green, blue, colorBrightness, brightness);
+  setRGBW(red, green, blue, colorBrightness, brightness, toggle == 1);
 
   return -1;
 }
@@ -121,7 +150,7 @@ uint8_t RGBWBase::addWithLimit(int value, int addition, int limit) {
   return value + addition;
 }
 
-void RGBWBase::runAction(int event, int action) {
+void RGBWBase::handleAction(int event, int action) {
   (void)(event);
   switch (action) {
     case TURN_ON: {
@@ -302,14 +331,10 @@ void RGBWBase::iterateDimmerRGBW(int rgbStep, int wStep) {
   }
 
   setRGBW(-1,
-      -1,
-      -1,
-      addWithLimit(curColorBrightness, rgbStep, 100),
-      addWithLimit(curBrightness, wStep, 100));
-}
-
-Channel *RGBWBase::getChannel() {
-  return &channel;
+          -1,
+          -1,
+          addWithLimit(curColorBrightness, rgbStep, 100),
+          addWithLimit(curBrightness, wStep, 100));
 }
 
 void RGBWBase::setStep(int step) {
@@ -419,9 +444,73 @@ void RGBWBase::onTimer() {
     }
 
     if (valueChanged) {
-      setRGBWValueOnDevice(hwRed, hwGreen, hwBlue, hwColorBrightness, hwBrightness);
+      setRGBWValueOnDevice(
+          hwRed, hwGreen, hwBlue, hwColorBrightness, hwBrightness);
     }
   }
+}
+
+void RGBWBase::onInit() {
+  if (stateOnInit == RGBW_STATE_ON_INIT_ON) {
+    curColorBrightness = 100;
+    curBrightness = 100;
+  } else if (stateOnInit == RGBW_STATE_ON_INIT_OFF) {
+    curColorBrightness = 0;
+    curBrightness = 0;
+  }
+
+  setRGBW(curRed, curGreen, curBlue, curColorBrightness, curBrightness);
+}
+
+void RGBWBase::onSaveState() {
+  /*
+  uint8_t curRed;                   // 0 - 255
+  uint8_t curGreen;                 // 0 - 255
+  uint8_t curBlue;                  // 0 - 255
+  uint8_t curColorBrightness;       // 0 - 100
+  uint8_t curBrightness;            // 0 - 100
+  uint8_t lastColorBrightness;      // 0 - 100
+  uint8_t lastBrightness;           // 0 - 100
+  */
+  Supla::Storage::WriteState((unsigned char *)&curRed, sizeof(curRed));
+  Supla::Storage::WriteState((unsigned char *)&curGreen, sizeof(curGreen));
+  Supla::Storage::WriteState((unsigned char *)&curBlue, sizeof(curBlue));
+  Supla::Storage::WriteState((unsigned char *)&curColorBrightness,
+                             sizeof(curColorBrightness));
+  Supla::Storage::WriteState((unsigned char *)&curBrightness,
+                             sizeof(curBrightness));
+  Supla::Storage::WriteState((unsigned char *)&lastColorBrightness,
+                             sizeof(lastColorBrightness));
+  Supla::Storage::WriteState((unsigned char *)&lastBrightness, sizeof(lastBrightness));
+}
+
+void RGBWBase::onLoadState() {
+  Supla::Storage::ReadState((unsigned char *)&curRed, sizeof(curRed));
+  Supla::Storage::ReadState((unsigned char *)&curGreen, sizeof(curGreen));
+  Supla::Storage::ReadState((unsigned char *)&curBlue, sizeof(curBlue));
+  Supla::Storage::ReadState((unsigned char *)&curColorBrightness,
+                             sizeof(curColorBrightness));
+  Supla::Storage::ReadState((unsigned char *)&curBrightness,
+                             sizeof(curBrightness));
+  Supla::Storage::ReadState((unsigned char *)&lastColorBrightness,
+                             sizeof(lastColorBrightness));
+  Supla::Storage::ReadState((unsigned char *)&lastBrightness, sizeof(lastBrightness));
+
+}
+
+RGBWBase &RGBWBase::setDefaultStateOn() {
+  stateOnInit = RGBW_STATE_ON_INIT_ON;
+  return *this;
+}
+
+RGBWBase &RGBWBase::setDefaultStateOff() {
+  stateOnInit = RGBW_STATE_ON_INIT_OFF;
+  return *this;
+}
+
+RGBWBase &RGBWBase::setDefaultStateRestore() {
+  stateOnInit = RGBW_STATE_ON_INIT_RESTORE;
+  return *this;
 }
 
 };  // namespace Control

@@ -59,14 +59,14 @@ class HC_SR04 : public Distance {
       failCount++;
     }
 
-    long distance = (duration / 2) / 29.1;
+    long distance = (duration / 2.0) / 29.1;
     long value = map(distance, _minIn, _maxIn, _minOut, _maxOut);
     if (_minOut < _maxOut) {
       value = constrain(value, _minOut, _maxOut);
     } else {
       value = constrain(value, _maxOut, _minOut);
     }
-    return failCount <= 3 ? (float)value / 100 : DISTANCE_NOT_AVAILABLE;
+    return failCount <= 3 ? (float)value / 100.0 : DISTANCE_NOT_AVAILABLE;
   }
 
   void setMinMaxIn(int16_t minIn, int16_t maxIn) {

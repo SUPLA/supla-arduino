@@ -14,15 +14,26 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _triggerable_h
-#define _triggerable_h
+#ifndef _srpc_mock_h
+#define _srpc_mock_h
 
-namespace Supla {
-class Triggerable {
- public:
-  virtual void runAction(int event, int action) = 0;
+#include <gmock/gmock.h>
+#include <supla-common/proto.h>
+#include <vector>
+
+class SrpcInterface {
+  public:
+    SrpcInterface();
+    virtual ~SrpcInterface();
+
+    virtual _supla_int_t valueChanged(void *srpc, unsigned char channelNumber, std::vector<char> value) = 0;
+    
+    static SrpcInterface *instance;
 };
 
+class SrpcMock : public SrpcInterface {
+  public:
+    MOCK_METHOD(_supla_int_t, valueChanged, (void *, unsigned char, std::vector<char>), (override));
 };
 
 #endif

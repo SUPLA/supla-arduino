@@ -24,45 +24,12 @@ namespace Control {
 class VirtualRelay : public Relay {
  public:
   VirtualRelay(_supla_int_t functions =
-                   (0xFF ^ SUPLA_BIT_FUNC_CONTROLLINGTHEROLLERSHUTTER))
-      : Relay(-1, true, functions), state(false) {
-  }
+                   (0xFF ^ SUPLA_BIT_FUNC_CONTROLLINGTHEROLLERSHUTTER));
 
-  void onInit() {
-    if (stateOnInit == STATE_ON_INIT_ON ||
-        stateOnInit == STATE_ON_INIT_RESTORED_ON) {
-      turnOn();
-    } else {
-      turnOff();
-    }
-  }
-
-  void turnOn(_supla_int_t duration = 0) {
-    durationMs = duration;
-    durationTimestamp = millis();
-    if (keepTurnOnDurationMs) {
-      durationMs = storedTurnOnDurationMs;
-    }
-    state = true;
-
-    channel.setNewValue(state);
-    // Schedule save in 5 s after state change
-    Supla::Storage::ScheduleSave(5000);
-  }
-
-  virtual void turnOff(_supla_int_t duration = 0) {
-    durationMs = duration;
-    durationTimestamp = millis();
-    state = false;
-
-    channel.setNewValue(state);
-    // Schedule save in 5 s after state change
-    Supla::Storage::ScheduleSave(5000);
-  }
-
-  virtual bool isOn() {
-    return state;
-  }
+  void onInit(); 
+  void turnOn(_supla_int_t duration = 0);
+  void turnOff(_supla_int_t duration = 0);
+  bool isOn();
 
  protected:
   bool state;

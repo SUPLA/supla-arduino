@@ -17,33 +17,29 @@
 
 #include "Arduino.h"
 #include <gmock/gmock.h>
+#include "arduino_mock.h"
 
 SerialStub Serial;
 
-class DigitalInterface {
-  public:
-    DigitalInterface() {
-      instance = this;
-    }
-    virtual ~DigitalInterface() {
-      instance = nullptr;
-    }
+DigitalInterface::DigitalInterface() {
+  instance = this;
+}
 
-    virtual void digitalWrite(uint8_t, uint8_t) = 0;
-    virtual int digitalRead(uint8_t) = 0;
-    virtual void pinMode(uint8_t, uint8_t) = 0;
-    
-    static DigitalInterface *instance;
-};
+DigitalInterface::~DigitalInterface() {
+  instance = nullptr;
+}
 
 DigitalInterface *DigitalInterface::instance = nullptr;
 
-class DigitalInterfaceMock : public DigitalInterface {
-  MOCK_METHOD(void, digitalWrite, (uint8_t, uint8_t), (override));
-//  MOCK_METHOD(int, digitalRead, (uint8_t), (override));
- // MOCK_METHOD(void, pinMode, (uint8_t, uint8_t), (override));
+TimeInterface::TimeInterface() {
+  instance = this;
+}
 
-};
+TimeInterface::~TimeInterface() {
+  instance = nullptr;
+}
+
+TimeInterface *TimeInterface::instance = nullptr;
 
 void digitalWrite(uint8_t pin, uint8_t val) {
   DigitalInterface::instance->digitalWrite(pin, val);
@@ -56,4 +52,9 @@ int digitalRead(uint8_t pin) {
 void pinMode(uint8_t pin, uint8_t mode) {
   DigitalInterface::instance->pinMode(pin, mode);
 }
+
+unsigned long millis() {
+  return TimeInterface::instance->millis();
+}
+
 

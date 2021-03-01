@@ -15,7 +15,6 @@
 */
 
 #include <Arduino.h>
-#include <crc16.h>
 #include <supla-common/log.h>
 #include <supla/storage/storage.h>
 #include <supla/actions.h>
@@ -101,11 +100,7 @@ void ImpulseCounter::onFastTimer() {
   prevState = currentState;
 }
 
-Supla::Channel *ImpulseCounter::getChannel() {
-  return &channel;
-}
-
-void ImpulseCounter::runAction(int event, int action) {
+void ImpulseCounter::handleAction(int event, int action) {
   (void)(event);
   switch (action) {
     case RESET: {

@@ -36,6 +36,13 @@ file(GLOB TEST_SRC
   UptimeTests/*.cpp
   ChannelTests/*cpp
   IoTests/*.cpp
+  ElementTests/*.cpp
+  LocalActionTests/*.cpp
+  SensorTests/*.cpp
+  ChannelElementTests/*.cpp
+  InternalPinOutputTests/*.cpp
+  PinStatusLedTests/*.cpp
+  ConditionTests/*.cpp
   )
 
 file(GLOB DOUBLE_SRC doubles/*.cpp)

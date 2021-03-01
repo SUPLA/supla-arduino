@@ -25,11 +25,11 @@
 #include <Arduino.h>
 
 #include "../actions.h"
-#include "../channel.h"
-#include "../element.h"
+#include "../channel_element.h"
 #include "../io.h"
 #include "../storage/storage.h"
-#include "../triggerable.h"
+#include "../action_handler.h"
+#include "../local_action.h"
 
 #define STATE_ON_INIT_RESTORED_OFF -3
 #define STATE_ON_INIT_RESTORED_ON -2
@@ -39,7 +39,7 @@
 
 namespace Supla {
 namespace Control {
-class Relay : public Element, public Triggerable {
+class Relay : public ChannelElement, public ActionHandler {
  public:
   Relay(int pin,
         bool highIsOn = true,
@@ -58,18 +58,16 @@ class Relay : public Element, public Triggerable {
   virtual bool isOn();
   virtual void toggle(_supla_int_t duration = 0);
 
-  void runAction(int event, int action);
+  void handleAction(int event, int action);
 
   void onInit();
   void onLoadState();
   void onSaveState();
   void iterateAlways();
   int handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue);
-
-  Channel *getChannel();
+  unsigned _supla_int_t getStoredTurnOnDurationMs();
 
  protected:
-  Channel channel;
   int pin;
   bool highIsOn;
 

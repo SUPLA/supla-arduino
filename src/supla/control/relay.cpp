@@ -123,7 +123,7 @@ void Relay::toggle(_supla_int_t duration) {
   }
 }
 
-void Relay::runAction(int event, int action) {
+void Relay::handleAction(int event, int action) {
   (void)(event);
   switch (action) {
     case TURN_ON: {
@@ -139,10 +139,6 @@ void Relay::runAction(int event, int action) {
       break;
     }
   }
-}
-
-Channel *Relay::getChannel() {
-  return &channel;
 }
 
 void Relay::onSaveState() {
@@ -201,4 +197,8 @@ Relay &Relay::setDefaultStateRestore() {
 Relay &Relay::keepTurnOnDuration(bool keep) {
   keepTurnOnDurationMs = keep;
   return *this;
+}
+
+unsigned _supla_int_t Relay::getStoredTurnOnDurationMs() {
+  return storedTurnOnDurationMs;
 }

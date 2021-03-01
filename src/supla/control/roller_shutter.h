@@ -20,9 +20,8 @@
 #include <Arduino.h>
 
 #include "../io.h"
-#include "../channel.h"
-#include "../element.h"
-#include "../triggerable.h"
+#include "../channel_element.h"
+#include "../action_handler.h"
 #include "../actions.h"
 
 #define UNKNOWN_POSITION    -1
@@ -35,12 +34,12 @@ namespace Control {
 
 enum Directions { STOP_DIR, DOWN_DIR, UP_DIR };
 
-class RollerShutter : public Element, public Triggerable {
+class RollerShutter : public ChannelElement, public ActionHandler {
  public:
   RollerShutter(int pinUp, int pinDown, bool highIsOn = true);
 
   int handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue);
-  void runAction(int event, int action);
+  void handleAction(int event, int action);
 
   void close(); // Sets target position to 100%
   void open();  // Sets target position to 0%
@@ -59,8 +58,6 @@ class RollerShutter : public Element, public Triggerable {
   void onLoadState();
   void onSaveState();
 
-  Channel *getChannel();
-
  protected:
   virtual void stopMovement();
   virtual void relayDownOn();
@@ -75,8 +72,6 @@ class RollerShutter : public Element, public Triggerable {
   bool lastDirectionWasOpen();
   bool lastDirectionWasClose();
   bool inMove();
-
-  Channel channel;
 
   uint32_t closingTimeMs;
   uint32_t openingTimeMs;

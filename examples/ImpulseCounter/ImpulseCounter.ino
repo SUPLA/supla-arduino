@@ -16,6 +16,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <SuplaDevice.h>
 #include <supla/sensor/impulse_counter.h>
+// Remove below line if you don't want to have internal LED blinking on each impulse
+#include <supla/control/internal_pin_output.h>
+#include <supla/events.h>
 
 // Choose where Supla should store counter data in persistant memory
 // We recommend to use external FRAM memory 
@@ -60,11 +63,21 @@ void setup() {
    */
     
   // CHANNEL0 - Impulse Counter on pin 34, counting raising edge (from LOW to HIGH), no pullup on pin, and 10 ms debounce timeout
-  new Supla::Sensor::ImpulseCounter(34, true, false, 10);
+  auto ic1 = new Supla::Sensor::ImpulseCounter(34, true, false, 10);
   
   // CHANNEL1 - Impulse Counter on pin 35, counting falling edge (from HIGH to LOW), with pullup on pin, and 50 ms debounce timeout
-  new Supla::Sensor::ImpulseCounter(35, false, true, 50);
+  auto ic2 = new Supla::Sensor::ImpulseCounter(35, false, true, 50);
   
+  // Configuring internal LED to notify each change of impulse counter
+  auto led1 = new Supla::Control::InternalPinOutput(24); // LED on pin 24
+  auto led2 = new Supla::Control::InternalPinOutput(25); // LED on pin 25
+  
+  // LED1 will blink (100 ms) on each change of ic1
+  led1->setDurationMs(100);
+  ic1->addAction(Supla::TURN_ON, led1, Supla::ON_CHANGE);
+
+  // LED2 will toggle it's state on each change of ic2
+  ic2->addAction(Supla::TOGGLE, led2, Supla::ON_CHANGE);
 
   /*
    * Server address is available at https://cloud.supla.org 
