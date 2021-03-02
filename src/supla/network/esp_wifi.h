@@ -44,7 +44,7 @@ class ESPWifi : public Supla::Network {
  public:
   ESPWifi(const char *wifiSsid = nullptr,
           const char *wifiPassword = nullptr,
-          IPAddress *ip = nullptr)
+          unsigned char *ip = nullptr)
       : Network(ip), client(nullptr), isSecured(true), wifiConfigured(false) {
     ssid[0] = '\0';
     password[0] = '\0';
@@ -67,6 +67,7 @@ class ESPWifi : public Supla::Network {
       for (int i = 0; i < readSize; i++) {
         Serial.print(static_cast<unsigned char *>(buf)[i], HEX);
         Serial.print(F(" "));
+        delay(0);
       }
       Serial.println(F("]"));
 #endif
@@ -82,6 +83,7 @@ class ESPWifi : public Supla::Network {
     for (int i = 0; i < count; i++) {
       Serial.print(static_cast<unsigned char *>(buf)[i], HEX);
       Serial.print(F(" "));
+      delay(0);
     }
     Serial.println(F("]"));
 #endif
@@ -127,7 +129,7 @@ class ESPWifi : public Supla::Network {
               server,
               connectionPort);
 
-    //    static_cast<WiFiClientSecure*>(client)->setBufferSizes(512, 512); //
+//       static_cast<WiFiClientSecure*>(client)->setBufferSizes(512, 512); //
     //    EXPERIMENTAL
 
     bool result = client->connect(server, connectionPort);

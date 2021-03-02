@@ -20,10 +20,11 @@
 Supla::Control::Button::Button(int pin, bool pullUp, bool invertLogic)
     : SimpleButton(pin, pullUp, invertLogic),
       holdTimeMs(0),
+      repeatOnHoldMs(0),
       multiclickTimeMs(0),
       lastStateChangeMs(0),
       clickCounter(0),
-      holdSend(false),
+      holdSend(0),
       bistable(false) {
 }
 
@@ -50,17 +51,17 @@ void Supla::Control::Button::onTimer() {
 
   if (!stateChanged) {
     if (!bistable && stateResult == PRESSED) {
-      if (clickCounter <= 1 && holdTimeMs > 0 && timeDelta > holdTimeMs && !holdSend) {
+      if (clickCounter <= 1 && holdTimeMs > 0 && timeDelta > (holdTimeMs + holdSend*repeatOnHoldMs) && (repeatOnHoldMs == 0 ? !holdSend : true)) {
         runAction(ON_HOLD);
-        holdSend = true;
+        ++holdSend;
       }
     } else if (clickCounter > 0 && (bistable || stateResult == RELEASED)) {
       if (multiclickTimeMs == 0) {
-        holdSend = false;
+        holdSend = 0;
         clickCounter = 0;
       }
       if (multiclickTimeMs > 0 && timeDelta > multiclickTimeMs) {
-        if (!holdSend) {
+        if (holdSend == 0) {
           switch (clickCounter) {
             case 1:
               runAction(ON_CLICK_1);
@@ -97,7 +98,7 @@ void Supla::Control::Button::onTimer() {
             runAction(ON_CRAZY_CLICKER);
           }
         } 
-        holdSend = false;
+        holdSend = 0;
         clickCounter = 0;
       }
     }
@@ -119,3 +120,6 @@ void Supla::Control::Button::setMulticlickTime(unsigned int timeMs, bool bistabl
   }
 }
 
+void Supla::Control::Button::repeatOnHoldEvery(unsigned int timeMs) {
+  repeatOnHoldMs = timeMs;
+}

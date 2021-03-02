@@ -14,28 +14,21 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _rgb_base_h
-#define _rgb_base_h
+#include <supla/timer.h>
+#include <timer_mock.h>
 
-#include "rgbw_base.h"
+TimerInterface *timerInterfaceInstance = nullptr;
 
-namespace Supla {
-namespace Control {
-class RGBBase : public RGBWBase {
- public:
-  RGBBase();
-  void setRGBW(int red,
-               int green,
-               int blue,
-               int colorBrightness,
-               int brightness,
-               bool toggle = false);
+TimerInterface::TimerInterface() {
+  timerInterfaceInstance = this;
+}
 
-  void onLoadState();
-  void onSaveState();
-};
+TimerInterface::~TimerInterface() {
+  timerInterfaceInstance = nullptr;
+}
 
-};  // namespace Control
-};  // namespace Supla
 
-#endif
+void Supla::initTimers() {
+  assert(timerInterfaceInstance);
+  timerInterfaceInstance->initTimers();
+}

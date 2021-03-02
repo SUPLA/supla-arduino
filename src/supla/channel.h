@@ -64,6 +64,7 @@ class Channel : public LocalAction {
   void setFlag(_supla_int_t flag);
   void unsetFlag(_supla_int_t flag);
   void setFuncList(_supla_int_t functions);
+  void setValidityTimeSec(unsigned _supla_int_t);
   void clearUpdateReady();
   void sendUpdate(void *srpc);
   virtual TSuplaChannelExtendedValue *getExtValue();
@@ -76,7 +77,7 @@ class Channel : public LocalAction {
 
   bool valueChanged;
   int channelNumber;
-
+  unsigned _supla_int_t validityTimeSec;
 };
 
 };  // namespace Supla

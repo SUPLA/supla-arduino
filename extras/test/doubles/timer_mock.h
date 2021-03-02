@@ -14,28 +14,19 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _rgb_base_h
-#define _rgb_base_h
+#include <supla/timer.h>
+#include <gmock/gmock.h>
 
-#include "rgbw_base.h"
-
-namespace Supla {
-namespace Control {
-class RGBBase : public RGBWBase {
- public:
-  RGBBase();
-  void setRGBW(int red,
-               int green,
-               int blue,
-               int colorBrightness,
-               int brightness,
-               bool toggle = false);
-
-  void onLoadState();
-  void onSaveState();
+class TimerInterface {
+  public:
+    TimerInterface();
+    virtual ~TimerInterface();
+    virtual void initTimers() = 0;
 };
 
-};  // namespace Control
-};  // namespace Supla
+class TimerMock : public TimerInterface {
+  public:
+    MOCK_METHOD((void), initTimers, (), (override));
+};
 
-#endif
+

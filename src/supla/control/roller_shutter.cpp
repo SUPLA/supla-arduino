@@ -392,7 +392,7 @@ void RollerShutter::onTimer() {
                               // just handle roller movement/status
     if (currentDirection == UP_DIR && currentPosition > 0) {
       int movementDistance = lastPositionBeforeMovement;
-      int timeRequired = (1.0 * openingTimeMs * movementDistance / 100.0);
+      uint32_t timeRequired = (1.0 * openingTimeMs * movementDistance / 100.0);
       float fractionOfMovemendDone =
           (1.0 * (millis() - lastMovementStartTime) / timeRequired);
       if (fractionOfMovemendDone > 1) {
@@ -405,7 +405,7 @@ void RollerShutter::onTimer() {
       }
     } else if (currentDirection == DOWN_DIR && currentPosition < 100) {
       int movementDistance = 100 - lastPositionBeforeMovement;
-      int timeRequired = (1.0 * closingTimeMs * movementDistance / 100.0);
+      uint32_t timeRequired = (1.0 * closingTimeMs * movementDistance / 100.0);
       float fractionOfMovemendDone =
           (1.0 * (millis() - lastMovementStartTime) / timeRequired);
       if (fractionOfMovemendDone > 1) {

@@ -29,14 +29,16 @@ class Button : public SimpleButton {
 
   void onTimer();
   void setHoldTime(unsigned int timeMs);
+  void repeatOnHoldEvery(unsigned int timeMs);
   void setMulticlickTime(unsigned int timeMs, bool bistableButton = false);
 
  protected:
   unsigned int holdTimeMs;
+  unsigned int repeatOnHoldMs;
   unsigned int multiclickTimeMs;
   unsigned long lastStateChangeMs;
   uint8_t clickCounter;
-  bool holdSend;
+  unsigned int holdSend;
   bool bistable;
 };
 

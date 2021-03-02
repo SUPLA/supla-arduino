@@ -17,8 +17,6 @@
 #ifndef SUPLADEVICE_H
 #define SUPLADEVICE_H
 
-#include <IPAddress.h>
-
 #include "supla-common/proto.h"
 #include "supla/network/network.h"
 #include "supla/uptime.h"
@@ -49,6 +47,7 @@
 #define STATUS_NETWORK_DISCONNECTED      21
 #define STATUS_REGISTRATION_DISABLED     22
 #define STATUS_MISSING_CREDENTIALS       23
+#define STATUS_UNKNOWN_ERROR             24
 
 typedef void (*_impl_arduino_status)(int status, const char *msg);
 
@@ -60,8 +59,8 @@ class SuplaDeviceClass {
   int connectionFailCounter;
   int networkIsNotReadyCounter;
 
-  unsigned long last_iterate_time;
-  unsigned long wait_for_iterate;
+  unsigned long lastIterateTime;
+  unsigned long waitForIterate;
 
   _impl_arduino_status impl_arduino_status;
   int currentStatus;

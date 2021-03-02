@@ -15,6 +15,7 @@
 */
 
 #include <Arduino.h>
+#include <string.h>
 
 #include "storage.h"
 
@@ -63,10 +64,11 @@ bool Storage::LoadElementConfig() {
   return false;
 }
 
-void Storage::PrepareState(bool dryRun) {
+bool Storage::PrepareState(bool dryRun) {
   if (Instance()) {
-    Instance()->prepareState(dryRun);
+    return Instance()->prepareState(dryRun);
   }
+  return false;
 }
 
 bool Storage::FinalizeSaveState() {
@@ -106,10 +108,15 @@ Storage::Storage(unsigned int storageStartingOffset)
   instance = this;
 }
 
-void Storage::prepareState(bool performDryRun) {
+Storage::~Storage() {
+  instance = nullptr;
+}
+
+bool Storage::prepareState(bool performDryRun) {
   dryRun = performDryRun;
   newSectionSize = 0;
   currentStateOffset = elementStateOffset + sizeof(SectionPreamble);
+  return true;
 }
 
 bool Storage::readState(unsigned char *buf, int size) {

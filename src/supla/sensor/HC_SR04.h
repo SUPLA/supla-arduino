@@ -26,60 +26,18 @@ namespace Supla {
 namespace Sensor {
 class HC_SR04 : public Distance {
  public:
-  HC_SR04(int8_t trigPin, int8_t echoPin, int16_t minIn = 0,
-          int16_t maxIn = 500, int16_t minOut = 0, int16_t maxOut = 500)
-      : failCount(0), lastDuration(0) {
-    _trigPin = trigPin;
-    _echoPin = echoPin;
-    _minIn = minIn;
-    _maxIn = maxIn;
-    _minOut = minOut;
-    _maxOut = maxOut;
-  }
-  void onInit() {
-    pinMode(_trigPin, OUTPUT);
-    pinMode(_echoPin, INPUT);
-    digitalWrite(_trigPin, LOW);
-    delayMicroseconds(2);
+  HC_SR04(int8_t trigPin,
+          int8_t echoPin,
+          int16_t minIn = 0,
+          int16_t maxIn = 500,
+          int16_t minOut = 0,
+          int16_t maxOut = 500);
+  void onInit();
+  virtual double getValue();
+  void setMinMaxIn(int16_t minIn, int16_t maxIn);
+  void setMinMaxOut(int16_t minOut, int16_t maxOut);
 
-    channel.setNewValue(getValue());
-    channel.setNewValue(getValue());
-  }
-
-  virtual double getValue() {
-    digitalWrite(_trigPin, HIGH);
-    delayMicroseconds(10);
-    digitalWrite(_trigPin, LOW);
-    unsigned long duration = pulseIn(_echoPin, HIGH, 60000);
-    if (duration > 50) {
-      lastDuration = duration;
-      failCount = 0;
-    } else {
-      duration = lastDuration;
-      failCount++;
-    }
-
-    long distance = (duration / 2.0) / 29.1;
-    long value = map(distance, _minIn, _maxIn, _minOut, _maxOut);
-    if (_minOut < _maxOut) {
-      value = constrain(value, _minOut, _maxOut);
-    } else {
-      value = constrain(value, _maxOut, _minOut);
-    }
-    return failCount <= 3 ? (float)value / 100.0 : DISTANCE_NOT_AVAILABLE;
-  }
-
-  void setMinMaxIn(int16_t minIn, int16_t maxIn) {
-    _minIn = minIn;
-    _maxIn = maxIn;
-  }
-
-  void setMinMaxOut(int16_t minOut, int16_t maxOut) {
-    _minOut = minOut;
-    _maxOut = maxOut;
-  }
-
-protected:
+ protected:
   int8_t _trigPin;
   int8_t _echoPin;
   int16_t _minIn;
@@ -87,11 +45,11 @@ protected:
   int16_t _minOut;
   int16_t _maxOut;
   char failCount;
-  bool ready;
-  unsigned long lastDuration;
+  unsigned long readouts[5];
+  int index;
 };
 
-}; // namespace Sensor
-}; // namespace Supla
+};  // namespace Sensor
+};  // namespace Supla
 
 #endif
