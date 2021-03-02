@@ -39,4 +39,7 @@ steps:
       <{{ build.link }}|Visit build page ↗>
   when:
     status: [success, failure]
+    event:
+      exclude:
+        - pull_request
 
