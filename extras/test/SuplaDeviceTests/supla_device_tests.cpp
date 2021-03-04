@@ -284,7 +284,7 @@ TEST_F(SuplaDeviceTests, BeginStopsAtEmptyAuthkey) {
   sd.setServer("supla.rulez");
   sd.setEmail("john@supla");
   EXPECT_FALSE(sd.begin());
-  EXPECT_EQ(sd.getCurrentStatus(), STATUS_MISSING_CREDENTIALS);
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_INVALID_AUTHKEY);
 }
 
 TEST_F(SuplaDeviceTests, SuccessfulBegin) {
@@ -350,7 +350,7 @@ TEST_F(SuplaDeviceTests, FailedBeginAlternativeOnEmptyAUTHKEY) {
   char GUID[SUPLA_GUID_SIZE] = {1};
   char AUTHKEY[SUPLA_AUTHKEY_SIZE] = {0};
   EXPECT_FALSE(sd.begin(GUID, "supla.rulez", "superman@supla.org", AUTHKEY));
-  EXPECT_EQ(sd.getCurrentStatus(), STATUS_MISSING_CREDENTIALS);
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_INVALID_AUTHKEY);
 }
 
 TEST_F(SuplaDeviceTests, TwoChannelElementsNoNetworkWithStorage) {
@@ -607,7 +607,7 @@ TEST_F(SuplaDeviceTests, OnRegisterResultAuthKeyError) {
 
   sd.onRegisterResult(&register_device_result);
 
-  EXPECT_EQ(sd.getCurrentStatus(), STATUS_INVALID_GUID);
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_INVALID_AUTHKEY);
 }
 
 TEST_F(SuplaDeviceTests, OnRegisterResultRegistrationDisabled) {
@@ -647,27 +647,7 @@ TEST_F(SuplaDeviceTests, OnRegisterResultNoLocationAvailable) {
 
   sd.onRegisterResult(&register_device_result);
 
-  EXPECT_EQ(sd.getCurrentStatus(), STATUS_INVALID_GUID);
-}
-
-TEST_F(SuplaDeviceTests, OnRegisterResultUserConflict) {
-  NetworkMock net;
-  SrpcMock srpc;
-  TimeInterfaceStub time;
-  SuplaDeviceClass sd;
-
-  EXPECT_CALL(srpc, srpc_dcs_async_set_activity_timeout(_, _)).Times(0);
-  EXPECT_CALL(net, disconnect()).Times(1);
-
-  TSD_SuplaRegisterDeviceResult register_device_result{};
-  register_device_result.result_code = SUPLA_RESULTCODE_USER_CONFLICT;
-  register_device_result.activity_timeout = 45;
-  register_device_result.version = 12;
-  register_device_result.version_min = 1;
-
-  sd.onRegisterResult(&register_device_result);
-
-  EXPECT_EQ(sd.getCurrentStatus(), STATUS_INVALID_GUID);
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_NO_LOCATION_AVAILABLE);
 }
 
 TEST_F(SuplaDeviceTests, OnRegisterResultUnknownError) {

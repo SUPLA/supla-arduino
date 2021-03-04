@@ -27,14 +27,13 @@
 #include "supla/storage/storage.h"
 #include "supla/timer.h"
 
-void SuplaDeviceClass::status(int status, const char *msg) {
-  if (impl_arduino_status != NULL) {
-    impl_arduino_status(status, msg);
-  } else {
-    if (currentStatus != status) {
-      currentStatus = status;
-      supla_log(LOG_DEBUG, "Current status: [%d] %s", status, msg);
-    }
+void SuplaDeviceClass::status(int newStatus, const char *msg) {
+  if (currentStatus != newStatus && !(newStatus == STATUS_REGISTER_IN_PROGRESS && currentStatus > STATUS_REGISTER_IN_PROGRESS)) {
+    if (impl_arduino_status != NULL) {
+      impl_arduino_status(newStatus, msg);
+    } 
+    currentStatus = newStatus;
+    supla_log(LOG_DEBUG, "Current status: [%d] %s", newStatus, msg);
   }
 }
 
@@ -141,17 +140,17 @@ bool SuplaDeviceClass::begin(unsigned char version) {
     }
   }
   if (emptyGuidDetected) {
-    status(STATUS_INVALID_GUID, "Invalid GUID");
+    status(STATUS_INVALID_GUID, "Missing GUID");
     return false;
   }
 
   if (Supla::Channel::reg_dev.ServerName[0] == '\0') {
-    status(STATUS_UNKNOWN_SERVER_ADDRESS, "Unknown server address");
+    status(STATUS_UNKNOWN_SERVER_ADDRESS, "Missing server address");
     return false;
   }
 
   if (Supla::Channel::reg_dev.Email[0] == '\0') {
-    status(STATUS_MISSING_CREDENTIALS, "Unknown email address");
+    status(STATUS_MISSING_CREDENTIALS, "Missing email address");
     return false;
   }
 
@@ -163,7 +162,7 @@ bool SuplaDeviceClass::begin(unsigned char version) {
     }
   }
   if (emptyAuthKeyDetected) {
-    status(STATUS_MISSING_CREDENTIALS, "Unknown AuthKey");
+    status(STATUS_INVALID_AUTHKEY, "Missing AuthKey");
     return false;
   }
 
@@ -299,7 +298,6 @@ void SuplaDeviceClass::iterate(void) {
   networkIsNotReadyCounter = 0;
 
   if (!Supla::Network::Connected()) {
-    status(STATUS_SERVER_DISCONNECTED, "Not connected to Supla server");
 
     uptime.setConnectionLostCause(
         SUPLA_LASTCONNECTIONRESETCAUSE_SERVER_CONNECTION_LOST);
@@ -313,6 +311,7 @@ void SuplaDeviceClass::iterate(void) {
       connectionFailCounter = 0;
       supla_log(LOG_DEBUG, "Connected to Supla Server");
     } else {
+      status(STATUS_SERVER_DISCONNECTED, "Not connected to Supla server");
       supla_log(LOG_DEBUG,
                 "Connection fail (%d). Server: %s",
                 result,
@@ -356,6 +355,7 @@ void SuplaDeviceClass::iterate(void) {
 
   } else if (registered == 1) {
     // Device is registered and everything is correct
+
     if (Supla::Network::Ping(srpc) == false) {
       uptime.setConnectionLostCause(
           SUPLA_LASTCONNECTIONRESETCAUSE_ACTIVITY_TIMEOUT);
@@ -408,7 +408,7 @@ void SuplaDeviceClass::onRegisterResult(
                 register_device_result->version,
                 register_device_result->version_min);
       lastIterateTime = millis();
-      status(STATUS_REGISTERED_AND_READY, "Registered and ready.");
+      status(STATUS_REGISTERED_AND_READY, "Registered and ready");
 
       if (activity_timeout != ACTIVITY_TIMEOUT) {
         supla_log(
@@ -421,21 +421,34 @@ void SuplaDeviceClass::onRegisterResult(
       return;
 
       // NOK scenarios
-    case SUPLA_RESULTCODE_BAD_CREDENTIALS:
-      status(STATUS_BAD_CREDENTIALS, "Bad credentials!");
-      break;
-
     case SUPLA_RESULTCODE_TEMPORARILY_UNAVAILABLE:
       status(STATUS_TEMPORARILY_UNAVAILABLE, "Temporarily unavailable!");
       break;
 
-    case SUPLA_RESULTCODE_LOCATION_CONFLICT:
-      status(STATUS_LOCATION_CONFLICT, "Location conflict!");
+    case SUPLA_RESULTCODE_GUID_ERROR:
+      status(STATUS_INVALID_GUID, "Incorrect device GUID!");
       break;
 
-    case SUPLA_RESULTCODE_CHANNEL_CONFLICT:
-      status(STATUS_CHANNEL_CONFLICT, "Channel conflict!");
+    case SUPLA_RESULTCODE_AUTHKEY_ERROR:
+      status(STATUS_INVALID_AUTHKEY, "Incorrect AuthKey!");
       break;
+
+    case SUPLA_RESULTCODE_BAD_CREDENTIALS:
+      status(STATUS_BAD_CREDENTIALS, "Bad credentials - incorrect AuthKey or email");
+      break;
+
+    case SUPLA_RESULTCODE_REGISTRATION_DISABLED:
+      status(STATUS_REGISTRATION_DISABLED, "Registration disabled!");
+      break;
+
+    case SUPLA_RESULTCODE_DEVICE_LIMITEXCEEDED:
+      status(STATUS_DEVICE_LIMIT_EXCEEDED, "Device limit exceeded!");
+      break;
+
+    case SUPLA_RESULTCODE_NO_LOCATION_AVAILABLE:
+      status(STATUS_NO_LOCATION_AVAILABLE, "No location available!");
+      break;
+
     case SUPLA_RESULTCODE_DEVICE_DISABLED:
       status(STATUS_DEVICE_IS_DISABLED, "Device is disabled!");
       break;
@@ -444,28 +457,12 @@ void SuplaDeviceClass::onRegisterResult(
       status(STATUS_LOCATION_IS_DISABLED, "Location is disabled!");
       break;
 
-    case SUPLA_RESULTCODE_DEVICE_LIMITEXCEEDED:
-      status(STATUS_DEVICE_LIMIT_EXCEEDED, "Device limit exceeded!");
+    case SUPLA_RESULTCODE_LOCATION_CONFLICT:
+      status(STATUS_LOCATION_CONFLICT, "Location conflict!");
       break;
 
-    case SUPLA_RESULTCODE_GUID_ERROR:
-      status(STATUS_INVALID_GUID, "Incorrect device GUID!");
-      break;
-
-    case SUPLA_RESULTCODE_AUTHKEY_ERROR:
-      status(STATUS_INVALID_GUID, "Incorrect AuthKey!");
-      break;
-
-    case SUPLA_RESULTCODE_REGISTRATION_DISABLED:
-      status(STATUS_REGISTRATION_DISABLED, "Registration disabled!");
-      break;
-
-    case SUPLA_RESULTCODE_NO_LOCATION_AVAILABLE:
-      status(STATUS_INVALID_GUID, "No location available!");
-      break;
-
-    case SUPLA_RESULTCODE_USER_CONFLICT:
-      status(STATUS_INVALID_GUID, "User conflict!");
+    case SUPLA_RESULTCODE_CHANNEL_CONFLICT:
+      status(STATUS_CHANNEL_CONFLICT, "Channel conflict!");
       break;
 
     default:
