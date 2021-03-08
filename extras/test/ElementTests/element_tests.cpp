@@ -108,7 +108,10 @@ TEST_F(ElementTests, ElementListAdding) {
 }
 
 TEST_F(ElementTests, NoChannelElementMethods) {
+  TimeInterfaceMock time;
   Supla::Element el1;
+
+  EXPECT_CALL(time, millis()).Times(2);
 
   // those methods are empty, so just call to make sure that they do nothing and don't crash
   el1.onInit();
@@ -138,11 +141,12 @@ TEST_F(ElementTests, ChannelElementMethods) {
   TimeInterfaceMock time;
   SrpcMock srpc;
 
+  EXPECT_CALL(time, millis()).Times(2);
+
   // those methods are empty, so just call to make sure that they do nothing and don't crash
   el1.onInit();
   el1.onLoadState();
   el1.onSaveState();
-  el1.iterateAlways();
   el1.onTimer();
   el1.onFastTimer();
 
@@ -168,11 +172,9 @@ TEST_F(ElementTests, ChannelElementMethods) {
   EXPECT_CALL(time, millis)
     .WillOnce(Return(0))   // #1 first call after value changed to true
     .WillOnce(Return(200)) // #2 two calls after value changed to true and 100 ms passed
-    .WillOnce(Return(200)) // #2
     .WillOnce(Return(250)) // #3 value changed, however not enough time passed
     .WillOnce(Return(250)) // #4 value changed, however not enough time passed
-    .WillOnce(Return(400)) // #5 two calls after value changed and another >100 ms passed
-    .WillOnce(Return(400));
+    .WillOnce(Return(400)); // #5 two calls after value changed and another >100 ms passed
 
   char array0[SUPLA_CHANNELVALUE_SIZE] = {};
   char array1[SUPLA_CHANNELVALUE_SIZE] = {};

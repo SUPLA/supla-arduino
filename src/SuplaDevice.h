@@ -33,24 +33,25 @@
 #define STATUS_SERVER_DISCONNECTED       6
 #define STATUS_ITERATE_FAIL              7
 #define STATUS_NETWORK_DISCONNECTED      8
-#define STATUS_REGISTER_IN_PROGRESS      9
-#define STATUS_REGISTERED_AND_READY      10
 
-#define STATUS_TEMPORARILY_UNAVAILABLE   11
-#define STATUS_INVALID_GUID              12
-#define STATUS_CHANNEL_LIMIT_EXCEEDED    13
-#define STATUS_PROTOCOL_VERSION_ERROR    14
-#define STATUS_BAD_CREDENTIALS           15
-#define STATUS_LOCATION_CONFLICT         16
-#define STATUS_CHANNEL_CONFLICT          17
-#define STATUS_DEVICE_IS_DISABLED        18
-#define STATUS_LOCATION_IS_DISABLED      19
-#define STATUS_DEVICE_LIMIT_EXCEEDED     20
-#define STATUS_REGISTRATION_DISABLED     21
-#define STATUS_MISSING_CREDENTIALS       22
-#define STATUS_INVALID_AUTHKEY           23
-#define STATUS_NO_LOCATION_AVAILABLE     24
-#define STATUS_UNKNOWN_ERROR             25
+#define STATUS_REGISTER_IN_PROGRESS      10  // Don't change
+#define STATUS_REGISTERED_AND_READY      17  // Don't change
+
+#define STATUS_TEMPORARILY_UNAVAILABLE   21
+#define STATUS_INVALID_GUID              22
+#define STATUS_CHANNEL_LIMIT_EXCEEDED    23
+#define STATUS_PROTOCOL_VERSION_ERROR    24
+#define STATUS_BAD_CREDENTIALS           25
+#define STATUS_LOCATION_CONFLICT         26
+#define STATUS_CHANNEL_CONFLICT          27
+#define STATUS_DEVICE_IS_DISABLED        28
+#define STATUS_LOCATION_IS_DISABLED      29
+#define STATUS_DEVICE_LIMIT_EXCEEDED     30
+#define STATUS_REGISTRATION_DISABLED     31
+#define STATUS_MISSING_CREDENTIALS       32
+#define STATUS_INVALID_AUTHKEY           33
+#define STATUS_NO_LOCATION_AVAILABLE     34
+#define STATUS_UNKNOWN_ERROR             35
 
 
 typedef void (*_impl_arduino_status)(int status, const char *msg);
@@ -76,7 +77,7 @@ class SuplaDeviceClass {
   void setString(char *dst, const char *src, int max_size);
 
  private:
-  void status(int status, const char *msg);
+  void status(int status, const char *msg, bool alwaysLog = false);
 
  public:
   SuplaDeviceClass();

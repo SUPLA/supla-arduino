@@ -20,10 +20,10 @@
 
 using namespace Supla;
 
-Clock::Clock() : localtime(0), lastServerUpdate(0), lastMillis(0) {};
+Clock::Clock() : localtime(0), lastServerUpdate(0), lastMillis(0), isClockReady(false) {};
 
 bool Clock::isReady() { 
-  return true;
+  return isClockReady;
 }
 
 int Clock::getYear() {
@@ -84,6 +84,8 @@ int Clock::getSec() {
 void Clock::parseLocaltimeFromServer(TSDC_UserLocalTimeResult *result) {
   struct tm timeinfo{};
 
+  isClockReady = true;
+
   Serial.print(F("Current local time: "));
   Serial.print(getYear());
   Serial.print(F("-"));
@@ -132,18 +134,19 @@ void Clock::parseLocaltimeFromServer(TSDC_UserLocalTimeResult *result) {
 }
 
 void Clock::onTimer() {
-  unsigned long curMillis = millis();
-  int seconds = (curMillis - lastMillis) / 1000;
-  if (seconds > 0) {
-    lastMillis = curMillis - ((curMillis - lastMillis) % 1000);
-    for (int i = 0; i < seconds; i++) {
+  if (isClockReady) {
+    unsigned long curMillis = millis();
+    int seconds = (curMillis - lastMillis) / 1000;
+    if (seconds > 0) {
+      lastMillis = curMillis - ((curMillis - lastMillis) % 1000);
+      for (int i = 0; i < seconds; i++) {
 #if defined(ARDUINO_ARCH_AVR)
-      system_tick();
+        system_tick();
 #endif
-      localtime++;
+        localtime++;
+      }
     }
   }
-
 }
 
 bool Clock::iterateConnected(void *srpc) {

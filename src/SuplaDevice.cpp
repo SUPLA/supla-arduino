@@ -27,14 +27,16 @@
 #include "supla/storage/storage.h"
 #include "supla/timer.h"
 
-void SuplaDeviceClass::status(int newStatus, const char *msg) {
+void SuplaDeviceClass::status(int newStatus, const char *msg, bool alwaysLog) {
+  bool showLog = false;
   if (currentStatus != newStatus && !(newStatus == STATUS_REGISTER_IN_PROGRESS && currentStatus > STATUS_REGISTER_IN_PROGRESS)) {
     if (impl_arduino_status != NULL) {
       impl_arduino_status(newStatus, msg);
     } 
     currentStatus = newStatus;
-    supla_log(LOG_DEBUG, "Current status: [%d] %s", newStatus, msg);
+    showLog = true;
   }
+  if (alwaysLog || showLog) supla_log(LOG_DEBUG, "Current status: [%d] %s", newStatus, msg);
 }
 
 SuplaDeviceClass::SuplaDeviceClass()
@@ -422,51 +424,51 @@ void SuplaDeviceClass::onRegisterResult(
 
       // NOK scenarios
     case SUPLA_RESULTCODE_TEMPORARILY_UNAVAILABLE:
-      status(STATUS_TEMPORARILY_UNAVAILABLE, "Temporarily unavailable!");
+      status(STATUS_TEMPORARILY_UNAVAILABLE, "Temporarily unavailable!", true);
       break;
 
     case SUPLA_RESULTCODE_GUID_ERROR:
-      status(STATUS_INVALID_GUID, "Incorrect device GUID!");
+      status(STATUS_INVALID_GUID, "Incorrect device GUID!", true);
       break;
 
     case SUPLA_RESULTCODE_AUTHKEY_ERROR:
-      status(STATUS_INVALID_AUTHKEY, "Incorrect AuthKey!");
+      status(STATUS_INVALID_AUTHKEY, "Incorrect AuthKey!", true);
       break;
 
     case SUPLA_RESULTCODE_BAD_CREDENTIALS:
-      status(STATUS_BAD_CREDENTIALS, "Bad credentials - incorrect AuthKey or email");
+      status(STATUS_BAD_CREDENTIALS, "Bad credentials - incorrect AuthKey or email", true);
       break;
 
     case SUPLA_RESULTCODE_REGISTRATION_DISABLED:
-      status(STATUS_REGISTRATION_DISABLED, "Registration disabled!");
+      status(STATUS_REGISTRATION_DISABLED, "Registration disabled!", true);
       break;
 
     case SUPLA_RESULTCODE_DEVICE_LIMITEXCEEDED:
-      status(STATUS_DEVICE_LIMIT_EXCEEDED, "Device limit exceeded!");
+      status(STATUS_DEVICE_LIMIT_EXCEEDED, "Device limit exceeded!", true);
       break;
 
     case SUPLA_RESULTCODE_NO_LOCATION_AVAILABLE:
-      status(STATUS_NO_LOCATION_AVAILABLE, "No location available!");
+      status(STATUS_NO_LOCATION_AVAILABLE, "No location available!", true);
       break;
 
     case SUPLA_RESULTCODE_DEVICE_DISABLED:
-      status(STATUS_DEVICE_IS_DISABLED, "Device is disabled!");
+      status(STATUS_DEVICE_IS_DISABLED, "Device is disabled!", true);
       break;
 
     case SUPLA_RESULTCODE_LOCATION_DISABLED:
-      status(STATUS_LOCATION_IS_DISABLED, "Location is disabled!");
+      status(STATUS_LOCATION_IS_DISABLED, "Location is disabled!", true);
       break;
 
     case SUPLA_RESULTCODE_LOCATION_CONFLICT:
-      status(STATUS_LOCATION_CONFLICT, "Location conflict!");
+      status(STATUS_LOCATION_CONFLICT, "Location conflict!", true);
       break;
 
     case SUPLA_RESULTCODE_CHANNEL_CONFLICT:
-      status(STATUS_CHANNEL_CONFLICT, "Channel conflict!");
+      status(STATUS_CHANNEL_CONFLICT, "Channel conflict!", true);
       break;
 
     default:
-      status(STATUS_UNKNOWN_ERROR, "Unknown registration error");
+      status(STATUS_UNKNOWN_ERROR, "Unknown registration error", true);
       supla_log(LOG_ERR,
                 "Register result code %i",
                 register_device_result->result_code);
