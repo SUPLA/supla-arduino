@@ -51,16 +51,18 @@ TEST(ConditionTests, handleActionTestsForDouble) {
   cond->setClient(ahMock);
 
 
-  // DISTANCE sensor use int type on channel value
   channel->setType(SUPLA_CHANNELTYPE_WINDSENSOR);
 
   channel->setNewValue(0.0);
   // channel should be initialized to 0, so condition should be met
   cond->handleAction(Supla::ON_CHANGE, action1);
 
-  channel->setNewValue(100.0);
-  
   // 100 is not less than 15.1, so nothing should happen
+  channel->setNewValue(100.0);
+  cond->handleAction(Supla::ON_CHANGE, action2);
+
+  // Values below 0 should be ignored
+  channel->setNewValue(-0.2);
   cond->handleAction(Supla::ON_CHANGE, action2);
 
   channel->setNewValue(15.0);
@@ -83,6 +85,10 @@ TEST(ConditionTests, handleActionTestsForDouble) {
   // 100 is not less than 15.1, so nothing should happen
   cond->handleAction(Supla::ON_CHANGE, action2);
 
+  // Values below 0 should be ignored
+  channel->setNewValue(-0.2);
+  cond->handleAction(Supla::ON_CHANGE, action2);
+
   channel->setNewValue(15.0);
   // 15 is less than 15.1
   cond->handleAction(Supla::ON_CHANGE, action3);
@@ -101,6 +107,10 @@ TEST(ConditionTests, handleActionTestsForDouble) {
   channel->setNewValue(100.0);
   
   // 100 is not less than 15.1, so nothing should happen
+  cond->handleAction(Supla::ON_CHANGE, action2);
+
+  // Values below 0 should be ignored
+  channel->setNewValue(-0.2);
   cond->handleAction(Supla::ON_CHANGE, action2);
 
   channel->setNewValue(15.0);
@@ -122,6 +132,10 @@ TEST(ConditionTests, handleActionTestsForDouble) {
   channel->setNewValue(100.0);
   
   // 100 is not less than 15.1, so nothing should happen
+  cond->handleAction(Supla::ON_CHANGE, action2);
+
+  // Values below 0 should be ignored
+  channel->setNewValue(-0.2);
   cond->handleAction(Supla::ON_CHANGE, action2);
 
   channel->setNewValue(15.0);
@@ -146,7 +160,6 @@ TEST(ConditionTests, handleActionTestsForInt64) {
   cond->setSource(channelElement);
   cond->setClient(ahMock);
 
-  // DISTANCE sensor use int type on channel value
   channel->setType(SUPLA_CHANNELTYPE_IMPULSE_COUNTER);
 
   // channel should be initialized to 0, so condition should be met
@@ -189,8 +202,13 @@ TEST(ConditionTests, handleActionTestsForDouble2) {
   
   // 15.1 is not less than 15.1, so nothing should happen
   cond->handleAction(Supla::ON_CHANGE, action2);
+  
+  // Values below -273 should be ignored
+  channel->setNewValue(-275.0);
+  cond->handleAction(Supla::ON_CHANGE, action2);
 
-  channel->setNewValue(15.01);
+
+  channel->setNewValue(-15.01);
   cond->handleAction(Supla::ON_CHANGE, action3);
 
   // DISTANCE sensor use double type on channel value
@@ -199,6 +217,10 @@ TEST(ConditionTests, handleActionTestsForDouble2) {
   channel->setNewValue(100);
   
   // 100 is not less than 15.1, so nothing should happen
+  cond->handleAction(Supla::ON_CHANGE, action2);
+
+  // Values below 0 should be ignored
+  channel->setNewValue(-0.2);
   cond->handleAction(Supla::ON_CHANGE, action2);
 
   channel->setNewValue(15);
@@ -264,6 +286,10 @@ TEST(ConditionTests, handleActionTestsForFirstDouble) {
   // nothing should happen
   cond->handleAction(Supla::ON_CHANGE, action2);
 
+  // Values below -273 should be ignored
+  channel->setNewValue(-275.0, 10.5);
+  cond->handleAction(Supla::ON_CHANGE, action2);
+
   channel->setNewValue(15.1, 100.5);
   
   // nothing should happen
@@ -300,6 +326,10 @@ TEST(ConditionTests, handleActionTestsForSecondDouble) {
   channel->setNewValue(0.1, 15.1);
   
   // nothing should happen
+  cond->handleAction(Supla::ON_CHANGE, action2);
+
+  // Values of humidity below 0 should be ignored
+  channel->setNewValue(-5.0);
   cond->handleAction(Supla::ON_CHANGE, action2);
 
   channel->setNewValue(15.1, 100.5);
