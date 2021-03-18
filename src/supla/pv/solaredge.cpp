@@ -305,7 +305,9 @@ bool SolarEdge::iterateConnected(void *srpc) {
       if (lastReadTime == 0 || millis() - lastReadTime > (retryCounter > 0 ? 5000 : refreshRateSec*1000)) {
         lastReadTime = millis();
         Serial.println(F("SolarEdge connecting"));
-        pvClient.setBufferSizes(2048, 2048); //
+#ifdef ARDUINO_ARCH_ESP8266
+        pvClient.setBufferSizes(2048, 512); //
+#endif
         pvClient.setInsecure();
         int returnCode = 0;
         if (returnCode = pvClient.connect("monitoringapi.solaredge.com", 443)) {

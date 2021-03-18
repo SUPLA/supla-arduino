@@ -129,8 +129,9 @@ class ESPWifi : public Supla::Network {
               server,
               connectionPort);
 
-//       static_cast<WiFiClientSecure*>(client)->setBufferSizes(512, 512); //
-    //    EXPERIMENTAL
+#ifdef ARDUINO_ARCH_ESP8266
+    static_cast<WiFiClientSecure*>(client)->setBufferSizes(2048, 512); // EXPERIMENTAL
+#endif
 
     bool result = client->connect(server, connectionPort);
 
