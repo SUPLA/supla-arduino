@@ -42,15 +42,22 @@ class SolarEdge : public Supla::Sensor::ElectricityMeter {
 
   char buf[1024];
 
+  double temperature;
   unsigned _supla_int64_t totalGeneratedEnergy;
-  _supla_int_t currentPower;
-  unsigned _supla_int16_t currentCurrent;
+  unsigned _supla_int_t currentCurrent[3];
+  unsigned _supla_int16_t currentVoltage[3];
   unsigned _supla_int16_t currentFreq;
-  unsigned _supla_int16_t currentVoltage;
+  _supla_int_t currentApparentPower[3];
+  _supla_int_t currentActivePower[3];
+  _supla_int_t currentReactivePower[3];
+                    // acCurrent setCurrent
+                    // acVoltage
+                    // acFreq
+                    // apparentPower
+                    // activePower
+                    // ReactivePower
   int bytesCounter;
   int retryCounter;
-  int valueToFetch;
-  bool startCharFound;
   bool dataIsReady;
   bool dataFetchInProgress;
   bool headerFound;

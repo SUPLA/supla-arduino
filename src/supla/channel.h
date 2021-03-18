@@ -39,14 +39,14 @@ class Channel : public LocalAction {
                    uint8_t blue,
                    uint8_t colorBrightness,
                    uint8_t brightness);
-  void setNewValue(_supla_int64_t value);
+  void setNewValue(unsigned _supla_int64_t value);
   bool setNewValue(char *newValue);
 
   double getValueDouble();
   double getValueDoubleFirst();
   double getValueDoubleSecond();
   _supla_int_t getValueInt32();
-  _supla_int64_t getValueInt64();
+  unsigned _supla_int64_t getValueInt64();
   bool getValueBool();
   uint8_t getValueRed();
   uint8_t getValueGreen();

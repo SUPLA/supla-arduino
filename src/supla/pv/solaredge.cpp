@@ -14,9 +14,10 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#ifndef ARDUINO_ARCH_AVR
 #include "solaredge.h"
 
-#define TEMPERATURE_NOT_AVAILABLE -275
+#define TEMPERATURE_NOT_AVAILABLE -275.0
 
 using namespace Supla;
 using namespace PV;
@@ -28,14 +29,16 @@ const char headerVerification[] = "date,inverterMode,temperature,totalActivePowe
 
 SolarEdge::SolarEdge(const char *apiKeyValue, const char *siteIdValue, const char *inverterSerialNumberValue, Supla::Clock *clock) : 
       buf{},
+      temperature(TEMPERATURE_NOT_AVAILABLE),
       totalGeneratedEnergy(0),
-      currentPower(0),
-      currentCurrent(0),
+      currentCurrent{},
+      currentVoltage{},
       currentFreq(0),
-      currentVoltage(0),
+      currentApparentPower{},
+      currentActivePower{},
+      currentReactivePower{},
       bytesCounter(0),
       retryCounter(0),
-      startCharFound(false),
       dataIsReady(false),
       dataFetchInProgress(false),
       headerFound(false),
@@ -109,7 +112,6 @@ void SolarEdge::iterateAlways() {
               strtok(buf, ",");
               for (int i = 1; i < 34; i++) {
                 char *value = strtok(nullptr, ",");
-                Serial.println(value);
                 /*
 0 date,
 1 inverterMode,
@@ -148,14 +150,108 @@ void SolarEdge::iterateAlways() {
 34 L3-cosPhi
 */
                 switch (i) {
-                  case 2: { // temperature
-                    double temperature = atof(value);
-                    temperatureChannel.setNewValue(temperature);
+                  case 1: { // inverterMode
+                    if (strncmp(value, "MPPT", 4) != 0) {
+                      // ignoring data for inverter in mode other than MPPT
+                      i = commaCount;
+                    }
                     break;
                   }
-                  case 7: // totalEnergy
-                   
+                  case 2: { // temperature
+                    temperature = atof(value);
                     break;
+                  }
+                  case 7: { // totalEnergy - split per 3 phases
+                    double energy = atof(value); 
+                    totalGeneratedEnergy = energy * 100;
+                    break;
+                  }
+                  case 11: { // L1 - acCurrent
+                    double current = atof(value);
+                    currentCurrent[0] = current * 1000;
+                    break;
+                  }
+                  case 12: { // L1 - acVoltage
+                    double voltage = atof(value);
+                    currentVoltage[0] = voltage * 100;
+                    break;
+                  }
+                  case 13: { // L1 - acFrequency
+                    double frequency = atof(value);
+                    currentFreq = frequency * 100;
+                    break;
+                  }
+                  case 14: { // L1 - apparentPower
+                    double power = atof(value);
+                    currentApparentPower[0] = power * 100000;
+                    break;
+                  }
+                  case 15: { // L1 - activePower
+                    double power = atof(value);
+                    currentActivePower[0] = power * 100000;
+                    break;
+                  }
+                  case 16: { // L1 - ReactivePower
+                    double power = atof(value);
+                    currentReactivePower[0] = power * 100000;
+                    break;
+                  }
+                  case 19: { // L2 - acCurrent
+                    double current = atof(value); // Wh
+                    currentCurrent[1] = current * 1000;
+                    break;
+                  }
+                  case 20: { // L2 - acVoltage
+                    double voltage = atof(value); // Wh
+                    currentVoltage[1] = voltage * 100;
+                    break;
+                  }
+                  case 22: { // L2 - apparentPower
+                    double power = atof(value);
+                    currentApparentPower[1] = power * 100000;
+                    break;
+                  }
+                  case 23: { // L2 - activePower
+                    double power = atof(value);
+                    currentActivePower[1] = power * 100000;
+                    break;
+                  }
+                  case 24: { // L2 - ReactivePower
+                    double power = atof(value);
+                    currentReactivePower[1] = power * 100000;
+                    break;
+                  }
+                  case 27: { // L3 - acCurrent
+                    double current = atof(value); // Wh
+                    currentCurrent[2] = current * 1000;
+                    break;
+                  }
+                  case 28: { // L3 - acVoltage
+                    double voltage = atof(value); // Wh
+                    currentVoltage[2] = voltage * 100;
+                    break;
+                  }
+                  case 30: { // L3 - apparentPower
+                    double power = atof(value);
+                    currentApparentPower[2] = power * 100000;
+                    break;
+                  }
+                  case 31: { // L3 - activePower
+                    double power = atof(value);
+                    currentActivePower[2] = power * 100000;
+                    break;
+                  }
+                  case 32: { // L3 - ReactivePower
+                    double power = atof(value);
+                    currentReactivePower[2] = power * 100000;
+                    break;
+                  }
+                    // acCurrent setCurrent
+                    // acVoltage
+                    // acFreq
+                    // apparentPower
+                    // activePower
+                    // ReactivePower
 
                 }
               }
@@ -176,11 +272,28 @@ void SolarEdge::iterateAlways() {
   }
   if (dataIsReady) {
     dataIsReady = false;
-    setFwdActEnergy(0, totalGeneratedEnergy);
-    setPowerActive(0, currentPower);
-    setCurrent(0, currentCurrent);
-    setVoltage(0, currentVoltage);
+    headerFound = false;
+    for (int i = 0; i < 3; i++) {
+      if (totalGeneratedEnergy > 0) {
+        setFwdActEnergy(i, totalGeneratedEnergy/3.0);
+      }
+      setPowerActive(i, currentActivePower[i]);
+      currentActivePower[i] = 0;
+      setCurrent(i, currentCurrent[i]);
+      currentCurrent[i] = 0;
+      setVoltage(i, currentVoltage[i]);
+      currentVoltage[i] = 0;
+      setPowerApparent(i, currentApparentPower[i]);
+      currentApparentPower[i] = 0;
+      setPowerReactive(i, currentReactivePower[i]);
+      currentReactivePower[i] = 0;
+    }
+    totalGeneratedEnergy = 0;
+    setFreq(1);
     setFreq(currentFreq);
+    currentFreq = 0;
+    temperatureChannel.setNewValue(temperature);
+    temperature = TEMPERATURE_NOT_AVAILABLE;
     updateChannelValues();
   }
 }
@@ -235,8 +348,7 @@ bool SolarEdge::iterateConnected(void *srpc) {
           pvClient.println(F("Connection: close"));
           pvClient.println();
 
-        } else {  // if connection wasn't successful, try few times. If it fails,
-          // then assume that inverter is off during the night
+        } else {  // if connection wasn't successful, try few times
           Serial.print(F("Failed to connect to SolarEdge api, return code: "));
           Serial.println(returnCode);
           retryCounter++;
@@ -253,3 +365,5 @@ void SolarEdge::readValuesFromDevice() {
 Supla::Channel *SolarEdge::getSecondaryChannel() {
   return &temperatureChannel;
 }
+
+#endif
