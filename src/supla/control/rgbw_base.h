@@ -51,6 +51,7 @@ class RGBWBase : public ChannelElement, public ActionHandler {
   void setStep(int step);
   void setDefaultDimmedBrightness(int dimmedBrightness);
   void setFadeEffectTime(int timeMs);
+  void setMinIterationBrightness(uint8_t minBright);
 
   void onInit();
   void iterateAlways();
@@ -86,6 +87,7 @@ class RGBWBase : public ChannelElement, public ActionHandler {
   unsigned long lastTick;
   unsigned long lastMsgReceivedMs;
   int8_t stateOnInit;
+  uint8_t minIterationBrightness;
 };
 
 };  // namespace Control

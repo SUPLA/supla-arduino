@@ -52,7 +52,8 @@ RGBWBase::RGBWBase()
       hwBrightness(0),
       lastTick(0),
       lastMsgReceivedMs(0),
-      stateOnInit(RGBW_STATE_ON_INIT_RESTORE) {
+      stateOnInit(RGBW_STATE_ON_INIT_RESTORE),
+      minIterationBrightness(5) {
   channel.setType(SUPLA_CHANNELTYPE_DIMMERANDRGBLED);
   channel.setDefault(SUPLA_CHANNELFNC_DIMMERANDRGBLIGHTING);
 }
@@ -285,7 +286,7 @@ void RGBWBase::iterateDimmerRGBW(int rgbStep, int wStep) {
     curBrightness = curColorBrightness;
   }
   if (rgbStep > 0) {
-    if (curColorBrightness <= 10 && dimIterationDirection == true) {
+    if (curColorBrightness <= minIterationBrightness && dimIterationDirection == true) {
       iterationDelayCounter++;
       if (iterationDelayCounter == 5) {
         dimIterationDirection = false;
@@ -303,7 +304,7 @@ void RGBWBase::iterateDimmerRGBW(int rgbStep, int wStep) {
       }
     }
   } else if (wStep > 0) {
-    if (curBrightness <= 10 && dimIterationDirection == true) {
+    if (curBrightness <= minIterationBrightness && dimIterationDirection == true) {
       iterationDelayCounter++;
       if (iterationDelayCounter == 5) {
         dimIterationDirection = false;
@@ -329,6 +330,13 @@ void RGBWBase::iterateDimmerRGBW(int rgbStep, int wStep) {
     wStep = -wStep;
   }
 
+  if (curColorBrightness + rgbStep < minIterationBrightness) {
+    rgbStep = curColorBrightness - minIterationBrightness;
+  }
+  if (curBrightness + wStep < minIterationBrightness) {
+    wStep = curBrightness - minIterationBrightness;
+  }
+  
   setRGBW(-1,
           -1,
           -1,
@@ -510,5 +518,8 @@ RGBWBase &RGBWBase::setDefaultStateRestore() {
   return *this;
 }
 
+void RGBWBase::setMinIterationBrightness(uint8_t minBright) {
+  minIterationBrightness = minBright;
+}
 };  // namespace Control
 };  // namespace Supla

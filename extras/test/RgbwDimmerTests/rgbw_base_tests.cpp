@@ -756,18 +756,18 @@ TEST(RgbwDimmerTests, HandleActionTests) {
   EXPECT_EQ(ch->getValueColorBrightness(), 50);
   EXPECT_EQ(ch->getValueBrightness(), 20);
 
-  // next five iterations should change brightness to 0
-  for (int i = 0; i < 4; i++) {
+  // next six iterations should change brightness to 5
+  for (int i = 0; i < 6; i++) {
     rgb.handleAction(1, Supla::ITERATE_DIM_RGB);
   }
   rgb.iterateAlways();
   EXPECT_EQ(ch->getValueRed(), 10);
   EXPECT_EQ(ch->getValueGreen(), 245);
   EXPECT_EQ(ch->getValueBlue(), 10);
-  EXPECT_EQ(ch->getValueColorBrightness(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 5);
   EXPECT_EQ(ch->getValueBrightness(), 20);
 
-  // next four iterations should keep 0
+  // next four iterations should keep 5
   for (int i = 0; i < 4; i++) {
     rgb.handleAction(1, Supla::ITERATE_DIM_RGB);
   }
@@ -775,7 +775,7 @@ TEST(RgbwDimmerTests, HandleActionTests) {
   EXPECT_EQ(ch->getValueRed(), 10);
   EXPECT_EQ(ch->getValueGreen(), 245);
   EXPECT_EQ(ch->getValueBlue(), 10);
-  EXPECT_EQ(ch->getValueColorBrightness(), 10);
+  EXPECT_EQ(ch->getValueColorBrightness(), 5);
   EXPECT_EQ(ch->getValueBrightness(), 20);
 
   rgb.handleAction(1, Supla::ITERATE_DIM_RGB);
@@ -783,7 +783,7 @@ TEST(RgbwDimmerTests, HandleActionTests) {
   EXPECT_EQ(ch->getValueRed(), 10);
   EXPECT_EQ(ch->getValueGreen(), 245);
   EXPECT_EQ(ch->getValueBlue(), 10);
-  EXPECT_EQ(ch->getValueColorBrightness(), 20);
+  EXPECT_EQ(ch->getValueColorBrightness(), 15);
   EXPECT_EQ(ch->getValueBrightness(), 20);
 
   // turn off
