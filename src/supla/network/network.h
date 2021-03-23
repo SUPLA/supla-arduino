@@ -17,8 +17,6 @@
 #ifndef _network_interface_h
 #define _network_interface_h
 
-#include <IPAddress.h>
-
 #include "supla-common/log.h"
 #include "supla-common/proto.h"
 
@@ -92,14 +90,15 @@ class Network {
     }
   }
 
-  static bool Ping() {
+  static bool Ping(void *srpc) {
     if (Instance() != NULL) {
-      return Instance()->ping();
+      return Instance()->ping(srpc);
     }
     return false;
   }
 
-  Network(IPAddress *ip);
+  Network(uint8_t ip[4]);
+  virtual ~Network();
   virtual int read(void *buf, int count) = 0;
   virtual int write(void *buf, int count) = 0;
   virtual int connect(const char *server, int port = -1) = 0;
@@ -110,7 +109,7 @@ class Network {
 
   virtual bool isReady() = 0;
   virtual bool iterate();
-  virtual bool ping();
+  virtual bool ping(void *);
 
   virtual void fillStateData(TDSC_ChannelState &channelState);
 
@@ -129,7 +128,7 @@ class Network {
   void *srpc;
 
   bool useLocalIp;
-  IPAddress localIp;
+  unsigned char localIp[4];
 };
 
 // Method passed to SRPC as a callback to read raw data from network interface

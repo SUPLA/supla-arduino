@@ -24,19 +24,25 @@ using namespace Supla;
 // By default, write to EEPROM every 3 min
 #define SUPLA_EEPROM_WRITING_PERIOD 3*60*1000
 
-Eeprom::Eeprom(unsigned int storageStartingOffset)
+Eeprom::Eeprom(unsigned int storageStartingOffset, int reservedSize)
     : Storage(storageStartingOffset),
-      dataChanged(false) {
+      dataChanged(false), reservedSize(reservedSize) {
   setStateSavePeriod((unsigned long)SUPLA_EEPROM_WRITING_PERIOD);
 }
 
 bool Eeprom::init() {
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+  if (reservedSize <= 0) {
 #if defined(ARDUINO_ARCH_ESP8266) 
   EEPROM.begin(1024);
 #elif defined(ARDUINO_ARCH_ESP32)
   EEPROM.begin(512);
 #endif
+  } else { 
+    EEPROM.begin(reservedSize);
+  }
   delay(15);
+#endif 
 
   return Storage::init();
 }

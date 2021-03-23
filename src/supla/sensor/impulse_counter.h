@@ -37,10 +37,10 @@ class ImpulseCounter : public ChannelElement, public ActionHandler {
   void handleAction(int event, int action);
 
   // Returns value of a counter at given Supla channel
-  _supla_int64_t getCounter();
+  unsigned _supla_int64_t getCounter();
 
   // Set counter to a given value
-  void setCounter(_supla_int64_t value);
+  void setCounter(unsigned _supla_int64_t value);
 
   // Increment the counter by 1
   void incCounter();

@@ -77,14 +77,24 @@ void Element::onSaveState(){};
 void Element::iterateAlways(){};
 
 bool Element::iterateConnected(void *srpc) {
+  bool response = true;
+  unsigned long timestamp = millis();
+  Channel *secondaryChannel = getSecondaryChannel();
+  if (secondaryChannel && secondaryChannel->isUpdateReady() &&
+      timestamp - secondaryChannel->lastCommunicationTimeMs > 100) {
+    secondaryChannel->lastCommunicationTimeMs = timestamp;
+    secondaryChannel->sendUpdate(srpc);
+    response = false;
+  }
+
   Channel *channel = getChannel();
   if (channel && channel->isUpdateReady() &&
-      millis() - channel->lastCommunicationTimeMs > 100) {
-    channel->lastCommunicationTimeMs = millis();
+      timestamp - channel->lastCommunicationTimeMs > 100) {
+    channel->lastCommunicationTimeMs = timestamp;
     channel->sendUpdate(srpc);
-    return false;
+    response = false;
   }
-  return true;
+  return response;
 }
 
 void Element::onTimer(){};

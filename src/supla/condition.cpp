@@ -30,6 +30,8 @@ void Supla::Condition::handleAction(int event, int action) {
   if (event == Supla::ON_CHANGE ||
       event == Supla::ON_SECONDARY_CHANNEL_CHANGE) {
     int channelType = source->getChannel()->getChannelType();
+    
+    // Read channel value
     double value = 0;
     switch (channelType) {
       case SUPLA_CHANNELTYPE_DISTANCESENSOR:
@@ -51,7 +53,25 @@ void Supla::Condition::handleAction(int event, int action) {
       default:
         return;
     }
-    if (checkConditionFor(value)) {
+
+    // Check channel value validity
+    bool isValid = true;
+    switch (channelType) {
+      case SUPLA_CHANNELTYPE_DISTANCESENSOR:
+      case SUPLA_CHANNELTYPE_WINDSENSOR:
+      case SUPLA_CHANNELTYPE_PRESSURESENSOR:
+      case SUPLA_CHANNELTYPE_RAINSENSOR:
+      case SUPLA_CHANNELTYPE_WEIGHTSENSOR:
+        isValid = value >= 0;
+        break;
+      case SUPLA_CHANNELTYPE_THERMOMETER:
+        isValid = value >= -273;
+        break;
+      case SUPLA_CHANNELTYPE_HUMIDITYANDTEMPSENSOR:
+        isValid = useAlternativeMeasurement ? value >= 0 : value >= -273;
+        break;
+    }
+    if (isValid && checkConditionFor(value)) {
       client->handleAction(event, action);
     }
   }

@@ -27,9 +27,7 @@ namespace Supla {
 unsigned long Channel::lastCommunicationTimeMs = 0;
 TDS_SuplaRegisterDevice_E Channel::reg_dev;
 
-Channel::Channel() {
-  valueChanged = false;
-  channelNumber = -1;
+Channel::Channel() : validityTimeSec(0), channelNumber(-1), valueChanged(false) {
   if (reg_dev.channel_count < SUPLA_CHANNELMAXCOUNT) {
     channelNumber = reg_dev.channel_count;
 
@@ -81,12 +79,12 @@ void Channel::setNewValue(double temp, double humi) {
   }
 }
 
-void Channel::setNewValue(_supla_int64_t value) {
+void Channel::setNewValue(unsigned _supla_int64_t value) {
   char newValue[SUPLA_CHANNELVALUE_SIZE];
 
   memset(newValue, 0, SUPLA_CHANNELVALUE_SIZE);
 
-  memcpy(newValue, &value, sizeof(_supla_int64_t));
+  memcpy(newValue, &value, sizeof(value));
   if (setNewValue(newValue)) {
     runAction(ON_CHANGE);
     runAction(ON_SECONDARY_CHANNEL_CHANGE);
@@ -214,8 +212,9 @@ void Channel::clearUpdateReady() {
 
 void Channel::sendUpdate(void *srpc) {
   clearUpdateReady();
-  srpc_ds_async_channel_value_changed(
-      srpc, channelNumber, reg_dev.channels[channelNumber].value);
+  srpc_ds_async_channel_value_changed_c(
+      srpc, channelNumber, reg_dev.channels[channelNumber].value,
+      0, validityTimeSec);
 
   // returns null for non-extended channels
   TSuplaChannelExtendedValue *extValue = getExtValue();
@@ -298,8 +297,8 @@ _supla_int_t Channel::getValueInt32() {
   return value;
 }
  
-_supla_int64_t Channel::getValueInt64() {
-  _supla_int64_t value;
+unsigned _supla_int64_t Channel::getValueInt64() {
+  unsigned _supla_int64_t value;
   memcpy(&value, reg_dev.channels[channelNumber].value, sizeof(value));
   return value;
 }
@@ -328,5 +327,9 @@ uint8_t Channel::getValueBrightness() {
   return reg_dev.channels[channelNumber].value[0];
 }
 
+void Channel::setValidityTimeSec(unsigned _supla_int_t timeSec) {
+  validityTimeSec = timeSec;
+  if (validityTimeSec > 0) unsetFlag(SUPLA_CHANNEL_FLAG_CHANNELSTATE);
+}
 
 };  // namespace Supla

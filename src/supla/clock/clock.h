@@ -44,6 +44,7 @@ class Clock : public Element {
   time_t localtime;
   unsigned long lastServerUpdate;
   unsigned long lastMillis;
+  bool isClockReady;
  
 };
 

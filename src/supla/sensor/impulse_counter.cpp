@@ -58,7 +58,7 @@ void ImpulseCounter::onInit() {
   }
 }
 
-_supla_int64_t ImpulseCounter::getCounter() {
+unsigned _supla_int64_t ImpulseCounter::getCounter() {
   return counter;
 }
 
@@ -67,13 +67,13 @@ void ImpulseCounter::onSaveState() {
 }
 
 void ImpulseCounter::onLoadState() {
-  _supla_int64_t data;
+  unsigned _supla_int64_t data;
   if (Supla::Storage::ReadState((unsigned char *)&data, sizeof(data))) {
     setCounter(data);
   }
 }
 
-void ImpulseCounter::setCounter(_supla_int64_t value) {
+void ImpulseCounter::setCounter(unsigned _supla_int64_t value) {
   counter = value;
   channel.setNewValue(value);
   supla_log(LOG_DEBUG,

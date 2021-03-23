@@ -131,7 +131,7 @@ TEST(ChannelTests, SetNewValue) {
   EXPECT_TRUE(channel.isUpdateReady());
   channel.clearUpdateReady();
   
-  _supla_int64_t value64 = 124346;
+  unsigned _supla_int64_t value64 = 124346;
   ASSERT_EQ(sizeof(value64), 8);
   channel.setNewValue(value64);
   EXPECT_TRUE(0 == memcmp(Supla::Channel::reg_dev.channels[number].value, &value64, sizeof(value64)));
@@ -255,7 +255,7 @@ TEST(ChannelTests, ChannelValueGetters) {
   channel.setNewValue(valueInt);
   EXPECT_EQ(channel.getValueInt32(), valueInt);
 
-  _supla_int64_t valueInt64 = 202013012021000;
+  unsigned _supla_int64_t valueInt64 = 202013012021000;
   channel.setNewValue(valueInt64);
   EXPECT_EQ(channel.getValueInt64(), valueInt64);
 
@@ -283,8 +283,8 @@ TEST(ChannelTests, SendUpdateTest) {
   char array[SUPLA_CHANNELVALUE_SIZE] = {};
   array[0] = 1;
 
-  EXPECT_CALL(srpc, valueChanged(nullptr, 0, ElementsAreArray(emptyArray)));
-  EXPECT_CALL(srpc, valueChanged(nullptr, 0, ElementsAreArray(array)));
+  EXPECT_CALL(srpc, valueChanged(nullptr, 0, ElementsAreArray(emptyArray), 0, 0));
+  EXPECT_CALL(srpc, valueChanged(nullptr, 0, ElementsAreArray(array), 0, 0));
 
   EXPECT_FALSE(channel.isUpdateReady());
   channel.sendUpdate(nullptr);
@@ -380,7 +380,7 @@ TEST(ChannelTests, Int64ChannelWithLocalActions) {
 
   ch1.addAction(action1, mock1, Supla::ON_CHANGE);
 
-  _supla_int64_t value = 15;
+  unsigned _supla_int64_t value = 15;
 
   ch1.setNewValue(value);
   ch1.setNewValue(value);

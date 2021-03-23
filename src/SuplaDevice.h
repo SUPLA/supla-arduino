@@ -17,8 +17,6 @@
 #ifndef SUPLADEVICE_H
 #define SUPLADEVICE_H
 
-#include <IPAddress.h>
-
 #include "supla-common/proto.h"
 #include "supla/network/network.h"
 #include "supla/uptime.h"
@@ -27,28 +25,34 @@
 #define ACTIVITY_TIMEOUT 30
 
 #define STATUS_UNKNOWN                   -1
-#define STATUS_ALREADY_INITIALIZED       2
-#define STATUS_MISSING_NETWORK_INTERFACE 3
-#define STATUS_INVALID_GUID              4
-#define STATUS_UNKNOWN_SERVER_ADDRESS    5
-#define STATUS_UNKNOWN_LOCATION_ID       6
-#define STATUS_INITIALIZED               7
-#define STATUS_CHANNEL_LIMIT_EXCEEDED    8
-#define STATUS_SERVER_DISCONNECTED       9
-#define STATUS_REGISTER_IN_PROGRESS      10
-#define STATUS_ITERATE_FAIL              11
-#define STATUS_PROTOCOL_VERSION_ERROR    12
-#define STATUS_BAD_CREDENTIALS           13
-#define STATUS_TEMPORARILY_UNAVAILABLE   14
-#define STATUS_LOCATION_CONFLICT         15
-#define STATUS_CHANNEL_CONFLICT          16
-#define STATUS_REGISTERED_AND_READY      17
-#define STATUS_DEVICE_IS_DISABLED        18
-#define STATUS_LOCATION_IS_DISABLED      19
-#define STATUS_DEVICE_LIMIT_EXCEEDED     20
-#define STATUS_NETWORK_DISCONNECTED      21
-#define STATUS_REGISTRATION_DISABLED     22
-#define STATUS_MISSING_CREDENTIALS       23
+#define STATUS_ALREADY_INITIALIZED       1
+#define STATUS_MISSING_NETWORK_INTERFACE 2
+#define STATUS_UNKNOWN_SERVER_ADDRESS    3
+#define STATUS_UNKNOWN_LOCATION_ID       4
+#define STATUS_INITIALIZED               5
+#define STATUS_SERVER_DISCONNECTED       6
+#define STATUS_ITERATE_FAIL              7
+#define STATUS_NETWORK_DISCONNECTED      8
+
+#define STATUS_REGISTER_IN_PROGRESS      10  // Don't change
+#define STATUS_REGISTERED_AND_READY      17  // Don't change
+
+#define STATUS_TEMPORARILY_UNAVAILABLE   21
+#define STATUS_INVALID_GUID              22
+#define STATUS_CHANNEL_LIMIT_EXCEEDED    23
+#define STATUS_PROTOCOL_VERSION_ERROR    24
+#define STATUS_BAD_CREDENTIALS           25
+#define STATUS_LOCATION_CONFLICT         26
+#define STATUS_CHANNEL_CONFLICT          27
+#define STATUS_DEVICE_IS_DISABLED        28
+#define STATUS_LOCATION_IS_DISABLED      29
+#define STATUS_DEVICE_LIMIT_EXCEEDED     30
+#define STATUS_REGISTRATION_DISABLED     31
+#define STATUS_MISSING_CREDENTIALS       32
+#define STATUS_INVALID_AUTHKEY           33
+#define STATUS_NO_LOCATION_AVAILABLE     34
+#define STATUS_UNKNOWN_ERROR             35
+
 
 typedef void (*_impl_arduino_status)(int status, const char *msg);
 
@@ -60,8 +64,8 @@ class SuplaDeviceClass {
   int connectionFailCounter;
   int networkIsNotReadyCounter;
 
-  unsigned long last_iterate_time;
-  unsigned long wait_for_iterate;
+  unsigned long lastIterateTime;
+  unsigned long waitForIterate;
 
   _impl_arduino_status impl_arduino_status;
   int currentStatus;
@@ -73,7 +77,7 @@ class SuplaDeviceClass {
   void setString(char *dst, const char *src, int max_size);
 
  private:
-  void status(int status, const char *msg);
+  void status(int status, const char *msg, bool alwaysLog = false);
 
  public:
   SuplaDeviceClass();

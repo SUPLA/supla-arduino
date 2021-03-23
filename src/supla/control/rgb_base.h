@@ -23,20 +23,16 @@ namespace Supla {
 namespace Control {
 class RGBBase : public RGBWBase {
  public:
-  RGBBase() {
-    channel.setType(SUPLA_CHANNELTYPE_RGBLEDCONTROLLER);
-    channel.setDefault(SUPLA_CHANNELFNC_RGBLIGHTING);
-  }
-
+  RGBBase();
   void setRGBW(int red,
                int green,
                int blue,
                int colorBrightness,
                int brightness,
-               bool toggle) {
-    RGBWBase::setRGBW(red, green, blue, colorBrightness, 0, toggle);
-  }
+               bool toggle = false);
 
+  void onLoadState();
+  void onSaveState();
 };
 
 };  // namespace Control

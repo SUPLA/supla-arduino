@@ -15,7 +15,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include <SuplaDevice.h>
-#include <supla/control/rgbw_base.h>
+#include <supla/control/rgbw_leds.h>
+#include <supla/control/button.h>
 
 // Choose proper network interface for your card:
 #ifdef ARDUINO_ARCH_AVR
@@ -39,45 +40,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * Youtube example was done on older version of SuplaDevice library
  */
 
-#define RED_PIN              44
-#define GREEN_PIN            45
-#define BLUE_PIN             46
-#define BRIGHTNESS_PIN       7
-#define COLOR_BRIGHTNESS_PIN 8
-
-class RgbwLeds : public Supla::Control::RGBWBase {
- public:
-  RgbwLeds(int redPin,
-           int greenPin,
-           int bluePin,
-           int colorBrightnessPin,
-           int brightnessPin)
-      : redPin(redPin),
-        greenPin(greenPin),
-        bluePin(bluePin),
-        colorBrightnessPin(colorBrightnessPin),
-        brightnessPin(brightnessPin) {
-  }
-
-  void setRGBWValueOnDevice(uint8_t red,
-                            uint8_t green,
-                            uint8_t blue,
-                            uint8_t colorBrightness,
-                            uint8_t brightness) {
-    analogWrite(brightnessPin, (brightness * 255) / 100);
-    analogWrite(colorBrightnessPin, (colorBrightness * 255) / 100);
-    analogWrite(redPin, red);
-    analogWrite(greenPin, green);
-    analogWrite(bluePin, blue);
-  }
-
- protected:
-  int redPin;
-  int greenPin;
-  int bluePin;
-  int brightnessPin;
-  int colorBrightnessPin;
-};
+#define RED_PIN              4
+#define GREEN_PIN            5
+#define BLUE_PIN             12
+#define BRIGHTNESS_PIN       13
+#define BUTTON_PIN           0
 
 void setup() {
   Serial.begin(115200);
@@ -96,8 +63,16 @@ void setup() {
    */
 
   // CHANNEL0 - RGB controller and dimmer (RGBW)
-  new RgbwLeds(
-      RED_PIN, GREEN_PIN, BLUE_PIN, COLOR_BRIGHTNESS_PIN, BRIGHTNESS_PIN);
+  auto rgbw = new Supla::Control::RGBWLeds(
+      RED_PIN, GREEN_PIN, BLUE_PIN, BRIGHTNESS_PIN);
+
+  auto button = new Supla::Control::Button(BUTTON_PIN, true, true);
+  button->setMulticlickTime(200);
+  button->setHoldTime(400);
+  button->repeatOnHoldEvery(200);
+
+  button->addAction(Supla::ITERATE_DIM_ALL, rgbw, Supla::ON_HOLD);
+  button->addAction(Supla::TOGGLE, rgbw, Supla::ON_CLICK_1);
 
   /*
    * SuplaDevice Initialization.

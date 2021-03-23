@@ -31,11 +31,14 @@ class DimmerBase : public RGBWBase {
                int blue,
                int colorBrightness,
                int brightness,
-               bool toggle);
+               bool toggle = false);
 
   void onLoadState();
   void onSaveState();
   
+ protected:
+  virtual void iterateDimmerRGBW(int rgbStep, int wStep);
+
 };
 
 };  // namespace Control
