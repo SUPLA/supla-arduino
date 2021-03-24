@@ -21,6 +21,7 @@
 #include "supla-common/srpc.h"
 #include "tools.h"
 #include "events.h"
+#include "correction.h"
 
 namespace Supla {
 
@@ -47,6 +48,9 @@ Channel::~Channel() {
 }
 
 void Channel::setNewValue(double dbl) {
+  // Apply channel value correction
+  dbl += Correction::get(getChannelNumber());
+
   char newValue[SUPLA_CHANNELVALUE_SIZE];
   if (sizeof(double) == 8) {
     memcpy(newValue, &dbl, 8);
@@ -61,6 +65,10 @@ void Channel::setNewValue(double dbl) {
 }
 
 void Channel::setNewValue(double temp, double humi) {
+  // Apply channel value corrections
+  temp += Correction::get(getChannelNumber());
+  humi += Correction::get(getChannelNumber(), true);
+
   char newValue[SUPLA_CHANNELVALUE_SIZE];
   _supla_int_t t = temp * 1000.00;
   _supla_int_t h = humi * 1000.00;
@@ -330,6 +338,10 @@ uint8_t Channel::getValueBrightness() {
 void Channel::setValidityTimeSec(unsigned _supla_int_t timeSec) {
   validityTimeSec = timeSec;
   if (validityTimeSec > 0) unsetFlag(SUPLA_CHANNEL_FLAG_CHANNELSTATE);
+}
+
+void Channel::setCorrection(double correction, bool forSecondaryValue) {
+  Correction::add(getChannelNumber(), correction, forSecondaryValue);
 }
 
 };  // namespace Supla
