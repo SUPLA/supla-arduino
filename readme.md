@@ -230,6 +230,29 @@ Sensor category is for all elements/channels that reads something and provides d
 Control category is for all elements/channels that are used to control something, i.e. relays, buttons, RGBW.
 Classes in this category are in namespace `Supla::Control`:
 
+* `BistableRelay` - SuplaDevice sends short impulses on GPIO to trigger change of bistable relay. It requires additional GPIO input to read status of relay
+* `BistableRollerShutter` - Roller shutter implementation to control external roller shutter controllers that work in a similar way to bistable relays
+* `Button` - allows to use button connected to GPIO to control other elements in device. Supports multiclicks, long click, etc
+* `DimmerBase` - base class for dimmers
+* `DimmerLeds` - PWM based implementation for dimmer
+* `InternalPinOutput` - allows to control GPIO without showing it to Supla as a channel
+* `LightRelay` - extension of Relay class that allows to monitor and configure lifespan of light source
+* `PinStatusLed` - allows to duplicate GPIO state to another GPIO which can have connected LED to show status
+* `Relay` - allows to control relay through GPIO
+* `RGBBase` - base class for RGB control
+* `RGBLeds` - PWM based implementation for RGB lights
+* `RGBWBase` - base class for RGBW control
+* `RollerShutter` - controller for roller shutters
+* `SequenceButton` - extension of button which allows to trigger actions based on specific sequence/rythm
+* `SimpleButton` - button that allows only press and release detection with lower memory footprint
+* `VirtualRelay` - relay which keeps its state in memory and doesn't affect any GPIO
+
+### Photovoltaic inverter
+SuplaDevice provides integrations for following inverters:
+
+* `Afore`
+* `Fronius`
+* `SolarEdge`
 
 ## Supported persistant memory storage 
 Storage class is used as an abstraction for different persistant memory devices. Some elements/channels will not work properly without storage and some will have limitted functionalities. I.e. `ImpulseCounter` requires storage to save counter value, so it could be restored after reset, or `RollerShutter` requires storage to keep openin/closing times and current shutter possition. Currently two variants of storage classes are supported.
