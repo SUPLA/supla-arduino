@@ -22,8 +22,11 @@ class OnGreaterCond : public Supla::Condition {
       : Supla::Condition(threshold, useAlternativeMeasurement) {
   }
 
-  bool condition(double val) {
-    return val > threshold;
+  bool condition(double val, bool isValid) {
+    if (isValid) {
+      return val > threshold;
+    }
+    return false;
   }
 };
 

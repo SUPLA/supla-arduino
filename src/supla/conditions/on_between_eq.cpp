@@ -22,8 +22,11 @@ class OnBetweenEqCond : public Supla::Condition {
       : Supla::Condition(threshold1, useAlternativeMeasurement), threshold2(threshold2) {
   }
 
-  bool condition(double val) {
-    return val >= threshold && val <= threshold2;
+  bool condition(double val, bool isValid) {
+    if (isValid) {
+      return val >= threshold && val <= threshold2;
+    } 
+    return false;
   }
 
   double threshold2;

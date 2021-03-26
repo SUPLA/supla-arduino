@@ -71,7 +71,7 @@ void Supla::Condition::handleAction(int event, int action) {
         isValid = useAlternativeMeasurement ? value >= 0 : value >= -273;
         break;
     }
-    if (isValid && checkConditionFor(value)) {
+    if (checkConditionFor(value, isValid)) {
       client->handleAction(event, action);
     }
   }
@@ -82,13 +82,13 @@ bool Supla::Condition::deleteClient() {
   return true;
 }
 
-bool Supla::Condition::checkConditionFor(double val) {
-  if (!alreadyFired && condition(val)) {
+bool Supla::Condition::checkConditionFor(double val, bool isValid) {
+  if (!alreadyFired && condition(val, isValid)) {
     alreadyFired = true;
     return true;
   }
   if (alreadyFired) {
-    if (!condition(val)) {
+    if (!condition(val, isValid)) {
       alreadyFired = false;
     }
   }
