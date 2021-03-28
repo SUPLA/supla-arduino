@@ -105,6 +105,7 @@ TEST(ButtonTests, OnHold) {
     .WillOnce(Return(1)) // #6
     .WillOnce(Return(0)) // #7
     .WillOnce(Return(0)) // #8
+    .WillOnce(Return(0)) // #9
     // second round
     .WillOnce(Return(1)) // #2 time 0 - first read
     .WillOnce(Return(1)) // #3 
@@ -113,6 +114,7 @@ TEST(ButtonTests, OnHold) {
     .WillOnce(Return(1)) // #6
     .WillOnce(Return(0)) // #7
     .WillOnce(Return(0)) // #8
+    .WillOnce(Return(0)) // #9
     ;                        
 
 
@@ -120,14 +122,21 @@ TEST(ButtonTests, OnHold) {
   EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, 2)).Times(4);
   EXPECT_CALL(mock1, handleAction(Supla::ON_RELEASE, 3)).Times(2);
   EXPECT_CALL(mock1, handleAction(Supla::ON_HOLD, 4)).Times(2);
+  EXPECT_CALL(mock1, handleAction(Supla::ON_LONG_CLICK_0, 5)).Times(2);
 
   Supla::Control::Button button(5, false, false);
   button.setHoldTime(500);
+  button.setMulticlickTime(300);
   button.onInit();
   button.addAction(1, mock1, Supla::ON_PRESS);
   button.addAction(2, mock1, Supla::ON_CHANGE);
   button.addAction(3, mock1, Supla::ON_RELEASE);
   button.addAction(4, mock1, Supla::ON_HOLD);
+  button.addAction(5, mock1, Supla::ON_LONG_CLICK_0);
+  button.addAction(6, mock1, Supla::ON_LONG_CLICK_1);
+  button.addAction(7, mock1, Supla::ON_LONG_CLICK_2);
+  button.addAction(8, mock1, Supla::ON_LONG_CLICK_3);
+
 
   for (int i = 0; i < 2; i++) {
     time.advance(1000);
@@ -142,8 +151,10 @@ TEST(ButtonTests, OnHold) {
     button.onTimer(); // #6 
     time.advance(10); 
     button.onTimer(); // #7 new state candidate
-    time.advance(30);
+    time.advance(100);
     button.onTimer(); // #8 ON_RELEASE
+    time.advance(500);
+    button.onTimer(); // #9 
   }
 }
 
@@ -171,6 +182,7 @@ TEST(ButtonTests, OnHoldRepeated) {
   EXPECT_CALL(mock1, handleAction(Supla::ON_CHANGE, 2)).Times(2);
   EXPECT_CALL(mock1, handleAction(Supla::ON_RELEASE, 3)).Times(1);
   EXPECT_CALL(mock1, handleAction(Supla::ON_HOLD, 4)).Times(3);
+  EXPECT_CALL(mock1, handleAction(Supla::ON_LONG_CLICK_0, 5)).Times(0);
 
   Supla::Control::Button button(5, false, false);
   button.setHoldTime(500);
@@ -180,6 +192,7 @@ TEST(ButtonTests, OnHoldRepeated) {
   button.addAction(2, mock1, Supla::ON_CHANGE);
   button.addAction(3, mock1, Supla::ON_RELEASE);
   button.addAction(4, mock1, Supla::ON_HOLD);
+  button.addAction(5, mock1, Supla::ON_LONG_CLICK_0);
 
   time.advance(1000);
   button.onTimer(); // #2
@@ -257,7 +270,7 @@ TEST(ButtonTests, Multiclick) {
   button.onTimer(); // #10 ON_CLICK_2
 }
 
-TEST(ButtonTests, OnHoldCancelsMulticlick) {
+TEST(ButtonTests, OnHoldSendsLongMulticlick) {
   TimeInterfaceStub2 time;
   DigitalInterfaceMock ioMock;
   ActionHandlerMock mock1;
@@ -271,19 +284,152 @@ TEST(ButtonTests, OnHoldCancelsMulticlick) {
     .WillOnce(Return(0)) // #5 
     .WillOnce(Return(0)) // #6 release
     .WillOnce(Return(1)) // #7
-    .WillOnce(Return(1)) // #8 click 2
+    .WillOnce(Return(1)) // #8 click 1
     .WillOnce(Return(0)) // #9
     .WillOnce(Return(0)) // #10 release
-    .WillOnce(Return(0)) // #11 some time -> no ON_CLICK_2
+    .WillOnce(Return(1)) // #11
+    .WillOnce(Return(1)) // #12 click 2
+    .WillOnce(Return(0)) // #13
+    .WillOnce(Return(0)) // #14 release
+    .WillOnce(Return(0)) // #15 some time -> ON_LONG_CLICK_2
     ;                        
 
 
   EXPECT_CALL(mock1, handleAction(Supla::ON_CLICK_2, 1)).Times(0);
   EXPECT_CALL(mock1, handleAction(Supla::ON_HOLD, 4)).Times(1);
+  EXPECT_CALL(mock1, handleAction(Supla::ON_LONG_CLICK_2, 5)).Times(1);
 
   Supla::Control::Button button(5, false, false);
   button.setHoldTime(700);
   button.setMulticlickTime(300);
+  button.onInit(); // #1
+  button.addAction(4, mock1, Supla::ON_HOLD);
+  button.addAction(1, mock1, Supla::ON_CLICK_1);
+  button.addAction(1, mock1, Supla::ON_CLICK_2);
+  button.addAction(1, mock1, Supla::ON_CLICK_3);
+  button.addAction(1, mock1, Supla::ON_CLICK_4);
+  button.addAction(1, mock1, Supla::ON_CLICK_5);
+  button.addAction(1, mock1, Supla::ON_CLICK_6);
+  button.addAction(1, mock1, Supla::ON_CLICK_7);
+  button.addAction(6, mock1, Supla::ON_LONG_CLICK_1);
+  button.addAction(5, mock1, Supla::ON_LONG_CLICK_2);
+  button.addAction(7, mock1, Supla::ON_LONG_CLICK_3);
+
+  time.advance(1000);
+  button.onTimer(); // #2
+  time.advance(30); // filtering
+  button.onTimer(); // #3 click 1
+  time.advance(800); // 
+  button.onTimer(); // #4 ON_HOLD
+  time.advance(60);
+  button.onTimer();
+  time.advance(30); // filtering
+  button.onTimer(); // #5 release
+  time.advance(60); // debounce
+  button.onTimer(); // #6 
+  time.advance(30); // filtering
+  button.onTimer(); // #7 click 2
+  time.advance(60); // debounce
+  button.onTimer(); // #8 
+  time.advance(30); // filtering
+  button.onTimer(); // #9 release
+  time.advance(60);
+  button.onTimer(); // #10
+  time.advance(30); // filtering
+  button.onTimer(); // #11 click 2
+  time.advance(60); // debounce
+  button.onTimer(); // #12 
+  time.advance(30); // filtering
+  button.onTimer(); // #13 release
+  time.advance(500);
+  button.onTimer(); // #14 ON_LONG_CLICK_2
+}
+
+TEST(ButtonTests, BistableMulticlick) {
+  TimeInterfaceStub2 time;
+  DigitalInterfaceMock ioMock;
+  ActionHandlerMock mock1;
+
+  EXPECT_CALL(ioMock, pinMode(5, INPUT));
+  EXPECT_CALL(ioMock, digitalRead(5))
+    .WillOnce(Return(0)) // #1 onInit
+    .WillOnce(Return(1)) // #2 time 0 - first read
+    .WillOnce(Return(1)) // #3 click 1
+    .WillOnce(Return(0)) // #4 
+    .WillOnce(Return(0)) // #5 release
+    .WillOnce(Return(1)) // #6
+    .WillOnce(Return(1)) // #7 click 2
+    .WillOnce(Return(0)) // #8
+    .WillOnce(Return(0)) // #9 release
+    .WillOnce(Return(0)) // #10 some time -> ON_CLICK_2
+    ;                        
+
+
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CLICK_4, 1)).Times(1);
+  EXPECT_CALL(mock1, handleAction(Supla::ON_HOLD, 4)).Times(0);
+
+  Supla::Control::Button button(5, false, false);
+  button.setHoldTime(700); // should be ignored
+  button.setMulticlickTime(300, true); 
+
+  button.onInit();
+  button.addAction(4, mock1, Supla::ON_HOLD);
+  button.addAction(1, mock1, Supla::ON_CLICK_1);
+  button.addAction(1, mock1, Supla::ON_CLICK_2);
+  button.addAction(1, mock1, Supla::ON_CLICK_3);
+  button.addAction(1, mock1, Supla::ON_CLICK_4);
+  button.addAction(1, mock1, Supla::ON_CLICK_5);
+  button.addAction(1, mock1, Supla::ON_CLICK_6);
+  button.addAction(1, mock1, Supla::ON_CLICK_7);
+
+  time.advance(1000);
+  button.onTimer(); // #2
+  time.advance(30); // filtering
+  button.onTimer(); // #3 click 1
+  time.advance(60); // debounce
+  button.onTimer(); // #4 
+  time.advance(30); // filtering
+  button.onTimer(); // #5 release
+  time.advance(60); // debounce
+  button.onTimer(); // #6 
+  time.advance(30); // filtering
+  button.onTimer(); // #7 click 2
+  time.advance(60); // debounce
+  button.onTimer(); // #8 
+  time.advance(30); // filtering
+  button.onTimer(); // #9 release
+  time.advance(500);
+  button.onTimer(); // #10 ON_CLICK_4
+}
+
+TEST(ButtonTests, OnHoldDoesntWorkOnBistableButton) {
+  TimeInterfaceStub2 time;
+  DigitalInterfaceMock ioMock;
+  ActionHandlerMock mock1;
+
+  EXPECT_CALL(ioMock, pinMode(5, INPUT));
+  EXPECT_CALL(ioMock, digitalRead(5))
+    .WillOnce(Return(0)) // #1 onInit
+    .WillOnce(Return(1)) // #2 time 0 - first read
+    .WillOnce(Return(1)) // #3 click 1
+    .WillOnce(Return(1)) // #4 ON_HOLD shouldn't happen - there will be ON_CLICK_1 instead
+    .WillOnce(Return(0)) // #5 
+    .WillOnce(Return(0)) // #6 
+    .WillOnce(Return(1)) // #7
+    .WillOnce(Return(1)) // #8 
+    .WillOnce(Return(0)) // #9
+    .WillOnce(Return(0)) // #10 release
+    .WillOnce(Return(0)) // #11 some time -> no ON_CLICK_3 
+    ;                        
+
+
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CLICK_1, 1)).Times(1);
+  EXPECT_CALL(mock1, handleAction(Supla::ON_CLICK_3, 1)).Times(1);
+  EXPECT_CALL(mock1, handleAction(Supla::ON_HOLD, 4)).Times(0);
+
+  Supla::Control::Button button(5, false, false);
+  button.setHoldTime(700); // should be ignored
+  button.setMulticlickTime(300, true);
   button.onInit();
   button.addAction(4, mock1, Supla::ON_HOLD);
   button.addAction(1, mock1, Supla::ON_CLICK_1);
