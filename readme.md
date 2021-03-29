@@ -8,25 +8,20 @@ SuplaDevice is a library for [Arduino IDE](https://www.arduino.cc/en/main/softwa
 
 ## Library installation
 
-There are few options how to install library in Arduino IDE. Here is one example:
-1. Download SuplaDevice repository as a zip file (click green "Code" button on github repository)
-2. Extract downloaded zip file
-3. Copy whole SuplaDevice subfolder to a location where Arduino keeps libraries (in Arduino IDE open File->Preferences and there is a sketch location folder - libraries are kept in "libraries" subfolder)
-4. You should be able to open SuplaDevice exmaples in Arduino IDE
+Please use library manager in Arduino IDE to install newest SuplaDevice library.
 
 ## Hardware requirements
 
 ### Arduino Mega
-SuplaDevice works with Arduino Mega boards. Currently Arduino Uno is not supported because of RAM limitations. It should work on other Arduino boards with at least 8 kB of RAM.
+SuplaDevice works with Arduino Mega boards. Arduino Uno is not supported because of RAM limitations. It should work on other Arduino boards with at least 8 kB of RAM.
 Following network interfaces are supported:
 * Ethernet Shield with W5100 chipset
 * ENC28J60 (not recommended - see Supported hardware section)
 
-Warning: WiFi shields are currently not supported
+Warning: WiFi shields are currently not supported. 
 
-### ESP8266
-ESP8266 boards are supported. Network connection is done via internal WiFi. Tested with ESP8266 boards 2.6.3.
-Most probably it will work with other ESP8266 compatible boards. 
+### ESP8266 and ESP8285
+ESP8266 and ESP8285 boards are supported. Network connection is done via WiFi.
 
 ### ESP32
 Experimental support for ESP32 boards is provided. Some issues seen with reconnection to WiFi router which requires further analysis.
@@ -38,9 +33,9 @@ Before you start, you will need to:
 2. install support for your board
 3. install driver for your USB to serial converter device (it can be external device, or build in on your board)
 4. make sure that communication over serial interface with your board is working (i.e. check some example Arduino application)
-5. download and install this librarary by copying SuplaDevice folder into your Arduino library folder
+5. download and install this librarary
 
-Steps 1-4 are standard Arudino IDE setup procedures not related to SuplaDevice library. You can find many tutorials on Internet with detailed instructions. Tutorials doesn't have to be related in any way with Supla. 
+Above steps are standard Arudino IDE setup procedures not related to SuplaDevice library. You can find many tutorials on Internet with detailed instructions. Tutorials doesn't have to be related in any way with Supla. 
 
 After step 5 you should see Supla example applications in Arduino IDE examples. Select one and have fun! Example file requires adjustments before you compile them and upload to your board. Please read all comments in example and make proper adjustments. 
 
@@ -55,7 +50,7 @@ or some other problem with network, program will stuck on initialization and wil
 Second warning: UIPEthernet library is consuming few hundred of bytes of RAM memory more, compared to standard Ethernet library. 
 
 Supported network interface for ESP8266:
-* There is a native WiFi controller. Include `<supla/network/esp_wifi.h>` and add `Supla::ESPWifi wifi(ssid, password);` as a global variable and provide SSID and password in constructor.
+* There is a native WiFi controller. Include `<supla/network/esp_wifi.h>` and add `Supla::ESPWifi wifi(ssid, password);` as a global variable and provide SSID and password in a constructor.
 Warning: by default connection with Supla server is encrypted. Default settings of SSL consumes big amount of RAM. 
 To disable SSL connection, use:
   `wifi.enableSSL(false);`
@@ -69,21 +64,22 @@ If you specify Supla's server certificate thumbprint there will be additional ve
 
 
 Supported network interface for ESP32:
-* There is a native WiFi controller. Include `<supla/network/esp32_wifi.h>` and add `Supla::ESP32Wifi wifi(ssid, password);` as a global variable and provide SSID and password in constructor.
+* There is a native WiFi controller. Include `<supla/network/esp_wifi.h>` and add `Supla::ESPWifi wifi(ssid, password);` as a global variable and provide SSID and password in a constructor.
 
 ### Exmaples
 
 Each example can run on Arduino Mega, ESP8266, or ESP32 board - unless mentioned otherwise in comments. Please read comments in example files and uncomment proper library for your network interface.
-
-SuplaSomfy - this example is not updated yet.
 
 ### Folder structure
 
 * `supla-common` - Supla protocol definitions and structures. There are also methods to handle low level communication with Supla server, like message coding, decoding, sending and receiving. Those files are common with `supla-core` and the same code is run on multiple Supla platforms and services
 * `supla/network` - implementation of network interfaces for supported boards
 * `supla/sensor` - implementation of Supla sensor channels (thermometers, open/close sensors, etc.)
+* `supla/storage` - implementation of persistant storage interfaces used by some Elements (i.e. keeping impulse counter data)
 * `supla/control` - implementation of Supla control channels (various combinations of relays, buttons, action triggers)
 * `supla/clock` - time services used in library (i.e. RTC)
+* `supla/conditions` - classes that are used to check runtime dependencies between channels (i.e. turn on relay when humidity is below 40%)
+* `supla/pv` - supported integrations with inverters used with photovoltaic
 * `supla` - all common classes are defined in main `supla` folder. You can find there classes that create framework on which all other components work. 
 
 Some functions from above folders have dependencies to external libraries. Please check documentation included in header files.
@@ -101,9 +97,9 @@ All elements have to be constructed before `SuplaDevice.begin()` method is calle
 Supla channel number is assigned to each elemement with channel in an order of creation of objects. First channel will get number 0, second 1, etc. Supla server will not accept registration of device when order of channels is changed, or some channel is removed. In such case, you should remove device from Supla Cloud and register it again from scratch.
 
 `Element` class defines follwoing virtual methods that are called by SuplaDevice:
-1. `onInit` - called first within `SuplaDevice.begin()` method. It should initialize your element.
-2. `onLoadState` - called second within `SuplaDevice.begin()` method. It reads configuration data from persistent memory storage.
-3. `onSaveState` - called in `SuplaDevice.iterate()` - it saves state data to persistant storage. It is not called on each iteration. `Storage` class makes sure that storing to memory does not happen to often and time delay between saves depends on implementation. 
+1. `onLoadState` - called first within `SuplaDevice.begin()` method. It reads configuration data from persistent memory storage.
+2. `onInit` - called second within `SuplaDevice.begin()` method. It should initialize your element - all GPIO settings should be done there and proper state of channel should be set. 
+3. `onSaveState` - called in `SuplaDevice.iterate()` - it saves state data to persistant storage. It is not called on each iteration. `Storage` class makes sure that storing to memory does not happen too often and time delay between saves depends on implementation. 
 3. `iterateAlways` - called on each iteration of `SuplaDevice.iterate()` method, regardless of network/connection status. Be careful - some other methods called in `SuplaDevice.iterate()` method may block program execution for some time (even few seconds) - i.e. trying to establish connection with Supla server is blocking - in case server is not accessible, it will iterfere with `iterateAlways` method. So time critical functions should not be put here.
 4. `iterateConnected` - called on each iterateion of `SuplaDevice.iterate()` method when device is connected and properly registered in Supla server. This method usually checks if there is some new data to be send to server (i.e. new temperature reading) and sends it. 
 5. `onTimer` - called every 10 ms after enabling in `SuplaDevice.begin()`
@@ -203,11 +199,60 @@ All channels from old version of library should be removed and created again in 
 
 ## Supported channels
 ### Sensors
-Sensor category is for all elements/channels that reads something and provides data to Supla serwer.
+Sensor category is for all elements/channels that reads something and provides data to Supla server. All sensors are in `Supla::Sensor` namespace:
 
+* `Binary` - two state sensor: on/off, enabled/disabled, open/closesd, etc. It reads GPIO state: LOW/HIGH
+* `VirtualBinary` - similar to `Binary` but it use settable variable in memory to show state
+* `Thermometer` - base class for thermometer sensors
+* `DS18B20` - DS18B20 thermometer
+* `Si7021` - S17021 thermometer
+* `Si7021Sonoff` - Si7021 thermometer for Sonoff
+* `MAX6675_K` - MAX6675_K thermometer
+* `ThermHygroMeter` - base class for sensors capable of measuring temperature and humidity
+* `DHT` - DHT11 and DHT22 support
+* `SHT3x` - SHT3x support
+* `ThermHygroPressMeter` - base class for sensors capable of measuring temperature, humidity, and pressure
+* `BME280` - BME280 support
+* `Distance` - base class for distance sensors
+* `HC_SR04` - HC_SR04 distance meter
+* `Pressure` - base class for presure meters
+* `Wind` - base class for wind meters (speed)
+* `Rain` - base class for rain meters
+* `Weight` - base class for weight meters
+* `ImpulseCounter` - calculates impulses on a given GPIO
+* `ElectricityMeter` - base class for electricity meters
+* `PZEMv2` - PZEMv2 one phase electricity meter
+* `PZEMv3` - PZEMv3 one phase electricity meter
+* `ThreePhasePZEMv3` - 3x PZEMv3 for measuring three phases
+* `EspFreeHeap` - provides free heap memory on ESP8266 as a Channel
 
 ### Control 
 Control category is for all elements/channels that are used to control something, i.e. relays, buttons, RGBW.
+Classes in this category are in namespace `Supla::Control`:
+
+* `BistableRelay` - SuplaDevice sends short impulses on GPIO to trigger change of bistable relay. It requires additional GPIO input to read status of relay
+* `BistableRollerShutter` - Roller shutter implementation to control external roller shutter controllers that work in a similar way to bistable relays
+* `Button` - allows to use button connected to GPIO to control other elements in device. Supports multiclicks, long click, etc
+* `DimmerBase` - base class for dimmers
+* `DimmerLeds` - PWM based implementation for dimmer
+* `InternalPinOutput` - allows to control GPIO without showing it to Supla as a channel
+* `LightRelay` - extension of Relay class that allows to monitor and configure lifespan of light source
+* `PinStatusLed` - allows to duplicate GPIO state to another GPIO which can have connected LED to show status
+* `Relay` - allows to control relay through GPIO
+* `RGBBase` - base class for RGB control
+* `RGBLeds` - PWM based implementation for RGB lights
+* `RGBWBase` - base class for RGBW control
+* `RollerShutter` - controller for roller shutters
+* `SequenceButton` - extension of button which allows to trigger actions based on specific sequence/rythm
+* `SimpleButton` - button that allows only press and release detection with lower memory footprint
+* `VirtualRelay` - relay which keeps its state in memory and doesn't affect any GPIO
+
+### Photovoltaic inverter
+SuplaDevice provides integrations for following inverters:
+
+* `Afore`
+* `Fronius`
+* `SolarEdge`
 
 ## Supported persistant memory storage 
 Storage class is used as an abstraction for different persistant memory devices. Some elements/channels will not work properly without storage and some will have limitted functionalities. I.e. `ImpulseCounter` requires storage to save counter value, so it could be restored after reset, or `RollerShutter` requires storage to keep openin/closing times and current shutter possition. Currently two variants of storage classes are supported.
@@ -232,14 +277,6 @@ or with SW SPI:
 // Software SPI
 Supla::FramSpi fram(SCK_PIN, MISO_PIN, MOSI_PIN, FRAM_CS, SUPLA_STORAGE_OFFSET);
 ```
-
-## History
-
-Version 2.3.0
-
-
-## Credits
-
 
 ## License
 

@@ -21,6 +21,7 @@
 #include <srpc_mock.h>
 #include <supla/events.h>
 #include <supla/actions.h>
+#include <supla/correction.h>
 
 
 class ActionHandlerMock : public Supla::ActionHandler {
@@ -480,4 +481,33 @@ TEST(ChannelTests, RgbwChannelWithLocalActions) {
   ch1.setNewValue(10, 21, 30, 90, 80);
   ch1.setNewValue(10, 20, 30, 90, 81);
   ch1.setNewValue(10, 20, 30, 90, 81);
+}
+
+TEST(ChannelTests, SetNewValueWithCorrection) {
+  Supla::Channel channel1;
+  Supla::Channel channel2;
+
+  EXPECT_DOUBLE_EQ(channel1.getValueDouble(), 0);
+
+  double pi = 3.1415;
+  channel1.setNewValue(pi);
+  EXPECT_DOUBLE_EQ(channel1.getValueDouble(), pi);
+
+  channel1.setCorrection(3);
+  EXPECT_DOUBLE_EQ(channel1.getValueDouble(), pi);
+
+  // Now correction should be applied
+  channel1.setNewValue(pi);
+  EXPECT_DOUBLE_EQ(channel1.getValueDouble(), pi + 3);
+
+
+  double e = 2.71828;
+
+  channel2.setCorrection(2, true);
+
+  channel2.setNewValue(pi, e);
+  EXPECT_NEAR(channel2.getValueDoubleFirst(), pi, 0.001);
+  EXPECT_NEAR(channel2.getValueDoubleSecond(), e + 2, 0.001); // value with correction
+
+  Supla::Correction::clear(); // cleanup
 }

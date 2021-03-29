@@ -184,7 +184,7 @@ TEST(ConditionTests, handleActionTestsForDouble2) {
   const int action3 = 17;
 
   EXPECT_CALL(ahMock, handleAction(Supla::ON_CHANGE, action1));
-  EXPECT_CALL(ahMock, handleAction(Supla::ON_CHANGE, action3));
+  EXPECT_CALL(ahMock, handleAction(Supla::ON_CHANGE, action3)).Times(2);
 
   Supla::ChannelElement channelElement;
   auto channel = channelElement.getChannel();
@@ -207,7 +207,7 @@ TEST(ConditionTests, handleActionTestsForDouble2) {
   channel->setNewValue(-275.0);
   cond->handleAction(Supla::ON_CHANGE, action2);
 
-
+  // going from "invalid" to valid value meeting contidion should trigger action
   channel->setNewValue(-15.01);
   cond->handleAction(Supla::ON_CHANGE, action3);
 

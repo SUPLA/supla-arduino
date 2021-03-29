@@ -36,10 +36,10 @@ class Condition : public ActionHandler {
 
   void handleAction(int event, int action);
   bool deleteClient();
-  virtual bool checkConditionFor(double val);
+  virtual bool checkConditionFor(double val, bool isValid = true);
 
  protected:
-  virtual bool condition(double val) = 0;
+  virtual bool condition(double val, bool isValid = true) = 0;
 
   double threshold;
   bool alreadyFired;
@@ -58,5 +58,6 @@ Supla::Condition *OnGreaterEq(double threshold, bool useAlternativeMeasurement =
 Supla::Condition *OnBetween(double threshold1, double threshold2, bool useAlternativeMeasurement = false);
 Supla::Condition *OnBetweenEq(double threshold1, double threshold2, bool useAlternativeMeasurement = false);
 Supla::Condition *OnEqual(double threshold, bool useAlternativeMeasurement = false);
+Supla::Condition *OnInvalid(bool useAlternativeMeasurement = false);
 
 #endif

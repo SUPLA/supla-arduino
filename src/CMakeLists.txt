@@ -7,6 +7,7 @@ set(SRCS
   supla/element.cpp
   supla/local_action.cpp
   supla/channel_element.cpp
+  supla/correction.cpp
   
   supla/storage/storage.cpp
 
@@ -19,6 +20,7 @@ set(SRCS
   supla/control/rgb_leds.cpp
   supla/control/dimmer_leds.cpp
   supla/control/simple_button.cpp
+  supla/control/button.cpp
 
   supla/condition.cpp
   supla/conditions/on_less.cpp
@@ -28,6 +30,7 @@ set(SRCS
   supla/conditions/on_between.cpp
   supla/conditions/on_between_eq.cpp
   supla/conditions/on_equal.cpp
+  supla/conditions/on_invalid.cpp
 
   SuplaDevice.cpp
   supla/network/network.cpp

@@ -14,25 +14,29 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "../condition.h"
+#ifndef __correction_h
+#define __correction_h
 
-class OnLessEqCond : public Supla::Condition {
- public:
-  OnLessEqCond(double threshold, bool useAlternativeMeasurement)
-      : Supla::Condition(threshold, useAlternativeMeasurement) {
-  }
+#include <stdint.h>
 
-  bool condition(double val, bool isValid) {
-    if (isValid) {
-      return val <= threshold;
-    }
-    return false;
-  }
+namespace Supla {
+
+  class Correction {
+    public:
+      static void add(uint8_t channelNumber, double correction, bool forSecondaryValue = false);
+      static double get(uint8_t channelNumber, bool forSecondaryValue = false);
+      static void clear();
+
+    protected:
+      Correction(uint8_t channelNumber, double correction, bool forSecondaryValue);
+      ~Correction();
+
+      static Correction *first;
+      Correction *next;
+      uint8_t channelNumber;
+      double correction;
+      bool forSecondaryValue;
+  };
+
 };
-
-
-Supla::Condition *OnLessEq(double threshold, bool useAlternativeMeasurement) {
-  return new OnLessEqCond(threshold, useAlternativeMeasurement);
-}
-
-
+#endif

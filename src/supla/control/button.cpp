@@ -55,7 +55,7 @@ void Supla::Control::Button::onTimer() {
         runAction(ON_HOLD);
         ++holdSend;
       }
-    } else if (clickCounter > 0 && (bistable || stateResult == RELEASED)) {
+    } else if ((bistable || stateResult == RELEASED)) {
       if (multiclickTimeMs == 0) {
         holdSend = 0;
         clickCounter = 0;
@@ -97,7 +97,46 @@ void Supla::Control::Button::onTimer() {
           if (clickCounter >= 10) {
             runAction(ON_CRAZY_CLICKER);
           }
-        } 
+        }  else {
+          switch (clickCounter) {
+            // for LONG_CLICK counter was incremented once by ON_HOLD
+            case 1:
+              runAction(ON_LONG_CLICK_0);
+              break;
+            case 2:
+              runAction(ON_LONG_CLICK_1);
+              break;
+            case 3:
+              runAction(ON_LONG_CLICK_2);
+              break;
+            case 4:
+              runAction(ON_LONG_CLICK_3);
+              break;
+            case 5:
+              runAction(ON_LONG_CLICK_4);
+              break;
+            case 6:
+              runAction(ON_LONG_CLICK_5);
+              break;
+            case 7:
+              runAction(ON_LONG_CLICK_6);
+              break;
+            case 8:
+              runAction(ON_LONG_CLICK_7);
+              break;
+            case 9:
+              runAction(ON_LONG_CLICK_8);
+              break;
+            case 10:
+              runAction(ON_LONG_CLICK_9);
+              break;
+            case 11:
+              runAction(ON_LONG_CLICK_10);
+              break;
+          }
+
+
+        }
         holdSend = 0;
         clickCounter = 0;
       }
