@@ -135,14 +135,16 @@ class ESPWifi : public Supla::Network {
 
     bool result = client->connect(server, connectionPort);
 
-    if (result && isSecured) {
+    // ESP8266 boards 3.0.0 onward do fingerprint check in connect() method.
+    /*if (result && isSecured) {
       if (!((WiFiClientSecure *)client)->verify(fingerprint.c_str(), server)) {
         supla_log(LOG_DEBUG, "Provided certificates doesn't match!");
         client->stop();
         return false;
       }
     };
-
+    */
+    
     return result;
   }
 

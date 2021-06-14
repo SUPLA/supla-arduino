@@ -247,7 +247,7 @@ void SuplaDeviceClass::iterate(void) {
   if (!isInitialized(false)) return;
 
   unsigned long _millis = millis();
-  unsigned long timeDiff = abs(_millis - lastIterateTime);
+  unsigned long timeDiff = _millis - lastIterateTime;
 
   uptime.iterate(_millis);
 
