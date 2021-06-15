@@ -51,8 +51,7 @@ class ESPWifi : public Supla::Network {
     setSsid(wifiSsid);
     setPassword(wifiPassword);
 #ifdef ARDUINO_ARCH_ESP32
-    enableSSL(
-        false);  // current ESP32 WiFiClientSecure does not suport "setInsecure"
+    enableSSL(false);  // ESP32 WiFiClientSecure does not suport "setInsecure"
 #endif
   }
 
@@ -96,22 +95,19 @@ class ESPWifi : public Supla::Network {
     if (client == NULL) {
       if (isSecured) {
         message = "Secured connection";
-        client = new WiFiClientSecure();
+        auto clientSec = new WiFiClientSecure();
+        client = clientSec;
+
+#ifdef ARDUINO_ARCH_ESP8266
+        clientSec->setBufferSizes(2048, 512);  // EXPERIMENTAL
         if (fingerprint.length() > 0) {
           message += " with certificate matching";
-#ifdef ARDUINO_ARCH_ESP8266
-          ((WiFiClientSecure *)client)->setFingerprint(fingerprint.c_str());
-#else
-          message += " - NOT SUPPORTED ON ESP32 implmentation";
-#endif
+          clientSec->setFingerprint(fingerprint.c_str());
         } else {
           message += " without certificate matching";
-#ifdef ARDUINO_ARCH_ESP8266
-          ((WiFiClientSecure *)client)->setInsecure();
-#else
-          message += " - NOT SUPPORTED ON ESP32 implmentation";
-#endif
+          clientSec->setInsecure();
         }
+#endif
       } else {
         message = "unsecured connection";
         client = new WiFiClient();
@@ -129,19 +125,7 @@ class ESPWifi : public Supla::Network {
               server,
               connectionPort);
 
-#ifdef ARDUINO_ARCH_ESP8266
-    static_cast<WiFiClientSecure*>(client)->setBufferSizes(2048, 512); // EXPERIMENTAL
-#endif
-
     bool result = client->connect(server, connectionPort);
-
-    if (result && isSecured) {
-      if (!((WiFiClientSecure *)client)->verify(fingerprint.c_str(), server)) {
-        supla_log(LOG_DEBUG, "Provided certificates doesn't match!");
-        client->stop();
-        return false;
-      }
-    };
 
     return result;
   }
