@@ -182,7 +182,7 @@ bool SuplaDeviceClass::begin(unsigned char version) {
 
   if (strnlen(Supla::Channel::reg_dev.SoftVer, SUPLA_SOFTVER_MAXSIZE) == 0) {
     setString(Supla::Channel::reg_dev.SoftVer,
-              "User SW, lib 2.3.4",
+              "User SW, lib 2.3.5",
               SUPLA_SOFTVER_MAXSIZE);
   }
 
