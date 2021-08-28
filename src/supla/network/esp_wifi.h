@@ -183,12 +183,14 @@ class ESPWifi : public Supla::Network {
             Serial.println(F(" dBm"));
           },
           WiFiEvent_t::SYSTEM_EVENT_STA_GOT_IP);
+      (void)(event_gotIP);
 
       WiFiEventId_t event_disconnected = WiFi.onEvent(
           [](WiFiEvent_t event, WiFiEventInfo_t info) {
             Serial.println(F("wifi Station disconnected"));
           },
           WiFiEvent_t::SYSTEM_EVENT_STA_DISCONNECTED);
+      (void)(event_disconnected);
 #endif
       Serial.print(F("WiFi: establishing connection with SSID: \""));
       Serial.print(ssid);

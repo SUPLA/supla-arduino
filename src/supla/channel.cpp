@@ -28,7 +28,7 @@ namespace Supla {
 unsigned long Channel::lastCommunicationTimeMs = 0;
 TDS_SuplaRegisterDevice_E Channel::reg_dev;
 
-Channel::Channel() : validityTimeSec(0), channelNumber(-1), valueChanged(false) {
+Channel::Channel() : valueChanged(false), channelNumber(-1), validityTimeSec(0) {
   if (reg_dev.channel_count < SUPLA_CHANNELMAXCOUNT) {
     channelNumber = reg_dev.channel_count;
 
