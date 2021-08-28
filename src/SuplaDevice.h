@@ -95,7 +95,9 @@ class SuplaDeviceClass {
 
   bool begin(unsigned char version = 12);
 
+  // Use ASCII only in name
   void setName(const char *Name);
+
   void setGUID(char GUID[SUPLA_GUID_SIZE]);
   void setAuthKey(char authkey[SUPLA_AUTHKEY_SIZE]);
   void setEmail(const char *email);
