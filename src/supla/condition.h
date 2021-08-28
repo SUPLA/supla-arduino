@@ -42,8 +42,8 @@ class Condition : public ActionHandler {
   virtual bool condition(double val, bool isValid = true) = 0;
 
   double threshold;
-  bool alreadyFired;
   bool useAlternativeMeasurement;
+  bool alreadyFired;
   Supla::ChannelElement *source;
   Supla::ActionHandler *client;
 

@@ -22,7 +22,7 @@ steps:
     webhook: 
       from_secret: slack_webhook 
     channel: github
-    username: drone
+    username: drone@supla-arduino
 
     # here's the template :)
     # notice that the repo endpoint is hardcoded to `https://github.com/`. 

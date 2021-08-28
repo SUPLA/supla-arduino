@@ -34,7 +34,7 @@ class Si7021Sonoff : public ThermHygroMeter {
   void onInit();
   double readTemp(uint8_t* data);
   double readHumi(uint8_t* data);
-  bool read();
+  void read();
   bool waitState(bool state);
 
  protected:

@@ -309,8 +309,8 @@ bool SolarEdge::iterateConnected(void *srpc) {
         pvClient.setBufferSizes(2048, 512); //
 #endif
         pvClient.setInsecure();
-        int returnCode = 0;
-        if (returnCode = pvClient.connect("monitoringapi.solaredge.com", 443)) {
+        int returnCode = pvClient.connect("monitoringapi.solaredge.com", 443);
+        if (returnCode) {
           retryCounter = 0;
           dataFetchInProgress = true;
           connectionTimeoutMs = lastReadTime;

@@ -49,7 +49,7 @@ void message_received(void *_srpc,
   (void)(call_type);
   (void)(proto_version);
   TsrpcReceivedData rd;
-  char getDataResult;
+  int8_t getDataResult;
 
   Network::Instance()->updateLastResponse();
 

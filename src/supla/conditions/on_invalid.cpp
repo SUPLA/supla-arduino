@@ -23,6 +23,7 @@ class OnInvalidCond : public Supla::Condition {
   }
 
   bool condition(double val, bool isValid) {
+    (void)(val);
     return !isValid;
   }
 

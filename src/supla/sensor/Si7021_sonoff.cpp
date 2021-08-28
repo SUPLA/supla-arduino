@@ -19,9 +19,9 @@
 namespace Supla {
 namespace Sensor {
 Si7021Sonoff::Si7021Sonoff(int pin)
-    : temperature(TEMPERATURE_NOT_AVAILABLE),
+    : pin(pin),
+      temperature(TEMPERATURE_NOT_AVAILABLE),
       humidity(HUMIDITY_NOT_AVAILABLE),
-      pin(pin),
       retryCount(0) {
 }
 
@@ -62,7 +62,7 @@ double Si7021Sonoff::readHumi(uint8_t* data) {
   return humi;
 }
 
-bool Si7021Sonoff::read() {
+void Si7021Sonoff::read() {
   uint8_t data[5] = {0};
 
   yield();
