@@ -28,6 +28,7 @@ void Supla::Control::RGBBase::setRGBW(int red,
                                       int colorBrightness,
                                       int brightness,
                                       bool toggle) {
+  (void)(brightness);
   Supla::Control::RGBWBase::setRGBW(
       red, green, blue, colorBrightness, 0, toggle);
 }

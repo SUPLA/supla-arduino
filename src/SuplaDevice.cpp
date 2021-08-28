@@ -44,8 +44,8 @@ SuplaDeviceClass::SuplaDeviceClass()
       connectionFailCounter(0),
       networkIsNotReadyCounter(0),
       currentStatus(STATUS_UNKNOWN),
-      clock(nullptr),
-      impl_arduino_status(nullptr) {
+      impl_arduino_status(nullptr),
+      clock(nullptr) {
   srpc = NULL;
   registered = 0;
   lastIterateTime = 0;
