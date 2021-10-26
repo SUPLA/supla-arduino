@@ -92,9 +92,9 @@ class SuplaDeviceClass {
              const char *Server,
              const char *email,
              char authkey[SUPLA_AUTHKEY_SIZE],
-             unsigned char version = 12);
+             unsigned char version = 16);
 
-  bool begin(unsigned char version = 12);
+  bool begin(unsigned char version = 16);
 
   // Use ASCII only in name
   void setName(const char *Name);

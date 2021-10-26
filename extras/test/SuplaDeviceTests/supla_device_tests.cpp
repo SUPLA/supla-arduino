@@ -300,7 +300,7 @@ TEST_F(SuplaDeviceTests, SuccessfulBegin) {
   EXPECT_CALL(net, setup());
   EXPECT_CALL(srpc, srpc_params_init(_));
   EXPECT_CALL(srpc, srpc_init(_)).WillOnce(Return(&dummy));
-  EXPECT_CALL(srpc, srpc_set_proto_version(&dummy, 12));
+  EXPECT_CALL(srpc, srpc_set_proto_version(&dummy, 16));
 
   char GUID[SUPLA_GUID_SIZE] = {1};
   char AUTHKEY[SUPLA_AUTHKEY_SIZE] = {2};
@@ -327,7 +327,7 @@ TEST_F(SuplaDeviceTests, SuccessfulBeginAlternative) {
   EXPECT_CALL(net, setup());
   EXPECT_CALL(srpc, srpc_params_init(_));
   EXPECT_CALL(srpc, srpc_init(_)).WillOnce(Return(&dummy));
-  EXPECT_CALL(srpc, srpc_set_proto_version(&dummy, 12));
+  EXPECT_CALL(srpc, srpc_set_proto_version(&dummy, 16));
 
   char GUID[SUPLA_GUID_SIZE] = {1};
   char AUTHKEY[SUPLA_AUTHKEY_SIZE] = {2};
@@ -380,7 +380,7 @@ TEST_F(SuplaDeviceTests, TwoChannelElementsNoNetworkWithStorage) {
   EXPECT_CALL(net, setup());
   EXPECT_CALL(srpc, srpc_params_init(_));
   EXPECT_CALL(srpc, srpc_init(_)).WillOnce(Return(&dummy));
-  EXPECT_CALL(srpc, srpc_set_proto_version(&dummy, 12));
+  EXPECT_CALL(srpc, srpc_set_proto_version(&dummy, 16));
 
   char GUID[SUPLA_GUID_SIZE] = {1};
   char AUTHKEY[SUPLA_AUTHKEY_SIZE] = {2};
@@ -422,7 +422,7 @@ TEST_F(SuplaDeviceTests, OnRegisterResultOK) {
   TSD_SuplaRegisterDeviceResult register_device_result{};
   register_device_result.result_code = SUPLA_RESULTCODE_TRUE;
   register_device_result.activity_timeout = 45;
-  register_device_result.version = 12;
+  register_device_result.version = 16;
   register_device_result.version_min = 1;
 
   sd.onRegisterResult(&register_device_result);
@@ -442,7 +442,7 @@ TEST_F(SuplaDeviceTests, OnRegisterResultBadCredentials) {
   TSD_SuplaRegisterDeviceResult register_device_result{};
   register_device_result.result_code = SUPLA_RESULTCODE_BAD_CREDENTIALS;
   register_device_result.activity_timeout = 45;
-  register_device_result.version = 12;
+  register_device_result.version = 16;
   register_device_result.version_min = 1;
 
   sd.onRegisterResult(&register_device_result);
@@ -462,7 +462,7 @@ TEST_F(SuplaDeviceTests, OnRegisterResultTemporairlyUnavailable) {
   TSD_SuplaRegisterDeviceResult register_device_result{};
   register_device_result.result_code = SUPLA_RESULTCODE_TEMPORARILY_UNAVAILABLE;
   register_device_result.activity_timeout = 45;
-  register_device_result.version = 12;
+  register_device_result.version = 16;
   register_device_result.version_min = 1;
 
   sd.onRegisterResult(&register_device_result);
@@ -482,7 +482,7 @@ TEST_F(SuplaDeviceTests, OnRegisterResultLocationConflict) {
   TSD_SuplaRegisterDeviceResult register_device_result{};
   register_device_result.result_code = SUPLA_RESULTCODE_LOCATION_CONFLICT;
   register_device_result.activity_timeout = 45;
-  register_device_result.version = 12;
+  register_device_result.version = 16;
   register_device_result.version_min = 1;
 
   sd.onRegisterResult(&register_device_result);
@@ -502,7 +502,7 @@ TEST_F(SuplaDeviceTests, OnRegisterResultChannelConflict) {
   TSD_SuplaRegisterDeviceResult register_device_result{};
   register_device_result.result_code = SUPLA_RESULTCODE_CHANNEL_CONFLICT;
   register_device_result.activity_timeout = 45;
-  register_device_result.version = 12;
+  register_device_result.version = 16;
   register_device_result.version_min = 1;
 
   sd.onRegisterResult(&register_device_result);
@@ -522,7 +522,7 @@ TEST_F(SuplaDeviceTests, OnRegisterResultDeviceDisabled) {
   TSD_SuplaRegisterDeviceResult register_device_result{};
   register_device_result.result_code = SUPLA_RESULTCODE_DEVICE_DISABLED;
   register_device_result.activity_timeout = 45;
-  register_device_result.version = 12;
+  register_device_result.version = 16;
   register_device_result.version_min = 1;
 
   sd.onRegisterResult(&register_device_result);
@@ -542,7 +542,7 @@ TEST_F(SuplaDeviceTests, OnRegisterResultLocationDisabled) {
   TSD_SuplaRegisterDeviceResult register_device_result{};
   register_device_result.result_code = SUPLA_RESULTCODE_LOCATION_DISABLED;
   register_device_result.activity_timeout = 45;
-  register_device_result.version = 12;
+  register_device_result.version = 16;
   register_device_result.version_min = 1;
 
   sd.onRegisterResult(&register_device_result);
@@ -562,7 +562,7 @@ TEST_F(SuplaDeviceTests, OnRegisterResultDeviceLimitExceeded) {
   TSD_SuplaRegisterDeviceResult register_device_result{};
   register_device_result.result_code = SUPLA_RESULTCODE_DEVICE_LIMITEXCEEDED;
   register_device_result.activity_timeout = 45;
-  register_device_result.version = 12;
+  register_device_result.version = 16;
   register_device_result.version_min = 1;
 
   sd.onRegisterResult(&register_device_result);
@@ -582,7 +582,7 @@ TEST_F(SuplaDeviceTests, OnRegisterResultGuidError) {
   TSD_SuplaRegisterDeviceResult register_device_result{};
   register_device_result.result_code = SUPLA_RESULTCODE_GUID_ERROR;
   register_device_result.activity_timeout = 45;
-  register_device_result.version = 12;
+  register_device_result.version = 16;
   register_device_result.version_min = 1;
 
   sd.onRegisterResult(&register_device_result);
@@ -602,7 +602,7 @@ TEST_F(SuplaDeviceTests, OnRegisterResultAuthKeyError) {
   TSD_SuplaRegisterDeviceResult register_device_result{};
   register_device_result.result_code = SUPLA_RESULTCODE_AUTHKEY_ERROR;
   register_device_result.activity_timeout = 45;
-  register_device_result.version = 12;
+  register_device_result.version = 16;
   register_device_result.version_min = 1;
 
   sd.onRegisterResult(&register_device_result);
@@ -622,7 +622,7 @@ TEST_F(SuplaDeviceTests, OnRegisterResultRegistrationDisabled) {
   TSD_SuplaRegisterDeviceResult register_device_result{};
   register_device_result.result_code = SUPLA_RESULTCODE_REGISTRATION_DISABLED;
   register_device_result.activity_timeout = 45;
-  register_device_result.version = 12;
+  register_device_result.version = 16;
   register_device_result.version_min = 1;
 
   sd.onRegisterResult(&register_device_result);
@@ -642,7 +642,7 @@ TEST_F(SuplaDeviceTests, OnRegisterResultNoLocationAvailable) {
   TSD_SuplaRegisterDeviceResult register_device_result{};
   register_device_result.result_code = SUPLA_RESULTCODE_NO_LOCATION_AVAILABLE;
   register_device_result.activity_timeout = 45;
-  register_device_result.version = 12;
+  register_device_result.version = 16;
   register_device_result.version_min = 1;
 
   sd.onRegisterResult(&register_device_result);
@@ -662,7 +662,7 @@ TEST_F(SuplaDeviceTests, OnRegisterResultUnknownError) {
   TSD_SuplaRegisterDeviceResult register_device_result{};
   register_device_result.result_code = 666;
   register_device_result.activity_timeout = 45;
-  register_device_result.version = 12;
+  register_device_result.version = 16;
   register_device_result.version_min = 1;
 
   sd.onRegisterResult(&register_device_result);
