@@ -41,9 +41,12 @@ class Element {
   // Called only if Storage class is configured
   virtual void onLoadState();
 
-  // method called during periodically during SuplaDevice iteration
+  // method called periodically during SuplaDevice iteration
   // Called only if Storage class is configured
   virtual void onSaveState();
+
+  // method called each time when device successfully registers to server
+  virtual void onRegistered();
 
   // method called on each SuplaDevice iteration (before Network layer
   // iteration). When Device is connected, both iterateAlways() and

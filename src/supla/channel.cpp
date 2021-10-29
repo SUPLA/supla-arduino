@@ -210,6 +210,22 @@ void Channel::setFuncList(_supla_int_t functions) {
   }
 }
 
+_supla_int_t Channel::getFuncList() {
+  if (channelNumber >= 0) {
+    return reg_dev.channels[channelNumber].FuncList;
+  }
+  return 0;
+}
+
+void Channel::setActionTriggerCaps(_supla_int_t caps) {
+  supla_log(LOG_DEBUG, "Channel[%d] setting func list: %d", channelNumber, caps);
+  setFuncList(caps);
+}
+
+_supla_int_t Channel::getActionTriggerCaps() {
+  return getFuncList();
+}
+
 int Channel::getChannelNumber() {
   return channelNumber;
 }

@@ -149,6 +149,7 @@ TEST_F(ElementTests, ChannelElementMethods) {
   el1.onSaveState();
   el1.onTimer();
   el1.onFastTimer();
+  el1.onRegistered();
 
   TDSC_ChannelState channelState;
   el1.handleGetChannelState(channelState);

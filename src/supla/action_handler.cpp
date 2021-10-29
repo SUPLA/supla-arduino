@@ -14,18 +14,14 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _action_handler_h
-#define _action_handler_h
+#include "action_handler.h"
 
-namespace Supla {
-class ActionHandler {
- public:
-  virtual ~ActionHandler();
-  virtual void handleAction(int event, int action) = 0;
-  virtual void activateAction(int action);
-  virtual bool deleteClient();
-};
+Supla::ActionHandler::~ActionHandler() {};
 
-};
+void Supla::ActionHandler::activateAction(int action) {};
 
-#endif
+bool Supla::ActionHandler::deleteClient() {
+    return false;
+}
+
+

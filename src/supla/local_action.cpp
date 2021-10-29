@@ -85,6 +85,7 @@ void LocalAction::addAction(int action, ActionHandler &client, int event) {
   ptr->client = &client;
   ptr->onEvent = event;
   ptr->action = action;
+  ptr->client->activateAction(action);
 }
 
 void LocalAction::addAction(int action, ActionHandler *client, int event) {

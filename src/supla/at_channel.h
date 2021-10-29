@@ -14,18 +14,24 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _action_handler_h
-#define _action_handler_h
+#ifndef _at_channel_h
+#define _at_channel_h
+
+#include "channel.h"
 
 namespace Supla {
-class ActionHandler {
- public:
-  virtual ~ActionHandler();
-  virtual void handleAction(int event, int action) = 0;
-  virtual void activateAction(int action);
-  virtual bool deleteClient();
+
+class AtChannel : public Channel {
+  public:
+    void sendUpdate(void *srpc) override;
+    void pushAction(int action);
+    void activateAction(int action);
+
+  protected:
+    int popAction();
+    int actionToSend = 0;
 };
 
 };
 
-#endif
+#endif /*_at_channel_h*/

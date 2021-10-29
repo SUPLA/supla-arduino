@@ -8,6 +8,8 @@ set(SRCS
   supla/local_action.cpp
   supla/channel_element.cpp
   supla/correction.cpp
+  supla/at_channel.cpp
+  supla/action_handler.cpp
   
   supla/storage/storage.cpp
 

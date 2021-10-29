@@ -27,7 +27,7 @@ namespace Supla {
 class Channel : public LocalAction {
  public:
   Channel();
-  ~Channel();
+  virtual ~Channel();
 
   void setNewValue(double dbl);
   void setNewValue(double temp, double humi);
@@ -65,9 +65,13 @@ class Channel : public LocalAction {
   void setFlag(_supla_int_t flag);
   void unsetFlag(_supla_int_t flag);
   void setFuncList(_supla_int_t functions);
+  _supla_int_t getFuncList();
+  void setActionTriggerCaps(_supla_int_t caps);
+  _supla_int_t getActionTriggerCaps();
+
   void setValidityTimeSec(unsigned _supla_int_t);
   void clearUpdateReady();
-  void sendUpdate(void *srpc);
+  virtual void sendUpdate(void *srpc);
   virtual TSuplaChannelExtendedValue *getExtValue();
   void setCorrection(double correction, bool forSecondaryValue = false);
 

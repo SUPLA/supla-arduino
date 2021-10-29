@@ -22,6 +22,7 @@
 #include <SuplaDevice.h>
 #include <supla/clock/clock.h>
 #include <supla/storage/storage.h>
+#include <element_mock.h>
 
 using ::testing::Return;
 using ::testing::_;
@@ -136,21 +137,6 @@ TEST_F(SuplaDeviceTests, StartWithoutNetworkInterfaceNoElementsWithStorageAndDat
   EXPECT_FALSE(sd.begin());
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_MISSING_NETWORK_INTERFACE);
 }
-
-class ElementMock : public Supla::Element {
-  public:
-  MOCK_METHOD(void, onInit, (), (override));
-  MOCK_METHOD(void, onLoadState, (), (override));
-  MOCK_METHOD(void, onSaveState, (), (override));
-  MOCK_METHOD(void, iterateAlways, (), (override));
-  MOCK_METHOD(bool, iterateConnected, (void *), (override));
-  MOCK_METHOD(void, onTimer, (), (override));
-  MOCK_METHOD(void, onFastTimer, (), (override));
-  MOCK_METHOD(int, handleNewValueFromServer, (TSD_SuplaChannelNewValue *), (override));
-  MOCK_METHOD(void, handleGetChannelState, (TDSC_ChannelState &), (override));
-  MOCK_METHOD(int, handleCalcfgFromServer, (TSD_DeviceCalCfgRequest *), (override));
-    
-};
 
 TEST_F(SuplaDeviceTests, StartWithoutNetworkInterfaceWithElements) {
   ::testing::InSequence seq;

@@ -74,6 +74,8 @@ void Element::onLoadState(){};
 
 void Element::onSaveState(){};
 
+void Element::onRegistered(){};
+
 void Element::iterateAlways(){};
 
 bool Element::iterateConnected(void *srpc) {

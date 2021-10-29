@@ -18,19 +18,36 @@
 #define _action_trigger_h
 
 #include <stdint.h>
+#include "simple_button.h"
 #include "../element.h"
-#include "../channel.h"
+#include "../action_handler.h"
+#include "../at_channel.h"
+#include "../actions.h"
 
 namespace Supla {
 namespace Control {
 
-class ActionTrigger : public Element {
+class ActionTrigger : public Element, public ActionHandler {
  public:
   ActionTrigger(); 
   virtual ~ActionTrigger();
+
+  void attach(Supla::Control::SimpleButton *);
+  void attach(Supla::Control::SimpleButton &);
+
+
+  void handleAction(int event, int action) override;
+  void activateAction(int action) override;
+  Supla::Channel *getChannel() override;
+
+ protected:
+  Supla::Control::SimpleButton *attachedButton;
+  Supla::AtChannel channel;
+
+  int getActionTriggerCap(int action);
 };
 
-};  // namespace Control
-};  // namespace Supla
+}
+}
 
 #endif /*_action_trigger_h*/

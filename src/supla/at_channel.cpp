@@ -14,18 +14,38 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _action_handler_h
-#define _action_handler_h
+#include "at_channel.h"
+#include "supla-common/srpc.h"
 
 namespace Supla {
-class ActionHandler {
- public:
-  virtual ~ActionHandler();
-  virtual void handleAction(int event, int action) = 0;
-  virtual void activateAction(int action);
-  virtual bool deleteClient();
-};
+
+  void AtChannel::sendUpdate(void *srpc) {
+    TDS_ActionTrigger at = {};
+    at.ChannelNumber = getChannelNumber();
+    at.ActionTrigger = popAction();
+    srpc_ds_async_action_trigger(srpc, &at);
+  }
+
+  int AtChannel::popAction() {
+    for (int i = 0; i < 32; i++) {
+      if (actionToSend & (1 << i)) {
+        actionToSend ^= (1 << i);
+        if (actionToSend == 0) {
+          clearUpdateReady();
+        }
+        return (1 << i);
+      }
+    }
+    return 0;
+  }
+
+  void AtChannel::pushAction(int action) {
+    actionToSend |= action;
+    setUpdateReady();
+  }
+
+  void AtChannel::activateAction(int action) {
+    setActionTriggerCaps(getActionTriggerCaps() | action);
+  }
 
 };
-
-#endif
