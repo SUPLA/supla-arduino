@@ -134,6 +134,23 @@ void message_received(void *_srpc,
         srpc_ds_async_device_calcfg_result(_srpc, &result);
         break;
       }
+      case SUPLA_SD_CALL_GET_CHANNEL_CONFIG_RESULT: {
+        TSD_ChannelConfig *result = rd.data.sd_channel_config;
+        if (result) {
+          auto element = Supla::Element::getElementByChannelNumber(
+              result->ChannelNumber);
+          if (element) {
+            element->handleChannelConfig(result);
+          } else {
+            Serial.print(F("Error: couldn't find element for a requested channel ["));
+            Serial.print(result->ChannelNumber);
+            Serial.println(F("]"));
+          }
+
+
+        }
+        break;
+      }
       default:
         supla_log(LOG_DEBUG, "Received unknown message from server!");
         break;

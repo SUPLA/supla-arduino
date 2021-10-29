@@ -39,6 +39,7 @@ class ActionTrigger : public Element, public ActionHandler {
   void handleAction(int event, int action) override;
   void activateAction(int action) override;
   Supla::Channel *getChannel() override;
+  void onRegistered() override;
 
  protected:
   Supla::Control::SimpleButton *attachedButton;

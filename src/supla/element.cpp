@@ -142,4 +142,10 @@ Element & Element::disableChannelState() {
   return *this;
 }
 
+void Element::handleChannelConfig(TSD_ChannelConfig *result) {
+  Serial.print(F("Channel["));
+  Serial.print(result->ChannelNumber);
+  Serial.println(F("]: received channel config reply, but handling is missing"));
+}
+
 };  // namespace Supla

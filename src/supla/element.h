@@ -78,6 +78,7 @@ class Element {
   virtual void handleGetChannelState(TDSC_ChannelState &channelState);
 
   virtual int handleCalcfgFromServer(TSD_DeviceCalCfgRequest *request);
+  virtual void handleChannelConfig(TSD_ChannelConfig *result);
 
   int getChannelNumber();
   virtual Channel *getChannel();

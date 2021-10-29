@@ -20,10 +20,14 @@
 namespace Supla {
 
   void AtChannel::sendUpdate(void *srpc) {
-    TDS_ActionTrigger at = {};
-    at.ChannelNumber = getChannelNumber();
-    at.ActionTrigger = popAction();
-    srpc_ds_async_action_trigger(srpc, &at);
+    if (valueChanged) {
+      TDS_ActionTrigger at = {};
+      at.ChannelNumber = getChannelNumber();
+      at.ActionTrigger = popAction();
+      srpc_ds_async_action_trigger(srpc, &at);
+    } else {
+      Channel::sendUpdate(srpc);
+    }
   }
 
   int AtChannel::popAction() {

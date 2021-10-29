@@ -88,3 +88,10 @@ int Supla::Control::ActionTrigger::getActionTriggerCap(int action) {
   return 0;
 }
   
+void Supla::Control::ActionTrigger::onRegistered() {
+  // cleanup actions to be send
+  while (channel.popAction());
+
+  channel.requestChannelConfig();
+
+}

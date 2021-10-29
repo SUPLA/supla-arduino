@@ -75,6 +75,8 @@ class Channel : public LocalAction {
   virtual TSuplaChannelExtendedValue *getExtValue();
   void setCorrection(double correction, bool forSecondaryValue = false);
 
+  void requestChannelConfig();
+
   static unsigned long lastCommunicationTimeMs;
   static TDS_SuplaRegisterDevice_E reg_dev;
 
@@ -82,6 +84,7 @@ class Channel : public LocalAction {
   void setUpdateReady();
 
   bool valueChanged;
+  bool channelConfig;
   int channelNumber;
   unsigned _supla_int_t validityTimeSec;
 };

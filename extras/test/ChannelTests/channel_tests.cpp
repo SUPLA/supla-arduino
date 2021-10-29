@@ -284,7 +284,6 @@ TEST(ChannelTests, SendUpdateTest) {
   char array[SUPLA_CHANNELVALUE_SIZE] = {};
   array[0] = 1;
 
-  EXPECT_CALL(srpc, valueChanged(nullptr, 0, ElementsAreArray(emptyArray), 0, 0));
   EXPECT_CALL(srpc, valueChanged(nullptr, 0, ElementsAreArray(array), 0, 0));
 
   EXPECT_FALSE(channel.isUpdateReady());

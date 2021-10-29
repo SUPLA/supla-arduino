@@ -26,9 +26,9 @@ class AtChannel : public Channel {
     void sendUpdate(void *srpc) override;
     void pushAction(int action);
     void activateAction(int action);
+    int popAction();
 
   protected:
-    int popAction();
     int actionToSend = 0;
 };
 
