@@ -92,6 +92,43 @@ int Supla::Control::ActionTrigger::getActionTriggerCap(int action) {
   }
   return 0;
 }
+
+int Supla::Control::ActionTrigger::actionTriggerCapToButtonEvent(
+    uint32_t actionCap) {
+  switch (actionCap) {
+    case SUPLA_ACTION_CAP_TURN_ON: {
+      return Supla::ON_PRESS;
+    }
+    case SUPLA_ACTION_CAP_TURN_OFF: {
+      return Supla::ON_RELEASE;
+    }
+    case SUPLA_ACTION_CAP_HOLD: {
+      return Supla::ON_HOLD;
+    }
+    case SUPLA_ACTION_CAP_SHORT_PRESS_x1:
+    case SUPLA_ACTION_CAP_TOGGLE_x1: {
+      return Supla::ON_CLICK_1;
+    }
+    case SUPLA_ACTION_CAP_SHORT_PRESS_x2:
+    case SUPLA_ACTION_CAP_TOGGLE_x2: {
+      return Supla::ON_CLICK_2;
+    }
+    case SUPLA_ACTION_CAP_SHORT_PRESS_x3:
+    case SUPLA_ACTION_CAP_TOGGLE_x3: {
+      return Supla::ON_CLICK_3;
+    }
+    case SUPLA_ACTION_CAP_SHORT_PRESS_x4:
+    case SUPLA_ACTION_CAP_TOGGLE_x4: {
+      return Supla::ON_CLICK_4;
+    }
+    case SUPLA_ACTION_CAP_SHORT_PRESS_x5:
+    case SUPLA_ACTION_CAP_TOGGLE_x5: {
+      return Supla::ON_CLICK_5;
+    }
+  }
+  return 0;
+}
+  
   
 void Supla::Control::ActionTrigger::onRegistered() {
   // cleanup actions to be send
@@ -112,6 +149,16 @@ void Supla::Control::ActionTrigger::handleChannelConfig(
     Serial.print(channel.getChannelNumber());
     Serial.print(F("] received config with active actions: "));
     Serial.println(activeActionsFromServer);
+    uint32_t actionsToDisable = activeActionsFromServer & disablesLocalOperation;
+    if (actionsToDisable && attachedButton) {
+      for (int i = 0; i < 32; i++) {
+        uint32_t actionCap = (1 << i);
+        if (actionsToDisable & actionCap) {
+          int eventToDisable = actionTriggerCapToButtonEvent(actionCap);
+          attachedButton->disableOtherClients(this, eventToDisable);
+        }
+      }
+    }
   } else {
     Serial.println(F("Invalid format of channel config received for AT"));
   }
@@ -139,6 +186,28 @@ void Supla::Control::ActionTrigger::setRelatedChannel(Channel &relatedChannel) {
 
 void Supla::Control::ActionTrigger::onInit() {
   if (attachedButton && attachedButton->isBistable()) {
+    if (attachedButton->isEventAlreadyUsed(Supla::ON_PRESS)) {
+      disablesLocalOperation |= SUPLA_ACTION_CAP_TURN_ON;
+    }
+    if (attachedButton->isEventAlreadyUsed(Supla::ON_RELEASE)) {
+      disablesLocalOperation |= SUPLA_ACTION_CAP_TURN_OFF;
+    }
+    if (attachedButton->isEventAlreadyUsed(Supla::ON_CLICK_1)) {
+      disablesLocalOperation |= SUPLA_ACTION_CAP_TOGGLE_x1;
+    }
+    if (attachedButton->isEventAlreadyUsed(Supla::ON_CLICK_2)) {
+      disablesLocalOperation |= SUPLA_ACTION_CAP_TOGGLE_x2;
+    }
+    if (attachedButton->isEventAlreadyUsed(Supla::ON_CLICK_3)) {
+      disablesLocalOperation |= SUPLA_ACTION_CAP_TOGGLE_x3;
+    }
+    if (attachedButton->isEventAlreadyUsed(Supla::ON_CLICK_4)) {
+      disablesLocalOperation |= SUPLA_ACTION_CAP_TOGGLE_x4;
+    }
+    if (attachedButton->isEventAlreadyUsed(Supla::ON_CLICK_5)) {
+      disablesLocalOperation |= SUPLA_ACTION_CAP_TOGGLE_x5;
+    }
+
     attachedButton->addAction(Supla::SEND_AT_TURN_ON, this, Supla::ON_PRESS);
     attachedButton->addAction(Supla::SEND_AT_TURN_OFF, this, Supla::ON_RELEASE);
     attachedButton->addAction(
@@ -153,6 +222,25 @@ void Supla::Control::ActionTrigger::onInit() {
         Supla::SEND_AT_TOGGLE_x5, this, Supla::ON_CLICK_5);
   }
   if (attachedButton && !attachedButton->isBistable()) {
+    if (attachedButton->isEventAlreadyUsed(Supla::ON_HOLD)) {
+      disablesLocalOperation |= SUPLA_ACTION_CAP_HOLD;
+    }
+    if (attachedButton->isEventAlreadyUsed(Supla::ON_CLICK_1)) {
+      disablesLocalOperation |= SUPLA_ACTION_CAP_SHORT_PRESS_x1;
+    }
+    if (attachedButton->isEventAlreadyUsed(Supla::ON_CLICK_2)) {
+      disablesLocalOperation |= SUPLA_ACTION_CAP_SHORT_PRESS_x2;
+    }
+    if (attachedButton->isEventAlreadyUsed(Supla::ON_CLICK_3)) {
+      disablesLocalOperation |= SUPLA_ACTION_CAP_SHORT_PRESS_x3;
+    }
+    if (attachedButton->isEventAlreadyUsed(Supla::ON_CLICK_4)) {
+      disablesLocalOperation |= SUPLA_ACTION_CAP_SHORT_PRESS_x4;
+    }
+    if (attachedButton->isEventAlreadyUsed(Supla::ON_CLICK_5)) {
+      disablesLocalOperation |= SUPLA_ACTION_CAP_SHORT_PRESS_x5;
+    }
+
     attachedButton->addAction(Supla::SEND_AT_HOLD, this, Supla::ON_HOLD);
     attachedButton->addAction(
         Supla::SEND_AT_SHORT_PRESS_x1, this, Supla::ON_CLICK_1);
@@ -165,4 +253,6 @@ void Supla::Control::ActionTrigger::onInit() {
     attachedButton->addAction(
         Supla::SEND_AT_SHORT_PRESS_x5, this, Supla::ON_CLICK_5);
   }
+
+  channel.setDisablesLocalOperation(disablesLocalOperation);
 }

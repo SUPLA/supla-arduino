@@ -24,6 +24,8 @@ set(SRCS
   supla/control/simple_button.cpp
   supla/control/button.cpp
   supla/control/action_trigger.cpp
+  supla/control/relay.cpp
+  supla/control/virtual_relay.cpp
 
   supla/condition.cpp
   supla/conditions/on_less.cpp

@@ -28,6 +28,7 @@ class AtChannel : public Channel {
     void activateAction(int action);
     int popAction();
     void setRelatedChannel(uint8_t channelNumber);
+    void setDisablesLocalOperation(uint32_t actions);
 
   protected:
     int actionToSend = 0;

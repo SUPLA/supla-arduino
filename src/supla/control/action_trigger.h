@@ -53,13 +53,15 @@ class ActionTrigger : public Element, public ActionHandler {
   void onRegistered() override;
   void handleChannelConfig(TSD_ChannelConfig *result) override;
 
+  static int actionTriggerCapToButtonEvent(uint32_t actionCap);
+  static int getActionTriggerCap(int action);
+
  protected:
   Supla::AtChannel channel;
   Supla::Control::Button *attachedButton = nullptr;
   uint32_t activeActionsFromServer = 0;
   uint32_t disablesLocalOperation = 0;
 
-  int getActionTriggerCap(int action);
 };
 
 }

@@ -61,4 +61,13 @@ namespace Supla {
     }
   }
 
+  void AtChannel::setDisablesLocalOperation(uint32_t actions) {
+    if (channelNumber >= 0) {
+      TActionTriggerProperties *prop = 
+        reinterpret_cast<TActionTriggerProperties *>
+        (reg_dev.channels[channelNumber].value);
+      prop->disablesLocalOperation = actions;
+    }
+  }
+
 };

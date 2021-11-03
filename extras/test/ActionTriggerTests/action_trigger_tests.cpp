@@ -22,8 +22,10 @@
 #include <arduino_mock.h>
 #include <supla/channel.h>
 #include <supla/channel_element.h>
+#include <supla/control/virtual_relay.h>
 
 using testing::ElementsAreArray;
+using testing::_;
 
 class ActionTriggerTests : public ::testing::Test {
   protected:
@@ -36,6 +38,11 @@ class ActionTriggerTests : public ::testing::Test {
       memset(&(Supla::Channel::reg_dev), 0, sizeof(Supla::Channel::reg_dev));
     }
 
+};
+
+class ActionHandlerMock : public Supla::ActionHandler {
+ public:
+  MOCK_METHOD(void, handleAction, (int, int), (override));
 };
 
 class TimeInterfaceStub : public TimeInterface {
@@ -52,13 +59,21 @@ TEST_F(ActionTriggerTests, AttachToMonostableButton) {
   TimeInterfaceStub time;
   Supla::Control::Button b1(10);
   Supla::Control::ActionTrigger at;
+  ActionHandlerMock ah;
 
   at.attach(b1);
   at.iterateConnected(0);
 
+  b1.addAction(Supla::TURN_ON, ah, Supla::ON_CLICK_1);
+  b1.addAction(Supla::TURN_ON, ah, Supla::ON_CLICK_3);
+  b1.addAction(Supla::TURN_ON, ah, Supla::ON_CLICK_5);
+  b1.addAction(Supla::TURN_ON, ah, Supla::ON_HOLD);
+
   EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_SHORT_PRESS_x1));
   EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_HOLD));
   EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_SHORT_PRESS_x5));
+
+  EXPECT_CALL(ah, handleAction(_, 0)).Times(3);
 
   EXPECT_FALSE(b1.isBistable());
   b1.runAction(Supla::ON_PRESS);
@@ -97,6 +112,17 @@ TEST_F(ActionTriggerTests, AttachToMonostableButton) {
     at.iterateConnected(0);
   }
 
+  TActionTriggerProperties *propInRegister = 
+    reinterpret_cast<TActionTriggerProperties *>
+    (Supla::Channel::reg_dev.channels[at.getChannelNumber()].value);
+
+  EXPECT_EQ(propInRegister->relatedChannelNumber, 0);
+  EXPECT_EQ(propInRegister->disablesLocalOperation, 
+      SUPLA_ACTION_CAP_HOLD 
+      | SUPLA_ACTION_CAP_SHORT_PRESS_x1
+      | SUPLA_ACTION_CAP_SHORT_PRESS_x3
+      | SUPLA_ACTION_CAP_SHORT_PRESS_x5
+      );
 
 }
 
@@ -108,10 +134,13 @@ TEST_F(ActionTriggerTests, AttachToBistableButton) {
   b1.setMulticlickTime(500, true);
   Supla::Control::ActionTrigger at;
   Supla::Channel ch1;
+  Supla::Control::VirtualRelay relay1(1);
 
   at.attach(b1);
   at.iterateConnected(0);
   at.setRelatedChannel(ch1);
+
+  b1.addAction(Supla::TURN_ON, relay1, Supla::ON_CLICK_1);
 
   EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_TURN_ON));
   EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_TOGGLE_x1));
@@ -160,7 +189,7 @@ TEST_F(ActionTriggerTests, AttachToBistableButton) {
     (Supla::Channel::reg_dev.channels[at.getChannelNumber()].value);
 
   EXPECT_EQ(propInRegister->relatedChannelNumber, 2);
-  EXPECT_EQ(propInRegister->disablesLocalOperation, 0);
+  EXPECT_EQ(propInRegister->disablesLocalOperation, SUPLA_ACTION_CAP_TOGGLE_x1);
 
 }
 
