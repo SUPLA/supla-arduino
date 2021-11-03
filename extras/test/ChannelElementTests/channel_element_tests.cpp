@@ -41,8 +41,14 @@ TEST(ChannelElementTests, ActionDelegationToChannel) {
   EXPECT_CALL(mock1, handleAction(Supla::ON_TURN_ON, action1)).Times(2);
   EXPECT_CALL(mock2, handleAction(Supla::ON_TURN_OFF, action1)).Times(2);
 
+  EXPECT_FALSE(element.isEventAlreadyUsed(Supla::ON_TURN_ON));
+  EXPECT_FALSE(element.isEventAlreadyUsed(Supla::ON_TURN_OFF));
+
   element.addAction(action1, mock1, Supla::ON_TURN_ON);
   element.addAction(action1, &mock2, Supla::ON_TURN_OFF);
+
+  EXPECT_TRUE(element.isEventAlreadyUsed(Supla::ON_TURN_ON));
+  EXPECT_TRUE(element.isEventAlreadyUsed(Supla::ON_TURN_OFF));
 
   element.getChannel()->setNewValue(false);
   element.getChannel()->setNewValue(true);

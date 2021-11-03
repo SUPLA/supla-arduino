@@ -29,6 +29,10 @@ void Supla::ChannelElement::addAction(int action, ActionHandler *client, int eve
   addAction(action, *client, event);
 }
 
+bool Supla::ChannelElement::isEventAlreadyUsed(int event) {
+  return channel.isEventAlreadyUsed(event);
+}
+
 void Supla::ChannelElement::addAction(int action, ActionHandler &client, Supla::Condition *condition) {
   condition->setClient(client);
   condition->setSource(this);

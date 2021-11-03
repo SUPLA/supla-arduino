@@ -32,6 +32,8 @@ class LocalAction {
 
   virtual void runAction(int event);
 
+  virtual bool isEventAlreadyUsed(int event);
+
   static ActionHandlerClient *getClientListPtr();
 };
 

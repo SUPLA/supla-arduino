@@ -106,4 +106,15 @@ ActionHandlerClient *LocalAction::getClientListPtr() {
   return ActionHandlerClient::begin;
 }
 
+bool LocalAction::isEventAlreadyUsed(int event) {
+  auto ptr = ActionHandlerClient::begin;
+  while (ptr) {
+    if (ptr->trigger == this && ptr->onEvent == event) {
+      return true;
+    }
+    ptr = ptr->next;
+  }
+  return false;
+}
+
 };  // namespace Supla
