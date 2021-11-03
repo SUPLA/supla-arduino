@@ -149,6 +149,7 @@ TEST_F(ElementTests, ChannelElementMethods) {
   el1.onSaveState();
   el1.onTimer();
   el1.onFastTimer();
+  el1.onRegistered();
 
   TDSC_ChannelState channelState;
   el1.handleGetChannelState(channelState);
@@ -174,13 +175,16 @@ TEST_F(ElementTests, ChannelElementMethods) {
     .WillOnce(Return(200)) // #2 two calls after value changed to true and 100 ms passed
     .WillOnce(Return(250)) // #3 value changed, however not enough time passed
     .WillOnce(Return(250)) // #4 value changed, however not enough time passed
-    .WillOnce(Return(400)); // #5 two calls after value changed and another >100 ms passed
+    .WillOnce(Return(400)) // #5 two calls after value changed and another >100 ms passed
+    .WillOnce(Return(600)) 
+    .WillOnce(Return(800)); 
 
   char array0[SUPLA_CHANNELVALUE_SIZE] = {};
   char array1[SUPLA_CHANNELVALUE_SIZE] = {};
   array1[0] = 1;
   EXPECT_CALL(srpc, valueChanged(nullptr, 0, ElementsAreArray(array1), 0, 0)); // value at #2
   EXPECT_CALL(srpc, valueChanged(nullptr, 0, ElementsAreArray(array0), 0, 0)); // value at #5
+  EXPECT_CALL(srpc, getChannelConfig(0));
 
 
   EXPECT_EQ(el1.iterateConnected(nullptr), true);  // #1
@@ -190,6 +194,13 @@ TEST_F(ElementTests, ChannelElementMethods) {
   EXPECT_EQ(el1.iterateConnected(nullptr), true);  // #3
   EXPECT_EQ(el1.iterateConnected(nullptr), true);  // #4
   EXPECT_EQ(el1.iterateConnected(nullptr), false); // #5
+
+  EXPECT_FALSE(el1.channel.isUpdateReady());
+  el1.channel.requestChannelConfig();
+  EXPECT_TRUE(el1.channel.isUpdateReady());
+  EXPECT_EQ(el1.iterateConnected(nullptr), false);  // #6
+  EXPECT_EQ(el1.iterateConnected(nullptr), true);  // #7
+
 }
 
 

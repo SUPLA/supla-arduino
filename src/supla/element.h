@@ -41,9 +41,12 @@ class Element {
   // Called only if Storage class is configured
   virtual void onLoadState();
 
-  // method called during periodically during SuplaDevice iteration
+  // method called periodically during SuplaDevice iteration
   // Called only if Storage class is configured
   virtual void onSaveState();
+
+  // method called each time when device successfully registers to server
+  virtual void onRegistered();
 
   // method called on each SuplaDevice iteration (before Network layer
   // iteration). When Device is connected, both iterateAlways() and
@@ -75,6 +78,7 @@ class Element {
   virtual void handleGetChannelState(TDSC_ChannelState &channelState);
 
   virtual int handleCalcfgFromServer(TSD_DeviceCalCfgRequest *request);
+  virtual void handleChannelConfig(TSD_ChannelConfig *result);
 
   int getChannelNumber();
   virtual Channel *getChannel();

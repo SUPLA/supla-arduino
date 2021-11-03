@@ -22,12 +22,7 @@ class ActionHandlerClient;
 
 class ActionHandlerClient {
  public:
-  ActionHandlerClient()
-      : trigger(nullptr),
-        client(nullptr),
-        next(nullptr),
-        onEvent(0),
-        action(0) {
+  ActionHandlerClient() {
     if (begin == nullptr) {
       begin = this;
     } else {
@@ -53,11 +48,12 @@ class ActionHandlerClient {
     ptr->next = ptr->next->next;
   }
 
-  LocalAction *trigger;
-  ActionHandler *client;
-  ActionHandlerClient *next;
-  uint8_t onEvent;
-  uint8_t action;
+  LocalAction *trigger = nullptr;
+  ActionHandler *client = nullptr;
+  ActionHandlerClient *next = nullptr;
+  uint8_t onEvent = 0;
+  uint8_t action = 0;
+  bool enabled = true;
   static ActionHandlerClient *begin;
 };
 
@@ -85,6 +81,7 @@ void LocalAction::addAction(int action, ActionHandler &client, int event) {
   ptr->client = &client;
   ptr->onEvent = event;
   ptr->action = action;
+  ptr->client->activateAction(action);
 }
 
 void LocalAction::addAction(int action, ActionHandler *client, int event) {
@@ -94,7 +91,7 @@ void LocalAction::addAction(int action, ActionHandler *client, int event) {
 void LocalAction::runAction(int event) {
   auto ptr = ActionHandlerClient::begin;
   while (ptr) {
-    if (ptr->trigger == this && ptr->onEvent == event) {
+    if (ptr->trigger == this && ptr->onEvent == event && ptr->enabled) {
       ptr->client->handleAction(event, ptr->action);
     }
     ptr = ptr->next;
@@ -103,6 +100,47 @@ void LocalAction::runAction(int event) {
 
 ActionHandlerClient *LocalAction::getClientListPtr() {
   return ActionHandlerClient::begin;
+}
+
+bool LocalAction::isEventAlreadyUsed(int event) {
+  auto ptr = ActionHandlerClient::begin;
+  while (ptr) {
+    if (ptr->trigger == this && ptr->onEvent == event) {
+      return true;
+    }
+    ptr = ptr->next;
+  }
+  return false;
+}
+
+void LocalAction::disableOtherClients(ActionHandler &client, int event) {
+  disableOtherClients(&client, event);
+}
+
+void LocalAction::enabledOtherClients(ActionHandler &client, int event) {
+  enabledOtherClients(&client, event);
+}
+
+void LocalAction::disableOtherClients(ActionHandler *client, int event) {
+  auto ptr = ActionHandlerClient::begin;
+  while (ptr) {
+    if (ptr->trigger == this && ptr->onEvent == event && ptr->client != client) {
+      ptr->enabled = false;
+    }
+    ptr = ptr->next;
+  }
+
+}
+
+void LocalAction::enabledOtherClients(ActionHandler *client, int event) {
+  auto ptr = ActionHandlerClient::begin;
+  while (ptr) {
+    if (ptr->trigger == this && ptr->onEvent == event) {
+      ptr->enabled = true;
+    }
+    ptr = ptr->next;
+  }
+
 }
 
 };  // namespace Supla

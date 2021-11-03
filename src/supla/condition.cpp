@@ -46,6 +46,7 @@ void Supla::Condition::handleAction(int event, int action) {
         value = source->getChannel()->getValueInt64();
         break;
       case SUPLA_CHANNELTYPE_HUMIDITYANDTEMPSENSOR:
+      case SUPLA_CHANNELTYPE_HUMIDITYSENSOR:
         value = useAlternativeMeasurement
                     ? source->getChannel()->getValueDoubleSecond()
                     : source->getChannel()->getValueDoubleFirst();
@@ -68,6 +69,7 @@ void Supla::Condition::handleAction(int event, int action) {
         isValid = value >= -273;
         break;
       case SUPLA_CHANNELTYPE_HUMIDITYANDTEMPSENSOR:
+      case SUPLA_CHANNELTYPE_HUMIDITYSENSOR:
         isValid = useAlternativeMeasurement ? value >= 0 : value >= -273;
         break;
     }

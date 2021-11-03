@@ -8,6 +8,8 @@ set(SRCS
   supla/local_action.cpp
   supla/channel_element.cpp
   supla/correction.cpp
+  supla/at_channel.cpp
+  supla/action_handler.cpp
   
   supla/storage/storage.cpp
 
@@ -21,6 +23,9 @@ set(SRCS
   supla/control/dimmer_leds.cpp
   supla/control/simple_button.cpp
   supla/control/button.cpp
+  supla/control/action_trigger.cpp
+  supla/control/relay.cpp
+  supla/control/virtual_relay.cpp
 
   supla/condition.cpp
   supla/conditions/on_less.cpp
@@ -36,6 +41,9 @@ set(SRCS
   supla/network/network.cpp
   supla/clock/clock.cpp
 
+  supla/sensor/therm_hygro_press_meter.cpp
+  supla/sensor/therm_hygro_meter.cpp
+  supla/sensor/thermometer.cpp
 )
 
 add_library(supladevicelib SHARED ${SRCS})

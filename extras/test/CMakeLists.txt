@@ -47,6 +47,7 @@ file(GLOB TEST_SRC
   ButtonTests/*.cpp
   SuplaDeviceTests/*.cpp
   CorrectionTests/*cpp
+  ActionTriggerTests/*cpp
   )
 
 file(GLOB DOUBLE_SRC doubles/*.cpp)

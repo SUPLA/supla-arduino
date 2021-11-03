@@ -27,7 +27,7 @@ namespace Supla {
 class Channel : public LocalAction {
  public:
   Channel();
-  ~Channel();
+  virtual ~Channel();
 
   void setNewValue(double dbl);
   void setNewValue(double temp, double humi);
@@ -40,6 +40,7 @@ class Channel : public LocalAction {
                    uint8_t colorBrightness,
                    uint8_t brightness);
   void setNewValue(unsigned _supla_int64_t value);
+  void setNewValue(const TRollerShutterValue &value);
   bool setNewValue(char *newValue);
 
   double getValueDouble();
@@ -64,11 +65,17 @@ class Channel : public LocalAction {
   void setFlag(_supla_int_t flag);
   void unsetFlag(_supla_int_t flag);
   void setFuncList(_supla_int_t functions);
+  _supla_int_t getFuncList();
+  void setActionTriggerCaps(_supla_int_t caps);
+  _supla_int_t getActionTriggerCaps();
+
   void setValidityTimeSec(unsigned _supla_int_t);
   void clearUpdateReady();
-  void sendUpdate(void *srpc);
+  virtual void sendUpdate(void *srpc);
   virtual TSuplaChannelExtendedValue *getExtValue();
   void setCorrection(double correction, bool forSecondaryValue = false);
+
+  void requestChannelConfig();
 
   static unsigned long lastCommunicationTimeMs;
   static TDS_SuplaRegisterDevice_E reg_dev;
@@ -77,6 +84,7 @@ class Channel : public LocalAction {
   void setUpdateReady();
 
   bool valueChanged;
+  bool channelConfig;
   int channelNumber;
   unsigned _supla_int_t validityTimeSec;
 };

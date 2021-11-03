@@ -74,6 +74,8 @@ void Element::onLoadState(){};
 
 void Element::onSaveState(){};
 
+void Element::onRegistered(){};
+
 void Element::iterateAlways(){};
 
 bool Element::iterateConnected(void *srpc) {
@@ -138,6 +140,12 @@ Element & Element::disableChannelState() {
     getChannel()->unsetFlag(SUPLA_CHANNEL_FLAG_CHANNELSTATE);
   }
   return *this;
+}
+
+void Element::handleChannelConfig(TSD_ChannelConfig *result) {
+  Serial.print(F("Channel["));
+  Serial.print(result->ChannelNumber);
+  Serial.println(F("]: received channel config reply, but handling is missing"));
 }
 
 };  // namespace Supla

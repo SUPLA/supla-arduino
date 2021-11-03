@@ -14,34 +14,14 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _local_action_h
-#define _local_action_h
-
-#include <stdint.h>
 #include "action_handler.h"
 
-namespace Supla {
+Supla::ActionHandler::~ActionHandler() {};
 
-class ActionHandlerClient;
+void Supla::ActionHandler::activateAction(int action) {};
 
-class LocalAction {
- public:
-  virtual ~LocalAction();
-  virtual void addAction(int action, ActionHandler &client, int event);
-  virtual void addAction(int action, ActionHandler *client, int event);
+bool Supla::ActionHandler::deleteClient() {
+    return false;
+}
 
-  virtual void runAction(int event);
 
-  virtual bool isEventAlreadyUsed(int event);
-
-  virtual void disableOtherClients(ActionHandler &client, int event);
-  virtual void enabledOtherClients(ActionHandler &client, int event);
-  virtual void disableOtherClients(ActionHandler *client, int event);
-  virtual void enabledOtherClients(ActionHandler *client, int event);
-
-  static ActionHandlerClient *getClientListPtr();
-};
-
-};  // namespace Supla
-
-#endif

@@ -22,6 +22,18 @@ _supla_int_t  srpc_ds_async_channel_extendedvalue_changed(
     TSuplaChannelExtendedValue *value) {
   return 0;
 }
+
+_supla_int_t  srpc_ds_async_action_trigger(
+    void *_srpc, TDS_ActionTrigger *at) {
+  assert(SrpcInterface::instance);
+  return SrpcInterface::instance->actionTrigger(at->ChannelNumber, at->ActionTrigger);
+}
+
+_supla_int_t srpc_ds_async_get_channel_config(void *_srpc, 
+    TDS_GetChannelConfigRequest *request) {
+  assert(SrpcInterface::instance);
+  return SrpcInterface::instance->getChannelConfig(request->ChannelNumber);
+}
          
 _supla_int_t  srpc_ds_async_channel_value_changed_c(
     void *_srpc, unsigned char channel_number, char *value,

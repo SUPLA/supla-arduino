@@ -28,11 +28,13 @@ namespace Supla {
 unsigned long Channel::lastCommunicationTimeMs = 0;
 TDS_SuplaRegisterDevice_E Channel::reg_dev;
 
-Channel::Channel() : valueChanged(false), channelNumber(-1), validityTimeSec(0) {
+Channel::Channel() : valueChanged(false), channelConfig(false),
+  channelNumber(-1), validityTimeSec(0) {
   if (reg_dev.channel_count < SUPLA_CHANNELMAXCOUNT) {
     channelNumber = reg_dev.channel_count;
 
-    memset(&reg_dev.channels[channelNumber], 0, sizeof(reg_dev.channels[channelNumber]));
+    memset(&reg_dev.channels[channelNumber], 0,
+        sizeof(reg_dev.channels[channelNumber]));
     reg_dev.channels[channelNumber].Number = channelNumber;
 
     reg_dev.channel_count++;
@@ -210,6 +212,22 @@ void Channel::setFuncList(_supla_int_t functions) {
   }
 }
 
+_supla_int_t Channel::getFuncList() {
+  if (channelNumber >= 0) {
+    return reg_dev.channels[channelNumber].FuncList;
+  }
+  return 0;
+}
+
+void Channel::setActionTriggerCaps(_supla_int_t caps) {
+  supla_log(LOG_DEBUG, "Channel[%d] setting func list: %d", channelNumber, caps);
+  setFuncList(caps);
+}
+
+_supla_int_t Channel::getActionTriggerCaps() {
+  return getFuncList();
+}
+
 int Channel::getChannelNumber() {
   return channelNumber;
 }
@@ -219,17 +237,27 @@ void Channel::clearUpdateReady() {
 };
 
 void Channel::sendUpdate(void *srpc) {
-  clearUpdateReady();
-  srpc_ds_async_channel_value_changed_c(
-      srpc, channelNumber, reg_dev.channels[channelNumber].value,
-      0, validityTimeSec);
+  if (valueChanged) {
+    clearUpdateReady();
+    srpc_ds_async_channel_value_changed_c(
+        srpc, channelNumber, reg_dev.channels[channelNumber].value,
+        0, validityTimeSec);
 
-  // returns null for non-extended channels
-  TSuplaChannelExtendedValue *extValue = getExtValue();
-  if (extValue) {
-    srpc_ds_async_channel_extendedvalue_changed(srpc, channelNumber, extValue);
+    // returns null for non-extended channels
+    TSuplaChannelExtendedValue *extValue = getExtValue();
+    if (extValue) {
+      srpc_ds_async_channel_extendedvalue_changed(srpc, channelNumber, extValue);
+    }
   }
 
+  // send channel config request if needed
+  if (channelConfig) {
+    channelConfig = false;
+    channelConfig = false;
+    TDS_GetChannelConfigRequest request = {};
+    request.ChannelNumber = getChannelNumber();
+    srpc_ds_async_get_channel_config(srpc, &request);
+  }
 }
 
 TSuplaChannelExtendedValue *Channel::getExtValue() {
@@ -241,11 +269,24 @@ void Channel::setUpdateReady() {
 };
 
 bool Channel::isUpdateReady() {
-  return valueChanged;
+  return valueChanged || channelConfig;
 };
 
 bool Channel::isExtended() {
   return false;
+}
+
+void Channel::setNewValue(const TRollerShutterValue &value) {
+  char newValue[SUPLA_CHANNELVALUE_SIZE] = {};
+  memcpy(newValue, &value, sizeof(TRollerShutterValue));
+
+  if (setNewValue(newValue)) {
+    runAction(ON_CHANGE);
+    runAction(ON_SECONDARY_CHANNEL_CHANGE);
+    supla_log(
+        LOG_DEBUG, "Channel(%d) value changed to %d", channelNumber, value.position);
+  }
+
 }
 
 void Channel::setNewValue(uint8_t red,
@@ -342,6 +383,10 @@ void Channel::setValidityTimeSec(unsigned _supla_int_t timeSec) {
 
 void Channel::setCorrection(double correction, bool forSecondaryValue) {
   Correction::add(getChannelNumber(), correction, forSecondaryValue);
+}
+
+void Channel::requestChannelConfig() {
+  channelConfig = true;
 }
 
 };  // namespace Supla

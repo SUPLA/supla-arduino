@@ -21,6 +21,8 @@
 #ifdef __LCK_DEBUG
 #include <stdio.h>
 #include <string.h>
+
+#include "log.h"
 #endif /*__LCK_DEBUG*/
 
 #if defined(__AVR__) || defined(ARDUINO_ARCH_ESP8266) || \
@@ -64,33 +66,45 @@ typedef struct {
 #ifdef __LCK_DEBUG
 void *ptrs[500];
 
-void lck_debug_init(void) { memset(ptrs, 0, sizeof(ptrs)); }
+void LCK_ICACHE_FLASH lck_debug_init(void) { memset(ptrs, 0, sizeof(ptrs)); }
 
-void lck_debug_dump(void) {
-  printf("LCK DEBUG DUMP\n");
+void LCK_ICACHE_FLASH lck_debug_dump(void) {
+  supla_log(LOG_INFO, "LCK DEBUG DUMP\n");
   int a;
   int n = sizeof(ptrs) / sizeof(void *);
   TLckData *l = 0;
 
   for (a = 0; a < n; a++) {
     if ((l = (TLckData *)ptrs[a]) != 0 && l->count != 0) {
-      printf("%p:%p %s:%i count=%i\n", (void *)l, (void *)l->thread,
-             l->fileName, l->lineNumber, l->count);
+      supla_log(LOG_INFO, "%p:%p %s:%i count=%i\n", (void *)l,
+                (void *)l->thread, l->fileName, l->lineNumber, l->count);
     }
   }
 
-  printf("<<-----\n");
+  supla_log(LOG_INFO, "<<-----\n");
 }
 
 #endif /*__LCK_DEBUG*/
 
-void *lck_init(void) {
+void *LCK_ICACHE_FLASH lck_init(void) {
 #ifdef __SINGLE_THREAD
   return NULL;
 #else
   TLckData *lck = malloc(sizeof(TLckData));
 
   if (lck != NULL) {
+#ifdef __LCK_DEBUG
+    memset(lck, 0, sizeof(TLckData));
+    int a;
+    int n = sizeof(ptrs) / sizeof(void *);
+    for (a = 0; a < n; a++) {
+      if (ptrs[a] == 0) {
+        ptrs[a] = lck;
+        break;
+      }
+    }
+#endif /*__LCK_DEBUG*/
+
 #ifdef _WIN32
     InitializeCriticalSectionEx(&lck->critSec, 4000,
                                 CRITICAL_SECTION_NO_DEBUG_INFO);
@@ -104,25 +118,13 @@ void *lck_init(void) {
 #endif /*_WIN32*/
   }
 
-#ifdef __LCK_DEBUG
-  memset(lck, 0, sizeof(TLckData));
-  int a;
-  int n = sizeof(ptrs) / sizeof(void *);
-  for (a = 0; a < n; a++) {
-    if (ptrs[a] == 0) {
-      ptrs[a] = lck;
-      break;
-    }
-  }
-#endif /*__LCK_DEBUG*/
-
   return lck;
 #endif /*__SINGLE_THREAD*/
 }
 
 #ifdef __LCK_DEBUG
 
-void __lck_lock(void *lck, const char *file, int line) {
+void LCK_ICACHE_FLASH __lck_lock(void *lck, const char *file, int line) {
   _lck_lock(lck);
 
   ((TLckData *)lck)->thread = pthread_self();
@@ -134,7 +136,7 @@ void __lck_lock(void *lck, const char *file, int line) {
   }
 }
 
-void _lck_lock(void *lck) {
+void LCK_ICACHE_FLASH _lck_lock(void *lck) {
 #else
 void lck_lock(void *lck) {
 #endif /*__LCK_DEBUG*/
@@ -150,7 +152,7 @@ void lck_lock(void *lck) {
 #endif /*__SINGLE_THREAD*/
 }
 
-void lck_unlock(void *lck) {
+void LCK_ICACHE_FLASH lck_unlock(void *lck) {
 #ifdef __LCK_DEBUG
   ((TLckData *)lck)->count--;
 #endif /*__LCK_DEBUG*/
@@ -166,14 +168,14 @@ void lck_unlock(void *lck) {
 #endif /*__SINGLE_THREAD*/
 }
 
-int lck_unlock_r(void *lck, int result) {
+int LCK_ICACHE_FLASH lck_unlock_r(void *lck, int result) {
 #ifndef __SINGLE_THREAD
   lck_unlock(lck);
 #endif /*__SINGLE_THREAD*/
   return result;
 }
 
-void lck_free(void *lck) {
+void LCK_ICACHE_FLASH lck_free(void *lck) {
 #ifdef __LCK_DEBUG
   int a;
   int n = sizeof(ptrs) / sizeof(void *);

@@ -14,37 +14,26 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _channel_element_h
-#define _channel_element_h
+#ifndef _at_channel_h
+#define _at_channel_h
 
-#include "element.h"
 #include "channel.h"
-#include "local_action.h"
-#include "action_handler.h"
-#include "condition.h"
 
 namespace Supla {
 
-class Condition;
-
-class ChannelElement : public Element, public LocalAction {
+class AtChannel : public Channel {
   public:
-  
-  Channel *getChannel();
-
-  // Override local action methods in order to delegate execution to Channel
-  void addAction(int action, ActionHandler &client, int event) override;
-  void addAction(int action, ActionHandler *client, int event) override;
-  bool isEventAlreadyUsed(int event) override;
-
-  virtual void addAction(int action, ActionHandler &client, Supla::Condition *condition);
-  virtual void addAction(int action, ActionHandler *client, Supla::Condition *condition);
+    void sendUpdate(void *srpc) override;
+    void pushAction(int action);
+    void activateAction(int action);
+    int popAction();
+    void setRelatedChannel(uint8_t channelNumber);
+    void setDisablesLocalOperation(uint32_t actions);
 
   protected:
-    Channel channel;
+    int actionToSend = 0;
 };
 
 };
 
-#endif
-
+#endif /*_at_channel_h*/

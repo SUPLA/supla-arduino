@@ -420,6 +420,12 @@ void SuplaDeviceClass::onRegisterResult(
         srpc_dcs_async_set_activity_timeout(srpc, &at);
       }
 
+      for (auto element = Supla::Element::begin(); element != nullptr;
+           element = element->next()) {
+        element->onRegistered();
+        delay(0);
+      }
+
       return;
 
       // NOK scenarios
