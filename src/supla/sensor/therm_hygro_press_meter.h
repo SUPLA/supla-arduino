@@ -26,6 +26,7 @@ namespace Sensor {
 class ThermHygroPressMeter : public ThermHygroMeter {
  public:
   ThermHygroPressMeter();
+  virtual ~ThermHygroPressMeter();
   virtual double getPressure();
   void iterateAlways();
   bool iterateConnected(void *srpc);
@@ -34,8 +35,8 @@ class ThermHygroPressMeter : public ThermHygroMeter {
 
   // Override local action methods in order to delegate execution to Channel and
   // Secondary Channel
-  void addAction(int action, ActionHandler &client, int event);
-  void addAction(int action, ActionHandler *client, int event);
+  void addAction(int action, ActionHandler &client, int event) override;
+  void addAction(int action, ActionHandler *client, int event) override;
 
  protected:
   Channel pressureChannel;

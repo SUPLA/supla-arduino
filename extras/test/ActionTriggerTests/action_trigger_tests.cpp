@@ -20,6 +20,10 @@
 #include <supla/control/button.h>
 #include <srpc_mock.h>
 #include <arduino_mock.h>
+#include <supla/channel.h>
+#include <supla/channel_element.h>
+
+using testing::ElementsAreArray;
 
 class ActionTriggerTests : public ::testing::Test {
   protected:
@@ -43,19 +47,142 @@ class TimeInterfaceStub : public TimeInterface {
     }
 };
 
-TEST_F(ActionTriggerTests, AttachToButton) {
+TEST_F(ActionTriggerTests, AttachToMonostableButton) {
+  SrpcMock srpc;
+  TimeInterfaceStub time;
   Supla::Control::Button b1(10);
   Supla::Control::ActionTrigger at;
 
   at.attach(b1);
+  at.iterateConnected(0);
+
+  EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_SHORT_PRESS_x1));
+  EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_HOLD));
+  EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_SHORT_PRESS_x5));
+
+  EXPECT_FALSE(b1.isBistable());
+  b1.runAction(Supla::ON_PRESS);
+  b1.runAction(Supla::ON_CLICK_1);
+  b1.runAction(Supla::ON_HOLD);
+  b1.runAction(Supla::ON_CLICK_6);
+  b1.runAction(Supla::ON_CLICK_5);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+
+  at.onInit();
+
+  TSD_ChannelConfig result = {};
+  result.ConfigType = 0;
+  result.ConfigSize = sizeof(TSD_ChannelConfig_ActionTrigger);
+  TSD_ChannelConfig_ActionTrigger config = {};
+  config.ActiveActions = SUPLA_ACTION_CAP_HOLD
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x1
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x2
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x3
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x4
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x5;
+
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+
+  at.handleChannelConfig(&result);
+  b1.runAction(Supla::ON_PRESS);
+  b1.runAction(Supla::ON_CLICK_1);
+  b1.runAction(Supla::ON_HOLD);
+  b1.runAction(Supla::ON_CLICK_6);
+  b1.runAction(Supla::ON_CLICK_5);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+
+
 }
 
+TEST_F(ActionTriggerTests, AttachToBistableButton) {
+  SrpcMock srpc;
+  TimeInterfaceStub time;
+  Supla::Control::Button b1(10);
+  // enabling bistable button
+  b1.setMulticlickTime(500, true);
+  Supla::Control::ActionTrigger at;
+  Supla::Channel ch1;
+
+  at.attach(b1);
+  at.iterateConnected(0);
+  at.setRelatedChannel(ch1);
+
+  EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_TURN_ON));
+  EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_TOGGLE_x1));
+  EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_TOGGLE_x5));
+
+  EXPECT_TRUE(b1.isBistable());
+  b1.runAction(Supla::ON_PRESS);
+  b1.runAction(Supla::ON_CLICK_1);
+  b1.runAction(Supla::ON_HOLD);
+  b1.runAction(Supla::ON_CLICK_6);
+  b1.runAction(Supla::ON_CLICK_5);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+
+  at.onInit();
+
+  TSD_ChannelConfig result = {};
+  result.ConfigType = 0;
+  result.ConfigSize = sizeof(TSD_ChannelConfig_ActionTrigger);
+  TSD_ChannelConfig_ActionTrigger config = {};
+  config.ActiveActions = SUPLA_ACTION_CAP_TURN_ON
+    | SUPLA_ACTION_CAP_TURN_OFF
+    | SUPLA_ACTION_CAP_TOGGLE_x1
+    | SUPLA_ACTION_CAP_TOGGLE_x2
+    | SUPLA_ACTION_CAP_TOGGLE_x3
+    | SUPLA_ACTION_CAP_TOGGLE_x4
+    | SUPLA_ACTION_CAP_TOGGLE_x5;
+
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+
+  at.handleChannelConfig(&result);
+  b1.runAction(Supla::ON_PRESS);
+  b1.runAction(Supla::ON_CLICK_1);
+  b1.runAction(Supla::ON_HOLD);
+  b1.runAction(Supla::ON_CLICK_6);
+  b1.runAction(Supla::ON_CLICK_5);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+
+  TActionTriggerProperties *propInRegister = 
+    reinterpret_cast<TActionTriggerProperties *>
+    (Supla::Channel::reg_dev.channels[at.getChannelNumber()].value);
+
+  EXPECT_EQ(propInRegister->relatedChannelNumber, 2);
+  EXPECT_EQ(propInRegister->disablesLocalOperation, 0);
+
+}
 
 TEST_F(ActionTriggerTests, SendActionOnce) {
   SrpcMock srpc;
   TimeInterfaceStub time;
   Supla::Control::ActionTrigger at;
   Supla::Control::ActionTrigger at2;
+
+  TSD_ChannelConfig result = {};
+  result.ConfigType = 0;
+  result.ConfigSize = sizeof(TSD_ChannelConfig_ActionTrigger);
+  TSD_ChannelConfig_ActionTrigger config = {};
+  config.ActiveActions = SUPLA_ACTION_CAP_TURN_ON;
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+
+  at.handleChannelConfig(&result);
+
+  config.ActiveActions = SUPLA_ACTION_CAP_SHORT_PRESS_x1;
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+
+  at2.handleChannelConfig(&result);
 
   at.iterateConnected(0);
 
@@ -80,11 +207,23 @@ TEST_F(ActionTriggerTests, SendFewActions) {
   TimeInterfaceStub time;
   Supla::Control::ActionTrigger at;
 
+  TSD_ChannelConfig result = {};
+  result.ConfigType = 0;
+  result.ConfigSize = sizeof(TSD_ChannelConfig_ActionTrigger);
+  TSD_ChannelConfig_ActionTrigger config = {};
+  config.ActiveActions = SUPLA_ACTION_CAP_TURN_ON;
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+
   at.iterateConnected(0);
+  at.handleChannelConfig(&result);
 
   EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_TURN_ON));
 
+  // activated action
   at.handleAction(0, Supla::SEND_AT_TURN_ON);
+
+  // not activated action - should be ignored
+  at.handleAction(0, Supla::SEND_AT_SHORT_PRESS_x2);
 
   at.iterateConnected(0);
   at.iterateConnected(0);
@@ -112,5 +251,31 @@ TEST_F(ActionTriggerTests, ActionsShouldAddCaps) {
       SUPLA_ACTION_CAP_SHORT_PRESS_x5);
 }
 
+TEST_F(ActionTriggerTests, RelatedChannel) {
+  SrpcMock srpc;
+  TimeInterfaceStub time;
+  Supla::Channel ch0;
+  Supla::ChannelElement che1;
+  Supla::Channel ch2;
+  Supla::Channel ch3;
+  Supla::ChannelElement che4;
+  Supla::Control::ActionTrigger at;
+
+  EXPECT_EQ((Supla::Channel::reg_dev.channels)[at.getChannelNumber()].value[0], 0);
+
+  at.setRelatedChannel(&che4);
+  EXPECT_EQ((Supla::Channel::reg_dev.channels)[at.getChannelNumber()].value[0], 5);
+
+  at.setRelatedChannel(&ch0);
+  EXPECT_EQ((Supla::Channel::reg_dev.channels)[at.getChannelNumber()].value[0], 1);
+
+  at.setRelatedChannel(ch3);
+  EXPECT_EQ((Supla::Channel::reg_dev.channels)[at.getChannelNumber()].value[0], 4);
+
+  at.setRelatedChannel(che1);
+  EXPECT_EQ(che1.getChannelNumber(), 1);
+  EXPECT_EQ((Supla::Channel::reg_dev.channels)[at.getChannelNumber()].value[0], 2);
+
+}
 
 

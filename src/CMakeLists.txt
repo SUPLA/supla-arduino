@@ -39,6 +39,9 @@ set(SRCS
   supla/network/network.cpp
   supla/clock/clock.cpp
 
+  supla/sensor/therm_hygro_press_meter.cpp
+  supla/sensor/therm_hygro_meter.cpp
+  supla/sensor/thermometer.cpp
 )
 
 add_library(supladevicelib SHARED ${SRCS})

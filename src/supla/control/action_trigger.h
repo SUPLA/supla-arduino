@@ -18,7 +18,7 @@
 #define _action_trigger_h
 
 #include <stdint.h>
-#include "simple_button.h"
+#include "button.h"
 #include "../element.h"
 #include "../action_handler.h"
 #include "../at_channel.h"
@@ -32,18 +32,32 @@ class ActionTrigger : public Element, public ActionHandler {
   ActionTrigger(); 
   virtual ~ActionTrigger();
 
-  void attach(Supla::Control::SimpleButton *);
-  void attach(Supla::Control::SimpleButton &);
+  // Use below methods to attach button instance to ActionTrigger.
+  // It will automatically register to all supported button actions
+  // during onInit() call on action trigger instance. 
+  void attach(Supla::Control::Button *);
+  void attach(Supla::Control::Button &);
 
+  // Makes AT channel related to other channel, so Supla Cloud will not
+  // list AT as a separate channel, but it will be extending i.e. Relay
+  // channel.
+  void setRelatedChannel(Element *);
+  void setRelatedChannel(Channel *);
+  void setRelatedChannel(Element &);
+  void setRelatedChannel(Channel &);
 
   void handleAction(int event, int action) override;
   void activateAction(int action) override;
   Supla::Channel *getChannel() override;
+  void onInit() override;
   void onRegistered() override;
+  void handleChannelConfig(TSD_ChannelConfig *result) override;
 
  protected:
-  Supla::Control::SimpleButton *attachedButton;
   Supla::AtChannel channel;
+  Supla::Control::Button *attachedButton = nullptr;
+  uint32_t activeActionsFromServer = 0;
+  uint32_t disablesLocalOperation = 0;
 
   int getActionTriggerCap(int action);
 };

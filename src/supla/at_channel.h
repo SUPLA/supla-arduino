@@ -27,6 +27,7 @@ class AtChannel : public Channel {
     void pushAction(int action);
     void activateAction(int action);
     int popAction();
+    void setRelatedChannel(uint8_t channelNumber);
 
   protected:
     int actionToSend = 0;

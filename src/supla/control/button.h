@@ -31,6 +31,7 @@ class Button : public SimpleButton {
   void setHoldTime(unsigned int timeMs);
   void repeatOnHoldEvery(unsigned int timeMs);
   void setMulticlickTime(unsigned int timeMs, bool bistableButton = false);
+  bool isBistable() const;
 
  protected:
   unsigned int holdTimeMs;

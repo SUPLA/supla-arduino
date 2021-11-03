@@ -17,22 +17,27 @@
 #include "action_trigger.h"
 
 Supla::Control::ActionTrigger::ActionTrigger() {
-    channel.setType(SUPLA_CHANNELTYPE_ACTIONTRIGGER);
-    channel.setDefault(SUPLA_CHANNELFNC_ACTIONTRIGGER);
+  channel.setType(SUPLA_CHANNELTYPE_ACTIONTRIGGER);
+  channel.setDefault(SUPLA_CHANNELFNC_ACTIONTRIGGER);
 }
 
 Supla::Control::ActionTrigger::~ActionTrigger() {}
 
-void Supla::Control::ActionTrigger::attach(Supla::Control::SimpleButton *button) {
+void Supla::Control::ActionTrigger::attach(Supla::Control::Button *button) {
   attachedButton = button;
 }
 
-void Supla::Control::ActionTrigger::attach(Supla::Control::SimpleButton &button) {
+void Supla::Control::ActionTrigger::attach(Supla::Control::Button &button) {
   attach(&button);
 }
 
 void Supla::Control::ActionTrigger::handleAction(int event, int action) {
-  channel.pushAction(getActionTriggerCap(action));
+  (void)(event);
+  uint32_t actionCap = getActionTriggerCap(action);
+
+  if (actionCap & activeActionsFromServer) {
+    channel.pushAction(actionCap);
+  }
 }
 
 Supla::Channel *Supla::Control::ActionTrigger::getChannel() {
@@ -94,4 +99,70 @@ void Supla::Control::ActionTrigger::onRegistered() {
 
   channel.requestChannelConfig();
 
+}
+
+void Supla::Control::ActionTrigger::handleChannelConfig(
+    TSD_ChannelConfig *result) {
+  if (result->ConfigType == 0 &&
+      result->ConfigSize == sizeof(TSD_ChannelConfig_ActionTrigger)) {
+    TSD_ChannelConfig_ActionTrigger *config =
+      reinterpret_cast<TSD_ChannelConfig_ActionTrigger *>(result->Config);
+    activeActionsFromServer = config->ActiveActions;
+    Serial.print(F("AT["));
+    Serial.print(channel.getChannelNumber());
+    Serial.print(F("] received config with active actions: "));
+    Serial.println(activeActionsFromServer);
+  } else {
+    Serial.println(F("Invalid format of channel config received for AT"));
+  }
+}
+
+void Supla::Control::ActionTrigger::setRelatedChannel(Element *element) {
+  if (element && element->getChannel()) {
+    setRelatedChannel(element->getChannel());
+  }
+}
+
+void Supla::Control::ActionTrigger::setRelatedChannel(Element &element) {
+  setRelatedChannel(&element);
+}
+
+void Supla::Control::ActionTrigger::setRelatedChannel(Channel *relatedChannel) {
+  if (relatedChannel) {
+    channel.setRelatedChannel(relatedChannel->getChannelNumber());
+  }
+}
+
+void Supla::Control::ActionTrigger::setRelatedChannel(Channel &relatedChannel) {
+  setRelatedChannel(&relatedChannel);
+}
+
+void Supla::Control::ActionTrigger::onInit() {
+  if (attachedButton && attachedButton->isBistable()) {
+    attachedButton->addAction(Supla::SEND_AT_TURN_ON, this, Supla::ON_PRESS);
+    attachedButton->addAction(Supla::SEND_AT_TURN_OFF, this, Supla::ON_RELEASE);
+    attachedButton->addAction(
+        Supla::SEND_AT_TOGGLE_x1, this, Supla::ON_CLICK_1);
+    attachedButton->addAction(
+        Supla::SEND_AT_TOGGLE_x2, this, Supla::ON_CLICK_2);
+    attachedButton->addAction(
+        Supla::SEND_AT_TOGGLE_x3, this, Supla::ON_CLICK_3);
+    attachedButton->addAction(
+        Supla::SEND_AT_TOGGLE_x4, this, Supla::ON_CLICK_4);
+    attachedButton->addAction(
+        Supla::SEND_AT_TOGGLE_x5, this, Supla::ON_CLICK_5);
+  }
+  if (attachedButton && !attachedButton->isBistable()) {
+    attachedButton->addAction(Supla::SEND_AT_HOLD, this, Supla::ON_HOLD);
+    attachedButton->addAction(
+        Supla::SEND_AT_SHORT_PRESS_x1, this, Supla::ON_CLICK_1);
+    attachedButton->addAction(
+        Supla::SEND_AT_SHORT_PRESS_x2, this, Supla::ON_CLICK_2);
+    attachedButton->addAction(
+        Supla::SEND_AT_SHORT_PRESS_x3, this, Supla::ON_CLICK_3);
+    attachedButton->addAction(
+        Supla::SEND_AT_SHORT_PRESS_x4, this, Supla::ON_CLICK_4);
+    attachedButton->addAction(
+        Supla::SEND_AT_SHORT_PRESS_x5, this, Supla::ON_CLICK_5);
+  }
 }

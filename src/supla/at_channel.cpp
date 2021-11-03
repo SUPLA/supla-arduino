@@ -52,4 +52,13 @@ namespace Supla {
     setActionTriggerCaps(getActionTriggerCaps() | action);
   }
 
+  void AtChannel::setRelatedChannel(uint8_t relatedChannel) {
+    if (channelNumber >= 0) {
+      TActionTriggerProperties *prop = 
+        reinterpret_cast<TActionTriggerProperties *>
+        (reg_dev.channels[channelNumber].value);
+      prop->relatedChannelNumber = relatedChannel + 1;
+    }
+  }
+
 };
