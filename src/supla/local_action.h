@@ -23,6 +23,7 @@
 namespace Supla {
 
 class ActionHandlerClient;
+class Condition;
 
 class LocalAction {
  public:

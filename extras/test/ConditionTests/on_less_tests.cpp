@@ -21,6 +21,7 @@
 #include <supla/channel_element.h>
 #include <supla/events.h>
 #include <supla/actions.h>
+#include <supla/sensor/electricity_meter.h>
 
 
 class ActionHandlerMock : public Supla::ActionHandler {
@@ -363,4 +364,29 @@ TEST(OnLessTests, OnLessConditionTests) {
 
 }
 
+TEST(ConditionTests, handleActionTestsWithCustomGetter) {
+  ActionHandlerMock ahMock;
+  const int action1 = 15;
+  const int action2 = 16;
+  const int action3 = 17;
 
+  EXPECT_CALL(ahMock, handleAction(Supla::ON_CHANGE, action1));
+  EXPECT_CALL(ahMock, handleAction(Supla::ON_CHANGE, action3));
+
+  Supla::Sensor::ElectricityMeter em;
+
+  em.addAction(action1, ahMock, OnLess(220.0, EmVoltage(0)));
+  em.addAction(action2, ahMock, OnLess(220.0, EmVoltage(1)));
+  em.addAction(action3, ahMock, OnLess(120.0, EmVoltage(0)));
+
+  em.setVoltage(0, 230.0 * 100);
+  em.setVoltage(1, 233.0 * 100);
+  em.updateChannelValues();
+
+  em.setVoltage(0, 210.0 * 100);
+  em.updateChannelValues();
+
+  em.setVoltage(0, 110.0 * 100);
+  em.updateChannelValues();
+
+}

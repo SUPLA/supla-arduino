@@ -26,7 +26,7 @@ class ChannelExtended : public Channel {
   TSuplaChannelExtendedValue *getExtValue();
 
  protected:
-  TSuplaChannelExtendedValue extValue;
+  TSuplaChannelExtendedValue extValue = {};
 };
 
 };  // namespace Supla
