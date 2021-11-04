@@ -104,7 +104,7 @@ void SolarEdge::iterateAlways() {
             }
           } else {
             int commaCount = 0;
-            for (int i = 0; i < strlen(buf); i++) {
+            for (unsigned int i = 0; i < strlen(buf); i++) {
               if (buf[i] == ',') commaCount++;
             }
             // proper line of data should contain at least 34 commas
@@ -327,14 +327,29 @@ bool SolarEdge::iterateConnected(void *srpc) {
           time_t timestamp = time(0); // get current time
           timestamp -= 10*60; // go back in time 10 minutes
 
-          char startTime[30];
-          char endTime[30];
+#define SOLAR_TMP_BUFFER_SIZE 100
+
+          char startTime[SOLAR_TMP_BUFFER_SIZE];
+          char endTime[SOLAR_TMP_BUFFER_SIZE];
 
           struct tm timeinfo;
           gmtime_r(&timestamp, &timeinfo);
 
-          sprintf(startTime, "%d-%d-%d%%20%d:%d:%d", timeinfo.tm_year + 1900, timeinfo.tm_mon + 1, timeinfo.tm_mday, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
-          sprintf(endTime, "%d-%d-%d%%2023:59:59", timeinfo.tm_year + 1900, timeinfo.tm_mon + 1, timeinfo.tm_mday);
+          snprintf(startTime,
+              SOLAR_TMP_BUFFER_SIZE,
+              "%d-%d-%d%%20%d:%d:%d",
+              timeinfo.tm_year + 1900,
+              timeinfo.tm_mon + 1,
+              timeinfo.tm_mday,
+              timeinfo.tm_hour,
+              timeinfo.tm_min,
+              timeinfo.tm_sec);
+          snprintf(endTime,
+              SOLAR_TMP_BUFFER_SIZE,
+              "%d-%d-%d%%2023:59:59",
+              timeinfo.tm_year + 1900,
+              timeinfo.tm_mon + 1,
+              timeinfo.tm_mday);
 
           strcat(buf, startTime);
           strcat(buf, "&endTime=");

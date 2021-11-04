@@ -135,7 +135,7 @@ void LocalAction::disableOtherClients(ActionHandler *client, int event) {
 void LocalAction::enableOtherClients(ActionHandler *client, int event) {
   auto ptr = ActionHandlerClient::begin;
   while (ptr) {
-    if (ptr->trigger == this && ptr->onEvent == event) {
+    if (ptr->trigger == this && ptr->onEvent == event && ptr->client != client) {
       ptr->enabled = true;
     }
     ptr = ptr->next;
