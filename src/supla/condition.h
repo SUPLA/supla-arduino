@@ -23,15 +23,15 @@
 
 namespace Supla {
 
-class ChannelElement;
+class Element;
  
 class Condition : public ActionHandler {
  public:
   Condition(double threshold, bool useAlternativeMeasurement);
   virtual ~Condition();
-  void setSource(ChannelElement *src);
+  void setSource(Element *src);
   void setClient(ActionHandler *clientPtr);
-  void setSource(ChannelElement &src);
+  void setSource(Element &src);
   void setClient(ActionHandler &clientPtr);
 
   void handleAction(int event, int action);
@@ -44,7 +44,7 @@ class Condition : public ActionHandler {
   double threshold;
   bool useAlternativeMeasurement;
   bool alreadyFired;
-  Supla::ChannelElement *source;
+  Supla::Element *source;
   Supla::ActionHandler *client;
 
 };

@@ -29,6 +29,10 @@ Supla::Condition::~Condition() {
 void Supla::Condition::handleAction(int event, int action) {
   if (event == Supla::ON_CHANGE ||
       event == Supla::ON_SECONDARY_CHANNEL_CHANGE) {
+    if (!source->getChannel()) {
+      return;
+    }
+
     int channelType = source->getChannel()->getChannelType();
     
     // Read channel value
@@ -51,6 +55,8 @@ void Supla::Condition::handleAction(int event, int action) {
                     ? source->getChannel()->getValueDoubleSecond()
                     : source->getChannel()->getValueDoubleFirst();
         break;
+      /* case SUPLA_CHANNELTYPE_ELECTRICITY_METER: */
+
       default:
         return;
     }
@@ -97,7 +103,7 @@ bool Supla::Condition::checkConditionFor(double val, bool isValid) {
   return false;
 }
 
-void Supla::Condition::setSource(Supla::ChannelElement *src) {
+void Supla::Condition::setSource(Supla::Element *src) {
   source = src;
 }
 
@@ -105,7 +111,7 @@ void Supla::Condition::setClient(Supla::ActionHandler *clientPtr) {
   client = clientPtr;
 }
 
-void Supla::Condition::setSource(Supla::ChannelElement &src) {
+void Supla::Condition::setSource(Supla::Element &src) {
   setSource(&src);
 }
 

@@ -82,9 +82,9 @@ class ElectricityMeter : public Element {
   // methods:
   // readValuesFromDevice();
   // updateChannelValues();
-  void onInit();
+  void onInit() override;
 
-  void iterateAlways();
+  void iterateAlways() override;
 
   // Implement this method to reset stored energy value (i.e. to set energy
   // counter back to 0 kWh
@@ -92,7 +92,7 @@ class ElectricityMeter : public Element {
 
   void setResreshRate(unsigned int sec);
 
-  Channel *getChannel();
+  Channel *getChannel() override;
 
  protected:
   TElectricityMeter_ExtendedValue_V2 emValue;
