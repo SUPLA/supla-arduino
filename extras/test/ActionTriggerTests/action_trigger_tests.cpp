@@ -73,7 +73,7 @@ TEST_F(ActionTriggerTests, AttachToMonostableButton) {
   EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_HOLD));
   EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_SHORT_PRESS_x5));
 
-  EXPECT_CALL(ah, handleAction(_, 0)).Times(3);
+  EXPECT_CALL(ah, handleAction(_, 0)).Times(4);
 
   EXPECT_FALSE(b1.isBistable());
   b1.runAction(Supla::ON_PRESS);
@@ -124,6 +124,15 @@ TEST_F(ActionTriggerTests, AttachToMonostableButton) {
       | SUPLA_ACTION_CAP_SHORT_PRESS_x5
       );
 
+  // another config from server which disables some actions
+  config.ActiveActions = SUPLA_ACTION_CAP_HOLD
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x2
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x5;
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+  at.handleChannelConfig(&result);
+
+  // it should be executed on ah mock
+  b1.runAction(Supla::ON_CLICK_1);
 }
 
 TEST_F(ActionTriggerTests, AttachToBistableButton) {

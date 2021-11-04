@@ -150,12 +150,15 @@ void Supla::Control::ActionTrigger::handleChannelConfig(
     Serial.print(F("] received config with active actions: "));
     Serial.println(activeActionsFromServer);
     uint32_t actionsToDisable = activeActionsFromServer & disablesLocalOperation;
-    if (actionsToDisable && attachedButton) {
+    if (attachedButton) {
       for (int i = 0; i < 32; i++) {
         uint32_t actionCap = (1 << i);
         if (actionsToDisable & actionCap) {
           int eventToDisable = actionTriggerCapToButtonEvent(actionCap);
           attachedButton->disableOtherClients(this, eventToDisable);
+        } else if (disablesLocalOperation & actionCap) {
+          int eventToEnable = actionTriggerCapToButtonEvent(actionCap);
+          attachedButton->enableOtherClients(this, eventToEnable);
         }
       }
     }
