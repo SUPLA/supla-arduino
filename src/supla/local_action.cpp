@@ -14,7 +14,7 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "supla/local_action.h"
+#include "local_action.h"
 
 namespace Supla {
 
@@ -135,7 +135,7 @@ void LocalAction::disableOtherClients(ActionHandler *client, int event) {
 void LocalAction::enableOtherClients(ActionHandler *client, int event) {
   auto ptr = ActionHandlerClient::begin;
   while (ptr) {
-    if (ptr->trigger == this && ptr->onEvent == event) {
+    if (ptr->trigger == this && ptr->onEvent == event && ptr->client != client) {
       ptr->enabled = true;
     }
     ptr = ptr->next;

@@ -28,6 +28,7 @@ set(SRCS
   supla/control/virtual_relay.cpp
 
   supla/condition.cpp
+  supla/condition_getter.cpp
   supla/conditions/on_less.cpp
   supla/conditions/on_less_eq.cpp
   supla/conditions/on_greater.cpp
@@ -44,6 +45,7 @@ set(SRCS
   supla/sensor/therm_hygro_press_meter.cpp
   supla/sensor/therm_hygro_meter.cpp
   supla/sensor/thermometer.cpp
+  supla/sensor/electricity_meter.cpp
 )
 
 add_library(supladevicelib SHARED ${SRCS})

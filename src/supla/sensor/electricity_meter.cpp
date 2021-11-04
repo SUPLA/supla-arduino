@@ -17,6 +17,8 @@
 #include <string.h>
 
 #include "electricity_meter.h"
+#include "../events.h"
+#include "../condition.h"
 
 Supla::Sensor::ElectricityMeter::ElectricityMeter()
     : valueChanged(false), lastReadTime(0), refreshRateSec(5) {
@@ -56,10 +58,10 @@ void Supla::Sensor::ElectricityMeter::updateChannelValues() {
     }
 
     if (over65A) {
-      emValue.measured_values ^= (!EM_VAR_CURRENT);
+      emValue.measured_values &= (!EM_VAR_CURRENT);
       emValue.measured_values |= EM_VAR_CURRENT_OVER_65A;
     } else {
-      emValue.measured_values ^= (!EM_VAR_CURRENT_OVER_65A);
+      emValue.measured_values &= (!EM_VAR_CURRENT_OVER_65A);
       emValue.measured_values |= EM_VAR_CURRENT;
     }
   }
@@ -67,6 +69,7 @@ void Supla::Sensor::ElectricityMeter::updateChannelValues() {
   // Prepare extended channel value
   srpc_evtool_v2_emextended2extended(&emValue, extChannel.getExtValue());
   extChannel.setNewValue(emValue);
+  runAction(Supla::ON_CHANGE);
 }
 
 // energy in 0.00001 kWh
@@ -250,11 +253,22 @@ Supla::Channel *Supla::Sensor::ElectricityMeter::getChannel() {
   return &extChannel;
 }
 
-void Supla::Sensor::ElectricityMeter::setResreshRate(unsigned int sec) {
+void Supla::Sensor::ElectricityMeter::setRefreshRate(unsigned int sec) {
   refreshRateSec = sec;
   if (refreshRateSec == 0) {
     refreshRateSec = 1;
   }
 }
 
+// TODO: move those addAction methods to separate parent 
+// class i.e. ExtChannelElement - similar to ChannelElement
+void Supla::Sensor::ElectricityMeter::addAction(int action, ActionHandler &client, Supla::Condition *condition) {
+  condition->setClient(client);
+  condition->setSource(this);
+  LocalAction::addAction(action, condition, Supla::ON_CHANGE);
+}
+
+void Supla::Sensor::ElectricityMeter::addAction(int action, ActionHandler *client, Supla::Condition *condition) {
+  addAction(action, *client, condition);
+}
 

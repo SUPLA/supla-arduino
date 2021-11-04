@@ -18,20 +18,21 @@
 #define _condition_h
 
 #include "action_handler.h"
-#include "channel_element.h"
-
+#include "condition_getter.h"
 
 namespace Supla {
 
-class ChannelElement;
+class Element;
  
 class Condition : public ActionHandler {
  public:
   Condition(double threshold, bool useAlternativeMeasurement);
+  Condition(double threshold, ConditionGetter *getter);
+
   virtual ~Condition();
-  void setSource(ChannelElement *src);
+  void setSource(Element *src);
   void setClient(ActionHandler *clientPtr);
-  void setSource(ChannelElement &src);
+  void setSource(Element &src);
   void setClient(ActionHandler &clientPtr);
 
   void handleAction(int event, int action);
@@ -41,11 +42,12 @@ class Condition : public ActionHandler {
  protected:
   virtual bool condition(double val, bool isValid = true) = 0;
 
-  double threshold;
-  bool useAlternativeMeasurement;
-  bool alreadyFired;
-  Supla::ChannelElement *source;
-  Supla::ActionHandler *client;
+  double threshold = 0;
+  bool useAlternativeMeasurement = false;
+  bool alreadyFired = false;
+  Supla::Element *source = nullptr;
+  Supla::ActionHandler *client = nullptr;
+  Supla::ConditionGetter *getter = nullptr;
 
 };
 
@@ -59,5 +61,14 @@ Supla::Condition *OnBetween(double threshold1, double threshold2, bool useAltern
 Supla::Condition *OnBetweenEq(double threshold1, double threshold2, bool useAlternativeMeasurement = false);
 Supla::Condition *OnEqual(double threshold, bool useAlternativeMeasurement = false);
 Supla::Condition *OnInvalid(bool useAlternativeMeasurement = false);
+
+Supla::Condition *OnLess(double threshold, Supla::ConditionGetter *);
+Supla::Condition *OnLessEq(double threshold, Supla::ConditionGetter *);
+Supla::Condition *OnGreater(double threshold, Supla::ConditionGetter *);
+Supla::Condition *OnGreaterEq(double threshold, Supla::ConditionGetter *);
+Supla::Condition *OnBetween(double threshold1, double threshold2, Supla::ConditionGetter *);
+Supla::Condition *OnBetweenEq(double threshold1, double threshold2, Supla::ConditionGetter *);
+Supla::Condition *OnEqual(double threshold, Supla::ConditionGetter *);
+Supla::Condition *OnInvalid(Supla::ConditionGetter *);
 
 #endif

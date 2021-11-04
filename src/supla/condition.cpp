@@ -16,11 +16,17 @@
 
 #include "condition.h"
 #include "events.h"
+#include "element.h"
 
 Supla::Condition::Condition(double threshold, bool useAlternativeMeasurement)
-    : threshold(threshold),
-      useAlternativeMeasurement(useAlternativeMeasurement),
-      alreadyFired(false) {
+  : threshold(threshold),
+  useAlternativeMeasurement(useAlternativeMeasurement)
+{
+}
+
+Supla::Condition::Condition(double threshold, Supla::ConditionGetter *getter)
+  : threshold(threshold), getter(getter)
+{
 }
 
 Supla::Condition::~Condition() {
@@ -29,49 +35,60 @@ Supla::Condition::~Condition() {
 void Supla::Condition::handleAction(int event, int action) {
   if (event == Supla::ON_CHANGE ||
       event == Supla::ON_SECONDARY_CHANNEL_CHANGE) {
+    if (!source->getChannel()) {
+      return;
+    }
+
     int channelType = source->getChannel()->getChannelType();
     
     // Read channel value
     double value = 0;
-    switch (channelType) {
-      case SUPLA_CHANNELTYPE_DISTANCESENSOR:
-      case SUPLA_CHANNELTYPE_THERMOMETER:
-      case SUPLA_CHANNELTYPE_WINDSENSOR:
-      case SUPLA_CHANNELTYPE_PRESSURESENSOR:
-      case SUPLA_CHANNELTYPE_RAINSENSOR:
-      case SUPLA_CHANNELTYPE_WEIGHTSENSOR:
-        value = source->getChannel()->getValueDouble();
-        break;
-      case SUPLA_CHANNELTYPE_IMPULSE_COUNTER:
-        value = source->getChannel()->getValueInt64();
-        break;
-      case SUPLA_CHANNELTYPE_HUMIDITYANDTEMPSENSOR:
-      case SUPLA_CHANNELTYPE_HUMIDITYSENSOR:
-        value = useAlternativeMeasurement
-                    ? source->getChannel()->getValueDoubleSecond()
-                    : source->getChannel()->getValueDoubleFirst();
-        break;
-      default:
-        return;
-    }
-
-    // Check channel value validity
     bool isValid = true;
-    switch (channelType) {
-      case SUPLA_CHANNELTYPE_DISTANCESENSOR:
-      case SUPLA_CHANNELTYPE_WINDSENSOR:
-      case SUPLA_CHANNELTYPE_PRESSURESENSOR:
-      case SUPLA_CHANNELTYPE_RAINSENSOR:
-      case SUPLA_CHANNELTYPE_WEIGHTSENSOR:
-        isValid = value >= 0;
-        break;
-      case SUPLA_CHANNELTYPE_THERMOMETER:
-        isValid = value >= -273;
-        break;
-      case SUPLA_CHANNELTYPE_HUMIDITYANDTEMPSENSOR:
-      case SUPLA_CHANNELTYPE_HUMIDITYSENSOR:
-        isValid = useAlternativeMeasurement ? value >= 0 : value >= -273;
-        break;
+
+    if (getter) {
+      value = getter->getValue(source, isValid);
+    } else {
+      switch (channelType) {
+        case SUPLA_CHANNELTYPE_DISTANCESENSOR:
+        case SUPLA_CHANNELTYPE_THERMOMETER:
+        case SUPLA_CHANNELTYPE_WINDSENSOR:
+        case SUPLA_CHANNELTYPE_PRESSURESENSOR:
+        case SUPLA_CHANNELTYPE_RAINSENSOR:
+        case SUPLA_CHANNELTYPE_WEIGHTSENSOR:
+          value = source->getChannel()->getValueDouble();
+          break;
+        case SUPLA_CHANNELTYPE_IMPULSE_COUNTER:
+          value = source->getChannel()->getValueInt64();
+          break;
+        case SUPLA_CHANNELTYPE_HUMIDITYANDTEMPSENSOR:
+        case SUPLA_CHANNELTYPE_HUMIDITYSENSOR:
+          value = useAlternativeMeasurement
+            ? source->getChannel()->getValueDoubleSecond()
+            : source->getChannel()->getValueDoubleFirst();
+          break;
+          /* case SUPLA_CHANNELTYPE_ELECTRICITY_METER: */
+
+        default:
+          return;
+      }
+
+      // Check channel value validity
+      switch (channelType) {
+        case SUPLA_CHANNELTYPE_DISTANCESENSOR:
+        case SUPLA_CHANNELTYPE_WINDSENSOR:
+        case SUPLA_CHANNELTYPE_PRESSURESENSOR:
+        case SUPLA_CHANNELTYPE_RAINSENSOR:
+        case SUPLA_CHANNELTYPE_WEIGHTSENSOR:
+          isValid = value >= 0;
+          break;
+        case SUPLA_CHANNELTYPE_THERMOMETER:
+          isValid = value >= -273;
+          break;
+        case SUPLA_CHANNELTYPE_HUMIDITYANDTEMPSENSOR:
+        case SUPLA_CHANNELTYPE_HUMIDITYSENSOR:
+          isValid = useAlternativeMeasurement ? value >= 0 : value >= -273;
+          break;
+      }
     }
     if (checkConditionFor(value, isValid)) {
       client->handleAction(event, action);
@@ -97,7 +114,7 @@ bool Supla::Condition::checkConditionFor(double val, bool isValid) {
   return false;
 }
 
-void Supla::Condition::setSource(Supla::ChannelElement *src) {
+void Supla::Condition::setSource(Supla::Element *src) {
   source = src;
 }
 
@@ -105,7 +122,7 @@ void Supla::Condition::setClient(Supla::ActionHandler *clientPtr) {
   client = clientPtr;
 }
 
-void Supla::Condition::setSource(Supla::ChannelElement &src) {
+void Supla::Condition::setSource(Supla::Element &src) {
   setSource(&src);
 }
 

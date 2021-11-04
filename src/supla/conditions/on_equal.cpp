@@ -18,9 +18,7 @@
 
 class OnEqualCond : public Supla::Condition {
  public:
-  OnEqualCond(double threshold, bool useAlternativeMeasurement)
-      : Supla::Condition(threshold, useAlternativeMeasurement) {
-  }
+  using Supla::Condition::Condition;
 
   bool condition(double val, bool isValid) {
     if (isValid) {
@@ -35,5 +33,7 @@ Supla::Condition *OnEqual(double threshold, bool useAlternativeMeasurement) {
   return new OnEqualCond(threshold, useAlternativeMeasurement);
 }
 
-
+Supla::Condition *OnEqual(double threshold, Supla::ConditionGetter *getter) {
+  return new OnEqualCond(threshold, getter);
+}
 

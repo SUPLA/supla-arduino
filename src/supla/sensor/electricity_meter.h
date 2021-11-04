@@ -21,13 +21,14 @@
 
 #include "../channel_extended.h"
 #include "../element.h"
+#include "../local_action.h"
 #include <supla-common/srpc.h>
 
 #define MAX_PHASES 3
 
 namespace Supla {
 namespace Sensor {
-class ElectricityMeter : public Element {
+class ElectricityMeter : public Element, public LocalAction {
  public:
   ElectricityMeter();
 
@@ -82,17 +83,20 @@ class ElectricityMeter : public Element {
   // methods:
   // readValuesFromDevice();
   // updateChannelValues();
-  void onInit();
+  void onInit() override;
 
-  void iterateAlways();
+  void iterateAlways() override;
 
   // Implement this method to reset stored energy value (i.e. to set energy
   // counter back to 0 kWh
   virtual void resetStorage();
 
-  void setResreshRate(unsigned int sec);
+  void setRefreshRate(unsigned int sec);
 
-  Channel *getChannel();
+  Channel *getChannel() override;
+
+  virtual void addAction(int action, ActionHandler &client, Supla::Condition *condition);
+  virtual void addAction(int action, ActionHandler *client, Supla::Condition *condition);
 
  protected:
   TElectricityMeter_ExtendedValue_V2 emValue;
