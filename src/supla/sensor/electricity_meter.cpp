@@ -58,10 +58,10 @@ void Supla::Sensor::ElectricityMeter::updateChannelValues() {
     }
 
     if (over65A) {
-      emValue.measured_values &= (!EM_VAR_CURRENT);
+      emValue.measured_values &= (~EM_VAR_CURRENT);
       emValue.measured_values |= EM_VAR_CURRENT_OVER_65A;
     } else {
-      emValue.measured_values &= (!EM_VAR_CURRENT_OVER_65A);
+      emValue.measured_values &= (~EM_VAR_CURRENT_OVER_65A);
       emValue.measured_values |= EM_VAR_CURRENT;
     }
   }
