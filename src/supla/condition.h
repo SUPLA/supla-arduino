@@ -35,8 +35,10 @@ class Condition : public ActionHandler {
   void setSource(Element &src);
   void setClient(ActionHandler &clientPtr);
 
-  void handleAction(int event, int action);
-  bool deleteClient();
+  void activateAction(int action) override;
+  void handleAction(int event, int action) override;
+  bool deleteClient() override;
+
   virtual bool checkConditionFor(double val, bool isValid = true);
 
  protected:

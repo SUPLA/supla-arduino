@@ -128,8 +128,8 @@ int Supla::Control::ActionTrigger::actionTriggerCapToButtonEvent(
   }
   return 0;
 }
-  
-  
+
+
 void Supla::Control::ActionTrigger::onRegistered() {
   // cleanup actions to be send
   while (channel.popAction());
@@ -149,8 +149,28 @@ void Supla::Control::ActionTrigger::handleChannelConfig(
     Serial.print(channel.getChannelNumber());
     Serial.print(F("] received config with active actions: "));
     Serial.println(activeActionsFromServer);
-    uint32_t actionsToDisable = activeActionsFromServer & disablesLocalOperation;
+    uint32_t actionsToDisable =
+      activeActionsFromServer & disablesLocalOperation;
     if (attachedButton) {
+      bool makeSureThatOnClick1IsDisabled = false;
+
+      if (activeActionsFromServer) {
+        // disable on_press, on_release, on_change local actions and enable
+        // on_click_1
+        if (localHandlerForDisabledAt && localHandlerForEnabledAt) {
+          localHandlerForDisabledAt->enabled = false;
+          localHandlerForEnabledAt->enabled = true;
+        }
+      } else {
+        // enable on_press, on_release, on_change local actions and
+        // disable on_click_1
+        if (localHandlerForDisabledAt && localHandlerForEnabledAt) {
+          localHandlerForDisabledAt->enabled = true;
+          localHandlerForEnabledAt->enabled = false;
+          makeSureThatOnClick1IsDisabled = true;
+        }
+      }
+
       for (int i = 0; i < 32; i++) {
         uint32_t actionCap = (1 << i);
         if (actionsToDisable & actionCap) {
@@ -159,6 +179,11 @@ void Supla::Control::ActionTrigger::handleChannelConfig(
         } else if (disablesLocalOperation & actionCap) {
           int eventToEnable = actionTriggerCapToButtonEvent(actionCap);
           attachedButton->enableOtherClients(this, eventToEnable);
+          if (makeSureThatOnClick1IsDisabled &&
+              eventToEnable == Supla::ON_CLICK_1) {
+            makeSureThatOnClick1IsDisabled = false;
+            localHandlerForEnabledAt->enabled = false;
+          }
         }
       }
     }
@@ -188,6 +213,36 @@ void Supla::Control::ActionTrigger::setRelatedChannel(Channel &relatedChannel) {
 }
 
 void Supla::Control::ActionTrigger::onInit() {
+  // handle automatic switch from on_press, on_release, on_change
+  // events to on_click_1 for local actions on relays, roller shutters, etc.
+  if (attachedButton &&
+      !attachedButton->isEventAlreadyUsed(Supla::ON_CLICK_1)) {
+    if (attachedButton->isBistable() &&
+        attachedButton->isEventAlreadyUsed(Supla::ON_CHANGE)) {
+        // for bistable button use on_change <-> on_click_1
+        localHandlerForDisabledAt = attachedButton->getHandlerForFirstClient(
+            Supla::ON_CHANGE);
+    }
+    if (!attachedButton->isBistable()) {
+      // for monostable button use on_press/on_release <-> on_click_1
+      bool onPress   = attachedButton->isEventAlreadyUsed(Supla::ON_PRESS);
+      bool onRelease = attachedButton->isEventAlreadyUsed(Supla::ON_RELEASE);
+      if (onPress != onRelease) {
+        localHandlerForDisabledAt = attachedButton->getHandlerForFirstClient(
+            onPress ? Supla::ON_PRESS : Supla::ON_RELEASE);
+      }
+    }
+
+    if (localHandlerForDisabledAt) {
+        attachedButton->addAction(localHandlerForDisabledAt->action,
+            localHandlerForDisabledAt->client, Supla::ON_CLICK_1);
+        localHandlerForEnabledAt =
+          attachedButton->getHandlerForFirstClient(Supla::ON_CLICK_1);
+        localHandlerForEnabledAt->enabled = false;
+    }
+  }
+
+  // Configure default actions for bistable button
   if (attachedButton && attachedButton->isBistable()) {
     if (attachedButton->isEventAlreadyUsed(Supla::ON_PRESS)) {
       disablesLocalOperation |= SUPLA_ACTION_CAP_TURN_ON;
@@ -224,6 +279,8 @@ void Supla::Control::ActionTrigger::onInit() {
     attachedButton->addAction(
         Supla::SEND_AT_TOGGLE_x5, this, Supla::ON_CLICK_5);
   }
+
+  // Configure default actions for monostable button
   if (attachedButton && !attachedButton->isBistable()) {
     if (attachedButton->isEventAlreadyUsed(Supla::ON_HOLD)) {
       disablesLocalOperation |= SUPLA_ACTION_CAP_HOLD;

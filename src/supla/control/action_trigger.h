@@ -62,6 +62,8 @@ class ActionTrigger : public Element, public ActionHandler {
   uint32_t activeActionsFromServer = 0;
   uint32_t disablesLocalOperation = 0;
 
+  Supla::ActionHandlerClient *localHandlerForEnabledAt = nullptr;
+  Supla::ActionHandlerClient *localHandlerForDisabledAt = nullptr;
 };
 
 }
