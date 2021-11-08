@@ -112,13 +112,13 @@ TEST_F(ActionTriggerTests, AttachToMonostableButton) {
     at.iterateConnected(0);
   }
 
-  TActionTriggerProperties *propInRegister = 
+  TActionTriggerProperties *propInRegister =
     reinterpret_cast<TActionTriggerProperties *>
     (Supla::Channel::reg_dev.channels[at.getChannelNumber()].value);
 
   EXPECT_EQ(propInRegister->relatedChannelNumber, 0);
-  EXPECT_EQ(propInRegister->disablesLocalOperation, 
-      SUPLA_ACTION_CAP_HOLD 
+  EXPECT_EQ(propInRegister->disablesLocalOperation,
+      SUPLA_ACTION_CAP_HOLD
       | SUPLA_ACTION_CAP_SHORT_PRESS_x1
       | SUPLA_ACTION_CAP_SHORT_PRESS_x3
       | SUPLA_ACTION_CAP_SHORT_PRESS_x5
@@ -193,7 +193,7 @@ TEST_F(ActionTriggerTests, AttachToBistableButton) {
     at.iterateConnected(0);
   }
 
-  TActionTriggerProperties *propInRegister = 
+  TActionTriggerProperties *propInRegister =
     reinterpret_cast<TActionTriggerProperties *>
     (Supla::Channel::reg_dev.channels[at.getChannelNumber()].value);
 
@@ -316,4 +316,539 @@ TEST_F(ActionTriggerTests, RelatedChannel) {
 
 }
 
+TEST_F(ActionTriggerTests, ManageLocalActionsForMonostableButton) {
+  SrpcMock srpc;
+  TimeInterfaceStub time;
+  Supla::Control::Button b1(10);
+  Supla::Control::ActionTrigger at;
+  ActionHandlerMock ah;
 
+  // initial configuration
+  b1.addAction(Supla::TOGGLE, ah, Supla::ON_PRESS);
+  b1.addAction(Supla::TURN_OFF, ah, Supla::ON_HOLD);
+  at.attach(b1);
+
+  EXPECT_FALSE(b1.isEventAlreadyUsed(Supla::ON_CLICK_1));
+  EXPECT_TRUE(b1.isEventAlreadyUsed(Supla::ON_PRESS));
+  EXPECT_FALSE(b1.isEventAlreadyUsed(Supla::ON_RELEASE));
+
+  // on init call is executed in SuplaDevice.setup()
+  at.onInit();
+
+  EXPECT_TRUE(b1.isEventAlreadyUsed(Supla::ON_CLICK_1));
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_PRESS)->enabled);
+  EXPECT_FALSE(b1.getHandlerForFirstClient(Supla::ON_CLICK_1)->enabled);
+
+  at.iterateConnected(0);
+
+  EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_SHORT_PRESS_x1));
+  EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_HOLD));
+  EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_SHORT_PRESS_x5));
+
+  EXPECT_CALL(ah, handleAction(Supla::ON_PRESS, Supla::TOGGLE)).Times(2);
+  EXPECT_CALL(ah, handleAction(Supla::ON_HOLD, Supla::TURN_OFF));
+  EXPECT_CALL(ah, handleAction(Supla::ON_CLICK_1, Supla::TOGGLE)).Times(2);
+
+  EXPECT_FALSE(b1.isBistable());
+  // button actions run before we received channel config from server, so
+  // only ON_PRESS and ON_HOLD should be executed locally.
+  // Other actions will be ignored
+  b1.runAction(Supla::ON_PRESS);
+  b1.runAction(Supla::ON_CLICK_1);
+  b1.runAction(Supla::ON_HOLD);
+  b1.runAction(Supla::ON_CLICK_6);
+  b1.runAction(Supla::ON_CLICK_5);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+
+  TSD_ChannelConfig result = {};
+  result.ConfigType = 0;
+  result.ConfigSize = sizeof(TSD_ChannelConfig_ActionTrigger);
+  TSD_ChannelConfig_ActionTrigger config = {};
+  config.ActiveActions = SUPLA_ACTION_CAP_HOLD
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x2
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x3
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x4
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x5;
+
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+
+  // we received channel config with no SHORT_PRESS_x1 used, so
+  // ON_CLICK_1 should be executed on local ah element
+  at.handleChannelConfig(&result);
+
+  EXPECT_FALSE(b1.getHandlerForFirstClient(Supla::ON_PRESS)->enabled);
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_CLICK_1)->enabled);
+
+  b1.runAction(Supla::ON_PRESS);   // this one should be disabled
+  b1.runAction(Supla::ON_CLICK_1); // local execution
+  b1.runAction(Supla::ON_HOLD);
+  b1.runAction(Supla::ON_CLICK_6);
+  b1.runAction(Supla::ON_CLICK_5);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+
+  TActionTriggerProperties *propInRegister =
+    reinterpret_cast<TActionTriggerProperties *>
+    (Supla::Channel::reg_dev.channels[at.getChannelNumber()].value);
+
+  EXPECT_EQ(propInRegister->relatedChannelNumber, 0);
+  EXPECT_EQ(propInRegister->disablesLocalOperation,
+      SUPLA_ACTION_CAP_HOLD
+      | SUPLA_ACTION_CAP_SHORT_PRESS_x1
+      );
+
+  // another config from server which disables some actions
+  config.ActiveActions = SUPLA_ACTION_CAP_HOLD
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x1
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x5;
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+  at.handleChannelConfig(&result);
+
+  EXPECT_FALSE(b1.getHandlerForFirstClient(Supla::ON_PRESS)->enabled);
+  EXPECT_FALSE(b1.getHandlerForFirstClient(Supla::ON_CLICK_1)->enabled);
+
+  b1.runAction(Supla::ON_PRESS);
+  b1.runAction(Supla::ON_CLICK_1);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+
+  // another config from server which disables some actions
+  config.ActiveActions = SUPLA_ACTION_CAP_HOLD
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x5;
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+  at.handleChannelConfig(&result);
+
+  EXPECT_FALSE(b1.getHandlerForFirstClient(Supla::ON_PRESS)->enabled);
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_CLICK_1)->enabled);
+
+  b1.runAction(Supla::ON_PRESS);
+  b1.runAction(Supla::ON_CLICK_1);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+
+  // another config from server which disables all actions
+  config.ActiveActions = 0;
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+  at.handleChannelConfig(&result);
+
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_PRESS)->enabled);
+  EXPECT_FALSE(b1.getHandlerForFirstClient(Supla::ON_CLICK_1)->enabled);
+
+  b1.runAction(Supla::ON_PRESS);
+  b1.runAction(Supla::ON_CLICK_1);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+}
+
+TEST_F(ActionTriggerTests, ManageLocalActionsForMonostableButtonOnRelease) {
+  SrpcMock srpc;
+  TimeInterfaceStub time;
+  Supla::Control::Button b1(10);
+  Supla::Control::ActionTrigger at;
+  ActionHandlerMock ah;
+
+  // initial configuration
+  b1.addAction(Supla::TOGGLE, ah, Supla::ON_RELEASE);
+  b1.addAction(Supla::TURN_OFF, ah, Supla::ON_HOLD);
+  at.attach(b1);
+
+  EXPECT_FALSE(b1.isEventAlreadyUsed(Supla::ON_CLICK_1));
+  EXPECT_TRUE(b1.isEventAlreadyUsed(Supla::ON_RELEASE));
+  EXPECT_FALSE(b1.isEventAlreadyUsed(Supla::ON_PRESS));
+
+  // on init call is executed in SuplaDevice.setup()
+  at.onInit();
+
+  EXPECT_TRUE(b1.isEventAlreadyUsed(Supla::ON_CLICK_1));
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_RELEASE)->enabled);
+  EXPECT_FALSE(b1.getHandlerForFirstClient(Supla::ON_CLICK_1)->enabled);
+
+  at.iterateConnected(0);
+
+  EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_SHORT_PRESS_x1));
+  EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_HOLD));
+  EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_SHORT_PRESS_x5));
+
+  EXPECT_CALL(ah, handleAction(Supla::ON_RELEASE, Supla::TOGGLE)).Times(2);
+  EXPECT_CALL(ah, handleAction(Supla::ON_HOLD, Supla::TURN_OFF));
+  EXPECT_CALL(ah, handleAction(Supla::ON_CLICK_1, Supla::TOGGLE)).Times(2);
+
+  EXPECT_FALSE(b1.isBistable());
+  // button actions run before we received channel config from server, so
+  // only ON_PRESS and ON_HOLD should be executed locally.
+  // Other actions will be ignored
+  b1.runAction(Supla::ON_RELEASE);
+  b1.runAction(Supla::ON_CLICK_1);
+  b1.runAction(Supla::ON_HOLD);
+  b1.runAction(Supla::ON_CLICK_6);
+  b1.runAction(Supla::ON_CLICK_5);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+
+  TSD_ChannelConfig result = {};
+  result.ConfigType = 0;
+  result.ConfigSize = sizeof(TSD_ChannelConfig_ActionTrigger);
+  TSD_ChannelConfig_ActionTrigger config = {};
+  config.ActiveActions = SUPLA_ACTION_CAP_HOLD
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x2
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x3
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x4
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x5;
+
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+
+  // we received channel config with no SHORT_PRESS_x1 used, so
+  // ON_CLICK_1 should be executed on local ah element
+  at.handleChannelConfig(&result);
+
+  EXPECT_FALSE(b1.getHandlerForFirstClient(Supla::ON_RELEASE)->enabled);
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_CLICK_1)->enabled);
+
+  b1.runAction(Supla::ON_RELEASE);   // this one should be disabled
+  b1.runAction(Supla::ON_CLICK_1); // local execution
+  b1.runAction(Supla::ON_HOLD);
+  b1.runAction(Supla::ON_CLICK_6);
+  b1.runAction(Supla::ON_CLICK_5);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+
+  TActionTriggerProperties *propInRegister =
+    reinterpret_cast<TActionTriggerProperties *>
+    (Supla::Channel::reg_dev.channels[at.getChannelNumber()].value);
+
+  EXPECT_EQ(propInRegister->relatedChannelNumber, 0);
+  EXPECT_EQ(propInRegister->disablesLocalOperation,
+      SUPLA_ACTION_CAP_HOLD
+      | SUPLA_ACTION_CAP_SHORT_PRESS_x1
+      );
+
+  // another config from server which disables some actions
+  config.ActiveActions = SUPLA_ACTION_CAP_HOLD
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x1
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x5;
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+  at.handleChannelConfig(&result);
+
+  EXPECT_FALSE(b1.getHandlerForFirstClient(Supla::ON_RELEASE)->enabled);
+  EXPECT_FALSE(b1.getHandlerForFirstClient(Supla::ON_CLICK_1)->enabled);
+
+  b1.runAction(Supla::ON_RELEASE);
+  b1.runAction(Supla::ON_CLICK_1);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+
+  // another config from server which disables some actions
+  config.ActiveActions = SUPLA_ACTION_CAP_HOLD
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x5;
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+  at.handleChannelConfig(&result);
+
+  EXPECT_FALSE(b1.getHandlerForFirstClient(Supla::ON_RELEASE)->enabled);
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_CLICK_1)->enabled);
+
+  b1.runAction(Supla::ON_RELEASE);
+  b1.runAction(Supla::ON_CLICK_1);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+
+  // another config from server which disables all actions
+  config.ActiveActions = 0;
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+  at.handleChannelConfig(&result);
+
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_RELEASE)->enabled);
+  EXPECT_FALSE(b1.getHandlerForFirstClient(Supla::ON_CLICK_1)->enabled);
+
+  b1.runAction(Supla::ON_RELEASE);
+  b1.runAction(Supla::ON_CLICK_1);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+}
+
+TEST_F(ActionTriggerTests,
+    ManageLocalActionsForMonostableButtonOnReleaseAndOnPress) {
+  SrpcMock srpc;
+  TimeInterfaceStub time;
+  Supla::Control::Button b1(10);
+  Supla::Control::ActionTrigger at;
+  ActionHandlerMock ah;
+
+  // initial configuration
+  b1.addAction(Supla::TOGGLE, ah, Supla::ON_RELEASE);
+  b1.addAction(Supla::TOGGLE, ah, Supla::ON_PRESS);
+  b1.addAction(Supla::TURN_OFF, ah, Supla::ON_HOLD);
+  at.attach(b1);
+
+  EXPECT_FALSE(b1.isEventAlreadyUsed(Supla::ON_CLICK_1));
+  EXPECT_TRUE(b1.isEventAlreadyUsed(Supla::ON_RELEASE));
+  EXPECT_TRUE(b1.isEventAlreadyUsed(Supla::ON_PRESS));
+
+  // on init call is executed in SuplaDevice.setup()
+  at.onInit();
+
+  EXPECT_TRUE(b1.isEventAlreadyUsed(Supla::ON_CLICK_1));
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_RELEASE)->enabled);
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_PRESS)->enabled);
+
+  at.iterateConnected(0);
+
+  EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_SHORT_PRESS_x1));
+  EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_HOLD));
+  EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_SHORT_PRESS_x5));
+
+  EXPECT_CALL(ah, handleAction(Supla::ON_PRESS, Supla::TOGGLE)).Times(5);
+  EXPECT_CALL(ah, handleAction(Supla::ON_RELEASE, Supla::TOGGLE)).Times(5);
+  EXPECT_CALL(ah, handleAction(Supla::ON_HOLD, Supla::TURN_OFF));
+  EXPECT_CALL(ah, handleAction(Supla::ON_CLICK_1, Supla::TOGGLE)).Times(0);
+
+  EXPECT_FALSE(b1.isBistable());
+  // button actions run before we received channel config from server, so
+  // only ON_PRESS, ON_RELEASE, ON_HOLD should be executed locally.
+  // Other actions will be ignored
+  b1.runAction(Supla::ON_PRESS);
+  b1.runAction(Supla::ON_RELEASE);
+  b1.runAction(Supla::ON_CLICK_1);
+  b1.runAction(Supla::ON_HOLD);
+  b1.runAction(Supla::ON_CLICK_6);
+  b1.runAction(Supla::ON_CLICK_5);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+
+  TSD_ChannelConfig result = {};
+  result.ConfigType = 0;
+  result.ConfigSize = sizeof(TSD_ChannelConfig_ActionTrigger);
+  TSD_ChannelConfig_ActionTrigger config = {};
+  config.ActiveActions = SUPLA_ACTION_CAP_HOLD
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x2
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x3
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x4
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x5;
+
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+
+  at.handleChannelConfig(&result);
+
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_RELEASE)->enabled);
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_RELEASE)->enabled);
+
+  b1.runAction(Supla::ON_PRESS);
+  b1.runAction(Supla::ON_RELEASE);
+  b1.runAction(Supla::ON_CLICK_1);
+  b1.runAction(Supla::ON_HOLD);
+  b1.runAction(Supla::ON_CLICK_6);
+  b1.runAction(Supla::ON_CLICK_5);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+
+  TActionTriggerProperties *propInRegister =
+    reinterpret_cast<TActionTriggerProperties *>
+    (Supla::Channel::reg_dev.channels[at.getChannelNumber()].value);
+
+  EXPECT_EQ(propInRegister->relatedChannelNumber, 0);
+  EXPECT_EQ(propInRegister->disablesLocalOperation,
+      SUPLA_ACTION_CAP_HOLD
+      );
+
+  // another config from server which disables some actions
+  config.ActiveActions = SUPLA_ACTION_CAP_HOLD
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x1
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x5;
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+  at.handleChannelConfig(&result);
+
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_RELEASE)->enabled);
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_PRESS)->enabled);
+
+  b1.runAction(Supla::ON_PRESS);
+  b1.runAction(Supla::ON_RELEASE);
+  b1.runAction(Supla::ON_CLICK_1);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+
+  // another config from server which disables some actions
+  config.ActiveActions = SUPLA_ACTION_CAP_HOLD
+    | SUPLA_ACTION_CAP_SHORT_PRESS_x5;
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+  at.handleChannelConfig(&result);
+
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_RELEASE)->enabled);
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_PRESS)->enabled);
+
+  b1.runAction(Supla::ON_PRESS);
+  b1.runAction(Supla::ON_RELEASE);
+  b1.runAction(Supla::ON_CLICK_1);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+
+  // another config from server which disables all actions
+  config.ActiveActions = 0;
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+  at.handleChannelConfig(&result);
+
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_RELEASE)->enabled);
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_PRESS)->enabled);
+
+  b1.runAction(Supla::ON_PRESS);
+  b1.runAction(Supla::ON_RELEASE);
+  b1.runAction(Supla::ON_CLICK_1);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+}
+
+TEST_F(ActionTriggerTests, ManageLocalActionsForBistableButton) {
+  SrpcMock srpc;
+  TimeInterfaceStub time;
+  Supla::Control::Button b1(10);
+  b1.setMulticlickTime(500, true); // enable bistable button
+  Supla::Control::ActionTrigger at;
+  ActionHandlerMock ah;
+
+  // initial configuration
+  b1.addAction(Supla::TOGGLE, ah, Supla::ON_CHANGE);
+  at.attach(b1);
+
+  EXPECT_FALSE(b1.isEventAlreadyUsed(Supla::ON_CLICK_1));
+  EXPECT_TRUE(b1.isEventAlreadyUsed(Supla::ON_CHANGE));
+  EXPECT_FALSE(b1.isEventAlreadyUsed(Supla::ON_PRESS));
+
+  // on init call is executed in SuplaDevice.setup()
+  at.onInit();
+
+  EXPECT_TRUE(b1.isEventAlreadyUsed(Supla::ON_CLICK_1));
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_CHANGE)->enabled);
+  EXPECT_FALSE(b1.getHandlerForFirstClient(Supla::ON_CLICK_1)->enabled);
+
+  at.iterateConnected(0);
+
+  EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_TOGGLE_x1));
+  EXPECT_CALL(srpc, actionTrigger(0, SUPLA_ACTION_CAP_TOGGLE_x5));
+
+  EXPECT_CALL(ah, handleAction(Supla::ON_CHANGE, Supla::TOGGLE)).Times(2);
+  EXPECT_CALL(ah, handleAction(Supla::ON_CLICK_1, Supla::TOGGLE)).Times(2);
+
+  EXPECT_TRUE(b1.isBistable());
+  // button actions run before we received channel config from server, so
+  // only ON_PRESS and ON_HOLD should be executed locally.
+  // Other actions will be ignored
+  b1.runAction(Supla::ON_CHANGE);
+  b1.runAction(Supla::ON_CLICK_1);
+  b1.runAction(Supla::ON_CLICK_6);
+  b1.runAction(Supla::ON_CLICK_5);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+
+  TSD_ChannelConfig result = {};
+  result.ConfigType = 0;
+  result.ConfigSize = sizeof(TSD_ChannelConfig_ActionTrigger);
+  TSD_ChannelConfig_ActionTrigger config = {};
+  config.ActiveActions = SUPLA_ACTION_CAP_TOGGLE_x2
+    | SUPLA_ACTION_CAP_TOGGLE_x3
+    | SUPLA_ACTION_CAP_TOGGLE_x4
+    | SUPLA_ACTION_CAP_TOGGLE_x5;
+
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+
+  // we received channel config with no SHORT_PRESS_x1 used, so
+  // ON_CLICK_1 should be executed on local ah element
+  at.handleChannelConfig(&result);
+
+  EXPECT_FALSE(b1.getHandlerForFirstClient(Supla::ON_CHANGE)->enabled);
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_CLICK_1)->enabled);
+
+  b1.runAction(Supla::ON_CHANGE);   // this one should be disabled
+  b1.runAction(Supla::ON_CLICK_1); // local execution
+  b1.runAction(Supla::ON_CLICK_6);
+  b1.runAction(Supla::ON_CLICK_5);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+
+  TActionTriggerProperties *propInRegister =
+    reinterpret_cast<TActionTriggerProperties *>
+    (Supla::Channel::reg_dev.channels[at.getChannelNumber()].value);
+
+  EXPECT_EQ(propInRegister->relatedChannelNumber, 0);
+  EXPECT_EQ(propInRegister->disablesLocalOperation,
+      SUPLA_ACTION_CAP_TOGGLE_x1
+      );
+
+  // another config from server which disables some actions
+  config.ActiveActions = SUPLA_ACTION_CAP_TOGGLE_x1
+    | SUPLA_ACTION_CAP_TOGGLE_x5;
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+  at.handleChannelConfig(&result);
+
+  EXPECT_FALSE(b1.getHandlerForFirstClient(Supla::ON_CHANGE)->enabled);
+  EXPECT_FALSE(b1.getHandlerForFirstClient(Supla::ON_CLICK_1)->enabled);
+
+  b1.runAction(Supla::ON_CHANGE);
+  b1.runAction(Supla::ON_CLICK_1);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+
+  // another config from server which disables some actions
+  config.ActiveActions = SUPLA_ACTION_CAP_TOGGLE_x5;
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+  at.handleChannelConfig(&result);
+
+  EXPECT_FALSE(b1.getHandlerForFirstClient(Supla::ON_CHANGE)->enabled);
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_CLICK_1)->enabled);
+
+  b1.runAction(Supla::ON_CHANGE);
+  b1.runAction(Supla::ON_CLICK_1);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+
+  // another config from server which disables all actions
+  config.ActiveActions = 0;
+  memcpy(result.Config, &config, sizeof(TSD_ChannelConfig_ActionTrigger));
+  at.handleChannelConfig(&result);
+
+  EXPECT_TRUE(b1.getHandlerForFirstClient(Supla::ON_CHANGE)->enabled);
+  EXPECT_FALSE(b1.getHandlerForFirstClient(Supla::ON_CLICK_1)->enabled);
+
+  b1.runAction(Supla::ON_CHANGE);
+  b1.runAction(Supla::ON_CLICK_1);
+
+  for (int i = 0; i < 10; i++) {
+    at.iterateConnected(0);
+  }
+}
