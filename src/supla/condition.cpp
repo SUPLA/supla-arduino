@@ -129,3 +129,9 @@ void Supla::Condition::setSource(Supla::Element &src) {
 void Supla::Condition::setClient(Supla::ActionHandler &clientPtr) {
   setClient(&clientPtr);
 }
+
+void Supla::Condition::activateAction(int action) {
+  if (client) {
+    client->activateAction(action);
+  }
+}
