@@ -153,7 +153,7 @@ void Supla::Sensor::ElectricityMeter::setFreq(unsigned _supla_int16_t freq) {
   emValue.measured_values |= EM_VAR_FREQ;
 }
 
-// power in 0.00001 kW
+// power in 0.00001 W
 void Supla::Sensor::ElectricityMeter::setPowerActive(int phase,
                                                      _supla_int_t power) {
   if (phase >= 0 && phase < MAX_PHASES) {
@@ -165,7 +165,7 @@ void Supla::Sensor::ElectricityMeter::setPowerActive(int phase,
   }
 }
 
-// power in 0.00001 kvar
+// power in 0.00001 var
 void Supla::Sensor::ElectricityMeter::setPowerReactive(int phase,
                                                        _supla_int_t power) {
   if (phase >= 0 && phase < MAX_PHASES) {
@@ -177,7 +177,7 @@ void Supla::Sensor::ElectricityMeter::setPowerReactive(int phase,
   }
 }
 
-// power in 0.00001 kVA
+// power in 0.00001 VA
 void Supla::Sensor::ElectricityMeter::setPowerApparent(int phase,
                                                        _supla_int_t power) {
   if (phase >= 0 && phase < MAX_PHASES) {

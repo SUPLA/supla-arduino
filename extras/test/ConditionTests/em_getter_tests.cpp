@@ -182,19 +182,19 @@ TEST(EmGetterTests, PowerActiveWGetter) {
   EXPECT_EQ(getter->getValue(&em, isValid), 0.0);
   EXPECT_FALSE(isValid);
 
-  em.setPowerActive(0, 300 * 100); // 300 W
+  em.setPowerActive(0, 300 * 100000); // 300 W
   em.updateChannelValues();
   EXPECT_NEAR(getter->getValue(&em, isValid), 300.0, 0.005);
   EXPECT_TRUE(isValid);
 
   isValid = false;
-  em.setPowerActive(0, 8.52 * 100);
+  em.setPowerActive(0, 8.52 * 100000);
   em.updateChannelValues();
   EXPECT_NEAR(getter->getValue(&em, isValid), 8.52, 0.005);
   EXPECT_TRUE(isValid);
 
   isValid = false;
-  em.setPowerActive(1, 66 * 100);
+  em.setPowerActive(1, 66 * 100000);
   em.updateChannelValues();
   EXPECT_NEAR(getter->getValue(&em, isValid), 8.52, 0.005);
   EXPECT_TRUE(isValid);
@@ -228,19 +228,19 @@ TEST(EmGetterTests, TotalPowerActiveWGetter) {
   EXPECT_EQ(getter->getValue(&em, isValid), 0.0);
   EXPECT_FALSE(isValid);
 
-  em.setPowerActive(0, 300 * 100);
+  em.setPowerActive(0, 300 * 100000);
   em.updateChannelValues();
   EXPECT_NEAR(getter->getValue(&em, isValid), 300.0, 0.005);
   EXPECT_TRUE(isValid);
 
   isValid = false;
-  em.setPowerActive(0, 8.52 * 100);
+  em.setPowerActive(0, 8.52 * 100000);
   em.updateChannelValues();
   EXPECT_NEAR(getter->getValue(&em, isValid), 8.52, 0.005);
   EXPECT_TRUE(isValid);
 
   isValid = false;
-  em.setPowerActive(1, 66 * 100);
+  em.setPowerActive(1, 66 * 100000);
   em.updateChannelValues();
   EXPECT_NEAR(getter->getValue(&em, isValid), 8.52 + 66, 0.005);
   EXPECT_TRUE(isValid);
@@ -269,19 +269,19 @@ TEST(EmGetterTests, PowerApparentGetter) {
   EXPECT_EQ(getter->getValue(&em, isValid), 0.0);
   EXPECT_FALSE(isValid);
 
-  em.setPowerApparent(0, 300 * 100); // 300
+  em.setPowerApparent(0, 300 * 100000); // 300
   em.updateChannelValues();
   EXPECT_NEAR(getter->getValue(&em, isValid), 300.0, 0.005);
   EXPECT_TRUE(isValid);
 
   isValid = false;
-  em.setPowerApparent(0, 8.52 * 100);
+  em.setPowerApparent(0, 8.52 * 100000);
   em.updateChannelValues();
   EXPECT_NEAR(getter->getValue(&em, isValid), 8.52, 0.005);
   EXPECT_TRUE(isValid);
 
   isValid = false;
-  em.setPowerApparent(1, 66 * 100);
+  em.setPowerApparent(1, 66 * 100000);
   em.updateChannelValues();
   EXPECT_NEAR(getter->getValue(&em, isValid), 8.52, 0.005);
   EXPECT_TRUE(isValid);
@@ -315,19 +315,19 @@ TEST(EmGetterTests, TotalPowerApparentGetter) {
   EXPECT_EQ(getter->getValue(&em, isValid), 0.0);
   EXPECT_FALSE(isValid);
 
-  em.setPowerApparent(0, 300 * 100);
+  em.setPowerApparent(0, 300 * 100000);
   em.updateChannelValues();
   EXPECT_NEAR(getter->getValue(&em, isValid), 300.0, 0.005);
   EXPECT_TRUE(isValid);
 
   isValid = false;
-  em.setPowerApparent(0, 8.52 * 100);
+  em.setPowerApparent(0, 8.52 * 100000);
   em.updateChannelValues();
   EXPECT_NEAR(getter->getValue(&em, isValid), 8.52, 0.005);
   EXPECT_TRUE(isValid);
 
   isValid = false;
-  em.setPowerApparent(1, 66 * 100);
+  em.setPowerApparent(1, 66 * 100000);
   em.updateChannelValues();
   EXPECT_NEAR(getter->getValue(&em, isValid), 8.52 + 66, 0.005);
   EXPECT_TRUE(isValid);
@@ -356,19 +356,19 @@ TEST(EmGetterTests, PowerReactiveGetter) {
   EXPECT_EQ(getter->getValue(&em, isValid), 0.0);
   EXPECT_FALSE(isValid);
 
-  em.setPowerReactive(0, 300 * 100); // 300 W
+  em.setPowerReactive(0, 300 * 100000); // 300 W
   em.updateChannelValues();
   EXPECT_NEAR(getter->getValue(&em, isValid), 300.0, 0.005);
   EXPECT_TRUE(isValid);
 
   isValid = false;
-  em.setPowerReactive(0, 8.52 * 100);
+  em.setPowerReactive(0, 8.52 * 100000);
   em.updateChannelValues();
   EXPECT_NEAR(getter->getValue(&em, isValid), 8.52, 0.005);
   EXPECT_TRUE(isValid);
 
   isValid = false;
-  em.setPowerReactive(1, 66 * 100);
+  em.setPowerReactive(1, 66 * 100000);
   em.updateChannelValues();
   EXPECT_NEAR(getter->getValue(&em, isValid), 8.52, 0.005);
   EXPECT_TRUE(isValid);
@@ -402,19 +402,19 @@ TEST(EmGetterTests, TotalPowerReactiveGetter) {
   EXPECT_EQ(getter->getValue(&em, isValid), 0.0);
   EXPECT_FALSE(isValid);
 
-  em.setPowerReactive(0, 300 * 100);
+  em.setPowerReactive(0, 300 * 100000);
   em.updateChannelValues();
   EXPECT_NEAR(getter->getValue(&em, isValid), 300.0, 0.005);
   EXPECT_TRUE(isValid);
 
   isValid = false;
-  em.setPowerReactive(0, 8.52 * 100);
+  em.setPowerReactive(0, 8.52 * 100000);
   em.updateChannelValues();
   EXPECT_NEAR(getter->getValue(&em, isValid), 8.52, 0.005);
   EXPECT_TRUE(isValid);
 
   isValid = false;
-  em.setPowerReactive(1, 66 * 100);
+  em.setPowerReactive(1, 66 * 100000);
   em.updateChannelValues();
   EXPECT_NEAR(getter->getValue(&em, isValid), 8.52 + 66, 0.005);
   EXPECT_TRUE(isValid);
