@@ -133,7 +133,7 @@ class PowerActiveWGetter : public ConditionGetter {
       if (auto measurement = getMeasurement(element, measuredValues)) {
         if (measuredValues & EM_VAR_POWER_ACTIVE) {
           isValid = true;
-          return measurement->power_active[phase] / 100.0;
+          return measurement->power_active[phase] / 100000.0;
         }
       }
       
@@ -155,7 +155,7 @@ class TotalPowerActiveWGetter : public ConditionGetter {
             measurement->power_active[0] + measurement->power_active[1] +
             measurement->power_active[2];
           isValid = true;
-          return totalPower / 100.0;
+          return totalPower / 100000.0;
         }
       }
       
@@ -177,7 +177,7 @@ class PowerApparentVAGetter : public ConditionGetter {
       if (auto measurement = getMeasurement(element, measuredValues)) {
         if (measuredValues & EM_VAR_POWER_APPARENT) {
           isValid = true;
-          return measurement->power_apparent[phase] / 100.0;
+          return measurement->power_apparent[phase] / 100000.0;
         }
       }
       
@@ -199,7 +199,7 @@ class TotalPowerApparentVAGetter : public ConditionGetter {
             measurement->power_apparent[0] + measurement->power_apparent[1] +
             measurement->power_apparent[2];
           isValid = true;
-          return totalPower / 100.0;
+          return totalPower / 100000.0;
         }
       }
       
@@ -221,7 +221,7 @@ class PowerReactiveVarGetter : public ConditionGetter {
       if (auto measurement = getMeasurement(element, measuredValues)) {
         if (measuredValues & EM_VAR_POWER_REACTIVE) {
           isValid = true;
-          return measurement->power_reactive[phase] / 100.0;
+          return measurement->power_reactive[phase] / 100000.0;
         }
       }
       
@@ -243,7 +243,7 @@ class TotalPowerReactiveVarGetter : public ConditionGetter {
             measurement->power_reactive[0] + measurement->power_reactive[1] +
             measurement->power_reactive[2];
           isValid = true;
-          return totalPower / 100.0;
+          return totalPower / 100000.0;
         }
       }
       

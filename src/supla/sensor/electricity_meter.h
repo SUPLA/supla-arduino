@@ -55,13 +55,13 @@ class ElectricityMeter : public Element, public LocalAction {
   // Frequency in 0.01 Hz
   void setFreq(unsigned _supla_int16_t freq);
 
-  // power in 0.00001 kW
+  // power in 0.00001 W
   void setPowerActive(int phase, _supla_int_t power);
 
-  // power in 0.00001 kvar
+  // power in 0.00001 var
   void setPowerReactive(int phase, _supla_int_t power);
 
-  // power in 0.00001 kVA
+  // power in 0.00001 VA
   void setPowerApparent(int phase, _supla_int_t power);
 
   // power in 0.001
