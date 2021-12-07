@@ -49,7 +49,7 @@ void message_received(void *_srpc,
   (void)(call_type);
   (void)(proto_version);
   TsrpcReceivedData rd;
-  char getDataResult;
+  int8_t getDataResult;
 
   Network::Instance()->updateLastResponse();
 
@@ -132,6 +132,44 @@ void message_received(void *_srpc,
         }
 
         srpc_ds_async_device_calcfg_result(_srpc, &result);
+        break;
+      }
+      case SUPLA_SD_CALL_GET_CHANNEL_CONFIG_RESULT: {
+        TSD_ChannelConfig *result = rd.data.sd_channel_config;
+        if (result) {
+          auto element = Supla::Element::getElementByChannelNumber(
+              result->ChannelNumber);
+          if (element) {
+            element->handleChannelConfig(result);
+          } else {
+            Serial.print(F("Error: couldn't find element for a requested channel ["));
+            Serial.print(result->ChannelNumber);
+            Serial.println(F("]"));
+          }
+
+
+        }
+        break;
+      }
+      case SUPLA_SD_CALL_CHANNELGROUP_SET_VALUE: {
+        TSD_SuplaChannelGroupNewValue *groupNewValue =
+          rd.data.sd_channelgroup_new_value;
+        if (groupNewValue) {
+          auto element = Supla::Element::getElementByChannelNumber(
+              groupNewValue->ChannelNumber);
+          if (element) {
+            TSD_SuplaChannelNewValue newValue = {};
+            newValue.SenderID = 0;
+            newValue.ChannelNumber = groupNewValue->ChannelNumber;
+            newValue.DurationMS = groupNewValue->DurationMS;
+            memcpy(newValue.value, groupNewValue->value, SUPLA_CHANNELVALUE_SIZE);
+            element->handleNewValueFromServer(&newValue);
+          } else {
+            Serial.print(F("Error: couldn't find element for a requested channel ["));
+            Serial.print(rd.data.sd_channel_new_value->ChannelNumber);
+            Serial.println(F("]"));
+          }
+        }
         break;
       }
       default:

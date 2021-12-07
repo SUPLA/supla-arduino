@@ -14,52 +14,35 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "supla/local_action.h"
+#include "local_action.h"
 
 namespace Supla {
 
-class ActionHandlerClient;
-
-class ActionHandlerClient {
- public:
-  ActionHandlerClient()
-      : trigger(nullptr),
-        client(nullptr),
-        next(nullptr),
-        onEvent(0),
-        action(0) {
-    if (begin == nullptr) {
-      begin = this;
-    } else {
-      auto ptr = begin;
-      while (ptr->next) {
-        ptr = ptr->next;
-      }
-      ptr->next = this;
-    }
-  }
-
-  ~ActionHandlerClient() {
-    if (begin == this) {
-      begin = next;
-      return;
-    }
-
+ActionHandlerClient::ActionHandlerClient() {
+  if (begin == nullptr) {
+    begin = this;
+  } else {
     auto ptr = begin;
-    while (ptr->next != this) {
+    while (ptr->next) {
       ptr = ptr->next;
     }
+    ptr->next = this;
+  }
+}
 
-    ptr->next = ptr->next->next;
+ActionHandlerClient::~ActionHandlerClient() {
+  if (begin == this) {
+    begin = next;
+    return;
   }
 
-  LocalAction *trigger;
-  ActionHandler *client;
-  ActionHandlerClient *next;
-  uint8_t onEvent;
-  uint8_t action;
-  static ActionHandlerClient *begin;
-};
+  auto ptr = begin;
+  while (ptr->next != this) {
+    ptr = ptr->next;
+  }
+
+  ptr->next = ptr->next->next;
+}
 
 ActionHandlerClient *ActionHandlerClient::begin = nullptr;
 
@@ -85,6 +68,7 @@ void LocalAction::addAction(int action, ActionHandler &client, int event) {
   ptr->client = &client;
   ptr->onEvent = event;
   ptr->action = action;
+  ptr->client->activateAction(action);
 }
 
 void LocalAction::addAction(int action, ActionHandler *client, int event) {
@@ -94,7 +78,7 @@ void LocalAction::addAction(int action, ActionHandler *client, int event) {
 void LocalAction::runAction(int event) {
   auto ptr = ActionHandlerClient::begin;
   while (ptr) {
-    if (ptr->trigger == this && ptr->onEvent == event) {
+    if (ptr->trigger == this && ptr->onEvent == event && ptr->enabled) {
       ptr->client->handleAction(event, ptr->action);
     }
     ptr = ptr->next;
@@ -103,6 +87,58 @@ void LocalAction::runAction(int event) {
 
 ActionHandlerClient *LocalAction::getClientListPtr() {
   return ActionHandlerClient::begin;
+}
+
+bool LocalAction::isEventAlreadyUsed(int event) {
+  auto ptr = ActionHandlerClient::begin;
+  while (ptr) {
+    if (ptr->trigger == this && ptr->onEvent == event) {
+      return true;
+    }
+    ptr = ptr->next;
+  }
+  return false;
+}
+
+void LocalAction::disableOtherClients(ActionHandler &client, int event) {
+  disableOtherClients(&client, event);
+}
+
+void LocalAction::enableOtherClients(ActionHandler &client, int event) {
+  enableOtherClients(&client, event);
+}
+
+void LocalAction::disableOtherClients(ActionHandler *client, int event) {
+  auto ptr = ActionHandlerClient::begin;
+  while (ptr) {
+    if (ptr->trigger == this && ptr->onEvent == event && ptr->client != client) {
+      ptr->enabled = false;
+    }
+    ptr = ptr->next;
+  }
+
+}
+
+void LocalAction::enableOtherClients(ActionHandler *client, int event) {
+  auto ptr = ActionHandlerClient::begin;
+  while (ptr) {
+    if (ptr->trigger == this && ptr->onEvent == event && ptr->client != client) {
+      ptr->enabled = true;
+    }
+    ptr = ptr->next;
+  }
+
+}
+
+ActionHandlerClient *LocalAction::getHandlerForFirstClient(int event) {
+  auto ptr = ActionHandlerClient::begin;
+  while (ptr) {
+    if (ptr->trigger == this && ptr->onEvent == event) {
+      return ptr;
+    }
+    ptr = ptr->next;
+  }
+  return nullptr;
 }
 
 };  // namespace Supla

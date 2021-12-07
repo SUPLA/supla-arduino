@@ -73,10 +73,23 @@ enum Action {
   ITERATE_DIM_ALL,
 
   // Impulse counter
-  RESET
+  RESET,
 
+  // Action trigger
+  SEND_AT_TURN_ON,
+  SEND_AT_TURN_OFF,
+  SEND_AT_TOGGLE_x1,
+  SEND_AT_TOGGLE_x2,
+  SEND_AT_TOGGLE_x3,
+  SEND_AT_TOGGLE_x4,
+  SEND_AT_TOGGLE_x5,
+  SEND_AT_HOLD,
+  SEND_AT_SHORT_PRESS_x1,
+  SEND_AT_SHORT_PRESS_x2,
+  SEND_AT_SHORT_PRESS_x3,
+  SEND_AT_SHORT_PRESS_x4,
+  SEND_AT_SHORT_PRESS_x5
+};
 };
 
-};
-
-#endif
+#endif /*_actions_h*/

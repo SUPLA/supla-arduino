@@ -106,4 +106,3 @@ void Supla::Control::SimpleButton::setDebounceDelay(unsigned int newDelayMs) {
 void Supla::Control::ButtonState::setDebounceDelay(unsigned int newDelayMs) {
   debounceDelayMs = newDelayMs;
 }
-

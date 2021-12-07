@@ -462,10 +462,9 @@ void RollerShutter::onTimer() {
   }
   // if (newCurrentPosition != currentPosition) {
   // currentPosition = newCurrentPosition;
-  channel.setNewValue(static_cast<_supla_int_t>(
-      currentPosition));  // value set on channel will be send to server
-                          // during iterateConnected() execution
-                          // }
+  TRollerShutterValue value = {};
+  value.position = currentPosition;
+  channel.setNewValue(value);
 }
 
 void RollerShutter::configComfortUpValue(uint8_t position) {

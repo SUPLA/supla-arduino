@@ -18,9 +18,7 @@
 
 class OnLessEqCond : public Supla::Condition {
  public:
-  OnLessEqCond(double threshold, bool useAlternativeMeasurement)
-      : Supla::Condition(threshold, useAlternativeMeasurement) {
-  }
+  using Supla::Condition::Condition;
 
   bool condition(double val, bool isValid) {
     if (isValid) {
@@ -35,4 +33,7 @@ Supla::Condition *OnLessEq(double threshold, bool useAlternativeMeasurement) {
   return new OnLessEqCond(threshold, useAlternativeMeasurement);
 }
 
+Supla::Condition *OnLessEq(double threshold, Supla::ConditionGetter *getter) {
+  return new OnLessEqCond(threshold, getter);
+}
 

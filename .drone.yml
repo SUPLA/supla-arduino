@@ -16,27 +16,17 @@ steps:
   - cd extras/test/build
   - ./supladevicetests --gtest_repeat=50 --gtest_shuffle
 
-- name: slack
-  image: plugins/slack
+- name: rocket
+  image: mike1pol/drone-rocket
   settings:
-    webhook: 
-      from_secret: slack_webhook 
+    url:
+      from_secret: rocket_url
+    user_id:
+      from_secret: rocket_user_id
+    token:
+      from_secret: rocket_token
     channel: github
-    username: drone
-
-    # here's the template :)
-    # notice that the repo endpoint is hardcoded to `https://github.com/`. 
-    # you may adjust it accordingly.
-    template: >
-      {{#if build.pull }}
-        *{{#success build.status}}✔{{ else }}✘{{/success}} {{ uppercasefirst build.status }}*: <https://github.com/{{ repo.owner }}/{{ repo.name }}/pull/{{ build.pull }}|Pull Request #{{ build.pull }}> in {{since build.created}}
-      {{else}}
-        *{{#success build.status}}✔{{ else }}✘{{/success}} {{ uppercasefirst build.status }}: Build #{{ build.number }}* (type: `{{ build.event }}`) in {{since build.created}}
-      {{/if}}
-
-      Commit: <https://github.com/{{ repo.owner }}/{{ repo.name }}/commit/{{ build.commit }}|{{ truncate build.commit 8 }}> at: <https://github.com/{{ repo.owner }}/{{ repo.name }}/commits/{{ build.branch }}|{{repo.owner}}/{{repo.name}}/{{ build.branch }}> by: {{ build.author }}
-
-      <{{ build.link }}|Visit build page ↗>
+    avatar_url: "https://miro.medium.com/max/256/0*AqO_2lNemh_Fl9Gm.png"
   when:
     status: [success, failure]
     event:

@@ -26,7 +26,8 @@ using namespace Supla;
 
 Eeprom::Eeprom(unsigned int storageStartingOffset, int reservedSize)
     : Storage(storageStartingOffset),
-      dataChanged(false), reservedSize(reservedSize) {
+      reservedSize(reservedSize),
+      dataChanged(false) {
   setStateSavePeriod((unsigned long)SUPLA_EEPROM_WRITING_PERIOD);
 }
 

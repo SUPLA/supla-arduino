@@ -22,6 +22,10 @@ class OnBetweenCond : public Supla::Condition {
       : Supla::Condition(threshold1, useAlternativeMeasurement), threshold2(threshold2) {
   }
 
+  OnBetweenCond(double threshold1, double threshold2, Supla::ConditionGetter *getter)
+      : Supla::Condition(threshold1, getter), threshold2(threshold2) {
+  }
+
   bool condition(double val, bool isValid) {
     if (isValid) {
       return val > threshold && val < threshold2;
@@ -37,5 +41,7 @@ Supla::Condition *OnBetween(double threshold1, double threshold2, bool useAltern
   return new OnBetweenCond(threshold1, threshold2, useAlternativeMeasurement);
 }
 
-
+Supla::Condition *OnBetween(double threshold1, double threshold2, Supla::ConditionGetter *getter) {
+  return new OnBetweenCond(threshold1, threshold2, getter);
+}
 

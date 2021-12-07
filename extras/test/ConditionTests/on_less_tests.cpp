@@ -21,11 +21,13 @@
 #include <supla/channel_element.h>
 #include <supla/events.h>
 #include <supla/actions.h>
+#include <supla/sensor/electricity_meter.h>
 
 
-class ActionHandlerMock : public Supla::ActionHandler {
+class ActionHandlerMock2 : public Supla::ActionHandler {
  public:
   MOCK_METHOD(void, handleAction, (int, int), (override));
+  MOCK_METHOD(void, activateAction, (int), (override));
 };
 
 
@@ -35,7 +37,7 @@ using ::testing::Args;
 using ::testing::ElementsAre;
 
 TEST(ConditionTests, handleActionTestsForDouble) {
-  ActionHandlerMock ahMock;
+  ActionHandlerMock2 ahMock;
   const int action1 = 15;
   const int action2 = 16;
   const int action3 = 17;
@@ -145,7 +147,7 @@ TEST(ConditionTests, handleActionTestsForDouble) {
 }
 
 TEST(ConditionTests, handleActionTestsForInt64) {
-  ActionHandlerMock ahMock;
+  ActionHandlerMock2 ahMock;
   const int action1 = 15;
   const int action2 = 16;
   const int action3 = 17;
@@ -178,7 +180,7 @@ TEST(ConditionTests, handleActionTestsForInt64) {
 }
 
 TEST(ConditionTests, handleActionTestsForDouble2) {
-  ActionHandlerMock ahMock;
+  ActionHandlerMock2 ahMock;
   const int action1 = 15;
   const int action2 = 16;
   const int action3 = 17;
@@ -233,7 +235,7 @@ TEST(ConditionTests, handleActionTestsForDouble2) {
 }
 
 TEST(ConditionTests, handleActionTestsForNotSupportedChannel) {
-  ActionHandlerMock ahMock;
+  ActionHandlerMock2 ahMock;
   const int action1 = 15;
   const int action2 = 16;
   const int action3 = 17;
@@ -261,7 +263,7 @@ TEST(ConditionTests, handleActionTestsForNotSupportedChannel) {
 }
 
 TEST(ConditionTests, handleActionTestsForFirstDouble) {
-  ActionHandlerMock ahMock;
+  ActionHandlerMock2 ahMock;
   const int action1 = 15;
   const int action2 = 16;
   const int action3 = 17;
@@ -302,7 +304,7 @@ TEST(ConditionTests, handleActionTestsForFirstDouble) {
 }
 
 TEST(ConditionTests, handleActionTestsForSecondDouble) {
-  ActionHandlerMock ahMock;
+  ActionHandlerMock2 ahMock;
   const int action1 = 15;
   const int action2 = 16;
   const int action3 = 17;
@@ -363,4 +365,33 @@ TEST(OnLessTests, OnLessConditionTests) {
 
 }
 
+TEST(ConditionTests, handleActionTestsWithCustomGetter) {
+  ActionHandlerMock2 ahMock;
+  const int action1 = 15;
+  const int action2 = 16;
+  const int action3 = 17;
 
+  EXPECT_CALL(ahMock, handleAction(Supla::ON_CHANGE, action1));
+  EXPECT_CALL(ahMock, handleAction(Supla::ON_CHANGE, action3));
+
+  EXPECT_CALL(ahMock, activateAction(action1));
+  EXPECT_CALL(ahMock, activateAction(action2));
+  EXPECT_CALL(ahMock, activateAction(action3));
+
+  Supla::Sensor::ElectricityMeter em;
+
+  em.addAction(action1, ahMock, OnLess(220.0, EmVoltage(0)));
+  em.addAction(action2, ahMock, OnLess(220.0, EmVoltage(1)));
+  em.addAction(action3, ahMock, OnLess(120.0, EmVoltage(0)));
+
+  em.setVoltage(0, 230.0 * 100);
+  em.setVoltage(1, 233.0 * 100);
+  em.updateChannelValues();
+
+  em.setVoltage(0, 210.0 * 100);
+  em.updateChannelValues();
+
+  em.setVoltage(0, 110.0 * 100);
+  em.updateChannelValues();
+
+}

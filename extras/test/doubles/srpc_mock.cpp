@@ -22,6 +22,18 @@ _supla_int_t  srpc_ds_async_channel_extendedvalue_changed(
     TSuplaChannelExtendedValue *value) {
   return 0;
 }
+
+_supla_int_t  srpc_ds_async_action_trigger(
+    void *_srpc, TDS_ActionTrigger *at) {
+  assert(SrpcInterface::instance);
+  return SrpcInterface::instance->actionTrigger(at->ChannelNumber, at->ActionTrigger);
+}
+
+_supla_int_t srpc_ds_async_get_channel_config(void *_srpc, 
+    TDS_GetChannelConfigRequest *request) {
+  assert(SrpcInterface::instance);
+  return SrpcInterface::instance->getChannelConfig(request->ChannelNumber);
+}
          
 _supla_int_t  srpc_ds_async_channel_value_changed_c(
     void *_srpc, unsigned char channel_number, char *value,
@@ -107,4 +119,27 @@ SrpcInterface::~SrpcInterface() {
 
 SrpcInterface *SrpcInterface::instance = nullptr;
 
+// method copied directly from srpc.c
+_supla_int_t srpc_evtool_v2_emextended2extended(
+    TElectricityMeter_ExtendedValue_V2 *em_ev, TSuplaChannelExtendedValue *ev) {
+  if (em_ev == NULL || ev == NULL || em_ev->m_count > EM_MEASUREMENT_COUNT ||
+      em_ev->m_count < 0) {
+    return 0;
+  }
+
+  memset(ev, 0, sizeof(TSuplaChannelExtendedValue));
+  ev->type = EV_TYPE_ELECTRICITY_METER_MEASUREMENT_V2;
+
+  ev->size = sizeof(TElectricityMeter_ExtendedValue_V2) -
+             sizeof(TElectricityMeter_Measurement) * EM_MEASUREMENT_COUNT +
+             sizeof(TElectricityMeter_Measurement) * em_ev->m_count;
+
+  if (ev->size > 0 && ev->size <= SUPLA_CHANNELEXTENDEDVALUE_SIZE) {
+    memcpy(ev->value, em_ev, ev->size);
+    return 1;
+  }
+
+  ev->size = 0;
+  return 0;
+}
 

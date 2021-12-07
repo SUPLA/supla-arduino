@@ -22,7 +22,23 @@
 
 namespace Supla {
 
-class ActionHandlerClient;
+class LocalAction;
+class Condition;
+
+class ActionHandlerClient {
+ public:
+  ActionHandlerClient();
+
+  ~ActionHandlerClient();
+
+  LocalAction *trigger = nullptr;
+  ActionHandler *client = nullptr;
+  ActionHandlerClient *next = nullptr;
+  uint8_t onEvent = 0;
+  uint8_t action = 0;
+  bool enabled = true;
+  static ActionHandlerClient *begin;
+};
 
 class LocalAction {
  public:
@@ -31,6 +47,14 @@ class LocalAction {
   virtual void addAction(int action, ActionHandler *client, int event);
 
   virtual void runAction(int event);
+
+  virtual bool isEventAlreadyUsed(int event);
+  virtual ActionHandlerClient *getHandlerForFirstClient(int event);
+
+  virtual void disableOtherClients(ActionHandler &client, int event);
+  virtual void enableOtherClients(ActionHandler &client, int event);
+  virtual void disableOtherClients(ActionHandler *client, int event);
+  virtual void enableOtherClients(ActionHandler *client, int event);
 
   static ActionHandlerClient *getClientListPtr();
 };

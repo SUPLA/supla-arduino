@@ -33,8 +33,9 @@ class ChannelElement : public Element, public LocalAction {
   Channel *getChannel();
 
   // Override local action methods in order to delegate execution to Channel
-  void addAction(int action, ActionHandler &client, int event);
-  void addAction(int action, ActionHandler *client, int event);
+  void addAction(int action, ActionHandler &client, int event) override;
+  void addAction(int action, ActionHandler *client, int event) override;
+  bool isEventAlreadyUsed(int event) override;
 
   virtual void addAction(int action, ActionHandler &client, Supla::Condition *condition);
   virtual void addAction(int action, ActionHandler *client, Supla::Condition *condition);

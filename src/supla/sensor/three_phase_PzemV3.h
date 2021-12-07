@@ -21,7 +21,9 @@
 // dependence: Arduino library for the Updated PZEM-004T v3.0 Power and Energy
 // meter  https://github.com/mandulaj/PZEM-004T-v30
 #include <PZEM004Tv30.h>
+#if defined(PZEM004_SOFTSERIAL)
 #include <SoftwareSerial.h>
+#endif 
 
 #include "electricity_meter.h"
 
@@ -30,6 +32,7 @@ namespace Sensor {
 
 class ThreePhasePZEMv3 : public ElectricityMeter {
  public:
+#if defined(PZEM004_SOFTSERIAL)
   ThreePhasePZEMv3(int8_t pinRX1,
                    int8_t pinTX1,
                    int8_t pinRX2,
@@ -40,7 +43,23 @@ class ThreePhasePZEMv3 : public ElectricityMeter {
              PZEM004Tv30(pinRX2, pinTX2),
              PZEM004Tv30(pinRX3, pinTX3)} {
   }
+#endif
 
+#if defined(ESP32)
+  ThreePhasePZEMv3(HardwareSerial *serial1,
+      int8_t pinRx1,
+      int8_t pinTx1,
+      HardwareSerial *serial2,
+      int8_t pinRx2,
+      int8_t pinTx2,
+      HardwareSerial *serial3,
+      int8_t pinRx3,
+      int8_t pinTx3)
+      : pzem{PZEM004Tv30(serial1, pinRx1, pinTx1),
+             PZEM004Tv30(serial2, pinRx2, pinTx2),
+             PZEM004Tv30(serial3, pinRx3, pinTx3)} {
+             }
+#else
   ThreePhasePZEMv3(HardwareSerial *serial1,
                    HardwareSerial *serial2,
                    HardwareSerial *serial3)
@@ -48,6 +67,7 @@ class ThreePhasePZEMv3 : public ElectricityMeter {
              PZEM004Tv30(serial2),
              PZEM004Tv30(serial3)} {
   }
+#endif
 
   void onInit() {
     readValuesFromDevice();

@@ -17,6 +17,11 @@
 #ifndef _network_interface_h
 #define _network_interface_h
 
+#ifndef __AVR__
+#include <cstddef>
+#include <cstdint>
+#endif
+
 #include "supla-common/log.h"
 #include "supla-common/proto.h"
 

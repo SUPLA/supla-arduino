@@ -61,6 +61,12 @@ TEST(LocalActionTests, TwoItemsTests) {
 
   b2->runAction(event1);
 
+  EXPECT_TRUE(b1->isEventAlreadyUsed(event1));
+  EXPECT_TRUE(b2->isEventAlreadyUsed(event2));
+
+  EXPECT_FALSE(b1->isEventAlreadyUsed(432));
+  EXPECT_FALSE(b2->isEventAlreadyUsed(event3));
+
   delete b1;
 
   b2->runAction(event2);

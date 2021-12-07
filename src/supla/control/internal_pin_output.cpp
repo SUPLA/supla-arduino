@@ -23,9 +23,9 @@ Supla::Control::InternalPinOutput::InternalPinOutput(int pin, bool highIsOn)
     : pin(pin),
       highIsOn(highIsOn),
       stateOnInit(STATE_ON_INIT_OFF),
+      durationMs(0), 
       storedTurnOnDurationMs(0),
-      durationTimestamp(0),
-      durationMs(0) {
+      durationTimestamp(0) {
 }
 
 Supla::Control::InternalPinOutput &

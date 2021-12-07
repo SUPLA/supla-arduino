@@ -35,6 +35,8 @@ class SrpcInterface {
                                     unsigned _supla_int_t
                                         validity_time_sec) = 0;
 
+  virtual _supla_int_t actionTrigger(unsigned char channel_number, int actionTrigger) = 0;
+
   virtual _supla_int_t srpc_dcs_async_set_activity_timeout(void *_srpc, TDCS_SuplaSetActivityTimeout *dcs_set_activity_timeout) = 0;
   virtual void srpc_params_init(TsrpcParams *params) = 0;
   virtual _supla_int_t srpc_ds_async_set_channel_result(void *_srpc, unsigned char ChannelNumber, _supla_int_t SenderID, char Success) = 0;
@@ -48,6 +50,7 @@ class SrpcInterface {
   virtual _supla_int_t srpc_dcs_async_ping_server(void *_srpc) = 0;
   virtual _supla_int_t srpc_csd_async_channel_state_result(void *_srpc, TDSC_ChannelState *state) = 0;
   virtual _supla_int_t srpc_dcs_async_get_user_localtime(void *_srpc) = 0;
+  virtual _supla_int_t getChannelConfig(unsigned char channelNumber) = 0;
 
   static SrpcInterface *instance;
 };
@@ -75,6 +78,8 @@ class SrpcMock : public SrpcInterface {
   MOCK_METHOD(_supla_int_t, srpc_dcs_async_ping_server, (void *), (override));
   MOCK_METHOD(_supla_int_t, srpc_csd_async_channel_state_result, (void *, TDSC_ChannelState *), (override));
   MOCK_METHOD(_supla_int_t, srpc_dcs_async_get_user_localtime, (void *), (override));
+  MOCK_METHOD(_supla_int_t, actionTrigger, (unsigned char channel_number, int actionTrigger), (override));
+  MOCK_METHOD(_supla_int_t, getChannelConfig, (unsigned char channelNumber), (override));
 };
 
 #endif

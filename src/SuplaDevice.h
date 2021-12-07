@@ -59,7 +59,7 @@ typedef void (*_impl_arduino_status)(int status, const char *msg);
 class SuplaDeviceClass {
  protected:
   void *srpc;
-  char registered;
+  int8_t registered;
   int port;
   int connectionFailCounter;
   int networkIsNotReadyCounter;
@@ -67,8 +67,9 @@ class SuplaDeviceClass {
   unsigned long lastIterateTime;
   unsigned long waitForIterate;
 
-  _impl_arduino_status impl_arduino_status;
   int currentStatus;
+
+  _impl_arduino_status impl_arduino_status;
 
   Supla::Uptime uptime;
   Supla::Clock *clock;
@@ -91,9 +92,9 @@ class SuplaDeviceClass {
              const char *Server,
              const char *email,
              char authkey[SUPLA_AUTHKEY_SIZE],
-             unsigned char version = 12);
+             unsigned char version = 16);
 
-  bool begin(unsigned char version = 12);
+  bool begin(unsigned char version = 16);
 
   // Use ASCII only in name
   void setName(const char *Name);

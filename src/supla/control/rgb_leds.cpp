@@ -29,6 +29,7 @@ void Supla::Control::RGBLeds::setRGBWValueOnDevice(uint32_t red,
                                                    uint32_t blue,
                                                    uint32_t colorBrightness,
                                                    uint32_t brightness) {
+  (void)(brightness);
   uint32_t redAdj =   red   * colorBrightness / 1023;
   uint32_t greenAdj = green * colorBrightness / 1023;
   uint32_t blueAdj =  blue  * colorBrightness / 1023;
