@@ -1,3 +1,11 @@
+# Warning
+This repository is planned to become "the one and only Supla device project".
+It is under heavy development and it will take some time before it will be
+usable.
+
+Below readme file is just a copy of some older file, so don't take it seriously
+in this context.
+
 # SUPLA project
 
 [SUPLA](https://www.supla.org) is an open source project for home automation. 
