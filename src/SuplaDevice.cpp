@@ -18,7 +18,6 @@
 #include <string.h>
 
 #include "SuplaDevice.h"
-#include "supla-common/IEEE754tools.h"
 #include "supla-common/log.h"
 #include "supla-common/srpc.h"
 #include "supla/channel.h"
