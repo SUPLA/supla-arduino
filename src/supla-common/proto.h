@@ -104,8 +104,8 @@ extern char sproto_tag[SUPLA_TAG_SIZE];
 #define SUPLA_PROTO_VERSION_MIN 1
 #if defined(ARDUINO_ARCH_AVR)     // Arduino IDE for Arduino HW
 #define SUPLA_MAX_DATA_SIZE 1248  // Registration header + 32 channels x 21 B
-#elif defined(ARDUINO_ARCH_ESP8266) || \
-    defined(ARDUINO_ARCH_ESP32)   // Arduino IDE for ESP8266
+#elif defined(ARDUINO) || \
+    defined(SUPLA_DEVICE)   // Other Arduino compilations and SUPLA_DEVICE
 #define SUPLA_MAX_DATA_SIZE 3264  // Registration header + 128 channels x 21 B
 #elif defined(ESP8266)
 #define SUPLA_MAX_DATA_SIZE 1536

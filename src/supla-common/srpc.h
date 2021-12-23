@@ -49,7 +49,7 @@
 #define SRPC_ICACHE_FLASH
 #endif
 
-#if defined(__AVR__)
+#if defined(__AVR__) || defined(ARDUINO) || defined (SUPLA_DEVICE)
 #define SRPC_EXCLUDE_CLIENT
 #define SRPC_WITHOUT_OUT_QUEUE
 #define SRPC_WITHOUT_IN_QUEUE

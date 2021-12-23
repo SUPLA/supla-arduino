@@ -26,6 +26,8 @@
 #include <wchar.h>
 #elif defined(ARDUINO)
 void serialPrintLn(const char*);
+#elif defined(SUPLA_DEVICE)
+// new supla-device lib
 #else
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -43,9 +45,9 @@ void serialPrintLn(const char*);
 
 #else
 
-#ifndef ARDUINO
+#if !defined(ARDUINO) && !defined(SUPLA_DEVICE)
 #include "cfg.h"
-#endif /*ARDUINO*/
+#endif /*!defined(ARDUINO) && !defined(SUPLA_DEVICE)*/
 
 #endif /*ESP8266*/
 
@@ -121,6 +123,12 @@ void supla_vlog(int __pri, const char *message) {
 void supla_vlog(int __pri, const char *message) {
   (void)(__pri);
   serialPrintLn(message);
+}
+#elif defined(SUPLA_DEVICE)
+void supla_vlog(int __pri, const char *message) {
+  (void)(__pri);
+  printf("%s\n", message);
+  // TODO add implementation
 }
 #elif defined(ESP8266)
 // supla-espressif-esp variant
@@ -213,7 +221,8 @@ void LOG_ICACHE_FLASH supla_log(int __pri, const char *__fmt, ...) {
   char *buffer = NULL;
   int size = 0;
 
-#if defined(ESP8266) || defined(ARDUINO) || defined(_WIN32)
+#if defined(ESP8266) || defined(ARDUINO) || defined(_WIN32) || \
+  defined(SUPLA_DEVICE)
   if (__fmt == NULL) return;
 #else
   if (__fmt == NULL || (debug_mode == 0 && __pri == LOG_DEBUG)) return;
@@ -262,7 +271,8 @@ void LOG_ICACHE_FLASH supla_write_state_file(const char *file, int __pri,
     supla_vlog(__pri, buffer);
   }
 
-#if !defined(ESP8266) && !defined(ARDUINO) && !defined(WIN32)
+#if !defined(ESP8266) && !defined(ARDUINO) && !defined(WIN32) && \
+  !defined(SUPLA_DEVICE)
 
   int fd;
 

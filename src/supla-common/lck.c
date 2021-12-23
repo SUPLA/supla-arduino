@@ -26,7 +26,8 @@
 #endif /*__LCK_DEBUG*/
 
 #if defined(__AVR__) || defined(ARDUINO_ARCH_ESP8266) || \
-    defined(ARDUINO_ARCH_ESP32)
+    defined(ARDUINO_ARCH_ESP32) || defined(SUPLA_DEVICE)
+// TODO add multithread support for SUPLA_DEVICE
 #define __SINGLE_THREAD
 #else
 

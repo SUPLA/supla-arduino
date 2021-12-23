@@ -62,6 +62,10 @@
 #define SRPC_QUEUE_MIN_ALLOC_COUNT 1
 #define __EH_DISABLED
 
+#elif defined(SUPLA_DEVICE)
+
+#define __EH_DISABLED
+
 #else
 #include <assert.h>
 #endif
@@ -117,9 +121,11 @@ void *SRPC_ICACHE_FLASH srpc_init(TsrpcParams *params) {
 #ifndef ESP8266
 #ifndef ESP32
 #ifndef __AVR__
+#ifndef SUPLA_DEVICE
   assert(params != 0);
   assert(params->data_read != 0);
   assert(params->data_write != 0);
+#endif
 #endif
 #endif
 #endif
@@ -1686,7 +1692,8 @@ _supla_int_t SRPC_ICACHE_FLASH srpc_dcs_async_ping_server(void *_srpc) {
 }
 
 _supla_int_t SRPC_ICACHE_FLASH srpc_sdc_async_ping_server_result(void *_srpc) {
-#if !defined(ESP8266) && !defined(__AVR__) && !defined(ESP32)
+#if !defined(ESP8266) && !defined(__AVR__) && !defined(ESP32) && \
+  !defined(SUPLA_DEVICE)
   TSDC_SuplaPingServerResult ps;
 
   struct timeval now;
