@@ -1,0 +1,35 @@
+kind: pipeline
+name: default
+
+steps:
+- name: compilation
+  image: rikorose/gcc-cmake
+  commands:
+  - mkdir extras/test/build
+  - cd extras/test/build
+  - cmake ..
+  - make -j32
+
+- name: test
+  image: rikorose/gcc-cmake
+  commands:
+  - cd extras/test/build
+  - ./supladevicetests --gtest_repeat=50 --gtest_shuffle
+
+- name: rocket
+  image: mike1pol/drone-rocket
+  settings:
+    url:
+      from_secret: rocket_url
+    user_id:
+      from_secret: rocket_user_id
+    token:
+      from_secret: rocket_token
+    channel: github
+    avatar_url: "https://miro.medium.com/max/256/0*AqO_2lNemh_Fl9Gm.png"
+  when:
+    status: [success, failure]
+    event:
+      exclude:
+        - pull_request
+

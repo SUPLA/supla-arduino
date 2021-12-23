@@ -1,3 +1,290 @@
+# SUPLA project
+
+[SUPLA](https://www.supla.org) is an open source project for home automation. 
+
+# SuplaDevice library for Arduino IDE
+
+SuplaDevice is a library for [Arduino IDE](https://www.arduino.cc/en/main/software) that allows to implement devices working with [Supla](https://www.supla.org).
+
+## Library installation
+
+Please use library manager in Arduino IDE to install newest SuplaDevice library.
+
+## Hardware requirements
+
+### Arduino Mega
+SuplaDevice works with Arduino Mega boards. Arduino Uno is not supported because of RAM limitations. It should work on other Arduino boards with at least 8 kB of RAM.
+Following network interfaces are supported:
+* Ethernet Shield with W5100 chipset
+* ENC28J60 (not recommended - see Supported hardware section)
+
+Warning: WiFi shields are currently not supported. 
+
+### ESP8266 and ESP8285
+ESP8266 and ESP8285 boards are supported. Network connection is done via WiFi.
+
+### ESP32
+Experimental support for ESP32 boards is provided. Some issues seen with reconnection to WiFi router which requires further analysis.
+
+## Installation
+
+Before you start, you will need to:
+1. install Arduino IDE,
+2. install support for your board
+3. install driver for your USB to serial converter device (it can be external device, or build in on your board)
+4. make sure that communication over serial interface with your board is working (i.e. check some example Arduino application)
+5. download and install this librarary
+
+Above steps are standard Arudino IDE setup procedures not related to SuplaDevice library. You can find many tutorials on Internet with detailed instructions. Tutorials doesn't have to be related in any way with Supla. 
+
+After step 5 you should see Supla example applications in Arduino IDE examples. Select one and have fun! Example file requires adjustments before you compile them and upload to your board. Please read all comments in example and make proper adjustments. 
+
+## Usage
+
+### Network interfaces
+Supported network interfaces for Arduino Mega:
+* Ethernet Shield - with W5100 chipset. Include `<supla/network/ethernet_shield.h>` and add `Supla::EthernetShield ethernet;` as a global variable.
+* ENC28J60 - it requires additional UIPEthenet library (https://github.com/ntruchsess/arduino_uip). Include `<supla/network/ENC28J60.h>` and 
+add `Supla::ENC28J60 ethernet;` as a global variable. Warning: network initialization on this library is blocking. In case of missing ENC28J60 board
+or some other problem with network, program will stuck on initialization and will not work until connection is properly esablished.
+Second warning: UIPEthernet library is consuming few hundred of bytes of RAM memory more, compared to standard Ethernet library. 
+
+Supported network interface for ESP8266:
+* There is a native WiFi controller. Include `<supla/network/esp_wifi.h>` and add `Supla::ESPWifi wifi(ssid, password);` as a global variable and provide SSID and password in a constructor.
+Warning: by default connection with Supla server is encrypted. Default settings of SSL consumes big amount of RAM. 
+To disable SSL connection, use:
+  `wifi.enableSSL(false);`
+
+
+
+SSL certificate verification.
+If you specify Supla's server certificate thumbprint there will be additional verification proceeded. Please use this method to configure fingerprint for validation:
+  `wifi.setServersCertFingerprint("9ba818295ec60652f8221500e15288d7a611177");'
+
+
+
+Supported network interface for ESP32:
+* There is a native WiFi controller. Include `<supla/network/esp_wifi.h>` and add `Supla::ESPWifi wifi(ssid, password);` as a global variable and provide SSID and password in a constructor.
+
+### Exmaples
+
+Each example can run on Arduino Mega, ESP8266, or ESP32 board - unless mentioned otherwise in comments. Please read comments in example files and uncomment proper library for your network interface.
+
+### Folder structure
+
+* `supla-common` - Supla protocol definitions and structures. There are also methods to handle low level communication with Supla server, like message coding, decoding, sending and receiving. Those files are common with `supla-core` and the same code is run on multiple Supla platforms and services
+* `supla/network` - implementation of network interfaces for supported boards
+* `supla/sensor` - implementation of Supla sensor channels (thermometers, open/close sensors, etc.)
+* `supla/storage` - implementation of persistant storage interfaces used by some Elements (i.e. keeping impulse counter data)
+* `supla/control` - implementation of Supla control channels (various combinations of relays, buttons, action triggers)
+* `supla/clock` - time services used in library (i.e. RTC)
+* `supla/conditions` - classes that are used to check runtime dependencies between channels (i.e. turn on relay when humidity is below 40%)
+* `supla/pv` - supported integrations with inverters used with photovoltaic
+* `supla` - all common classes are defined in main `supla` folder. You can find there classes that create framework on which all other components work. 
+
+Some functions from above folders have dependencies to external libraries. Please check documentation included in header files.
+
+### How does it work?
+
+Everything that is visible in Supla (in Cloud, on API, mobile application) is called "channel". Supla channels are used to control relays, read temperature, check if garage door is open. 
+
+SuplaDevice implements support for channels in `Channel` and `ChannelExtended` classes. Instances of those classes are part of objects called `Element` which are building blocks for any SuplaDevice application.
+
+All sensors, relays, buttons objects inherits from `Element` class. Each instance of such object will automatically register in SuplaDevice and proper virtual methods will be called by SuplaDevice in a specified way.
+
+All elements have to be constructed before `SuplaDevice.begin()` method is called.
+
+Supla channel number is assigned to each elemement with channel in an order of creation of objects. First channel will get number 0, second 1, etc. Supla server will not accept registration of device when order of channels is changed, or some channel is removed. In such case, you should remove device from Supla Cloud and register it again from scratch.
+
+`Element` class defines follwoing virtual methods that are called by SuplaDevice:
+1. `onLoadState` - called first within `SuplaDevice.begin()` method. It reads configuration data from persistent memory storage.
+2. `onInit` - called second within `SuplaDevice.begin()` method. It should initialize your element - all GPIO settings should be done there and proper state of channel should be set. 
+3. `onSaveState` - called in `SuplaDevice.iterate()` - it saves state data to persistant storage. It is not called on each iteration. `Storage` class makes sure that storing to memory does not happen too often and time delay between saves depends on implementation. 
+3. `iterateAlways` - called on each iteration of `SuplaDevice.iterate()` method, regardless of network/connection status. Be careful - some other methods called in `SuplaDevice.iterate()` method may block program execution for some time (even few seconds) - i.e. trying to establish connection with Supla server is blocking - in case server is not accessible, it will iterfere with `iterateAlways` method. So time critical functions should not be put here.
+4. `iterateConnected` - called on each iterateion of `SuplaDevice.iterate()` method when device is connected and properly registered in Supla server. This method usually checks if there is some new data to be send to server (i.e. new temperature reading) and sends it. 
+5. `onTimer` - called every 10 ms after enabling in `SuplaDevice.begin()`
+6. `onFastTimer` - called every 1 ms (0.5 ms in case of Arudino Mega) after enabling in `SuplaDevice.begin()`
+
+## How to migrate programs written in SuplaDevice libraray versions 1.6 and older
+
+For Arduino Mega applications include proper network interface header:
+```
+// Choose proper network interface for your card:
+// Arduino Mega with EthernetShield W5100:
+#include <supla/network/ethernet_shield.h>
+// Ethernet MAC address
+uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
+Supla::EthernetShield ethernet(mac);
+//
+// Arduino Mega with ENC28J60:
+// #include <supla/network/ENC28J60.h>
+// Supla::ENC28J60 ethernet(mac);
+
+```
+
+For ESP8266 based applications include wifi header and provide WIFI SSID and password:
+```
+// ESP8266 based board:
+#include <supla/network/esp_wifi.h>
+Supla::ESPWifi wifi("your_wifi_ssid", "your_wifi_password");
+```
+
+In case of ESP8266 remove all methods that defined network interface. They were usually added on the bottom of ino file, after end of loop() method, i.e.:
+```
+// Supla.org ethernet layer
+    int supla_arduino_tcp_read(void *buf, int count) {
+...
+SuplaDeviceCallbacks supla_arduino_get_callbacks(void) {
+...
+```
+
+Remove also those lines:
+```
+#define SUPLADEVICE_CPP
+WiFiClient client;
+```
+You may also remove all WIFI related includes from ino file.
+
+Common instruction for all boards:
+
+If you use local IP address, please provide it in constructor of your network inteface class, i.e.:
+```
+Supla::EthernetShield ethernet(mac, localIp);
+```
+
+After that go to SuplaDevice.begin() method. Old code looked like this
+```
+SuplaDevice.begin(GUID,              // Global Unique Identifier 
+                  mac,               // Ethernet MAC address
+                  "svr1.supla.org",  // SUPLA server address
+                  locationId,                 // Location ID 
+                  locationPassword);          // Location Password
+```
+This method requires now different set of parameters:
+```
+  SuplaDevice.begin(GUID,              // Global Unique Identifier 
+                    "svr1.supla.org",  // SUPLA server address
+                    "mail@address.pl",     // Email address
+                    AUTHKEY);          // Authentication key
+```
+What is different? Well, GUID and Supla server address it the same as previously. MAC address, location ID, location password are removed.
+MAC address was moved to network interface class. Location ID and password were replaced with new authentication method - via email address
+and authentication key. You can generate your authentication key in the same way as GUID (it is actually in exactly the same format):
+```
+// Generate AUTHKEY from https://www.supla.org/arduino/get-authkey
+char AUTHKEY[SUPLA_AUTHKEY_SIZE] =  {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+```
+
+Next change is for custom digitalWrite and digitalRead methods. Those can be used to create virtual digital pins. Instead of adding custom
+callback method that overrides digitalWrite/Read method, you should create a new class which inhertis from Supla::Io base class and define
+your own customDigitalRead/Write methods. Here is short example (you can put this code in ino file, before setup()):
+```
+#include <supla/io.h>
+
+class MyDigitalRead : public Supla::Io {
+  public:
+    int customDigitalRead(int channelNumber, uint8_t pin) {
+      if (channelNumber == MY_EXTRA_VIRTUAL_CHANNEL) {
+        return someCustomSourceOfData.getValue();
+      } else {
+        return ::digitalRead(pin);
+      }
+    }
+}
+
+MyDigitalRead instanceMyDigitalRead;
+```
+
+All channels from old version of library should be removed and created again in a new format. Please check instructions below how to add each type of channel.
+
+## Supported channels
+### Sensors
+Sensor category is for all elements/channels that reads something and provides data to Supla server. All sensors are in `Supla::Sensor` namespace:
+
+* `Binary` - two state sensor: on/off, enabled/disabled, open/closesd, etc. It reads GPIO state: LOW/HIGH
+* `VirtualBinary` - similar to `Binary` but it use settable variable in memory to show state
+* `Thermometer` - base class for thermometer sensors
+* `DS18B20` - DS18B20 thermometer
+* `Si7021` - S17021 thermometer
+* `Si7021Sonoff` - Si7021 thermometer for Sonoff
+* `MAX6675_K` - MAX6675_K thermometer
+* `ThermHygroMeter` - base class for sensors capable of measuring temperature and humidity
+* `DHT` - DHT11 and DHT22 support
+* `SHT3x` - SHT3x support
+* `ThermHygroPressMeter` - base class for sensors capable of measuring temperature, humidity, and pressure
+* `BME280` - BME280 support
+* `Distance` - base class for distance sensors
+* `HC_SR04` - HC_SR04 distance meter
+* `Pressure` - base class for presure meters
+* `Wind` - base class for wind meters (speed)
+* `Rain` - base class for rain meters
+* `Weight` - base class for weight meters
+* `ImpulseCounter` - calculates impulses on a given GPIO
+* `ElectricityMeter` - base class for electricity meters
+* `PZEMv2` - PZEMv2 one phase electricity meter
+* `PZEMv3` - PZEMv3 one phase electricity meter
+* `ThreePhasePZEMv3` - 3x PZEMv3 for measuring three phases
+* `EspFreeHeap` - provides free heap memory on ESP8266 as a Channel
+
+### Control 
+Control category is for all elements/channels that are used to control something, i.e. relays, buttons, RGBW.
+Classes in this category are in namespace `Supla::Control`:
+
+* `BistableRelay` - SuplaDevice sends short impulses on GPIO to trigger change of bistable relay. It requires additional GPIO input to read status of relay
+* `BistableRollerShutter` - Roller shutter implementation to control external roller shutter controllers that work in a similar way to bistable relays
+* `Button` - allows to use button connected to GPIO to control other elements in device. Supports multiclicks, long click, etc
+* `DimmerBase` - base class for dimmers
+* `DimmerLeds` - PWM based implementation for dimmer
+* `InternalPinOutput` - allows to control GPIO without showing it to Supla as a channel
+* `LightRelay` - extension of Relay class that allows to monitor and configure lifespan of light source
+* `PinStatusLed` - allows to duplicate GPIO state to another GPIO which can have connected LED to show status
+* `Relay` - allows to control relay through GPIO
+* `RGBBase` - base class for RGB control
+* `RGBLeds` - PWM based implementation for RGB lights
+* `RGBWBase` - base class for RGBW control
+* `RollerShutter` - controller for roller shutters
+* `SequenceButton` - extension of button which allows to trigger actions based on specific sequence/rythm
+* `SimpleButton` - button that allows only press and release detection with lower memory footprint
+* `VirtualRelay` - relay which keeps its state in memory and doesn't affect any GPIO
+
+### Photovoltaic inverter
+SuplaDevice provides integrations for following inverters:
+
+* `Afore`
+* `Fronius`
+* `SolarEdge`
+
+## Supported persistant memory storage 
+Storage class is used as an abstraction for different persistant memory devices. Some elements/channels will not work properly without storage and some will have limitted functionalities. I.e. `ImpulseCounter` requires storage to save counter value, so it could be restored after reset, or `RollerShutter` requires storage to keep openin/closing times and current shutter possition. Currently two variants of storage classes are supported.
+### EEPROM/Flash memory
+EEPROM (in case of Arduino Mega) and Flash (in case of ESP) are build into most of boards. Usually writing should be safe for 100 000 write operations (on each bit). So in order to limit those operations, this kind of Storage will save data in longer time periods (every few minutes). Supla will not write data if there is no change.
+```
+#include <supla/storage/eeprom.h>
+Supla::Eeprom eeprom(SUPLA_STORAGE_OFFSET);
+```
+Offset parameter is optional - use it if you already use saving to EEPROM in your application and you want SuplaDevice to use some other area of memory.
+
+### Adafruit FRAM SPI
+FRAM is recommended for storage in Supla. It allows almost limitless writing cycles and it is very fast memory.
+Currently only Adafruit FRAM SPI is supported.
+```
+#include <supla/storage/fram_spi.h>
+// Hardware SPI
+Supla::FramSpi fram(FRAM_CS, SUPLA_STORAGE_OFFSET);
+```
+or with SW SPI:
+```
+// Software SPI
+Supla::FramSpi fram(SCK_PIN, MISO_PIN, MOSI_PIN, FRAM_CS, SUPLA_STORAGE_OFFSET);
+```
+
+## License
+
+
+Please check it [here](https://github.com/SUPLA/supla-cloud/blob/master/LICENSE).
+
+
+# Installation instruction (draft)
 ESP32:
 Espressif ESP-IDF SDK installation steps.
 Source https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html :

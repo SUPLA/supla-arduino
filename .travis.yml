@@ -1,0 +1,18 @@
+os: linux
+dist: xenial
+sudo: false
+language: cpp
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-6 
+
+script:
+  - mkdir extras/test/build
+  - cd extras/test/build
+  - CXX=/usr/bin/g++-6 CC=/usr/bin/gcc-6 cmake ..
+  - make
+  - ./supladevicetests
