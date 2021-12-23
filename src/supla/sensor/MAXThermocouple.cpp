@@ -49,7 +49,7 @@ double MAXThermocouple::getValue() {
       Serial.println(F("Max31855 Error"));
       return TEMPERATURE_NOT_AVAILABLE;
     } else {
-      uint16_t _internTemp = (value >> 4) & 0xfff;
+//      uint16_t _internTemp = (value >> 4) & 0xfff;
 
       value >>= 18;
       if (value & 0x2000) {  // is -

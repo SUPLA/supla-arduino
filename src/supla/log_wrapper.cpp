@@ -14,16 +14,11 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "action_handler.h"
+#include <Arduino.h>
 
-Supla::ActionHandler::~ActionHandler() {};
+extern "C" void serialPrintLn(const char *);
 
-void Supla::ActionHandler::activateAction(int action) {
-  (void)(action);
-};
-
-bool Supla::ActionHandler::deleteClient() {
-  return false;
+void serialPrintLn(const char *message) {
+  Serial.println(message);
 }
-
 

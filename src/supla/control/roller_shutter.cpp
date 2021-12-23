@@ -462,7 +462,7 @@ void RollerShutter::onTimer() {
   }
   // if (newCurrentPosition != currentPosition) {
   // currentPosition = newCurrentPosition;
-  TRollerShutterValue value = {};
+  TDSC_RollerShutterValue value = {};
   value.position = currentPosition;
   channel.setNewValue(value);
 }

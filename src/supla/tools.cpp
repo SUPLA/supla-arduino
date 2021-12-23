@@ -20,7 +20,7 @@
 
 void float2DoublePacked(float number, uint8_t *bar, int byteOrder) {
   (void)(byteOrder);
-  _FLOATCONV fl;
+  _FLOATCONV fl = {};
   fl.f = number;
   _DBLCONV dbl;
   dbl.p.s = fl.p.s;
@@ -44,9 +44,9 @@ void float2DoublePacked(float number, uint8_t *bar, int byteOrder) {
 
 float doublePacked2float(uint8_t *bar) {
   _FLOATCONV fl;
-  _DBLCONV dbl;
+  _DBLCONV dbl = {};
   for (int i = 0; i < 8; i++) {
-    dbl.b[i] = bar[i]; 
+    dbl.b[i] = bar[i];
   }
   fl.p.s = dbl.p.s;
   fl.p.m = dbl.p.m;
