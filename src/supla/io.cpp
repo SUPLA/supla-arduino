@@ -14,11 +14,18 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifdef ARDUINO
 
 #include "io.h"
+#include <supla-common/log.h>
 
+#ifdef ARDUINO
 #include <Arduino.h>
+#else
+// TODO implement those methods or extract them to separate interface
+void pinMode(uint8_t pin, uint8_t mode) {}
+int digitalRead(uint8_t pin) {return 0;}
+void digitalWrite(uint8_t pin, uint8_t val) {}
+#endif
 
 namespace Supla {
 void Io::pinMode(uint8_t pin, uint8_t mode) {
@@ -36,7 +43,7 @@ void Io::digitalWrite(uint8_t pin, uint8_t val) {
 void Io::pinMode(int channelNumber, uint8_t pin, uint8_t mode) {
   if (ioInstance) {
     ioInstance->customPinMode(channelNumber, pin, mode);
-  } else { 
+  } else {
     ::pinMode(pin, mode);
   }
 }
@@ -49,12 +56,9 @@ int Io::digitalRead(int channelNumber, uint8_t pin) {
 }
 
 void Io::digitalWrite(int channelNumber, uint8_t pin, uint8_t val) {
-  Serial.print(" **** Digital write[");
-  Serial.print(channelNumber);
-  Serial.print("], pin: ");
-  Serial.print(pin);
-  Serial.print("; value: ");
-  Serial.println(val);
+  supla_log(LOG_DEBUG, " **** Digital write[%d], gpio: %d; value %d",
+      channelNumber, pin, val);
+
   if (ioInstance) {
     ioInstance->customDigitalWrite(channelNumber, pin, val);
     return;
@@ -88,4 +92,3 @@ void Io::customPinMode(int channelNumber, uint8_t pin, uint8_t mode) {
 }
 
 };  // namespace Supla
-#endif
