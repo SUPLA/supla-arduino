@@ -19,7 +19,8 @@
 #ifndef _tools_H_
 #define _tools_H_
 
-#include <Arduino.h>
+#include <stdint.h>
+#include "definitions.h"
 #include "supla/IEEE754tools.h"
 
 void float2DoublePacked(float number, uint8_t *bar, int byteOrder = LSBFIRST);

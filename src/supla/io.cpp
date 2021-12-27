@@ -14,6 +14,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#ifdef ARDUINO
+
 #include "io.h"
 
 #include <Arduino.h>
@@ -86,3 +88,4 @@ void Io::customPinMode(int channelNumber, uint8_t pin, uint8_t mode) {
 }
 
 };  // namespace Supla
+#endif

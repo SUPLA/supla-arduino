@@ -26,4 +26,3 @@ bool Supla::ActionHandler::deleteClient() {
   return false;
 }
 
-

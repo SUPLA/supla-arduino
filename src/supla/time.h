@@ -14,13 +14,15 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#ifndef _supla_time_h
+#define _supla_time_h
+
 #ifdef ARDUINO
 #include <Arduino.h>
 
-extern "C" void serialPrintLn(const char *);
+#else
+unsigned long millis(void);
 
-void serialPrintLn(const char *message) {
-  Serial.println(message);
-}
+#endif
 
-#endif /*ARDUINO*/
+#endif /*_supla_time_h*/

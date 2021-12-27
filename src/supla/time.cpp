@@ -14,13 +14,31 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifdef ARDUINO
-#include <Arduino.h>
+#include "time.h"
 
-extern "C" void serialPrintLn(const char *);
+#ifndef ARDUINO
 
-void serialPrintLn(const char *message) {
-  Serial.println(message);
+#if defined(SUPLA_FREERTOS) || defined(ESP_PLATFORM)
+#ifdef SUPLA_FREERTOS
+// Plain FreeRTOS compilation
+#include <FreeRTOS.h>
+#include <task.h>
+#elif defined(ESP_PLATFORM)
+// ESP8266 RTOS SDK and ESP-IDF compilation
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#endif
+
+unsigned long millis(void) {
+  if (portTICK_PERIOD_MS != 1) {
+    // TODO
+    // error
+  }
+  return xTaskGetTickCount();
 }
 
-#endif /*ARDUINO*/
+#else
+#error "Please implement time functions for current target"
+#endif
+
+#endif

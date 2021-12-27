@@ -17,9 +17,6 @@
 #ifndef _element_h
 #define _element_h
 
-#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
-#include <cstddef>
-#endif
 #include "channel.h"
 
 namespace Supla {
