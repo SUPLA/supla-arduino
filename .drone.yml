@@ -31,6 +31,20 @@ steps:
   - /bin/bash -c "source /supla/esp/ESP8266_RTOS_SDK/export.sh && make -j32"
   - /bin/bash -c "[ -f build/supla-empty-esp8266-mk.bin ] && true || false"
 
+- name: esp_idf_compilation_check
+  image: devel/esp-idf
+  pull: never
+  commands:
+  - pwd
+  - echo $SUPLA_DEVICE_PATH
+  - ls -al
+  - export SUPLA_DEVICE_PATH=/drone/src
+  - cd extras/examples/empty_esp_idf_project/
+  - rm -f build/supla_empty_esp32.bin
+  - /bin/bash -c "source /supla/esp/esp-idf/export.sh && idf.py build"
+  - /bin/bash -c "[ -f build/supla_empty_esp32.bin ] && true || false"
+
+
 - name: rocket
   image: mike1pol/drone-rocket
   settings:
@@ -47,5 +61,5 @@ steps:
     event:
       exclude:
         - pull_request
-  depends_on: [tests, esp8266_rtos_compilation_check]
+  depends_on: [tests, esp8266_rtos_compilation_check, esp_idf_compilation_check]
 
