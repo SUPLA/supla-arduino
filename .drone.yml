@@ -2,7 +2,7 @@ kind: pipeline
 name: default
 
 steps:
-- name: compilation
+- name: tests_compilation
   image: rikorose/gcc-cmake
   commands:
   - mkdir extras/test/build
@@ -10,11 +10,19 @@ steps:
   - cmake ..
   - make -j32
 
-- name: test
+- name: tests
   image: rikorose/gcc-cmake
   commands:
   - cd extras/test/build
   - ./supladevicetests --gtest_repeat=50 --gtest_shuffle
+  depends_on:
+  - tests_compilation
+
+- name: esp8266_rtos_compilation_check
+  image: devel/esp8266_rtos_sdk
+  commands:
+  - pwd
+  - echo $SUPLA_DEVICE_PATH
 
 - name: rocket
   image: mike1pol/drone-rocket
@@ -32,4 +40,5 @@ steps:
     event:
       exclude:
         - pull_request
+  depends_on: [tests, esp8266_rtos_compilation_check]
 
