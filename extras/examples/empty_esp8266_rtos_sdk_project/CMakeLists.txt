@@ -4,5 +4,5 @@ cmake_minimum_required(VERSION 3.5)
 
 set(EXTRA_COMPONENT_DIRS "${SUPLA_DEVICE_PATH}/extras/esp-idf/")
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-project(hello-world-esp8266-cmake)
+project(supla_empty-esp8266-cmake)
 
