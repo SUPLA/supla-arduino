@@ -1,4 +1,7 @@
-set(SRCS 
+# This CMake file is used by gtest tests
+# TODO: cleanup cmake files
+
+set(SRCS
   supla/uptime.cpp
   supla/channel.cpp
   supla/channel_extended.cpp
@@ -10,7 +13,7 @@ set(SRCS
   supla/correction.cpp
   supla/at_channel.cpp
   supla/action_handler.cpp
-  
+
   supla/storage/storage.cpp
 
   supla/control/internal_pin_output.cpp

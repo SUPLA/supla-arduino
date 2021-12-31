@@ -44,6 +44,21 @@ steps:
   - /bin/bash -c "source /supla/esp/esp-idf/export.sh && idf.py build"
   - /bin/bash -c "[ -f build/supla_empty_esp32.bin ] && true || false"
 
+- name: freertos_linux_compilation_check
+  image: devel/freertos
+  pull: never
+  commands:
+  - pwd
+  - echo $SUPLA_DEVICE_PATH
+  - ls -al
+  - export SUPLA_DEVICE_PATH=/drone/src
+  - export SUPLA_FREERTOS_PATH=/supla/FreeRTOS
+  - cd extras/examples/empty_freertos_linux_project
+  - rm -f build/empty-supla-freertos-example
+  - cmake -B build
+  - cmake --build build
+  - /bin/bash -c "[ -f build/empty-supla-freertos-example ] && true || false"
+
 
 - name: rocket
   image: mike1pol/drone-rocket
@@ -61,5 +76,6 @@ steps:
     event:
       exclude:
         - pull_request
-  depends_on: [tests, esp8266_rtos_compilation_check, esp_idf_compilation_check]
+  depends_on: [tests, esp8266_rtos_compilation_check, esp_idf_compilation_check,
+               freertos_linux_compilation_check]
 
