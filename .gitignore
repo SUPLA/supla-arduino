@@ -1,1 +1,2 @@
-extras/test/build/
+extras/examples/empty_esp_idf_project/sdkconfig
+**/build/*

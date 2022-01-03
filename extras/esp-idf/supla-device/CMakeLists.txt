@@ -11,8 +11,6 @@ set(SUPLA_DEVICE_SRCS
   ../../../src/supla/channel.cpp
   ../../../src/supla/channel_element.cpp
   ../../../src/supla/channel_extended.cpp
-  ../../../src/supla/condition.cpp
-  ../../../src/supla/condition_getter.cpp
   ../../../src/supla/correction.cpp
   ../../../src/supla/element.cpp
   ../../../src/supla/io.cpp
@@ -40,16 +38,16 @@ set(SUPLA_DEVICE_SRCS
   # supla/control/relay.cpp
   # supla/control/virtual_relay.cpp
   #
-  # supla/condition.cpp
-  # supla/condition_getter.cpp
-  # supla/conditions/on_less.cpp
-  # supla/conditions/on_less_eq.cpp
-  # supla/conditions/on_greater.cpp
-  # supla/conditions/on_greater_eq.cpp
-  # supla/conditions/on_between.cpp
-  # supla/conditions/on_between_eq.cpp
-  # supla/conditions/on_equal.cpp
-  # supla/conditions/on_invalid.cpp
+  ../../../src/supla/condition.cpp
+  ../../../src/supla/condition_getter.cpp
+  ../../../src/supla/conditions/on_less.cpp
+  ../../../src/supla/conditions/on_less_eq.cpp
+  ../../../src/supla/conditions/on_greater.cpp
+  ../../../src/supla/conditions/on_greater_eq.cpp
+  ../../../src/supla/conditions/on_between.cpp
+  ../../../src/supla/conditions/on_between_eq.cpp
+  ../../../src/supla/conditions/on_equal.cpp
+  ../../../src/supla/conditions/on_invalid.cpp
   #
   # SuplaDevice.cpp
   # supla/network/network.cpp

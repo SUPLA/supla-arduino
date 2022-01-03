@@ -37,6 +37,17 @@ unsigned long millis(void) {
   return xTaskGetTickCount();
 }
 
+#elif SUPLA_LINUX
+#include <chrono>
+
+std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
+unsigned long millis() {
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+  return std::chrono::duration_cast<std::chrono::milliseconds>(end - begin)
+    .count();
+}
+
 #else
 #error "Please implement time functions for current target"
 #endif

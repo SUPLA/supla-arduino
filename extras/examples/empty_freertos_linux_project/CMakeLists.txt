@@ -16,6 +16,7 @@ set(BOARD_SRC
 # FreeRTOSConfig.h file. supla-device depends on FreeRTOS.h and beacuse of
 # that everything depends on local board files...
 add_library(supladevice "")
+target_compile_definitions(supladevice PUBLIC SUPLA_FREERTOS)
 add_subdirectory($ENV{SUPLA_DEVICE_PATH} supla-device)
 
 # FreeRTOS sources required for Linux compilation (from portable folder)
@@ -31,7 +32,7 @@ set(FREERTOS_SRC
   $ENV{SUPLA_FREERTOS_PATH}/FreeRTOS/Source/portable/MemMang/heap_3.c
   )
 
-target_sources(supladevice PUBLIC ${FREERTOS_SRC})
+target_sources(supladevice PUBLIC ${FREERTOS_SRC} )
 target_include_directories (supladevice
   PUBLIC
   $ENV{SUPLA_FREERTOS_PATH}/FreeRTOS/Source/include

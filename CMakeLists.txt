@@ -15,6 +15,14 @@ set(SUPLA_DEVICE_SRCS
 
   src/supla/condition.cpp
   src/supla/condition_getter.cpp
+  src/supla/conditions/on_less.cpp
+  src/supla/conditions/on_less_eq.cpp
+  src/supla/conditions/on_greater.cpp
+  src/supla/conditions/on_greater_eq.cpp
+  src/supla/conditions/on_between.cpp
+  src/supla/conditions/on_between_eq.cpp
+  src/supla/conditions/on_equal.cpp
+  src/supla/conditions/on_invalid.cpp
 )
 
 set(SUPLA_COMMON_SRCS
@@ -37,4 +45,4 @@ target_include_directories (supladevice
   ${CMAKE_CURRENT_SOURCE_DIR}/src/supla-common
   )
 
-target_compile_definitions(supladevice PUBLIC SUPLA_FREERTOS SUPLA_DEVICE)
+target_compile_definitions(supladevice PUBLIC SUPLA_DEVICE)
