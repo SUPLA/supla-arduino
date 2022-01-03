@@ -23,6 +23,8 @@ set(SUPLA_DEVICE_SRCS
   src/supla/conditions/on_between_eq.cpp
   src/supla/conditions/on_equal.cpp
   src/supla/conditions/on_invalid.cpp
+
+  src/supla/clock/clock.cpp
 )
 
 set(SUPLA_COMMON_SRCS
