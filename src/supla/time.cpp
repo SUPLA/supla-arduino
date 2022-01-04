@@ -37,7 +37,7 @@ unsigned long millis(void) {
   return xTaskGetTickCount();
 }
 
-void delay(int) {
+void delay(unsigned long) {
 // TODO
 }
 
@@ -52,7 +52,7 @@ unsigned long millis() {
     .count();
 }
 
-void delay(int) {
+void delay(unsigned long) {
 // TODO
 }
 #else
