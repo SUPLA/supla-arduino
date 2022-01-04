@@ -22,14 +22,14 @@
 #ifndef _relay_h
 #define _relay_h
 
-#include <Arduino.h>
-
 #include "../actions.h"
 #include "../channel_element.h"
 #include "../io.h"
 #include "../storage/storage.h"
 #include "../action_handler.h"
 #include "../local_action.h"
+
+#include <stdint.h>
 
 #define STATE_ON_INIT_RESTORED_OFF -3
 #define STATE_ON_INIT_RESTORED_ON -2
@@ -77,7 +77,6 @@ class Relay : public ChannelElement, public ActionHandler {
   unsigned _supla_int_t storedTurnOnDurationMs;
   unsigned long durationTimestamp;
   bool keepTurnOnDurationMs;
-
 };
 
 };  // namespace Control

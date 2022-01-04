@@ -4,7 +4,9 @@ COMPONENT_ADD_INCLUDEDIRS := ../../../src
 COMPONENT_SRCDIRS := ../../../src/supla-common \
 										 ../../../src/supla \
 										 ../../../src/supla/conditions \
-										 ../../../src/supla/clock
+										 ../../../src/supla/clock \
+										 ../../../src/supla/control \
+										 ../../../src/supla/storage
 
 CFLAGS += -DSUPLA_DEVICE
 CPPFLAGS += -DSUPLA_DEVICE

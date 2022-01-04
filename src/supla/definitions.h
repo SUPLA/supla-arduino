@@ -19,8 +19,32 @@
 #ifndef _definitions_h_
 #define _definitions_h_
 
+#ifdef ARDUINO
+#include <Arduino.h>
+#endif
+
 #ifndef LSBFIRST
 #define LSBFIRST 0
 #endif /*LSBFIRST*/
+
+#ifndef LOW
+#define LOW 0
+#endif /*LOW*/
+
+#ifndef HIGH
+#define HIGH 1
+#endif /*HIGH*/
+
+#ifndef INPUT
+#define INPUT 0
+#endif /*INPUT*/
+
+#ifndef INPUT_PULLUP
+#define INPUT_PULLUP 2
+#endif /*INPUT_PULLUP*/
+
+#ifndef OUTPUT
+#define OUTPUT 1
+#endif /*OUTPUT*/
 
 #endif /*_definitions_h_*/

@@ -25,6 +25,7 @@
 void pinMode(uint8_t pin, uint8_t mode) {}
 int digitalRead(uint8_t pin) {return 0;}
 void digitalWrite(uint8_t pin, uint8_t val) {}
+void analogWrite(uint8_t pin, int val) {}
 #endif
 
 namespace Supla {
@@ -89,6 +90,26 @@ void Io::customDigitalWrite(int channelNumber, uint8_t pin, uint8_t val) {
 void Io::customPinMode(int channelNumber, uint8_t pin, uint8_t mode) {
   (void)(channelNumber);
   ::pinMode(pin, mode);
+}
+
+void Io::analogWrite(int channelNumber, uint8_t pin, int val) {
+  supla_log(LOG_DEBUG, " **** Analog write[%d], gpio: %d; value %d",
+      channelNumber, pin, val);
+
+  if (ioInstance) {
+    ioInstance->customAnalogWrite(channelNumber, pin, val);
+    return;
+  }
+  ::analogWrite(pin, val);
+}
+
+void Io::analogWrite(uint8_t pin, int val) {
+  analogWrite(-1, pin, val);
+}
+
+void Io::customAnalogWrite(int channelNumber, uint8_t pin, int val) {
+  (void)(channelNumber);
+  ::analogWrite(pin, val);
 }
 
 };  // namespace Supla

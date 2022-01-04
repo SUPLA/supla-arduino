@@ -16,6 +16,7 @@
 
 #include "button.h"
 #include "../io.h"
+#include "../time.h"
 
 Supla::Control::ButtonState::ButtonState(int pin, bool pullUp, bool invertLogic)
     : debounceTimeMs(0),

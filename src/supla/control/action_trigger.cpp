@@ -15,6 +15,7 @@
 */
 
 #include "action_trigger.h"
+#include <supla-common/log.h>
 
 Supla::Control::ActionTrigger::ActionTrigger() {
   channel.setType(SUPLA_CHANNELTYPE_ACTIONTRIGGER);
@@ -145,10 +146,8 @@ void Supla::Control::ActionTrigger::handleChannelConfig(
     TSD_ChannelConfig_ActionTrigger *config =
       reinterpret_cast<TSD_ChannelConfig_ActionTrigger *>(result->Config);
     activeActionsFromServer = config->ActiveActions;
-    Serial.print(F("AT["));
-    Serial.print(channel.getChannelNumber());
-    Serial.print(F("] received config with active actions: "));
-    Serial.println(activeActionsFromServer);
+    supla_log(LOG_DEBUG, "AT[%d] received config with active actions: %d",
+        channel.getChannelNumber(), activeActionsFromServer);
     uint32_t actionsToDisable =
       activeActionsFromServer & disablesLocalOperation;
     if (attachedButton) {
@@ -187,8 +186,6 @@ void Supla::Control::ActionTrigger::handleChannelConfig(
         }
       }
     }
-  } else {
-    Serial.println(F("Invalid format of channel config received for AT"));
   }
 }
 

@@ -17,7 +17,6 @@
 #ifndef _rgbw_base_h
 #define _rgbw_base_h
 
-#include <Arduino.h>
 #include <stdint.h>
 
 #include "../action_handler.h"

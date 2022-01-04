@@ -15,6 +15,7 @@
 */
 
 #include "bistable_relay.h"
+#include <supla/time.h>
 
 using namespace Supla;
 using namespace Control;

@@ -54,3 +54,8 @@ float doublePacked2float(uint8_t *bar) {
 
   return fl.f;
 }
+
+long adjustRange(long input, long inMin, long inMax, long outMin, long outMax) {
+  long result = (input - inMin) * (outMax - outMin) / (inMax - inMin);
+  return result + outMin;
+}

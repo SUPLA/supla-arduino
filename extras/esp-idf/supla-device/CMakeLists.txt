@@ -22,22 +22,27 @@ set(SUPLA_DEVICE_SRCS
   ../../../src/supla/tools.cpp
   ../../../src/supla/uptime.cpp
 
-  # supla/storage/storage.cpp
-  #
-  # supla/control/internal_pin_output.cpp
-  # supla/control/pin_status_led.cpp
-  # supla/control/rgbw_base.cpp
-  # supla/control/rgb_base.cpp
-  # supla/control/dimmer_base.cpp
-  # supla/control/rgbw_leds.cpp
-  # supla/control/rgb_leds.cpp
-  # supla/control/dimmer_leds.cpp
-  # supla/control/simple_button.cpp
-  # supla/control/button.cpp
-  # supla/control/action_trigger.cpp
-  # supla/control/relay.cpp
-  # supla/control/virtual_relay.cpp
-  #
+  ../../../src/supla/storage/storage.cpp
+
+  ../../../src/supla/control/action_trigger.cpp
+  ../../../src/supla/control/bistable_relay.cpp
+  ../../../src/supla/control/bistable_roller_shutter.cpp
+  ../../../src/supla/control/button.cpp
+  ../../../src/supla/control/dimmer_base.cpp
+  ../../../src/supla/control/dimmer_leds.cpp
+  ../../../src/supla/control/internal_pin_output.cpp
+  ../../../src/supla/control/light_relay.cpp
+  ../../../src/supla/control/pin_status_led.cpp
+  ../../../src/supla/control/relay.cpp
+  ../../../src/supla/control/rgb_base.cpp
+  ../../../src/supla/control/rgb_leds.cpp
+  ../../../src/supla/control/rgbw_base.cpp
+  ../../../src/supla/control/rgbw_leds.cpp
+  ../../../src/supla/control/roller_shutter.cpp
+  ../../../src/supla/control/sequence_button.cpp
+  ../../../src/supla/control/simple_button.cpp
+  ../../../src/supla/control/virtual_relay.cpp
+
   ../../../src/supla/condition.cpp
   ../../../src/supla/condition_getter.cpp
   ../../../src/supla/conditions/on_less.cpp

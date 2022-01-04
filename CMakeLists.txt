@@ -25,6 +25,27 @@ set(SUPLA_DEVICE_SRCS
   src/supla/conditions/on_invalid.cpp
 
   src/supla/clock/clock.cpp
+
+  src/supla/storage/storage.cpp
+
+  src/supla/control/action_trigger.cpp
+  src/supla/control/bistable_relay.cpp
+  src/supla/control/bistable_roller_shutter.cpp
+  src/supla/control/button.cpp
+  src/supla/control/dimmer_base.cpp
+  src/supla/control/dimmer_leds.cpp
+  src/supla/control/internal_pin_output.cpp
+  src/supla/control/light_relay.cpp
+  src/supla/control/pin_status_led.cpp
+  src/supla/control/relay.cpp
+  src/supla/control/rgb_base.cpp
+  src/supla/control/rgb_leds.cpp
+  src/supla/control/rgbw_base.cpp
+  src/supla/control/rgbw_leds.cpp
+  src/supla/control/roller_shutter.cpp
+  src/supla/control/sequence_button.cpp
+  src/supla/control/simple_button.cpp
+  src/supla/control/virtual_relay.cpp
 )
 
 set(SUPLA_COMMON_SRCS

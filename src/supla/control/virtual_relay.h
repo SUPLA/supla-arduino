@@ -26,13 +26,13 @@ class VirtualRelay : public Relay {
   VirtualRelay(_supla_int_t functions =
                    (0xFF ^ SUPLA_BIT_FUNC_CONTROLLINGTHEROLLERSHUTTER));
 
-  void onInit(); 
+  void onInit();
   void turnOn(_supla_int_t duration = 0);
   void turnOff(_supla_int_t duration = 0);
   bool isOn();
 
  protected:
-  bool state;
+  bool state = false;
 };
 
 };  // namespace Control

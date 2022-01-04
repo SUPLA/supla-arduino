@@ -26,5 +26,7 @@
 void float2DoublePacked(float number, uint8_t *bar, int byteOrder = LSBFIRST);
 float doublePacked2float(uint8_t *bar);
 
+long adjustRange(long input, long inMin, long inMax, long outMin, long outMax);
+
 
 #endif
