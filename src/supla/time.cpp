@@ -37,6 +37,10 @@ unsigned long millis(void) {
   return xTaskGetTickCount();
 }
 
+void delay(int) {
+// TODO
+}
+
 #elif SUPLA_LINUX
 #include <chrono>
 
@@ -48,6 +52,9 @@ unsigned long millis() {
     .count();
 }
 
+void delay(int) {
+// TODO
+}
 #else
 #error "Please implement time functions for current target"
 #endif

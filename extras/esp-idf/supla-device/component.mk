@@ -6,7 +6,9 @@ COMPONENT_SRCDIRS := ../../../src/supla-common \
 										 ../../../src/supla/conditions \
 										 ../../../src/supla/clock \
 										 ../../../src/supla/control \
-										 ../../../src/supla/storage
+										 ../../../src/supla/storage \
+										 ../../../src/ \
+										 ../../../src/supla/network
 
 CFLAGS += -DSUPLA_DEVICE
 CPPFLAGS += -DSUPLA_DEVICE

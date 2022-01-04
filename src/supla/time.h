@@ -22,6 +22,7 @@
 
 #else
 unsigned long millis(void);
+void delay(int);
 
 #endif
 

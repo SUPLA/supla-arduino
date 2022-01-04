@@ -16,6 +16,8 @@
 
 #ifdef ARDUINO
 #include <Arduino.h>
+#endif
+
 #include <SuplaDevice.h>
 
 #include "timer.h"
@@ -53,7 +55,7 @@ void esp_timer_cb() {
 void esp_fastTimer_cb() {
   SuplaDevice.onFastTimer();
 }
-#else
+#elif defined(ARDUINO_ARCH_AVR)
 ISR(TIMER1_COMPA_vect) {
   SuplaDevice.onTimer();
 }
@@ -78,7 +80,7 @@ void initTimers() {
 #elif defined(ARDUINO_ARCH_ESP32)
   supla_esp_timer.attach_ms(10, esp_timer_cb);
   supla_esp_fastTimer.attach_ms(1, esp_fastTimer_cb);
-#else
+#elif defined(ARDUINO_ARCH_AVR)
   // Timer 1 for interrupt frequency 100 Hz (10 ms)
   TCCR1A = 0;  // set entire TCCR1A register to 0
   TCCR1B = 0;  // same for TCCR1B
@@ -108,7 +110,7 @@ void initTimers() {
   TIMSK2 |= (1 << OCIE2A);
   sei();  // allow interrupts
 #endif
+  // TODO implement timers startup
 }
 
 };  // namespace Supla
-#endif /*ARDUINO*/

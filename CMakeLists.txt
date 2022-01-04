@@ -1,4 +1,6 @@
 set(SUPLA_DEVICE_SRCS
+  src/SuplaDevice.cpp
+
   src/supla/uptime.cpp
   src/supla/channel.cpp
   src/supla/channel_extended.cpp
@@ -27,6 +29,8 @@ set(SUPLA_DEVICE_SRCS
   src/supla/clock/clock.cpp
 
   src/supla/storage/storage.cpp
+
+  src/supla/network/network.cpp
 
   src/supla/control/action_trigger.cpp
   src/supla/control/bistable_relay.cpp

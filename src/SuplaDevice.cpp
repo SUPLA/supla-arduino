@@ -14,7 +14,6 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include <Arduino.h>
 #include <string.h>
 
 #include "SuplaDevice.h"
@@ -25,11 +24,12 @@
 #include "supla/io.h"
 #include "supla/storage/storage.h"
 #include "supla/timer.h"
+#include "supla/time.h"
 
 void SuplaDeviceClass::status(int newStatus, const char *msg, bool alwaysLog) {
   bool showLog = false;
   if (currentStatus != newStatus && !(newStatus == STATUS_REGISTER_IN_PROGRESS && currentStatus > STATUS_REGISTER_IN_PROGRESS)) {
-    if (impl_arduino_status != NULL) {
+    if (impl_arduino_status != nullptr) {
       impl_arduino_status(newStatus, msg);
     } 
     currentStatus = newStatus;
@@ -45,7 +45,7 @@ SuplaDeviceClass::SuplaDeviceClass()
       currentStatus(STATUS_UNKNOWN),
       impl_arduino_status(nullptr),
       clock(nullptr) {
-  srpc = NULL;
+  srpc = nullptr;
   registered = 0;
   lastIterateTime = 0;
   waitForIterate = 0;
@@ -60,7 +60,7 @@ void SuplaDeviceClass::setStatusFuncImpl(
 }
 
 bool SuplaDeviceClass::isInitialized(bool msg) {
-  if (srpc != NULL) {
+  if (srpc != nullptr) {
     if (msg)
       status(STATUS_ALREADY_INITIALIZED, "SuplaDevice is already initialized");
 
@@ -95,8 +95,8 @@ bool SuplaDeviceClass::begin(unsigned char version) {
   // Pefrorm dry run of write state to validate stored state section with
   // current device configuration
   if (Supla::Storage::PrepareState(true)) {
-    Serial.println(F(
-        "Validating storage state section with current device configuration"));
+    supla_log(LOG_DEBUG,
+        "Validating storage state section with current device configuration");
     for (auto element = Supla::Element::begin(); element != nullptr;
          element = element->next()) {
       element->onSaveState();
@@ -104,9 +104,9 @@ bool SuplaDeviceClass::begin(unsigned char version) {
     }
     // If state storage validation was successful, perform read state
     if (Supla::Storage::FinalizeSaveState()) {
-      Serial.println(
-          F("Storage state section validation completed. Loading elements "
-            "state..."));
+      supla_log(LOG_DEBUG,
+          "Storage state section validation completed. Loading elements "
+          "state...");
       // Iterate all elements and load state
       Supla::Storage::PrepareState();
       for (auto element = Supla::Element::begin(); element != nullptr;
@@ -116,7 +116,7 @@ bool SuplaDeviceClass::begin(unsigned char version) {
       }
     }
   } else {
-    Serial.println(F("Storage not found. Running without state memory"));
+    supla_log(LOG_DEBUG, "Storage not found. Running without state memory");
   }
 
   // Initialize elements
@@ -129,7 +129,7 @@ bool SuplaDeviceClass::begin(unsigned char version) {
   // Enable timers
   Supla::initTimers();
 
-  if (Supla::Network::Instance() == NULL) {
+  if (Supla::Network::Instance() == nullptr) {
     status(STATUS_MISSING_NETWORK_INTERFACE, "Network Interface not defined!");
     return false;
   }
@@ -185,7 +185,7 @@ bool SuplaDeviceClass::begin(unsigned char version) {
               SUPLA_SOFTVER_MAXSIZE);
   }
 
-  Serial.println(F("Initializing network layer"));
+  supla_log(LOG_DEBUG, "Initializing network layer");
   Supla::Network::Setup();
 
   TsrpcParams srpc_params;
@@ -212,7 +212,7 @@ void SuplaDeviceClass::setName(const char *Name) {
 }
 
 void SuplaDeviceClass::setString(char *dst, const char *src, int max_size) {
-  if (src == NULL) {
+  if (src == nullptr) {
     dst[0] = 0;
     return;
   }
@@ -382,10 +382,10 @@ void SuplaDeviceClass::iterate(void) {
 
 void SuplaDeviceClass::onVersionError(TSDC_SuplaVersionError *version_error) {
   status(STATUS_PROTOCOL_VERSION_ERROR, "Protocol version error");
-  Serial.print(F("Protocol version error. Server min: "));
-  Serial.print(version_error->server_version_min);
-  Serial.print(F("; Server version: "));
-  Serial.println(version_error->server_version);
+  supla_log(LOG_DEBUG,
+      "Protocol version error. Server min: %d; Server version: %d",
+      version_error->server_version_min,
+      version_error->server_version);
 
   Supla::Network::Disconnect();
 
@@ -540,7 +540,7 @@ void SuplaDeviceClass::onGetUserLocaltimeResult(
 }
 
 void SuplaDeviceClass::addClock(Supla::Clock *_clock) {
-  Serial.println(F("Clock class added"));
+  supla_log(LOG_DEBUG, "Clock class added");
   clock = _clock;
 }
 

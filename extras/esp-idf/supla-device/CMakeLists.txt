@@ -6,6 +6,8 @@ set(SUPLA_COMMONM_SRCS
 )
 
 set(SUPLA_DEVICE_SRCS
+  ../../../src/SuplaDevice.cpp
+
   ../../../src/supla/action_handler.cpp
   ../../../src/supla/at_channel.cpp
   ../../../src/supla/channel.cpp
@@ -23,6 +25,8 @@ set(SUPLA_DEVICE_SRCS
   ../../../src/supla/uptime.cpp
 
   ../../../src/supla/storage/storage.cpp
+
+  ../../../src/supla/network/network.cpp
 
   ../../../src/supla/control/action_trigger.cpp
   ../../../src/supla/control/bistable_relay.cpp
