@@ -59,6 +59,72 @@ steps:
   - cmake --build build
   - /bin/bash -c "[ -f build/empty-supla-freertos-example ] && true || false"
 
+- name: linux_compilation_check
+# Linux compilation requires generic linux toolset for compilation and building
+# which is also part of our freertos docker, so we just reuse it here
+  image: devel/freertos
+  pull: never
+  commands:
+  - export SUPLA_DEVICE_PATH=/drone/src
+  - cd extras/examples/empty_linux_project
+  - rm -f build/empty-supla-linux-example
+  - cmake -B build
+  - cmake --build build
+  - /bin/bash -c "[ -f build/empty-supla-linux-example ] && true || false"
+
+- name: arduino_esp8266_compilation_check
+  image: devel/arduino-cli
+  pull: never
+  commands:
+  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./Afore/
+  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./DallasTemperature/
+  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./DHT/
+  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./Fronius/
+  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./GarageParkingAssistLight/
+  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./HC_SR04_Distance_sensor/
+  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./HC_SR04_Distance_sensor_extended/
+  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./ImpulseCounter/
+  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./Pzem_V_2/
+  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./Pzem_V_3/
+  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./RGBW/
+  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./RollerShutter/
+  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./SequenceButton/
+
+- name: arduino_esp32_compilation_check
+  image: devel/arduino-cli
+  pull: never
+  commands:
+  - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./Afore/
+  - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./DallasTemperature/
+  - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./DHT/
+  - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./Fronius/
+  - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./GarageParkingAssistLight/
+  - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./HC_SR04_Distance_sensor/
+  - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./HC_SR04_Distance_sensor_extended/
+  - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./ImpulseCounter/
+  - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./Pzem_V_2/
+  - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./Pzem_V_3/
+  - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./RGBW/
+  - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./RollerShutter/
+  - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./SequenceButton/
+
+- name: arduino_mega_compilation_check
+  image: devel/arduino-cli
+  pull: never
+  commands:
+  - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./Afore/
+  - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./DallasTemperature/
+  - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./DHT/
+  - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./Fronius/
+  - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./GarageParkingAssistLight/
+  - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./HC_SR04_Distance_sensor/
+  - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./HC_SR04_Distance_sensor_extended/
+  - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./ImpulseCounter/
+  - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./Pzem_V_2/
+  - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./Pzem_V_3/
+  - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./RGBW/
+  - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./RollerShutter/
+  - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./SequenceButton/
 
 - name: rocket
   image: mike1pol/drone-rocket
@@ -77,5 +143,9 @@ steps:
       exclude:
         - pull_request
   depends_on: [tests, esp8266_rtos_compilation_check, esp_idf_compilation_check,
-               freertos_linux_compilation_check]
+               freertos_linux_compilation_check,
+               arduino_esp32_compilation_check,
+               arduino_esp8266_compilation_check,
+               arduino_mega_compilation_check
+              ]
 
