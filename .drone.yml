@@ -76,6 +76,7 @@ steps:
   image: devel/arduino-cli
   pull: never
   commands:
+  - cd examples
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./Afore/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./DallasTemperature/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./DHT/
@@ -94,6 +95,7 @@ steps:
   image: devel/arduino-cli
   pull: never
   commands:
+  - cd examples
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./Afore/
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./DallasTemperature/
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./DHT/
@@ -112,6 +114,7 @@ steps:
   image: devel/arduino-cli
   pull: never
   commands:
+  - cd examples
   - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./Afore/
   - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./DallasTemperature/
   - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./DHT/
