@@ -14,6 +14,7 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#ifdef ARDUINO
 #include <Arduino.h>
 
 #include "HC_SR04.h"
@@ -109,3 +110,4 @@ void HC_SR04::setMinMaxOut(int16_t minOut, int16_t maxOut) {
 
 };  // namespace Sensor
 };  // namespace Supla
+#endif /*ARDUINO*/

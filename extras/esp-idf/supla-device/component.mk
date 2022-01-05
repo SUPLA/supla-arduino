@@ -6,6 +6,7 @@ COMPONENT_SRCDIRS := ../../../src/supla-common \
 										 ../../../src/supla/conditions \
 										 ../../../src/supla/clock \
 										 ../../../src/supla/control \
+										 ../../../src/supla/sensor \
 										 ../../../src/supla/storage \
 										 ../../../src/ \
 										 ../../../src/supla/network

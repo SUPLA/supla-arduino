@@ -20,6 +20,8 @@
 #include "../events.h"
 #include "../condition.h"
 
+#include <supla/time.h>
+
 Supla::Sensor::ElectricityMeter::ElectricityMeter()
     : valueChanged(false), lastReadTime(0), refreshRateSec(5) {
   extChannel.setType(SUPLA_CHANNELTYPE_ELECTRICITY_METER);

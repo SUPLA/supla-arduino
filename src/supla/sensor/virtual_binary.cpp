@@ -15,6 +15,7 @@
 */
 
 #include "virtual_binary.h"
+#include <supla/time.h>
 
 namespace Supla {
 namespace Sensor {

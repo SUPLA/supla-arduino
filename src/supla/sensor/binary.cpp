@@ -16,6 +16,7 @@
 
 #include "binary.h"
 #include "../io.h"
+#include <supla/time.h>
 
 Supla::Sensor::Binary::Binary(int pin, bool pullUp = false)
     : pin(pin), pullUp(pullUp), lastReadTime(0) {

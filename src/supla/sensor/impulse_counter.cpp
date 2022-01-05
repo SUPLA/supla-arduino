@@ -14,11 +14,11 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include <Arduino.h>
 #include <supla-common/log.h>
 #include <supla/storage/storage.h>
 #include <supla/actions.h>
 #include <supla/io.h>
+#include <supla/time.h>
 
 #include "impulse_counter.h"
 

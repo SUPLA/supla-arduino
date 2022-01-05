@@ -70,10 +70,10 @@ bool SuplaDeviceClass::isInitialized(bool msg) {
   return false;
 }
 
-bool SuplaDeviceClass::begin(char GUID[SUPLA_GUID_SIZE],
+bool SuplaDeviceClass::begin(const char GUID[SUPLA_GUID_SIZE],
                              const char *Server,
                              const char *email,
-                             char authkey[SUPLA_AUTHKEY_SIZE],
+                             const char authkey[SUPLA_AUTHKEY_SIZE],
                              unsigned char version) {
   setGUID(GUID);
   setServer(Server);
@@ -515,11 +515,11 @@ void SuplaDeviceClass::fillStateData(TDSC_ChannelState &channelState) {
   }
 }
 
-void SuplaDeviceClass::setGUID(char GUID[SUPLA_GUID_SIZE]) {
+void SuplaDeviceClass::setGUID(const char GUID[SUPLA_GUID_SIZE]) {
   memcpy(Supla::Channel::reg_dev.GUID, GUID, SUPLA_GUID_SIZE);
 }
 
-void SuplaDeviceClass::setAuthKey(char authkey[SUPLA_AUTHKEY_SIZE]) {
+void SuplaDeviceClass::setAuthKey(const char authkey[SUPLA_AUTHKEY_SIZE]) {
   memcpy(Supla::Channel::reg_dev.AuthKey, authkey, SUPLA_AUTHKEY_SIZE);
 }
 

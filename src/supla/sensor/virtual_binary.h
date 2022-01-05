@@ -17,8 +17,6 @@
 #ifndef _virtual_binary_h
 #define _virtual_binary_h
 
-#include <Arduino.h>
-
 #include "../channel_element.h"
 #include "../action_handler.h"
 #include "../actions.h"

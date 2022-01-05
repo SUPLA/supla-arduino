@@ -109,6 +109,8 @@ void initTimers() {
   // enable timer compare interrupt
   TIMSK2 |= (1 << OCIE2A);
   sei();  // allow interrupts
+#elif defined(SUPLA_LINUX)
+  supla_log(LOG_DEBUG, "Timers initialization: TODO");
 #endif
   // TODO implement timers startup
 }

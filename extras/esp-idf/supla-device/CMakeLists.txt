@@ -28,6 +28,8 @@ set(SUPLA_DEVICE_SRCS
 
   ../../../src/supla/network/network.cpp
 
+  ../../../src/supla/clock/clock.cpp
+
   ../../../src/supla/control/action_trigger.cpp
   ../../../src/supla/control/bistable_relay.cpp
   ../../../src/supla/control/bistable_roller_shutter.cpp
@@ -57,15 +59,17 @@ set(SUPLA_DEVICE_SRCS
   ../../../src/supla/conditions/on_between_eq.cpp
   ../../../src/supla/conditions/on_equal.cpp
   ../../../src/supla/conditions/on_invalid.cpp
-  #
-  # SuplaDevice.cpp
-  # supla/network/network.cpp
-  # supla/clock/clock.cpp
-  #
-  # supla/sensor/therm_hygro_press_meter.cpp
-  # supla/sensor/therm_hygro_meter.cpp
-  # supla/sensor/thermometer.cpp
-  # supla/sensor/electricity_meter.cpp
+
+# not all files from sensor folder are compiled here. Some still require
+# porting from ARDUINO
+  ../../../src/supla/sensor/binary.cpp
+  ../../../src/supla/sensor/electricity_meter.cpp
+  ../../../src/supla/sensor/hygro_meter.cpp
+  ../../../src/supla/sensor/impulse_counter.cpp
+  ../../../src/supla/sensor/therm_hygro_meter.cpp
+  ../../../src/supla/sensor/therm_hygro_press_meter.cpp
+  ../../../src/supla/sensor/thermometer.cpp
+  ../../../src/supla/sensor/virtual_binary.cpp
 )
 
 idf_component_register(SRCS ${SUPLA_COMMONM_SRCS} ${SUPLA_DEVICE_SRCS}

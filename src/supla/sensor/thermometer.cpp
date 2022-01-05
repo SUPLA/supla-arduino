@@ -16,6 +16,8 @@
 
 #include "thermometer.h"
 
+#include <supla/time.h>
+
 Supla::Sensor::Thermometer::Thermometer() : lastReadTime(0) {
   channel.setType(SUPLA_CHANNELTYPE_THERMOMETER);
   channel.setDefault(SUPLA_CHANNELFNC_THERMOMETER);

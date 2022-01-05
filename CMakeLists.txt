@@ -50,6 +50,17 @@ set(SUPLA_DEVICE_SRCS
   src/supla/control/sequence_button.cpp
   src/supla/control/simple_button.cpp
   src/supla/control/virtual_relay.cpp
+
+# not all files from sensor folder are compiled here. Some still require
+# porting from ARDUINO
+  src/supla/sensor/binary.cpp
+  src/supla/sensor/electricity_meter.cpp
+  src/supla/sensor/hygro_meter.cpp
+  src/supla/sensor/impulse_counter.cpp
+  src/supla/sensor/therm_hygro_meter.cpp
+  src/supla/sensor/therm_hygro_press_meter.cpp
+  src/supla/sensor/thermometer.cpp
+  src/supla/sensor/virtual_binary.cpp
 )
 
 set(SUPLA_COMMON_SRCS
