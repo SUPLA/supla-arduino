@@ -143,6 +143,7 @@ Element & Element::disableChannelState() {
 }
 
 void Element::handleChannelConfig(TSD_ChannelConfig *result) {
+  (void)(result);
   supla_log(LOG_DEBUG,
       "Channel[%d]: received channel config reply, but handling is missing");
 }
