@@ -18,8 +18,11 @@
 #include <supla-common/log.h>
 #include <supla/time.h>
 #include <SuplaDevice.h>
+#include <linux_network.h>
 
 #include <supla/control/virtual_relay.h>
+
+#include <unistd.h>
 
 // Below includes are added just for CI compilation check. Some of them
 // are not used in any cpp file, so they would not be compiled otherwise.
@@ -62,32 +65,16 @@
 #include <supla/tools.h>
 #include <supla/uptime.h>
 
-class Chatter : public Supla::Element {
-  public:
-    Chatter(int id) : myId(id) {}
-    void onInit() override {
-      supla_log(LOG_DEBUG, "Chatter %d is initializing", myId);
-    }
-
-    void iterateAlways() override {
-      iterationCounter++;
-      supla_log(LOG_DEBUG, "Chatter %d: iterataion %d", myId, iterationCounter);
-    }
-
-  private:
-    int myId;
-    int iterationCounter = 0;
-};
-
-
 int main() {
   supla_log(LOG_DEBUG, "Hello Linux with Supla!");
+
+  Supla::LinuxNetwork network;
 
   // Replace the falowing GUID with value that you can retrieve from
   // https://www.supla.org/arduino/get-guid
   char GUID[SUPLA_GUID_SIZE] = {0x00,
     0x00,
-    0x00,
+    0x01,
     0x00,
     0x00,
     0x00,
@@ -107,7 +94,7 @@ int main() {
   char AUTHKEY[SUPLA_AUTHKEY_SIZE] = {0x00,
     0x00,
     0x00,
-    0x00,
+    0x02,
     0x00,
     0x00,
     0x00,
@@ -124,13 +111,12 @@ int main() {
   auto r1 = new Supla::Control::VirtualRelay();
   auto r2 = new Supla::Control::VirtualRelay();
 
-  auto ch1 = new Chatter(1);
-  auto ch2 = new Chatter(2);
-
+  SuplaDevice.setServerPort(2016);
   SuplaDevice.begin(GUID, "svrX.supla.org", "happy@supla.org", AUTHKEY);
 
-  for (int i = 0; i < 10; i++) {
+  while (true) {
     SuplaDevice.iterate();
+    usleep(100);
   }
 
   supla_log(LOG_DEBUG, "we are %d ms since app start", millis());
