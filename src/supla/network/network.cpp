@@ -116,6 +116,13 @@ void message_received(void *_srpc,
         result.Command = rd.data.sd_device_calcfg_request->Command;
         result.Result = SUPLA_CALCFG_RESULT_NOT_SUPPORTED;
         result.DataSize = 0;
+        supla_log(LOG_DEBUG, "CALCFG CMD received: senderId %d, ch %d, cmd %d, suauth %d, datatype %d, datasize %d, ",
+            rd.data.sd_device_calcfg_request->SenderID,
+            rd.data.sd_device_calcfg_request->ChannelNumber,
+            rd.data.sd_device_calcfg_request->Command,
+            rd.data.sd_device_calcfg_request->SuperUserAuthorized,
+            rd.data.sd_device_calcfg_request->DataType,
+            rd.data.sd_device_calcfg_request->DataSize);
 
         if (rd.data.sd_device_calcfg_request->SuperUserAuthorized != 1) {
           result.Result = SUPLA_CALCFG_RESULT_UNAUTHORIZED;
@@ -130,7 +137,6 @@ void message_received(void *_srpc,
                 rd.data.sd_channel_new_value->ChannelNumber);
           }
         }
-
         srpc_ds_async_device_calcfg_result(_srpc, &result);
         break;
       }
@@ -251,6 +257,19 @@ void Network::setTimeout(int timeoutMs) {
 void Network::fillStateData(TDSC_ChannelState &channelState) {
   (void)(channelState);
   supla_log(LOG_DEBUG, "fillStateData is not implemented for this interface");
+}
+
+#define TMP_STRING_SIZE 2048
+
+void Network::printData(const char *prefix, const void *buf, const int count) {
+  char tmp[TMP_STRING_SIZE] = {};
+  for (int i = 0; i < count && (i * 3 < TMP_STRING_SIZE); i++) {
+    sprintf(tmp + i * 3,
+        "%02X ",
+        static_cast<unsigned int>(static_cast<const unsigned char *>(buf)[i]));
+  }
+  supla_log(LOG_DEBUG, "%s: [%s]", prefix, tmp);
+
 }
 
 };  // namespace Supla

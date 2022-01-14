@@ -64,6 +64,10 @@
 
 #elif defined(SUPLA_DEVICE)
 
+#ifndef SRPC_BUFFER_SIZE
+#define SRPC_BUFFER_SIZE 1024
+#endif /*SRPC_BUFFER_SIZE*/
+
 #define __EH_DISABLED
 
 #else

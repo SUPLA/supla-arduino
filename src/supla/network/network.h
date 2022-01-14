@@ -99,6 +99,8 @@ class Network {
     return false;
   }
 
+  static void printData(const char *prefix, const void *buf, const int count);
+
   Network(uint8_t ip[4]);
   virtual ~Network();
   virtual int read(void *buf, int count) = 0;

@@ -28,8 +28,6 @@
 
 #include "linux_network.h"
 
-#define TMP_STRING_SIZE 2048
-
 int32_t print_ssl_error(SSL *ssl, int ret_code) {
   int32_t ssl_error;
 
@@ -100,13 +98,7 @@ int Supla::LinuxNetwork::read(void *buf, int count) {
   _supla_int_t result = SSL_read(ssl, buf, count);
   if (result > 0) {
 #ifdef SUPLA_COMM_DEBUG
-    char tmp[TMP_STRING_SIZE] = {};
-    for (int i = 0; i < result && (i * 3 < TMP_STRING_SIZE); i++) {
-      sprintf(tmp + i * 3,
-          "%02X ",
-          static_cast<unsigned int>(static_cast<unsigned char *>(buf)[i]));
-    }
-    supla_log(LOG_DEBUG, "Recv: [%s]", tmp);
+    printData("Recv", buf, result);
 #endif
     return result;
   } else {
@@ -132,13 +124,7 @@ int Supla::LinuxNetwork::read(void *buf, int count) {
 
 int Supla::LinuxNetwork::write(void *buf, int count) {
 #ifdef SUPLA_COMM_DEBUG
-  char tmp[TMP_STRING_SIZE] = {};
-  for (int i = 0; i < count && (i * 3 < TMP_STRING_SIZE); i++) {
-    sprintf(tmp + i * 3,
-        "%02X ",
-        static_cast<unsigned int>(static_cast<unsigned char *>(buf)[i]));
-  }
-  supla_log(LOG_DEBUG, "Send: [%s]", tmp);
+  printData("Send", buf, count);
 #endif
   int sendSize = SSL_write(ssl, buf, count);
   if (sendSize <= 0) {

@@ -72,8 +72,18 @@ set(SUPLA_DEVICE_SRCS
   ../../../src/supla/sensor/virtual_binary.cpp
 )
 
-idf_component_register(SRCS ${SUPLA_COMMONM_SRCS} ${SUPLA_DEVICE_SRCS}
-                       INCLUDE_DIRS "../../../src/"
-                      )
+set(SUPLA_DEVICE_PORTING_SRCS
+  ../../porting/esp-idf/esp_idf_wifi.cpp
+)
 
-add_definitions(-DSUPLA_DEVICE)
+
+idf_component_register(SRCS
+  ${SUPLA_COMMONM_SRCS}
+  ${SUPLA_DEVICE_SRCS}
+  ${SUPLA_DEVICE_PORTING_SRCS}
+  INCLUDE_DIRS "../../../src/" "../../porting/esp-idf"
+  REQUIRES esp-tls
+  EMBED_TXTFILES supla_org_cert.pem
+)
+
+target_compile_definitions(${COMPONENT_LIB} PUBLIC SUPLA_DEVICE)
