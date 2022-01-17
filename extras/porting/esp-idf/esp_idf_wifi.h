@@ -52,6 +52,7 @@ class EspIdfWifi : public Supla::Network {
   void fillStateData(TDSC_ChannelState &channelState) override;
 
   void setIpReady(bool ready);
+  void setIpv4Addr(unsigned _supla_int_t);
   void setWifiConnected(bool state);
 
  protected:
@@ -64,7 +65,8 @@ class EspIdfWifi : public Supla::Network {
   char password[MAX_WIFI_PASSWORD_SIZE] = {};
   EventGroupHandle_t wifiEventGroup;
   esp_tls_t *client = nullptr;
-
+  int timeoutMs = 10000;
+  unsigned _supla_int_t ipv4 = 0;
 };
 
 };  // namespace Supla

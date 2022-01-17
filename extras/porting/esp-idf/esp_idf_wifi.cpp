@@ -105,7 +105,7 @@ int Supla::EspIdfWifi::connect(const char *server, int port) {
   cfg.cacert_pem_buf  = suplaOrgCertPemStart;
   cfg.cacert_pem_bytes =
     static_cast<unsigned int>(suplaOrgCertPemEnd - suplaOrgCertPemStart);
-  cfg.timeout_ms = 10000;
+  cfg.timeout_ms = timeoutMs;
   cfg.non_block = false;
 
   int connectionPort = (isSecured ? 2016 : 2015);
@@ -180,11 +180,14 @@ static void eventHandler(void* arg,
     ip_event_got_ip_t* event = static_cast<ip_event_got_ip_t*>(eventData);
     if (netIntfPtr) {
       netIntfPtr->setIpReady(true);
+      netIntfPtr->setIpv4Addr(event->ip_info.ip.addr);
     }
     supla_log(LOG_DEBUG, "got ip " IPSTR, IP2STR(&event->ip_info.ip));
+
   } else if (eventBase == IP_EVENT && eventId == IP_EVENT_STA_LOST_IP) {
     if (netIntfPtr) {
       netIntfPtr->setIpReady(false);
+      netIntfPtr->setIpv4Addr(0);
     }
     supla_log(LOG_DEBUG, "lost ip");//:%s", IP2STR(&event->ip_info.ip));
 
@@ -198,8 +201,10 @@ void Supla::EspIdfWifi::setup() {
     esp_netif_init();
     wifiEventGroup = xEventGroupCreate();
     ESP_ERROR_CHECK(esp_event_loop_create_default());
-    // TODO: uncomment for ESP32
-    //esp_netif_create_default_wifi_sta();
+
+#ifdef SUPLA_DEVICE_ESP32
+    esp_netif_create_default_wifi_sta();
+#endif /*SUPLA_DEVICE_ESP32*/
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
@@ -248,11 +253,10 @@ void Supla::EspIdfWifi::setPassword(const char *wifiPassword) {
   }
 }
 
-void Supla::EspIdfWifi::setTimeout(int timeoutMs) {
-  //  TODO
-//  if (client) {
- //   client->setTimeout(timeoutMs);
- // }
+void Supla::EspIdfWifi::setTimeout(int newTimeoutMs) {
+  if (newTimeoutMs > 0) {
+    timeoutMs = newTimeoutMs;
+  }
 }
 
 void Supla::EspIdfWifi::fillStateData(TDSC_ChannelState &channelState) {
@@ -260,17 +264,20 @@ void Supla::EspIdfWifi::fillStateData(TDSC_ChannelState &channelState) {
     SUPLA_CHANNELSTATE_FIELD_MAC |
     SUPLA_CHANNELSTATE_FIELD_WIFIRSSI |
     SUPLA_CHANNELSTATE_FIELD_WIFISIGNALSTRENGTH;
-  //  TODO
-//  channelState.IPv4 = WiFi.localIP();
-//  WiFi.macAddress(channelState.MAC);
-  int rssi = 50; //WiFi.RSSI();
-//  channelState.WiFiRSSI = rssi;
+
+  esp_read_mac(channelState.MAC, ESP_MAC_WIFI_STA);
+  channelState.IPv4 = ipv4;
+
+  wifi_ap_record_t ap;
+  esp_wifi_sta_get_ap_info(&ap);
+  int rssi = ap.rssi;
+  channelState.WiFiRSSI = rssi;
   if (rssi > -50) {
- //   channelState.WiFiSignalStrength = 100;
+    channelState.WiFiSignalStrength = 100;
   } else if (rssi <= -100) {
-  //  channelState.WiFiSignalStrength = 0;
+    channelState.WiFiSignalStrength = 0;
   } else {
- //   channelState.WiFiSignalStrength = 2 * (rssi + 100);
+    channelState.WiFiSignalStrength = 2 * (rssi + 100);
   }
 }
 
@@ -280,4 +287,8 @@ void Supla::EspIdfWifi::setIpReady(bool ready) {
 
 void Supla::EspIdfWifi::setWifiConnected(bool state) {
   isWifiConnected = state;
+}
+
+void Supla::EspIdfWifi::setIpv4Addr(unsigned _supla_int_t ip) {
+  ipv4 = ip;
 }

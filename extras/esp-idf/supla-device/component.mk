@@ -13,7 +13,7 @@ COMPONENT_SRCDIRS := ../../../src/supla-common \
 										 ../../../src/supla/network \
 										 ../../porting/esp-idf
 
-CFLAGS += -DSUPLA_DEVICE
-CPPFLAGS += -DSUPLA_DEVICE
+CFLAGS += -DSUPLA_DEVICE -DSUPLA_DEVICE_ESP8266
+CPPFLAGS += -DSUPLA_DEVICE -DSUPLA_DEVICE_ESP8266
 
 COMPONENT_EMBED_TXTFILES := supla_org_cert.pem

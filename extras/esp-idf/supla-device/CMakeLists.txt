@@ -87,3 +87,4 @@ idf_component_register(SRCS
 )
 
 target_compile_definitions(${COMPONENT_LIB} PUBLIC SUPLA_DEVICE)
+target_compile_definitions(${COMPONENT_LIB} PUBLIC SUPLA_DEVICE_ESP32)
