@@ -49,8 +49,10 @@ struct _supla_timeval {
 // *** Espressif NONOS SDK for ESP8266 OR ARDUINO WITH ESP8266 or ESP32 ***
 // *** ESP-IDF, ESP8266 RTOS SDK ***
 #ifndef ESP_PLATFORM
+#ifndef ARDUINO
 #include <mem.h>
 #define PROTO_ICACHE_FLASH ICACHE_FLASH_ATTR
+#endif /*ARDUINO*/
 #endif /*ESP_PLATFORM*/
 
 #if defined(ARDUINO) || defined(ESP_PLATFORM)

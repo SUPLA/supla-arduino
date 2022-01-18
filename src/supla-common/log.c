@@ -26,6 +26,10 @@
 #include <wchar.h>
 #elif defined(ARDUINO)
 void serialPrintLn(const char*);
+#elif defined(ESP_PLATFORM)
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+#include <esp_log.h>
+static const char *SUPLA_TAG = "SUPLA";
 #elif defined(SUPLA_DEVICE)
 // new supla-device lib
 #else
@@ -117,6 +121,30 @@ void supla_vlog(int __pri, const char *message) {
 
   OutputDebugStringW(wstr);
   OutputDebugStringW(L"\n");
+}
+#elif defined(ESP_PLATFORM)
+// variant for ESP8266 RTOS and ESP-IDF
+void supla_vlog(int __pri, const char *message) {
+  switch (__pri) {
+    case LOG_DEBUG:
+      ESP_LOGD(SUPLA_TAG, "%s", message);
+      break;
+    case LOG_INFO:
+    case LOG_NOTICE:
+      ESP_LOGI(SUPLA_TAG, "%s", message);
+      break;
+    case LOG_WARNING:
+      ESP_LOGW(SUPLA_TAG, "%s", message);
+      break;
+    case LOG_ERR:
+    case LOG_CRIT:
+    case LOG_EMERG:
+    case LOG_ALERT:
+      ESP_LOGE(SUPLA_TAG, "%s", message);
+      break;
+    default:
+      ESP_LOGE(SUPLA_TAG, "%s", message);
+  };
 }
 #elif defined(ARDUINO)
 // supla-device variant for Arduino IDE

@@ -35,7 +35,7 @@ void SuplaDeviceClass::status(int newStatus, const char *msg, bool alwaysLog) {
     currentStatus = newStatus;
     showLog = true;
   }
-  if (alwaysLog || showLog) supla_log(LOG_DEBUG, "Current status: [%d] %s", newStatus, msg);
+  if (alwaysLog || showLog) supla_log(LOG_INFO, "Current status: [%d] %s", newStatus, msg);
 }
 
 SuplaDeviceClass::SuplaDeviceClass()
