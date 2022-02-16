@@ -19,7 +19,7 @@
 #ifndef suplalog_H_
 #define suplalog_H_
 
-#if defined(ESP8266) || defined(ESP32)
+#if defined(ESP8266)
 #include <mem.h>
 #define LOG_ICACHE_FLASH ICACHE_FLASH_ATTR
 #endif

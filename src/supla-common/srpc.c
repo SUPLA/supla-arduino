@@ -27,8 +27,8 @@
 
 #if defined(ESP8266) || defined(ESP32)
 
-#include <mem.h>
 #if !defined(ESP32)
+#include <mem.h>
 #include <osapi.h>
 #endif
 

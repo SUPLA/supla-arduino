@@ -122,6 +122,12 @@ void supla_vlog(int __pri, const char *message) {
   OutputDebugStringW(wstr);
   OutputDebugStringW(L"\n");
 }
+#elif defined(ARDUINO)
+// supla-device variant for Arduino IDE
+void supla_vlog(int __pri, const char *message) {
+  (void)(__pri);
+  serialPrintLn(message);
+}
 #elif defined(ESP_PLATFORM)
 // variant for ESP8266 RTOS and ESP-IDF
 void supla_vlog(int __pri, const char *message) {
@@ -145,12 +151,6 @@ void supla_vlog(int __pri, const char *message) {
     default:
       ESP_LOGE(SUPLA_TAG, "%s", message);
   };
-}
-#elif defined(ARDUINO)
-// supla-device variant for Arduino IDE
-void supla_vlog(int __pri, const char *message) {
-  (void)(__pri);
-  serialPrintLn(message);
 }
 #elif defined(SUPLA_DEVICE)
 void supla_vlog(int __pri, const char *message) {

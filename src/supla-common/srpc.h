@@ -41,8 +41,8 @@
 #define SRPC_EXCLUDE_CLIENT
 #define SRPC_ICACHE_FLASH ICACHE_FLASH_ATTR
 
-#include <mem.h>
 #if !defined(ESP32)
+#include <mem.h>
 #include <os_type.h>
 #endif
 #else
