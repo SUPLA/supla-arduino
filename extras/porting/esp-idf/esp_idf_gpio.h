@@ -14,17 +14,13 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _supla_time_h
-#define _supla_time_h
+#ifndef _SUPLA_ESP_IDF_GPIO_H_
+#define _SUPLA_ESP_IDF_GPIO_H_
 
-#ifdef ARDUINO
-#include <Arduino.h>
-#else
+void pinMode(uint8_t pin, uint8_t mode);
+int digitalRead(uint8_t pin);
+void digitalWrite(uint8_t pin, uint8_t val);
+void analogWrite(uint8_t pin, int val);
+unsigned int pulseIn(uint8_t pin, uint8_t val, unsigned long timeoutMicro);
 
-unsigned long millis(void);
-void delay(unsigned long);
-void delayMicroseconds(unsigned long);
-
-#endif
-
-#endif /*_supla_time_h*/
+#endif /*_SUPLA_ESP_IDF_GPIO_H_*/

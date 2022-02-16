@@ -14,17 +14,23 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _supla_time_h
-#define _supla_time_h
+#include "distance.h"
+#include <supla/time.h>
 
-#ifdef ARDUINO
-#include <Arduino.h>
-#else
+Supla::Sensor::Distance::Distance() {
+  channel.setType(SUPLA_CHANNELTYPE_DISTANCESENSOR);
+  channel.setDefault(SUPLA_CHANNELFNC_DISTANCESENSOR);
+  channel.setNewValue(DISTANCE_NOT_AVAILABLE);
+}
 
-unsigned long millis(void);
-void delay(unsigned long);
-void delayMicroseconds(unsigned long);
+double Supla::Sensor::Distance::getValue() {
+  return DISTANCE_NOT_AVAILABLE;
+}
 
-#endif
+void Supla::Sensor::Distance::iterateAlways() {
+  if (lastReadTime + 100 < millis()) {
+    lastReadTime = millis();
+    channel.setNewValue(getValue());
+  }
+}
 
-#endif /*_supla_time_h*/

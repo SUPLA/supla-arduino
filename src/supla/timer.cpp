@@ -14,20 +14,24 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifdef ARDUINO
-#include <Arduino.h>
-#endif
-
 #include <SuplaDevice.h>
 
 #include "timer.h"
 
-#if defined(ARDUINO_ARCH_ESP32)
+#ifdef ARDUINO
+#include <Arduino.h>
+
+#ifdef ARDUINO_ARCH_ESP32
 #include <Ticker.h>
 #endif
 
 #ifdef ARDUINO_ARCH_ESP8266
 #include <os_type.h>
+#endif
+
+#elif defined(ESP_PLATFORM)
+#include "freertos/FreeRTOS.h"
+#include "freertos/timers.h"
 #endif
 
 namespace {
@@ -60,6 +64,19 @@ ISR(TIMER1_COMPA_vect) {
   SuplaDevice.onTimer();
 }
 ISR(TIMER2_COMPA_vect) {
+  SuplaDevice.onFastTimer();
+}
+#elif defined(ESP_PLATFORM)
+TimerHandle_t slowerTimer;
+TimerHandle_t fasterTimer;
+
+void slowerTimerCb(TimerHandle_t xTimer)
+{
+  SuplaDevice.onTimer();
+}
+
+void fasterTimerCb(TimerHandle_t xTimer)
+{
   SuplaDevice.onFastTimer();
 }
 #endif
@@ -109,8 +126,24 @@ void initTimers() {
   // enable timer compare interrupt
   TIMSK2 |= (1 << OCIE2A);
   sei();  // allow interrupts
+#elif defined(ESP_PLATFORM)
+  // ESP-IDF and ESP8266 RTOS (non Arduino)
+  slowerTimer = xTimerCreate(
+      "SuplaSlowerTm", pdMS_TO_TICKS(10), pdTRUE, (void*)0, &slowerTimerCb);
+  if (xTimerStart(slowerTimer, 100) != pdPASS) {
+    supla_log(LOG_ERR, "Slower Timer start error");
+  }
+
+  fasterTimer = xTimerCreate(
+      "SuplaFasterTm", pdMS_TO_TICKS(1), pdTRUE, (void*)0, &fasterTimerCb);
+  if (xTimerStart(fasterTimer, 100) != pdPASS) {
+    supla_log(LOG_ERR, "Faster Timer start error");
+  }
+
 #elif defined(SUPLA_LINUX)
   supla_log(LOG_DEBUG, "Timers initialization: TODO");
+#else
+#error Please implement timers
 #endif
   // TODO implement timers startup
 }

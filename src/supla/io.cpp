@@ -20,12 +20,16 @@
 
 #ifdef ARDUINO
 #include <Arduino.h>
+#elif defined(ESP_PLATFORM)
+#include <esp_idf_gpio.h>
+// methods implemented in extras/porting/esp-idf/gpio.cpp
 #else
 // TODO implement those methods or extract them to separate interface
 void pinMode(uint8_t pin, uint8_t mode) {}
 int digitalRead(uint8_t pin) {return 0;}
 void digitalWrite(uint8_t pin, uint8_t val) {}
 void analogWrite(uint8_t pin, int val) {}
+unsigned int pulseIn(uint8_t pin, uint8_t val, unsigned long timeoutMicro) {}
 #endif
 
 namespace Supla {

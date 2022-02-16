@@ -21,6 +21,9 @@
 #include <linux_network.h>
 
 #include <supla/control/virtual_relay.h>
+#include <supla/control/rgb_leds.h>
+#include <supla/control/dimmer_leds.h>
+#include <supla/control/rgbw_leds.h>
 
 #include <unistd.h>
 
@@ -72,9 +75,10 @@ int main() {
 
   // Replace the falowing GUID with value that you can retrieve from
   // https://www.supla.org/arduino/get-guid
-  char GUID[SUPLA_GUID_SIZE] = {0x00,
+  char GUID[SUPLA_GUID_SIZE] =
+   {0x00,
     0x00,
-    0x01,
+    0x00,
     0x00,
     0x00,
     0x00,
@@ -91,10 +95,11 @@ int main() {
 
   // Replace the following AUTHKEY with value that you can retrieve from:
   // https://www.supla.org/arduino/get-authkey
-  char AUTHKEY[SUPLA_AUTHKEY_SIZE] = {0x00,
+  char AUTHKEY[SUPLA_AUTHKEY_SIZE] =
+   {0x00,
     0x00,
     0x00,
-    0x02,
+    0x00,
     0x00,
     0x00,
     0x00,
@@ -110,7 +115,15 @@ int main() {
 
   auto r1 = new Supla::Control::VirtualRelay();
   auto r2 = new Supla::Control::VirtualRelay();
+  auto r3 = new Supla::Control::VirtualRelay();
+  auto r4 = new Supla::Control::VirtualRelay();
 
+  new Supla::Control::RGBWLeds(1,2,3,4);
+  new Supla::Control::RGBLeds(1,2,3);
+  new Supla::Control::DimmerLeds(1);
+
+  new Supla::Control::RGBWLeds(1,2,3,4);
+  new Supla::Control::RGBLeds(1,2,3);
   SuplaDevice.setServerPort(2016);
   SuplaDevice.begin(GUID, "svrX.supla.org", "happy@supla.org", AUTHKEY);
 

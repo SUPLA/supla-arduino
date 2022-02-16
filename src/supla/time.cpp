@@ -18,16 +18,10 @@
 
 #ifndef ARDUINO
 
-#if defined(SUPLA_FREERTOS) || defined(ESP_PLATFORM)
 #ifdef SUPLA_FREERTOS
 // Plain FreeRTOS compilation
 #include <FreeRTOS.h>
 #include <task.h>
-#elif defined(ESP_PLATFORM)
-// ESP8266 RTOS SDK and ESP-IDF compilation
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-#endif
 
 unsigned long millis(void) {
   if (portTICK_PERIOD_MS != 1) {
@@ -37,8 +31,30 @@ unsigned long millis(void) {
   return xTaskGetTickCount();
 }
 
-void delay(unsigned long) {
-// TODO
+void delay(unsigned long delayMs) {
+// TODO  usleep(delayMs * 1000);
+}
+
+void delayMicroseconds(unsigned long delayMicro) {
+// TODO usleep(delayMicro);
+}
+
+#elif defined(ESP_PLATFORM)
+// ESP8266 RTOS SDK and ESP-IDF compilation
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <unistd.h>
+
+unsigned long millis(void) {
+  return xTaskGetTickCount() * portTICK_PERIOD_MS;
+}
+
+void delay(unsigned long delayMs) {
+  usleep(delayMs * 1000);
+}
+
+void delayMicroseconds(unsigned long delayMicro) {
+  usleep(delayMicro);
 }
 
 #elif SUPLA_LINUX
@@ -55,6 +71,11 @@ unsigned long millis() {
 void delay(unsigned long) {
 // TODO
 }
+
+void delayMicroseconds(unsigned long delayMicro) {
+// TODO
+}
+
 #else
 #error "Please implement time functions for current target"
 #endif
