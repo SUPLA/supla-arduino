@@ -29,7 +29,9 @@ void pinMode(uint8_t pin, uint8_t mode) {}
 int digitalRead(uint8_t pin) {return 0;}
 void digitalWrite(uint8_t pin, uint8_t val) {}
 void analogWrite(uint8_t pin, int val) {}
-unsigned int pulseIn(uint8_t pin, uint8_t val, unsigned long timeoutMicro) {}
+unsigned int pulseIn(uint8_t pin, uint8_t val, unsigned long timeoutMicro) {
+  return 0;
+}
 #endif
 
 namespace Supla {

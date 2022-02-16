@@ -141,7 +141,9 @@ void initTimers() {
   }
 
 #elif defined(SUPLA_LINUX)
-  supla_log(LOG_DEBUG, "Timers initialization: TODO");
+  supla_log(LOG_ERR, "Timers initialization: TODO");
+#elif defined(SUPLA_FREERTOS)
+  supla_log(LOG_ERR, "Timers initialication: TODO");
 #else
 #error Please implement timers
 #endif
