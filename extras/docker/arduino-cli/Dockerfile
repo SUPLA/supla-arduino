@@ -14,7 +14,7 @@ WORKDIR /supla
 # Download and install FreeRTOS
 RUN curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
 ENV PATH="${PATH}:/supla/bin"
-ENV ARDUINO_BOARD_MANAGER_ADDITIONAL_URLS="http://arduino.esp8266.com/stable/package_esp8266com_index.json https://dl.espressif.com/dl/package_esp32_index.json"
+ENV ARDUINO_BOARD_MANAGER_ADDITIONAL_URLS="http://arduino.esp8266.com/stable/package_esp8266com_index.json https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json"
 RUN arduino-cli core install arduino:avr && \
     arduino-cli lib install Ethernet && \
     arduino-cli core update-index && \
