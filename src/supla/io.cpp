@@ -121,7 +121,7 @@ void Io::customAnalogWrite(int channelNumber, uint8_t pin, int val) {
 unsigned int Io::customPulseIn(int channelNumber, uint8_t pin, uint8_t value,
       unsigned long timeoutMicro) {
   (void)(channelNumber);
-  ::pulseIn(pin, value, timeoutMicro);
+  return ::pulseIn(pin, value, timeoutMicro);
 }
 
 };  // namespace Supla
