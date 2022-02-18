@@ -57,8 +57,9 @@ void Relay::onInit() {
     turnOff();
   }
 
-  Supla::Io::pinMode(channel.getChannelNumber(), pin, OUTPUT);  // pin mode is set after setting pin value in order to
-                         // avoid problems with LOW trigger relays
+  // pin mode is set after setting pin value in order to
+  // avoid problems with LOW trigger relays
+  Supla::Io::pinMode(channel.getChannelNumber(), pin, OUTPUT);
 }
 
 void Relay::iterateAlways() {

@@ -14,7 +14,9 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#include <driver/gpio.h>
 #include <supla-common/log.h>
+#include <supla/definitions.h>
 #include <supla/io.h>
 
 #ifndef ESP_PLATFORM
@@ -23,21 +25,49 @@
 
 void pinMode(uint8_t pin, uint8_t mode) {
   supla_log(LOG_DEBUG, " *** GPIO %d set mode %d", pin, mode);
+
+  gpio_config_t cfg = {};
+  cfg.pin_bit_mask = (1ULL << pin);
+  switch (mode) {
+    case INPUT: {
+      cfg.mode = GPIO_MODE_INPUT;
+      break;
+    }
+    case OUTPUT: {
+      // in OUTPUT mode we also want to read GPIO value
+      cfg.mode =
+        static_cast<gpio_mode_t>((GPIO_MODE_DEF_INPUT) | (GPIO_MODE_DEF_OUTPUT));
+      break;
+    }
+    case INPUT_PULLUP: {
+      cfg.mode = GPIO_MODE_INPUT;
+      cfg.pull_up_en = GPIO_PULLUP_ENABLE;
+      break;
+    }
+    default: {
+      supla_log(LOG_ERR, "GPIO pinMode: mode %d is not implemented", mode);
+      break;
+    }
+  };
+
+  gpio_config(&cfg);
 }
 
 int digitalRead(uint8_t pin) {
-  return 0;
+  return gpio_get_level(static_cast<gpio_num_t>(pin));
 }
 
 void digitalWrite(uint8_t pin, uint8_t val) {
   supla_log(LOG_DEBUG, " *** GPIO %d digital write %d", pin, val);
+  gpio_set_level(static_cast<gpio_num_t>(pin), val);
 }
 
 void analogWrite(uint8_t pin, int val) {
-  supla_log(LOG_DEBUG, " *** GPIO %d analog write %d", pin, val);
+  supla_log(
+      LOG_ERR, " *** NOT IMPLEMENTED *** GPIO %d analog write %d", pin, val);
 }
 
 unsigned int pulseIn(uint8_t pin, uint8_t val, unsigned long timeoutMicro) {
-  supla_log(LOG_DEBUG, " *** GPIO %d pulse in %d", pin, val);
+  supla_log(LOG_ERR, " *** NOT IMPLEMENTED *** GPIO %d pulse in %d", pin, val);
   return 0;
 }
