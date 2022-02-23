@@ -76,6 +76,7 @@ set(SUPLA_DEVICE_SRCS
 set(SUPLA_DEVICE_PORTING_SRCS
   ../../porting/esp-idf/esp_idf_wifi.cpp
   ../../porting/esp-idf/esp_idf_gpio.cpp
+  ../../porting/esp-idf/spiffs_storage.cpp
 )
 
 
@@ -84,7 +85,7 @@ idf_component_register(SRCS
   ${SUPLA_DEVICE_SRCS}
   ${SUPLA_DEVICE_PORTING_SRCS}
   INCLUDE_DIRS "../../../src/" "../../porting/esp-idf"
-  REQUIRES esp-tls nvs_flash
+  REQUIRES esp-tls nvs_flash spiffs
   EMBED_TXTFILES supla_org_cert.pem
 )
 
