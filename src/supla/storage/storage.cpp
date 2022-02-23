@@ -218,7 +218,7 @@ bool Storage::finalizeSaveState() {
 bool Storage::init() {
   supla_log(LOG_DEBUG, "Storage initialization");
   unsigned int currentOffset = storageStartingOffset;
-  Preamble preamble;
+  Preamble preamble = {};
   currentOffset +=
       readStorage(currentOffset, (unsigned char *)&preamble, sizeof(preamble));
 

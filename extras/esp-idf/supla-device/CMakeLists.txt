@@ -84,7 +84,7 @@ idf_component_register(SRCS
   ${SUPLA_DEVICE_SRCS}
   ${SUPLA_DEVICE_PORTING_SRCS}
   INCLUDE_DIRS "../../../src/" "../../porting/esp-idf"
-  REQUIRES esp-tls
+  REQUIRES esp-tls nvs_flash
   EMBED_TXTFILES supla_org_cert.pem
 )
 
