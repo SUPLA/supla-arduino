@@ -58,7 +58,6 @@ int digitalRead(uint8_t pin) {
 }
 
 void digitalWrite(uint8_t pin, uint8_t val) {
-  supla_log(LOG_DEBUG, " *** GPIO %d digital write %d", pin, val);
   gpio_set_level(static_cast<gpio_num_t>(pin), val);
 }
 
