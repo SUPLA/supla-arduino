@@ -28,14 +28,17 @@
 
 void SuplaDeviceClass::status(int newStatus, const char *msg, bool alwaysLog) {
   bool showLog = false;
-  if (currentStatus != newStatus && !(newStatus == STATUS_REGISTER_IN_PROGRESS && currentStatus > STATUS_REGISTER_IN_PROGRESS)) {
+  if (currentStatus != newStatus &&
+      !(newStatus == STATUS_REGISTER_IN_PROGRESS &&
+        currentStatus > STATUS_REGISTER_IN_PROGRESS)) {
     if (impl_arduino_status != nullptr) {
       impl_arduino_status(newStatus, msg);
-    } 
+    }
     currentStatus = newStatus;
     showLog = true;
   }
-  if (alwaysLog || showLog) supla_log(LOG_INFO, "Current status: [%d] %s", newStatus, msg);
+  if (alwaysLog || showLog)
+    supla_log(LOG_INFO, "Current status: [%d] %s", newStatus, msg);
 }
 
 SuplaDeviceClass::SuplaDeviceClass()

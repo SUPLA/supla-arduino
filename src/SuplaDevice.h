@@ -53,6 +53,8 @@
 #define STATUS_NO_LOCATION_AVAILABLE     34
 #define STATUS_UNKNOWN_ERROR             35
 
+#define STATUS_CONFIG_MODE               40
+#define STATUS_SW_DOWNLOAD               50
 
 typedef void (*_impl_arduino_status)(int status, const char *msg);
 

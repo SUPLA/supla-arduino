@@ -60,6 +60,7 @@ set(SUPLA_DEVICE_SRCS
   ../../../src/supla/conditions/on_equal.cpp
   ../../../src/supla/conditions/on_invalid.cpp
 
+  ../../../src/supla/device/status_led.cpp
 # not all files from sensor folder are compiled here. Some still require
 # porting from ARDUINO
   ../../../src/supla/sensor/binary.cpp
