@@ -29,62 +29,58 @@ namespace Supla {
 namespace Sensor {
 class SHT3x : public ThermHygroMeter {
  public:
-  SHT3x(int8_t address = 0x44)
-      : temperature(TEMPERATURE_NOT_AVAILABLE),
-        humidity(HUMIDITY_NOT_AVAILABLE),
-        address(address),
-        retryCount(0) {
-  }
+   SHT3x(int8_t address = 0x44) : address(address) {
+   }
 
-  double getTemp() {
-    return temperature;
-  }
+   double getTemp() {
+     return temperature;
+   }
 
-  double getHumi() {
-    return humidity;
-  }
+   double getHumi() {
+     return humidity;
+   }
 
  private:
-  void iterateAlways() {
-    if (millis() - lastReadTime > 10000) {
-      lastReadTime = millis();
-      readValuesFromDevice();
-      channel.setNewValue(getTemp(), getHumi());
-    }
-  }
+   void iterateAlways() {
+     if (millis() - lastReadTime > 10000) {
+       lastReadTime = millis();
+       readValuesFromDevice();
+       channel.setNewValue(getTemp(), getHumi());
+     }
+   }
 
-  void onInit() {
-    sht.begin(address);
-    readValuesFromDevice();
-    channel.setNewValue(getTemp(), getHumi());
-  }
+   void onInit() {
+     sht.begin(address);
+     readValuesFromDevice();
+     channel.setNewValue(getTemp(), getHumi());
+   }
 
-  void readValuesFromDevice() {
-    SHT31D result = sht.readTempAndHumidity(
-        SHT3XD_REPEATABILITY_LOW, SHT3XD_MODE_CLOCK_STRETCH, 50);
+   void readValuesFromDevice() {
+     SHT31D result = sht.readTempAndHumidity(
+         SHT3XD_REPEATABILITY_LOW, SHT3XD_MODE_CLOCK_STRETCH, 50);
 
-    if (result.error != SHT3XD_NO_ERROR) {
-      Serial.print(F("SHT [ERROR] Code #"));
-      Serial.println(result.error);
-      retryCount++;
-      if (retryCount > 3) {
-        retryCount = 0;
-        temperature = TEMPERATURE_NOT_AVAILABLE;
-        humidity = HUMIDITY_NOT_AVAILABLE;
-      }
-    } else {
-      retryCount = 0;
-      temperature = result.t;
-      humidity = result.rh;
-    }
-  }
+     if (result.error != SHT3XD_NO_ERROR) {
+       Serial.print(F("SHT [ERROR] Code #"));
+       Serial.println(result.error);
+       retryCount++;
+       if (retryCount > 3) {
+         retryCount = 0;
+         temperature = TEMPERATURE_NOT_AVAILABLE;
+         humidity = HUMIDITY_NOT_AVAILABLE;
+       }
+     } else {
+       retryCount = 0;
+       temperature = result.t;
+       humidity = result.rh;
+     }
+   }
 
  protected:
-  int8_t address;
-  double temperature;
-  double humidity;
-  int8_t retryCount;
-  ::ClosedCube_SHT31D sht;  // I2C
+   int8_t address;
+   double temperature = TEMPERATURE_NOT_AVAILABLE;
+   double humidity = HUMIDITY_NOT_AVAILABLE;
+   int8_t retryCount = 0;
+   ::ClosedCube_SHT31D sht;  // I2C
 };
 
 };  // namespace Sensor

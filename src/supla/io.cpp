@@ -118,6 +118,17 @@ void Io::customAnalogWrite(int channelNumber, uint8_t pin, int val) {
   ::analogWrite(pin, val);
 }
 
+unsigned int Io::pulseIn(uint8_t pin, uint8_t value,
+      unsigned long timeoutMicro) {
+  return pulseIn(-1, pin, value, timeoutMicro);
+}
+
+unsigned int Io::pulseIn(int channelNumber, uint8_t pin, uint8_t value,
+      unsigned long timeoutMicro) {
+  (void)(channelNumber);
+  return ::pulseIn(pin, value, timeoutMicro);
+}
+
 unsigned int Io::customPulseIn(int channelNumber, uint8_t pin, uint8_t value,
       unsigned long timeoutMicro) {
   (void)(channelNumber);

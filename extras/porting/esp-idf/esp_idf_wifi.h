@@ -45,6 +45,7 @@ namespace Supla {
       bool isReady() override;
       void disconnect() override;
       void setup() override;
+
       void enableSSL(bool value);
       void setSsid(const char *wifiSsid);
       void setPassword(const char *wifiPassword);
