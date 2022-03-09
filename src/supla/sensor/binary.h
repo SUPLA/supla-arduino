@@ -17,8 +17,6 @@
 #ifndef _binary_h
 #define _binary_h
 
-#include <Arduino.h>
-
 #include "../channel_element.h"
 
 namespace Supla {

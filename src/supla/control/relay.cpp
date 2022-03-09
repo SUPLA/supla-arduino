@@ -19,12 +19,12 @@
  * by setting LOW or HIGH output on selected GPIO.
  */
 
-#include <Arduino.h>
-
 #include "../actions.h"
 #include "../io.h"
 #include "../storage/storage.h"
 #include "relay.h"
+#include <supla/time.h>
+#include <supla-common/log.h>
 
 using namespace Supla;
 using namespace Control;
@@ -57,8 +57,9 @@ void Relay::onInit() {
     turnOff();
   }
 
-  Supla::Io::pinMode(channel.getChannelNumber(), pin, OUTPUT);  // pin mode is set after setting pin value in order to
-                         // avoid problems with LOW trigger relays
+  // pin mode is set after setting pin value in order to
+  // avoid problems with LOW trigger relays
+  Supla::Io::pinMode(channel.getChannelNumber(), pin, OUTPUT);
 }
 
 void Relay::iterateAlways() {
@@ -147,7 +148,7 @@ void Relay::onSaveState() {
   bool enabled = false;
   if (stateOnInit < 0) {
     enabled = isOn();
-  } 
+  }
   Supla::Storage::WriteState((unsigned char *)&enabled, sizeof(enabled));
 }
 
@@ -155,10 +156,8 @@ void Relay::onLoadState() {
   Supla::Storage::ReadState((unsigned char *)&storedTurnOnDurationMs,
                             sizeof(storedTurnOnDurationMs));
   if (keepTurnOnDurationMs) {
-    Serial.print(F("Relay["));
-    Serial.print(channel.getChannelNumber());
-    Serial.print(F("]: restored durationMs: "));
-    Serial.println(storedTurnOnDurationMs);
+    supla_log(LOG_DEBUG, "Relay[%d]: restored durationMs: %d",
+        channel.getChannelNumber(), storedTurnOnDurationMs);
   } else {
     storedTurnOnDurationMs = 0;
   }
@@ -166,14 +165,11 @@ void Relay::onLoadState() {
   bool enabled = false;
   Supla::Storage::ReadState((unsigned char *)&enabled, sizeof(enabled));
   if (stateOnInit < 0) {
-    Serial.print(F("Relay["));
-    Serial.print(channel.getChannelNumber());
-    Serial.print(F("]: restored relay state: "));
+    supla_log(LOG_DEBUG, "Relay[%d]: restored relay state: %s",
+        channel.getChannelNumber(), enabled ? "ON" : "OFF");
     if (enabled) {
-      Serial.println(F("ON"));
       stateOnInit = STATE_ON_INIT_RESTORED_ON;
     } else {
-      Serial.println(F("OFF"));
       stateOnInit = STATE_ON_INIT_RESTORED_OFF;
     }
   }

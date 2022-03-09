@@ -14,11 +14,12 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include <Arduino.h>
 #include <stdint.h>
 
+#include "../time.h"
 #include "../storage/storage.h"
 #include "rgbw_base.h"
+#include "../tools.h"
 
 #define RGBW_STATE_ON_INIT_RESTORE -1
 #define RGBW_STATE_ON_INIT_OFF 0
@@ -372,11 +373,11 @@ void RGBWBase::onTimer() {
       step = 1;
     }
 
-    int curRedAdj = map(curRed, 0, 255, 0, 1023);
-    int curGreenAdj = map(curGreen, 0, 255, 0 , 1023);
-    int curBlueAdj = map(curBlue, 0, 255, 0, 1023);
-    int curColorBrightnessAdj = map(curColorBrightness, 0, 100, 0, 1023);
-    int curBrightnessAdj = map(curBrightness, 0, 100, 0, 1023);
+    int curRedAdj = adjustRange(curRed, 0, 255, 0, 1023);
+    int curGreenAdj = adjustRange(curGreen, 0, 255, 0 , 1023);
+    int curBlueAdj = adjustRange(curBlue, 0, 255, 0, 1023);
+    int curColorBrightnessAdj = adjustRange(curColorBrightness, 0, 100, 0, 1023);
+    int curBrightnessAdj = adjustRange(curBrightness, 0, 100, 0, 1023);
 
     if (curRedAdj > hwRed) {
       valueChanged = true;

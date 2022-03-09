@@ -2,13 +2,14 @@
 
 [SUPLA](https://www.supla.org) is an open source project for home automation. 
 
-# SuplaDevice library for Arduino IDE
+# SuplaDevice library
+This repository contain SuplaDevice libraray. It allows to implement software for devices which connect to Supla infrastructure.
 
-SuplaDevice is a library for [Arduino IDE](https://www.arduino.cc/en/main/software) that allows to implement devices working with [Supla](https://www.supla.org).
+SuplaDevice can be used as library for Arduino IDE, or can be used directly with [ESP8266 RTOS SDK](https://github.com/espressif/ESP8266_RTOS_SDK) and with [ESP IDF](https://github.com/espressif/esp-idf). It is also possible to compile and run it on Linux and in FreeRTOS environment, however here many functions are still missing.
 
-## Library installation
+Please check our [changelog](CHANGELOG.md).
 
-Please use library manager in Arduino IDE to install newest SuplaDevice library.
+Below you can find basic infomration about SuplaDevice and instrutions for Arudino IDE. 
 
 ## Hardware requirements
 
@@ -24,9 +25,13 @@ Warning: WiFi shields are currently not supported.
 ESP8266 and ESP8285 boards are supported. Network connection is done via WiFi.
 
 ### ESP32
-Experimental support for ESP32 boards is provided. Some issues seen with reconnection to WiFi router which requires further analysis.
+ESP32 boards are supported with connection via WiFi or via Ethernet.
 
-## Installation
+## SuplaDevice library installation for Arduino IDE
+
+SuplaDevice is a library for [Arduino IDE](https://www.arduino.cc/en/main/software) that allows to implement devices working with [Supla](https://www.supla.org).
+
+Please use library manager in Arduino IDE to install newest SuplaDevice library.
 
 Before you start, you will need to:
 1. install Arduino IDE,
@@ -79,6 +84,7 @@ Each example can run on Arduino Mega, ESP8266, or ESP32 board - unless mentioned
 * `supla/control` - implementation of Supla control channels (various combinations of relays, buttons, action triggers)
 * `supla/clock` - time services used in library (i.e. RTC)
 * `supla/conditions` - classes that are used to check runtime dependencies between channels (i.e. turn on relay when humidity is below 40%)
+* `supla/device` - device maintanance functions (like status LED which informs about connection status)
 * `supla/pv` - supported integrations with inverters used with photovoltaic
 * `supla` - all common classes are defined in main `supla` folder. You can find there classes that create framework on which all other components work. 
 
@@ -283,3 +289,72 @@ Supla::FramSpi fram(SCK_PIN, MISO_PIN, MOSI_PIN, FRAM_CS, SUPLA_STORAGE_OFFSET);
 
 Please check it [here](https://github.com/SUPLA/supla-cloud/blob/master/LICENSE).
 
+
+# Installation instructions for ESP IDF and ESP8266 RTOS SDK (draft)
+## ESP32:
+[Espressif ESP-IDF SDK installation steps for Linux (Ubuntu)](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html) - run below commands:
+```
+sudo apt-get install git wget flex bison gperf python3 python3-pip python3-setuptools cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
+mkdir ~/esp
+cd ~/esp
+git clone --recursive https://github.com/espressif/esp-idf.git
+```
+
+## ESP8266:
+[Espressif RTOS-SDK ESP-IDF style](https://docs.espressif.com/projects/esp8266-rtos-sdk/en/latest/get-started/index.html):
+Assuming that ESP32 (ESP IDF) installation was already done, run those commands:
+```
+sudo apt install gcc git wget make libncurses-dev flex bison gperf python
+cd ~/esp
+wget https://dl.espressif.com/dl/xtensa-lx106-elf-gcc8_4_0-esp-2020r3-linux-amd64.tar.gz
+tar -xzf xtensa-lx106-elf-gcc8_4_0-esp-2020r3-linux-amd64.tar.gz
+git clone --recursive https://github.com/espressif/ESP8266_RTOS_SDK.git
+/usr/bin/python -m pip install --user -r ~/esp/ESP8266_RTOS_SDK/requirements.txt
+```
+
+## ESP8266 and ESP32 environement setup:
+Add to `~/.profile`:
+```
+# ESP tools setup options
+export ESP_TOOLSET="none"
+alias unload_esp='export ESP_TOOLSET="none" && export PATH=$(echo $PATH | sed -e "s#${HOME}/esp/[^:]*:##g" | sed -e "s#:${HOME}/esp/xtensa-lx106-elf/bin##g") && unset IDF_PATH && unset IDF_PYTHON_ENV_PATH && unset IDF_TOOLS_EXPORT_CMD && unset IDF_TOOLS_INSTALL_CMD && unset IDF_TOOLS_PATH'
+alias use_esp8266='unload_esp && export PATH="$PATH:$HOME/esp/xtensa-lx106-elf/bin" && export ESP_TOOLSET="esp8266" && source ~/esp/ESP8266_RTOS_SDK/export.sh'
+alias use_esp32='unload_esp && export IDF_TOOLS_PATH=~/esp/esp_idf_tools && export ESP_TOOLSET="esp32" && source ~/esp/esp-idf/export.sh'
+```
+
+This will provide `use_esp8266` and `use_esp32` commands on command line. If those commands are not available, then  your `.profile` file wasn't automatically loaded. You can load in manually by calling:
+`source ~/.profile`
+
+Commands `use_esp8266` and `use_esp32` will setup environment for those boards.
+
+Last step is to setup `SUPLA_DEVICE_PATH` env variable. You can do it from command line:
+```export SUPLA_DEVICE_PATH=/home/your_user_home_folder/path_to/supla-device/```
+or you can add this line to `.profile` file so it will setup it automatically.
+
+Now you can go to `extras/examples/` directory and select example for ESP8266 or for ESP32:
+
+### ESP8266 example
+Use `empty_esp8266_rtos_sdk_project` directory (you can copy it to any location and modify). In this folder call:
+
+`make menuconfig` and setup your build (especially select proper USB device for flashing). Then call:
+
+`make build` - for building
+
+`make flash` - for flashing ESP
+
+`make monitor` - to run serial monitor (use CTRL+] to exit)
+
+### ESP32 example
+Use `empty_esp_idf_project` directory (you can copy it to any location and modify). In this folder call:
+
+`idf.py menuconfig` and setup your build (especially select proper USB device for flashing). Then call:
+
+`idf.py build` - for building
+
+`idf.py flash` - for flashing ESP
+
+`idf.py monitor` - to run serial monitor (use CTRL+] to exit)
+
+## FreeRTOS installation:
+`sudo apt install libpcap-dev`
+`git clone https://github.com/FreeRTOS/FreeRTOS.git --recurse-submodules`

@@ -16,6 +16,8 @@
 
 #include "sequence_button.h"
 #include <string.h>
+#include <supla/time.h>
+#include <supla-common/log.h>
 
 Supla::Control::SequenceButton::SequenceButton(int pin, bool pullUp, bool invertLogic)
     : SimpleButton(pin, pullUp, invertLogic),
@@ -56,15 +58,13 @@ void Supla::Control::SequenceButton::onTimer() {
   if (!stateChanged) {
     if (clickCounter > 0 && stateResult == RELEASED) {
       if (timeDelta > longestSequenceTimeDeltaWithMargin) {
-          Serial.print(F("Recorded sequence: "));
+          supla_log(LOG_DEBUG, "Recorded sequence: ");
           if (clickCounter > 31) {
             clickCounter = 31;
           }
           for (int i = 0; i < clickCounter - 1; i++) {
-            Serial.print(currentSequence.data[i]);
-            Serial.print(F(", "));
+            supla_log(LOG_DEBUG, "%d", currentSequence.data[i]);
           }
-          Serial.println();
 
           int matchSequenceSize = 0;
           for (; matchSequenceSize < 30; matchSequenceSize++) {
@@ -73,7 +73,7 @@ void Supla::Control::SequenceButton::onTimer() {
             }
           }
           if (matchSequenceSize != clickCounter - 1) {
-            Serial.println(F("Sequence size doesn't match"));
+            supla_log(LOG_DEBUG, "Sequence size doesn't match");
             runAction(ON_SEQUENCE_DOESNT_MATCH);
           } else {
             bool match = true;
@@ -85,10 +85,10 @@ void Supla::Control::SequenceButton::onTimer() {
               }
             }
             if (match) {
-              Serial.println(F("Sequence match"));
+              supla_log(LOG_DEBUG, "Sequence match");
               runAction(ON_SEQUENCE_MATCH);
             } else {
-              Serial.println(F("Sequence doesn't match"));
+              supla_log(LOG_DEBUG, "Sequence doesn't match");
               runAction(ON_SEQUENCE_DOESNT_MATCH);
             }
 

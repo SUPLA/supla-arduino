@@ -15,7 +15,7 @@
 */
 
 #include "button.h"
-
+#include <supla/time.h>
 
 Supla::Control::Button::Button(int pin, bool pullUp, bool invertLogic)
     : SimpleButton(pin, pullUp, invertLogic),

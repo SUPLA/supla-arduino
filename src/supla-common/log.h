@@ -19,20 +19,21 @@
 #ifndef suplalog_H_
 #define suplalog_H_
 
-#if defined(ESP8266) || defined(ESP32)
+#if defined(ESP8266)
 #include <mem.h>
 #define LOG_ICACHE_FLASH ICACHE_FLASH_ATTR
 #endif
 
 #if defined(ARDUINO)
 #undef LOG_ICACHE_FLASH
-#endif /*defined(ARDUINO)*/ 
+#endif /*defined(ARDUINO)*/
 
 #ifndef LOG_ICACHE_FLASH
 #define LOG_ICACHE_FLASH
 #endif /*LOG_ICACHE_FLASH*/
 
-#if defined(ESP8266) || defined(__AVR__) || defined(_WIN32) || defined(ESP32)
+#if defined(ESP8266) || defined(__AVR__) || defined(_WIN32) || \
+  defined(ESP32) || defined(SUPLA_DEVICE)
 
 #define LOG_EMERG 0
 #define LOG_ALERT 1
@@ -48,7 +49,7 @@
 #include <syslog.h>
 
 #endif  // defined(ESP8266) || defined(__AVR__)
-        // || defined(_WIN32) || defined(ESP32)
+        // || defined(_WIN32) || defined(ESP32) || defined(SUPLA_DEVICE)
 
 #ifdef __cplusplus
 extern "C" {

@@ -15,6 +15,7 @@
 */
 
 #include <supla/events.h>
+#include <supla/time.h>
 
 #include "therm_hygro_press_meter.h"
 

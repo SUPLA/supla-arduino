@@ -17,7 +17,7 @@
 #ifndef _roller_shutter_h
 #define _roller_shutter_h
 
-#include <Arduino.h>
+#include <stdint.h>
 
 #include "../io.h"
 #include "../channel_element.h"

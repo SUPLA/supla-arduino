@@ -14,17 +14,24 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include <Arduino.h>
 #include <SuplaDevice.h>
 
 #include "timer.h"
 
-#if defined(ARDUINO_ARCH_ESP32)
+#ifdef ARDUINO
+#include <Arduino.h>
+
+#ifdef ARDUINO_ARCH_ESP32
 #include <Ticker.h>
 #endif
 
 #ifdef ARDUINO_ARCH_ESP8266
 #include <os_type.h>
+#endif
+
+#elif defined(ESP_PLATFORM)
+#include "freertos/FreeRTOS.h"
+#include "freertos/timers.h"
 #endif
 
 namespace {
@@ -52,11 +59,24 @@ void esp_timer_cb() {
 void esp_fastTimer_cb() {
   SuplaDevice.onFastTimer();
 }
-#else
+#elif defined(ARDUINO_ARCH_AVR)
 ISR(TIMER1_COMPA_vect) {
   SuplaDevice.onTimer();
 }
 ISR(TIMER2_COMPA_vect) {
+  SuplaDevice.onFastTimer();
+}
+#elif defined(ESP_PLATFORM)
+TimerHandle_t slowerTimer;
+TimerHandle_t fasterTimer;
+
+void slowerTimerCb(TimerHandle_t xTimer)
+{
+  SuplaDevice.onTimer();
+}
+
+void fasterTimerCb(TimerHandle_t xTimer)
+{
   SuplaDevice.onFastTimer();
 }
 #endif
@@ -77,7 +97,7 @@ void initTimers() {
 #elif defined(ARDUINO_ARCH_ESP32)
   supla_esp_timer.attach_ms(10, esp_timer_cb);
   supla_esp_fastTimer.attach_ms(1, esp_fastTimer_cb);
-#else
+#elif defined(ARDUINO_ARCH_AVR)
   // Timer 1 for interrupt frequency 100 Hz (10 ms)
   TCCR1A = 0;  // set entire TCCR1A register to 0
   TCCR1B = 0;  // same for TCCR1B
@@ -106,7 +126,28 @@ void initTimers() {
   // enable timer compare interrupt
   TIMSK2 |= (1 << OCIE2A);
   sei();  // allow interrupts
+#elif defined(ESP_PLATFORM)
+  // ESP-IDF and ESP8266 RTOS (non Arduino)
+  slowerTimer = xTimerCreate(
+      "SuplaSlowerTm", pdMS_TO_TICKS(10), pdTRUE, (void*)0, &slowerTimerCb);
+  if (xTimerStart(slowerTimer, 100) != pdPASS) {
+    supla_log(LOG_ERR, "Slower Timer start error");
+  }
+
+  fasterTimer = xTimerCreate(
+      "SuplaFasterTm", pdMS_TO_TICKS(1), pdTRUE, (void*)0, &fasterTimerCb);
+  if (xTimerStart(fasterTimer, 100) != pdPASS) {
+    supla_log(LOG_ERR, "Faster Timer start error");
+  }
+
+#elif defined(SUPLA_LINUX)
+  supla_log(LOG_ERR, "Timers initialization: TODO");
+#elif defined(SUPLA_FREERTOS)
+  supla_log(LOG_ERR, "Timers initialication: TODO");
+#else
+#error Please implement timers
 #endif
+  // TODO implement timers startup
 }
 
 };  // namespace Supla

@@ -14,6 +14,7 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#ifdef ARDUINO
 #include "MAXThermocouple.h"
 
 namespace Supla {
@@ -49,7 +50,7 @@ double MAXThermocouple::getValue() {
       Serial.println(F("Max31855 Error"));
       return TEMPERATURE_NOT_AVAILABLE;
     } else {
-      uint16_t _internTemp = (value >> 4) & 0xfff;
+//      uint16_t _internTemp = (value >> 4) & 0xfff;
 
       value >>= 18;
       if (value & 0x2000) {  // is -
@@ -88,3 +89,4 @@ uint32_t MAXThermocouple::spiRead() {
 
 };  // namespace Sensor
 };  // namespace Supla
+#endif /*ARDUINO*/

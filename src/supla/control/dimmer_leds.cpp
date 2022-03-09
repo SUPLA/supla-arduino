@@ -15,6 +15,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "dimmer_leds.h"
+#include <supla/io.h>
 
 #ifdef ARDUINO_ARCH_ESP32
 extern int esp32PwmChannelCouner;
@@ -43,7 +44,7 @@ void Supla::Control::DimmerLeds::setRGBWValueOnDevice(uint32_t red,
 #ifdef ARDUINO_ARCH_ESP32
   ledcWrite(brightnessPin, brightnessAdj);
 #else
-  analogWrite(brightnessPin, brightnessAdj);
+  Supla::Io::analogWrite(brightnessPin, brightnessAdj);
 #endif
 }
 
@@ -61,7 +62,7 @@ void Supla::Control::DimmerLeds::onInit() {
   brightnessPin = esp32PwmChannelCouner;
   esp32PwmChannelCouner++;
 #else
-  pinMode(brightnessPin, OUTPUT);
+  Supla::Io::pinMode(brightnessPin, OUTPUT);
 
 #ifdef ARDUINO_ARCH_ESP8266
   analogWriteRange(1024);

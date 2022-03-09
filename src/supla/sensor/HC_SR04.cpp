@@ -14,9 +14,10 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include <Arduino.h>
-
 #include "HC_SR04.h"
+#include <supla/io.h>
+#include <supla/time.h>
+#include <supla/tools.h>
 
 namespace Supla {
 namespace Sensor {
@@ -36,9 +37,9 @@ HC_SR04::HC_SR04(int8_t trigPin,
 }
 
 void HC_SR04::onInit() {
-  pinMode(_trigPin, OUTPUT);
-  pinMode(_echoPin, INPUT);
-  digitalWrite(_trigPin, LOW);
+  Supla::Io::pinMode(_trigPin, OUTPUT);
+  Supla::Io::pinMode(_echoPin, INPUT);
+  Supla::Io::digitalWrite(_trigPin, LOW);
   delayMicroseconds(2);
 
   channel.setNewValue(getValue());
@@ -46,12 +47,12 @@ void HC_SR04::onInit() {
 }
 
 double HC_SR04::getValue() {
-  noInterrupts();
-  digitalWrite(_trigPin, HIGH);
+//  noInterrupts();
+  Supla::Io::digitalWrite(_trigPin, HIGH);
   delayMicroseconds(10);
-  digitalWrite(_trigPin, LOW);
-  unsigned long duration = pulseIn(_echoPin, HIGH, 60000);
-  interrupts();
+  Supla::Io::digitalWrite(_trigPin, LOW);
+  unsigned long duration = Supla::Io::pulseIn(_echoPin, HIGH, 60000);
+//  interrupts();
   if (duration > 50) {
     index++;
     if (index > 4) index = 0;
@@ -84,14 +85,22 @@ double HC_SR04::getValue() {
   }
   if (count > 0) {
     duration = sum / count;
-  } 
+  }
 
   long distance = (duration / 2.0) / 29.1;
-  long value = map(distance, _minIn, _maxIn, _minOut, _maxOut);
+  long value = adjustRange(distance, _minIn, _maxIn, _minOut, _maxOut);
   if (_minOut < _maxOut) {
-    value = constrain(value, _minOut, _maxOut);
+    if (value < _minOut) {
+      value = _minOut;
+    } else if (value > _maxOut) {
+      value = _maxOut;
+    }
   } else {
-    value = constrain(value, _maxOut, _minOut);
+    if (value < _maxOut) {
+      value = _maxOut;
+    } else if (value > _minOut) {
+      value = _minOut;
+    }
   }
   return failCount <= 3 ? static_cast<double>(value) / 100.0
                         : DISTANCE_NOT_AVAILABLE;

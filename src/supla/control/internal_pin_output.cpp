@@ -14,16 +14,15 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include <Arduino.h>
-
 #include "internal_pin_output.h"
 #include "../events.h"
+#include <supla/time.h>
 
 Supla::Control::InternalPinOutput::InternalPinOutput(int pin, bool highIsOn)
     : pin(pin),
       highIsOn(highIsOn),
       stateOnInit(STATE_ON_INIT_OFF),
-      durationMs(0), 
+      durationMs(0),
       storedTurnOnDurationMs(0),
       durationTimestamp(0) {
 }
@@ -54,8 +53,8 @@ void Supla::Control::InternalPinOutput::turnOn(_supla_int_t duration) {
     durationMs = storedTurnOnDurationMs;
   }
 
-  runAction(Supla::ON_TURN_ON); 
-  runAction(Supla::ON_CHANGE); 
+  runAction(Supla::ON_TURN_ON);
+  runAction(Supla::ON_CHANGE);
 
   Supla::Io::digitalWrite(pin, pinOnValue());
 }
@@ -64,8 +63,8 @@ void Supla::Control::InternalPinOutput::turnOff(_supla_int_t duration) {
   durationMs = duration;
   durationTimestamp = millis();
 
-  runAction(Supla::ON_TURN_OFF); 
-  runAction(Supla::ON_CHANGE); 
+  runAction(Supla::ON_TURN_OFF);
+  runAction(Supla::ON_CHANGE);
 
   Supla::Io::digitalWrite(pin, pinOffValue());
 }

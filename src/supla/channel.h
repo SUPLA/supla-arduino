@@ -40,7 +40,7 @@ class Channel : public LocalAction {
                    uint8_t colorBrightness,
                    uint8_t brightness);
   void setNewValue(unsigned _supla_int64_t value);
-  void setNewValue(const TRollerShutterValue &value);
+  void setNewValue(const TDSC_RollerShutterValue &value);
   bool setNewValue(char *newValue);
 
   double getValueDouble();

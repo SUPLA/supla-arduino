@@ -13,7 +13,6 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
-#include <Arduino.h>
 #include <string.h>
 
 #include "SuplaDevice.h"
@@ -21,10 +20,11 @@
 #include "supla-common/srpc.h"
 #include "supla/element.h"
 #include "supla/network/network.h"
+#include <supla/time.h>
 
 namespace Supla {
 
-Network *Network::netIntf = NULL;
+Network *Network::netIntf = nullptr;
 
 _supla_int_t data_read(void *buf, _supla_int_t count, void *userParams) {
   (void)(userParams);
@@ -76,9 +76,9 @@ void message_received(void *_srpc,
                 actionResult);
           }
         } else {
-          Serial.print(F("Error: couldn't find element for a requested channel ["));
-          Serial.print(rd.data.sd_channel_new_value->ChannelNumber);
-          Serial.println(F("]"));
+          supla_log(LOG_DEBUG,
+              "Error: couldn't find element for a requested channel [%d]",
+              rd.data.sd_channel_new_value->ChannelNumber);
         }
         break;
       }
@@ -107,8 +107,8 @@ void message_received(void *_srpc,
 
       case SUPLA_DCS_CALL_GET_USER_LOCALTIME_RESULT: {
         ((SuplaDeviceClass *)_sdc)->onGetUserLocaltimeResult(rd.data.sdc_user_localtime_result);
-        break;                                                 
-      }                                                         
+        break;
+      }
       case SUPLA_SD_CALL_DEVICE_CALCFG_REQUEST: {
         TDS_DeviceCalCfgResult result;
         result.ReceiverID = rd.data.sd_device_calcfg_request->SenderID;
@@ -116,6 +116,13 @@ void message_received(void *_srpc,
         result.Command = rd.data.sd_device_calcfg_request->Command;
         result.Result = SUPLA_CALCFG_RESULT_NOT_SUPPORTED;
         result.DataSize = 0;
+        supla_log(LOG_DEBUG, "CALCFG CMD received: senderId %d, ch %d, cmd %d, suauth %d, datatype %d, datasize %d, ",
+            rd.data.sd_device_calcfg_request->SenderID,
+            rd.data.sd_device_calcfg_request->ChannelNumber,
+            rd.data.sd_device_calcfg_request->Command,
+            rd.data.sd_device_calcfg_request->SuperUserAuthorized,
+            rd.data.sd_device_calcfg_request->DataType,
+            rd.data.sd_device_calcfg_request->DataSize);
 
         if (rd.data.sd_device_calcfg_request->SuperUserAuthorized != 1) {
           result.Result = SUPLA_CALCFG_RESULT_UNAUTHORIZED;
@@ -125,12 +132,11 @@ void message_received(void *_srpc,
           if (element) {
             result.Result = element->handleCalcfgFromServer(rd.data.sd_device_calcfg_request);
           } else {
-            Serial.print(F("Error: couldn't find element for a requested channel ["));
-            Serial.print(rd.data.sd_channel_new_value->ChannelNumber);
-            Serial.println(F("]"));
+            supla_log(LOG_DEBUG,
+                "Error: couldn't find element for a requested channel [%d]",
+                rd.data.sd_channel_new_value->ChannelNumber);
           }
         }
-
         srpc_ds_async_device_calcfg_result(_srpc, &result);
         break;
       }
@@ -142,9 +148,9 @@ void message_received(void *_srpc,
           if (element) {
             element->handleChannelConfig(result);
           } else {
-            Serial.print(F("Error: couldn't find element for a requested channel ["));
-            Serial.print(result->ChannelNumber);
-            Serial.println(F("]"));
+            supla_log(LOG_DEBUG,
+                "Error: couldn't find element for a requested channel [%d]",
+                result->ChannelNumber);
           }
 
 
@@ -165,9 +171,9 @@ void message_received(void *_srpc,
             memcpy(newValue.value, groupNewValue->value, SUPLA_CHANNELVALUE_SIZE);
             element->handleNewValueFromServer(&newValue);
           } else {
-            Serial.print(F("Error: couldn't find element for a requested channel ["));
-            Serial.print(rd.data.sd_channel_new_value->ChannelNumber);
-            Serial.println(F("]"));
+            supla_log(LOG_DEBUG,
+                "Error: couldn't find element for a requested channel [%d]",
+                rd.data.sd_channel_new_value->ChannelNumber);
           }
         }
         break;
@@ -192,7 +198,7 @@ Network::Network(unsigned char *ip) {
 
   netIntf = this;
 
-  if (ip == NULL) {
+  if (ip == nullptr) {
     useLocalIp = false;
   } else {
     useLocalIp = true;
@@ -251,6 +257,19 @@ void Network::setTimeout(int timeoutMs) {
 void Network::fillStateData(TDSC_ChannelState &channelState) {
   (void)(channelState);
   supla_log(LOG_DEBUG, "fillStateData is not implemented for this interface");
+}
+
+#define TMP_STRING_SIZE 2048
+
+void Network::printData(const char *prefix, const void *buf, const int count) {
+  char tmp[TMP_STRING_SIZE] = {};
+  for (int i = 0; i < count && (i * 3 < TMP_STRING_SIZE); i++) {
+    sprintf(tmp + i * 3,
+        "%02X ",
+        static_cast<unsigned int>(static_cast<const unsigned char *>(buf)[i]));
+  }
+  supla_log(LOG_DEBUG, "%s: [%s]", prefix, tmp);
+
 }
 
 };  // namespace Supla

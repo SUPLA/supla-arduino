@@ -19,11 +19,14 @@
 #ifndef _tools_H_
 #define _tools_H_
 
-#include <Arduino.h>
-#include "supla-common/IEEE754tools.h"
+#include <stdint.h>
+#include "definitions.h"
+#include "supla/IEEE754tools.h"
 
 void float2DoublePacked(float number, uint8_t *bar, int byteOrder = LSBFIRST);
 float doublePacked2float(uint8_t *bar);
+
+long adjustRange(long input, long inMin, long inMax, long outMin, long outMax);
 
 
 #endif

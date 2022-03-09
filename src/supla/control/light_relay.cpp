@@ -15,6 +15,8 @@
 */
 
 #include "light_relay.h"
+#include <supla/time.h>
+#include <supla-common/log.h>
 
 using namespace Supla;
 using namespace Control;
@@ -69,13 +71,8 @@ void LightRelay::onLoadState() {
     lifespan = data.lifespan;
     turnOnSecondsCumulative = data.turnOnSecondsCumulative;
 
-    Serial.print(F("LightRelay["));
-    Serial.print(channel.getChannelNumber());
-    Serial.print(F("] settings restored from storage. Total lifespan: "));
-    Serial.print(lifespan);
-    Serial.print(F(" h; current operating time: "));
-    Serial.print(turnOnSecondsCumulative);
-    Serial.println(F(" s"));
+    supla_log(LOG_DEBUG, "LightRelay[%d] settings restored from storage. Total lifespan: %d h; current operating time: %d s",
+        channel.getChannelNumber(), lifespan, turnOnSecondsCumulative);
   }
   Relay::onLoadState();
 }

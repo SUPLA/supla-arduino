@@ -15,14 +15,16 @@
 */
 
 #include "clock.h"
-#include <Arduino.h>
-#include "supla-common/srpc.h"
+#include "../time.h"
+#include <supla-common/srpc.h>
+#include <supla-common/log.h>
 
 using namespace Supla;
 
-Clock::Clock() : localtime(0), lastServerUpdate(0), lastMillis(0), isClockReady(false) {};
+Clock::Clock()
+  : localtime(0), lastServerUpdate(0), lastMillis(0), isClockReady(false){};
 
-bool Clock::isReady() { 
+bool Clock::isReady() {
   return isClockReady;
 }
 
@@ -35,7 +37,7 @@ int Clock::getYear() {
 
 int Clock::getMonth() {
   struct tm timeinfo;
-//  timeinfo = gmtime(time(0));
+  //  timeinfo = gmtime(time(0));
   time_t currentTime = time(0);
   gmtime_r(&currentTime, &timeinfo);
   return timeinfo.tm_mon + 1;
@@ -43,7 +45,7 @@ int Clock::getMonth() {
 
 int Clock::getDay() {
   struct tm timeinfo;
-//  timeinfo = gmtime(time(0));
+  //  timeinfo = gmtime(time(0));
   time_t currentTime = time(0);
   gmtime_r(&currentTime, &timeinfo);
   return timeinfo.tm_mday;
@@ -51,15 +53,15 @@ int Clock::getDay() {
 
 int Clock::getDayOfWeek() {
   struct tm timeinfo;
-//  timeinfo = gmtime(time(0));
+  //  timeinfo = gmtime(time(0));
   time_t currentTime = time(0);
   gmtime_r(&currentTime, &timeinfo);
-  return timeinfo.tm_wday + 1; // 1 - Sunday, 2 - Monday ...
+  return timeinfo.tm_wday + 1;  // 1 - Sunday, 2 - Monday ...
 }
 
 int Clock::getHour() {
   struct tm timeinfo;
-  //timeinfo = gmtime(time(0));
+  // timeinfo = gmtime(time(0));
   time_t currentTime = time(0);
   gmtime_r(&currentTime, &timeinfo);
   return timeinfo.tm_hour;
@@ -67,7 +69,7 @@ int Clock::getHour() {
 
 int Clock::getMin() {
   struct tm timeinfo;
-  //timeinfo = gmtime(time(0));
+  // timeinfo = gmtime(time(0));
   time_t currentTime = time(0);
   gmtime_r(&currentTime, &timeinfo);
   return timeinfo.tm_min;
@@ -80,39 +82,13 @@ int Clock::getSec() {
   return timeinfo.tm_sec;
 }
 
-
 void Clock::parseLocaltimeFromServer(TSDC_UserLocalTimeResult *result) {
-  struct tm timeinfo{};
+  struct tm timeinfo {};
 
   isClockReady = true;
 
-  Serial.print(F("Current local time: "));
-  Serial.print(getYear());
-  Serial.print(F("-"));
-  Serial.print(getMonth());
-  Serial.print(F("-"));
-  Serial.print(getDay());
-  Serial.print(F(" "));
-  Serial.print(getHour());
-  Serial.print(F(":"));
-  Serial.print(getMin());
-  Serial.print(F(":"));
-  Serial.println(getSec());
-
-
-
-  Serial.print(F("Received local time from server: "));
-  Serial.print(result->year);
-  Serial.print(F("-"));
-  Serial.print(static_cast<int>(result->month));
-  Serial.print(F("-"));
-  Serial.print(static_cast<int>(result->day));
-  Serial.print(F(" "));
-  Serial.print(static_cast<int>(result->hour));
-  Serial.print(F(":"));
-  Serial.print(static_cast<int>(result->min));
-  Serial.print(F(":"));
-  Serial.println(static_cast<int>(result->sec));
+  supla_log(LOG_DEBUG, "Current local time: %d-%d-%d %d:%d:%d",
+      getYear(), getMonth(), getDay(), getHour(), getMin(), getSec());
 
   timeinfo.tm_year = result->year - 1900;
   timeinfo.tm_mon = result->month - 1;
@@ -124,13 +100,13 @@ void Clock::parseLocaltimeFromServer(TSDC_UserLocalTimeResult *result) {
   localtime = mktime(&timeinfo);
 
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
-  timeval tv = { localtime, 0 };
+  timeval tv = {localtime, 0};
   settimeofday(&tv, nullptr);
 #elif defined(ARDUINO_ARCH_AVR)
   set_system_time(mktime(&timeinfo));
 #endif
-
-
+  supla_log(LOG_DEBUG, "Received local time from server: %d-%d-%d %d:%d:%d",
+      getYear(), getMonth(), getDay(), getHour(), getMin(), getSec());
 }
 
 void Clock::onTimer() {
@@ -150,7 +126,8 @@ void Clock::onTimer() {
 }
 
 bool Clock::iterateConnected(void *srpc) {
-  if (lastServerUpdate == 0 || millis() - lastServerUpdate > 5*60000) { // update every 5 min
+  if (lastServerUpdate == 0 ||
+      millis() - lastServerUpdate > 5 * 60000) {  // update every 5 min
     srpc_dcs_async_get_user_localtime(srpc);
     lastServerUpdate = millis();
     return false;

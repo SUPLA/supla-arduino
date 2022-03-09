@@ -17,8 +17,6 @@
 #ifndef _electricity_meter_h
 #define _electricity_meter_h
 
-#include <Arduino.h>
-
 #include "../channel_extended.h"
 #include "../element.h"
 #include "../local_action.h"
@@ -69,6 +67,42 @@ class ElectricityMeter : public Element, public LocalAction {
 
   // phase angle in 0.1 degree
   void setPhaseAngle(int phase, _supla_int_t phaseAngle);
+
+  // energy 1 == 0.00001 kWh
+  unsigned _supla_int64_t getFwdActEnergy(int phase);
+
+  // energy 1 == 0.00001 kWh
+  unsigned _supla_int64_t getRvrActEnergy(int phase);
+
+  // energy 1 == 0.00001 kWh
+  unsigned _supla_int64_t getFwdReactEnergy(int phase);
+
+  // energy 1 == 0.00001 kWh
+  unsigned _supla_int64_t getRvrReactEnergy(int phase);
+
+  // voltage 1 == 0.01 V
+  unsigned _supla_int16_t getVoltage(int phase);
+
+  // current 1 == 0.001 A
+  unsigned _supla_int_t getCurrent(int phase);
+
+  // Frequency 1 == 0.01 Hz
+  unsigned _supla_int16_t getFreq();
+
+  // power 1 == 0.00001 W
+  _supla_int_t getPowerActive(int phase);
+
+  // power 1 == 0.00001 var
+  _supla_int_t getPowerReactive(int phase);
+
+  // power 1 == 0.00001 VA
+  _supla_int_t getPowerApparent(int phase);
+
+  // power 1 == 0.001
+  _supla_int_t getPowerFactor(int phase);
+
+  // phase angle 1 == 0.1 degree
+  _supla_int_t getPhaseAngle(int phase);
 
   void resetReadParameters();
 

@@ -276,9 +276,9 @@ bool Channel::isExtended() {
   return false;
 }
 
-void Channel::setNewValue(const TRollerShutterValue &value) {
+void Channel::setNewValue(const TDSC_RollerShutterValue &value) {
   char newValue[SUPLA_CHANNELVALUE_SIZE] = {};
-  memcpy(newValue, &value, sizeof(TRollerShutterValue));
+  memcpy(newValue, &value, sizeof(TDSC_RollerShutterValue));
 
   if (setNewValue(newValue)) {
     runAction(ON_CHANGE);

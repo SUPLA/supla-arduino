@@ -15,6 +15,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "rgb_leds.h"
+#include <supla/io.h>
 
 #ifdef ARDUINO_ARCH_ESP32
 extern int esp32PwmChannelCouner;
@@ -45,9 +46,9 @@ void Supla::Control::RGBLeds::setRGBWValueOnDevice(uint32_t red,
   ledcWrite(greenPin, greenAdj);
   ledcWrite(bluePin, blueAdj);
 #else
-  analogWrite(redPin, redAdj);
-  analogWrite(greenPin, greenAdj);
-  analogWrite(bluePin, blueAdj);
+  Supla::Io::analogWrite(redPin, redAdj);
+  Supla::Io::analogWrite(greenPin, greenAdj);
+  Supla::Io::analogWrite(bluePin, blueAdj);
 #endif
 }
 
@@ -76,9 +77,9 @@ void Supla::Control::RGBLeds::onInit() {
   esp32PwmChannelCouner++;
 
 #else
-  pinMode(redPin, OUTPUT);
-  pinMode(greenPin, OUTPUT);
-  pinMode(bluePin, OUTPUT);
+  Supla::Io::pinMode(redPin, OUTPUT);
+  Supla::Io::pinMode(greenPin, OUTPUT);
+  Supla::Io::pinMode(bluePin, OUTPUT);
 
 #ifdef ARDUINO_ARCH_ESP8266
   analogWriteRange(1024);

@@ -17,7 +17,6 @@
 #ifndef _thermometer_h
 #define _thermometer_h
 
-#include <Arduino.h>
 #include "supla/channel_element.h"
 
 #define TEMPERATURE_NOT_AVAILABLE -275

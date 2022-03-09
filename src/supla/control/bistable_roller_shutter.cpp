@@ -16,6 +16,7 @@
 
 #include "bistable_roller_shutter.h"
 #include <supla/storage/storage.h>
+#include <supla/time.h>
 
 namespace Supla {
 namespace Control {

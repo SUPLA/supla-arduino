@@ -24,42 +24,36 @@
 #if defined(_WIN32)
 #include <Windows.h>
 #include <wchar.h>
-#elif defined(ARDUINO_ARCH_ESP8266) || defined(__AVR__) || defined(ARDUINO_ARCH_ESP32)
-#include <Arduino.h>
+#elif defined(ARDUINO)
+void serialPrintLn(const char*);
+#elif defined(ESP_PLATFORM)
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+#include <esp_log.h>
+static const char *SUPLA_TAG = "SUPLA";
+#elif defined(SUPLA_DEVICE)
+// new supla-device lib
 #else
-#include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+#include <unistd.h>
 #endif /*defined(_WIN32)*/
 
 #include <string.h>
 
-#if defined(ESP8266) || defined(ESP32)
+#ifdef ESP8266
 
 #include <mem.h>
-#if !defined(ARDUINO_ARCH_ESP32)
 #include <osapi.h>
-#endif
-
-#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
-#include <Arduino.h>
-#if defined(ARDUINO_ARCH_ESP266)
-#include <ets_sys.h>
-#endif
-#else
-#include <user_interface.h>
-#include "espmissingincludes.h"
-#endif /*ARDUINO_ARCH_ESP8266 || ARDUINO_ARCH_ESP8266 */
 
 #else
 
-#ifndef __AVR__
+#if !defined(ARDUINO) && !defined(SUPLA_DEVICE)
 #include "cfg.h"
-#endif /*__AVR__*/
+#endif /*!defined(ARDUINO) && !defined(SUPLA_DEVICE)*/
 
-#endif /*ESP8266 || ESP32 */
+#endif /*ESP8266*/
 
 #ifdef __ANDROID__
 #include <android/log.h>
@@ -68,12 +62,13 @@
 #ifdef __LOG_CALLBACK
 _supla_log_callback __supla_log_callback = NULL;
 
-void supla_log_set_callback(_supla_log_callback callback) {
+void LOG_ICACHE_FLASH supla_log_set_callback(_supla_log_callback callback) {
   __supla_log_callback = callback;
 }
 #endif /*__LOG_CALLBACK*/
 
-char supla_log_string(char **buffer, int *size, va_list va, const char *__fmt) {
+char LOG_ICACHE_FLASH supla_log_string(char **buffer, int *size, va_list va,
+                                       const char *__fmt) {
   char *nb;
   int n;
 
@@ -117,7 +112,7 @@ char supla_log_string(char **buffer, int *size, va_list va, const char *__fmt) {
 }
 
 #ifdef _WIN32
-
+// Windows variant
 void supla_vlog(int __pri, const char *message) {
   WCHAR wstr[2048];
   size_t convertedChars;
@@ -127,19 +122,51 @@ void supla_vlog(int __pri, const char *message) {
   OutputDebugStringW(wstr);
   OutputDebugStringW(L"\n");
 }
-
-#elif defined(ESP8266) || defined(__AVR__) || defined(ESP32)
+#elif defined(ARDUINO)
+// supla-device variant for Arduino IDE
 void supla_vlog(int __pri, const char *message) {
-#if (defined(ESP8266) || defined(ESP32)) && !defined(ARDUINO_ARCH_ESP8266) && !defined(ARDUINO_ARCH_ESP32)
+  (void)(__pri);
+  serialPrintLn(message);
+}
+#elif defined(ESP_PLATFORM)
+// variant for ESP8266 RTOS and ESP-IDF
+void supla_vlog(int __pri, const char *message) {
+  switch (__pri) {
+    case LOG_DEBUG:
+      ESP_LOGD(SUPLA_TAG, "%s", message);
+      break;
+    case LOG_INFO:
+    case LOG_NOTICE:
+      ESP_LOGI(SUPLA_TAG, "%s", message);
+      break;
+    case LOG_WARNING:
+      ESP_LOGW(SUPLA_TAG, "%s", message);
+      break;
+    case LOG_ERR:
+    case LOG_CRIT:
+    case LOG_EMERG:
+    case LOG_ALERT:
+      ESP_LOGE(SUPLA_TAG, "%s", message);
+      break;
+    default:
+      ESP_LOGE(SUPLA_TAG, "%s", message);
+  };
+}
+#elif defined(SUPLA_DEVICE)
+void supla_vlog(int __pri, const char *message) {
+  (void)(__pri);
+  printf("%s\n", message);
+  // TODO add implementation
+}
+#elif defined(ESP8266)
+// supla-espressif-esp variant
+void LOG_ICACHE_FLASH supla_vlog(int __pri, const char *message) {
 #ifndef ESP8266_LOG_DISABLED
   os_printf("%s\r\n", message);
 #endif
-#else
-  Serial.println(message);
-#endif
 }
 #else
-void supla_vlog(int __pri, const char *message) {
+void LOG_ICACHE_FLASH supla_vlog(int __pri, const char *message) {
 #ifdef __ANDROID__
   switch (__pri) {
     case LOG_CRIT:
@@ -170,11 +197,7 @@ void supla_vlog(int __pri, const char *message) {
   struct timeval now;
 #endif
 
-#if defined(ESP8266) || defined(__AVR__) || defined(ESP32)
-  if (message == NULL) return;
-#else
   if (message == NULL || (debug_mode == 0 && __pri == LOG_DEBUG)) return;
-#endif
 
 #ifdef __LOG_CALLBACK
   if (__supla_log_callback) __supla_log_callback(__pri, message);
@@ -209,15 +232,11 @@ void supla_vlog(int __pri, const char *message) {
         break;
     }
 
-#if defined(ESP8266) || defined(__AVR__) || defined(ESP32)
-    os_printf("%s\r\n", message);
-#else
     gettimeofday(&now, NULL);
     printf("[%li.%li] ", (unsigned long)now.tv_sec, (unsigned long)now.tv_usec);
     printf("%s", message);
     printf("\n");
     fflush(stdout);
-#endif
   }
 #endif
 
@@ -225,12 +244,13 @@ void supla_vlog(int __pri, const char *message) {
 }
 #endif
 
-void supla_log(int __pri, const char *__fmt, ...) {
+void LOG_ICACHE_FLASH supla_log(int __pri, const char *__fmt, ...) {
   va_list ap;
   char *buffer = NULL;
   int size = 0;
 
-#if defined(ESP8266) || defined(__AVR__) || defined(_WIN32) || defined(ESP32)
+#if defined(ESP8266) || defined(ARDUINO) || defined(_WIN32) || \
+  defined(SUPLA_DEVICE)
   if (__fmt == NULL) return;
 #else
   if (__fmt == NULL || (debug_mode == 0 && __pri == LOG_DEBUG)) return;
@@ -253,8 +273,11 @@ void supla_log(int __pri, const char *__fmt, ...) {
   free(buffer);
 }
 
-void supla_write_state_file(const char *file, int __pri, const char *__fmt,
-                            ...) {
+void LOG_ICACHE_FLASH supla_write_state_file(const char *file, int __pri,
+                                             const char *__fmt, ...) {
+  (void)(file);
+  (void)(__pri);
+  (void)(__fmt);
   char *buffer = NULL;
   int size = 0;
 
@@ -276,14 +299,18 @@ void supla_write_state_file(const char *file, int __pri, const char *__fmt,
     supla_vlog(__pri, buffer);
   }
 
-#if !defined(ESP8266) && !defined(__AVR__) && !defined(WIN32) && !defined(ESP32)
+#if !defined(ESP8266) && !defined(ARDUINO) && !defined(WIN32) && \
+  !defined(SUPLA_DEVICE)
 
   int fd;
 
   if (file != 0 && strnlen(file, 1024) > 0) {
     fd = open(file, O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
     if (fd != -1) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
       write(fd, buffer, strnlen(buffer, size));
+#pragma GCC diagnostic pop
       close(fd);
     }
   }

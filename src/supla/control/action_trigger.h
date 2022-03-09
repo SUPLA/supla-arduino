@@ -29,12 +29,12 @@ namespace Control {
 
 class ActionTrigger : public Element, public ActionHandler {
  public:
-  ActionTrigger(); 
+  ActionTrigger();
   virtual ~ActionTrigger();
 
   // Use below methods to attach button instance to ActionTrigger.
   // It will automatically register to all supported button actions
-  // during onInit() call on action trigger instance. 
+  // during onInit() call on action trigger instance.
   void attach(Supla::Control::Button *);
   void attach(Supla::Control::Button &);
 
