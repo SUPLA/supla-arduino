@@ -2,20 +2,21 @@
 
 ## 2.4.1 (unreleased)
 
-  - (Arduino) Change: move WiFi events for ESP8266 Arduino WiFi class to protected section
-  - (Arduino) Change: Arduino ESP32 boards switch to version 2.x. Older boards will not compile ([see instructions](https://github.com/SUPLA/supla-device/commit/c533e73a4c811c026187374635dd812d4e294c8b))
-  - (all) Add: `Supla::Device::StatusLed` element (LED informing about currend device connection status)
-  - (Linux) Add: support for compilation under Linux environment (partial implementation). Provided docker file for environment setup and example application.
-  - (FreeRTOS) Add: support for compilation under FreeRTOS environment (partial implementation). Provided docker file for environment setup and example application.
-  - (ESP8266 RTOS) Add: support for ESP8266 RTOS SDK envirotnment (partial implementation). Provided docker file for environment setup and example application.
-  - (ESP IDF) Add: support for ESP IDF envirotnment (partial implementation). Provided docker file for environment setup and example application.
-  - (all) Add: `Supla::Io::pulseIn` and `Supla::Io::analogWrite` to interface
-  - (ESP8266 RTOS, ESP IDF) Add: logging via ESP IDF logging lib
-  - (ESP8266 RTOS, ESP IDF) Add: implementation for `delay`, `delayMicroseconds`, `millis`
-  - (ESP8266 RTOS, ESP IDF) Add: implementation for `pinMode`, `digitalRead`, `digitalWrite`
-  - (ESP8266 RTOS, ESP IDF, Linux, FreeRTOS) Add: `ChannelState` basic data reporting
-  - (ESP8266 RTOS, ESP IDF) Add: `Supla::Storage` implementation on `spiffs`
-  
+  - Change: (Arduino) move WiFi events for ESP8266 Arduino WiFi class to protected section
+  - Change: (Arduino) Arduino ESP32 boards switch to version 2.x. Older boards will not compile ([see instructions](https://github.com/SUPLA/supla-device/commit/c533e73a4c811c026187374635dd812d4e294c8b))
+  - Add: `Supla::Device::StatusLed` element (LED informing about currend device connection status)
+  - Add: (Linux) support for compilation under Linux environment (partial implementation). Provided docker file for environment setup and example application.
+  - Add: (FreeRTOS) support for compilation under FreeRTOS environment (partial implementation). Provided docker file for environment setup and example application.
+  - Add: (ESP8266 RTOS) support for ESP8266 RTOS SDK envirotnment (partial implementation). Provided docker file for environment setup and example application.
+  - Add: (ESP IDF) support for ESP IDF envirotnment (partial implementation). Provided docker file for environment setup and example application.
+  - Add: `Supla::Io::pulseIn` and `Supla::Io::analogWrite` to interface
+  - Add: (ESP8266 RTOS, ESP IDF) logging via ESP IDF logging lib
+  - Add: (ESP8266 RTOS, ESP IDF) implementation for `delay`, `delayMicroseconds`, `millis`
+  - Add: (ESP8266 RTOS, ESP IDF) implementation for `pinMode`, `digitalRead`, `digitalWrite`
+  - Add: (ESP8266 RTOS, ESP IDF, Linux, FreeRTOS) `ChannelState` basic data reporting
+  - Add: (ESP8266 RTOS, ESP IDF) `Supla::Storage` implementation on `spiffs`
+  - Add: getters for electricity meter measured values
+
 ## 2.4.0 (2021-12-07)
 
 All changes for this and older releases are for Arduino IDE target.
