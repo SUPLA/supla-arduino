@@ -72,8 +72,8 @@ namespace Supla {
 
         uint8_t outPin;
         bool invert;
-        int onDuration = 0;
-        int offDuration = 1000;
+        unsigned int onDuration = 0;
+        unsigned int offDuration = 1000;
         unsigned long lastUpdate = 0;
         LedState state = NOT_INITIALIZED;
         int lastDeviceStatus = -1;
