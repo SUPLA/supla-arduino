@@ -48,6 +48,7 @@ file(GLOB TEST_SRC
   SuplaDeviceTests/*.cpp
   CorrectionTests/*cpp
   ActionTriggerTests/*cpp
+  ElectricityMeterTests/*cpp
   )
 
 file(GLOB DOUBLE_SRC doubles/*.cpp)
