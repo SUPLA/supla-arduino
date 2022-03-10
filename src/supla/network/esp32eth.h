@@ -163,14 +163,14 @@ class ESPETH : public Supla::Network {
         Serial.println(F("Mbps"));
         eth_connected = true;
       },
-      WiFiEvent_t::SYSTEM_EVENT_ETH_GOT_IP);
+      WiFiEvent_t::ARDUINO_EVENT_ETH_GOT_IP);   // ESP core 2.0.2
       (void)(event_gotIP);
       WiFiEventId_t event_disconnected = WiFi.onEvent(
       [](WiFiEvent_t event, WiFiEventInfo_t info) {
         Serial.println(F("Station disconnected"));
         eth_connected = false;
       },
-      WiFiEvent_t::SYSTEM_EVENT_ETH_DISCONNECTED);
+      WiFiEvent_t::ARDUINO_EVENT_ETH_DISCONNECTED);   // ESP core 2.0.2
       (void)(event_disconnected);
       Serial.println(F("establishing Lan connection"));
       ETH.begin(ETH_ADDRESS, ETH_POWER_PIN, ETH_MDC_PIN, ETH_MDIO_PIN, ETH_TYPE, ETH_CLK_MODE);
@@ -190,11 +190,9 @@ class ESPETH : public Supla::Network {
       }
     }
 
-    void fillStateData(TDSC_ChannelState &channelState) {
-      channelState.Fields |= SUPLA_CHANNELSTATE_FIELD_IPV4 |
-                             SUPLA_CHANNELSTATE_FIELD_MAC;
+    void fillStateData(TDSC_ChannelState &channelState) {  // ESP core 2.0.2 removed MAC
+      channelState.Fields |= SUPLA_CHANNELSTATE_FIELD_IPV4;
       channelState.IPv4 = ETH.localIP();
-      esp_eth_get_mac(channelState.MAC);
     }
 
   protected:
