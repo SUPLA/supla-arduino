@@ -19,13 +19,6 @@
 #include "status_led.h"
 #include "../../SuplaDevice.h"
 
-/*
- * Used times: ON/OFF ms
- * SW update - 20/20 ms
- * Starting/connecting - 1000/1000 ms
- * Config Mode - 100/100 ms
- *
- */
 
 Supla::Device::StatusLed::StatusLed(uint8_t outPin, bool invert)
     : outPin(outPin), invert(invert) {
