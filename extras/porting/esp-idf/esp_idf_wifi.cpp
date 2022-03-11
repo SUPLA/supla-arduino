@@ -230,6 +230,8 @@ void Supla::EspIdfWifi::setup() {
   memcpy(wifi_config.sta.ssid, ssid, MAX_SSID_SIZE);
   memcpy(wifi_config.sta.password, password, MAX_WIFI_PASSWORD_SIZE);
   wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
+  wifi_config.sta.scan_method = WIFI_ALL_CHANNEL_SCAN;
+  wifi_config.sta.sort_method = WIFI_CONNECT_AP_BY_SIGNAL;
 
   if (strlen((char *)(wifi_config.sta.password))) {
     wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
