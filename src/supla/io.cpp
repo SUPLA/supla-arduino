@@ -25,11 +25,29 @@
 // methods implemented in extras/porting/esp-idf/gpio.cpp
 #else
 // TODO implement those methods or extract them to separate interface
-void pinMode(uint8_t pin, uint8_t mode) {}
-int digitalRead(uint8_t pin) {return 0;}
-void digitalWrite(uint8_t pin, uint8_t val) {}
-void analogWrite(uint8_t pin, int val) {}
+void pinMode(uint8_t pin, uint8_t mode) {
+  (void)(pin);
+  (void)(mode);
+}
+
+int digitalRead(uint8_t pin) {
+  (void)(pin);
+  return 0;
+}
+void digitalWrite(uint8_t pin, uint8_t val) {
+  (void)(pin);
+  (void)(val);
+}
+
+void analogWrite(uint8_t pin, int val) {
+  (void)(pin);
+  (void)(val);
+}
+
 unsigned int pulseIn(uint8_t pin, uint8_t val, unsigned long timeoutMicro) {
+  (void)(pin);
+  (void)(val);
+  (void)(timeoutMicro);
   return 0;
 }
 #endif
@@ -63,8 +81,10 @@ int Io::digitalRead(int channelNumber, uint8_t pin) {
 }
 
 void Io::digitalWrite(int channelNumber, uint8_t pin, uint8_t val) {
-  supla_log(LOG_DEBUG, " **** Digital write[%d], gpio: %d; value %d",
-      channelNumber, pin, val);
+  if (channelNumber >= 0) {
+    supla_log(LOG_DEBUG, " **** Digital write[%d], gpio: %d; value %d",
+        channelNumber, pin, val);
+  }
 
   if (ioInstance) {
     ioInstance->customDigitalWrite(channelNumber, pin, val);

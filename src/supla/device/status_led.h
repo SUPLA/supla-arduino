@@ -30,7 +30,7 @@ namespace Supla {
   };
 
   enum LedSequence {
-    NETWORK_CONNECTING /* initial state 1000/1000 ms */,
+    NETWORK_CONNECTING /* initial state 2000/2000 ms */,
     SERVER_CONNECTING /* flashing 500/500 ms */,
     REGISTERED_AND_READY /* stable ON or OFF depending on config */,
     CONFIG_MODE /* quick flashing 100/100 ms */,
