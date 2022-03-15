@@ -568,7 +568,7 @@ Supla::Clock *SuplaDeviceClass::getClock() {
 void SuplaDeviceClass::loadDeviceConfig() {
   auto cfg = Supla::Storage::ConfigInstance();
 
-  bool configIncomplete = false;
+  //bool configIncomplete = false;
   char buf[256] = {};
 
   // Device generic config
@@ -585,14 +585,14 @@ void SuplaDeviceClass::loadDeviceConfig() {
     if (cfg->getSuplaServer(buf)) {
       setServer(buf);
     } else {
-      configIncomplete = true;
+   //   configIncomplete = true;
     }
     setServerPort(cfg->getSuplaServerPort());
 
     if (cfg->getEmail(buf)) {
       setEmail(buf);
     } else {
-      configIncomplete = true;
+    //  configIncomplete = true;
     }
 
   }

@@ -28,6 +28,7 @@ set(SUPLA_DEVICE_SRCS
   ../../../src/supla/storage/config.cpp
 
   ../../../src/supla/network/network.cpp
+  ../../../src/supla/network/netif_wifi.cpp
 
   ../../../src/supla/clock/clock.cpp
 

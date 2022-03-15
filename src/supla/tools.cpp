@@ -62,7 +62,7 @@ long adjustRange(long input, long inMin, long inMax, long outMin, long outMax) {
 
 bool isArrayEmpty(void* array, size_t arraySize) {
   auto buf = reinterpret_cast<char *>(array);
-  for (int i = 0; i <  arraySize; i++) {
+  for (size_t i = 0; i <  arraySize; i++) {
     if (buf[i] != 0) {
       return false;
     }
