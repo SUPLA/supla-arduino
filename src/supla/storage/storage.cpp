@@ -19,22 +19,36 @@
 #include <supla-common/log.h>
 
 #include "storage.h"
+#include "config.h"
 
 #define SUPLA_STORAGE_VERSION 1
 
 using namespace Supla;
 
 Storage *Storage::instance = nullptr;
+Config *Storage::configInstance = nullptr;
 
 Storage *Storage::Instance() {
   return instance;
 }
 
+Config *Storage::ConfigInstance() {
+  return configInstance;
+}
+
 bool Storage::Init() {
+  bool result = false;
   if (Instance()) {
-    return Instance()->init();
+    result = Instance()->init();
+  } else {
+    supla_log(LOG_DEBUG, "Main storage not configured");
   }
-  return false;
+  if (ConfigInstance()) {
+    result = ConfigInstance()->init();
+  } else {
+    supla_log(LOG_DEBUG, "Config storage not configured");
+  }
+  return result;
 }
 
 bool Storage::ReadState(unsigned char *buf, int size) {
@@ -52,14 +66,18 @@ bool Storage::WriteState(const unsigned char *buf, int size) {
 }
 
 bool Storage::LoadDeviceConfig() {
-  if (Instance()) {
+  if (ConfigInstance()) {
+    return ConfigInstance()->loadDeviceConfig();
+  } else if (Instance()) {
     return Instance()->loadDeviceConfig();
   }
   return false;
 }
 
 bool Storage::LoadElementConfig() {
-  if (Instance()) {
+  if (ConfigInstance()) {
+    return ConfigInstance()->loadElementConfig();
+  } else if (Instance()) {
     return Instance()->loadElementConfig();
   }
   return false;
@@ -90,6 +108,14 @@ void Storage::ScheduleSave(unsigned long delayMs) {
   if (Instance()) {
     Instance()->scheduleSave(delayMs);
   }
+}
+
+void Storage::SetConfigInstance(Config* instance) {
+  configInstance = instance;
+}
+
+bool Storage::IsConfigStorageAvailable() {
+  return (ConfigInstance() != nullptr);
 }
 
 Storage::Storage(unsigned int storageStartingOffset)
@@ -334,8 +360,8 @@ bool Storage::saveStateAllowed(unsigned long ms) {
 void Storage::scheduleSave(unsigned long delayMs) {
   unsigned long currentMs = millis();
   unsigned long newTimestamp = currentMs - saveStatePeriod - 1 + delayMs;
-  
   if (currentMs - lastWriteTimestamp  < currentMs - newTimestamp) {
     lastWriteTimestamp = newTimestamp;
   }
 }
+

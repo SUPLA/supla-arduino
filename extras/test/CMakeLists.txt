@@ -7,6 +7,7 @@ enable_testing()
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_BUILD_TYPE Debug)
+set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 include_directories(../../src)
 include_directories(doubles)
@@ -64,3 +65,5 @@ target_link_libraries(supladevicetests
 
 add_test(NAME supladevicetests
   COMMAND supladevicetests)
+
+target_compile_options(supladevicelib PRIVATE -Werror -Wall -Wextra)

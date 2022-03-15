@@ -5,30 +5,36 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
-
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
-
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
+*/
 
-#ifndef _tools_H_
-#define _tools_H_
+#include "netif_wifi.h"
+#include <string.h>
 
-#include <stddef.h>
-#include <stdint.h>
-#include "definitions.h"
-#include "supla/IEEE754tools.h"
+namespace Supla {
 
-void float2DoublePacked(float number, uint8_t *bar, int byteOrder = LSBFIRST);
-float doublePacked2float(uint8_t *bar);
+  Wifi::Wifi(const char *wifiSsid, const char *wifiPassword, unsigned char *ip)
+    : Network(ip) {
+      setSsid(wifiSsid);
+      setPassword(wifiPassword);
+    }
 
-long adjustRange(long input, long inMin, long inMax, long outMin, long outMax);
+  void Wifi::setSsid(const char *wifiSsid) {
+    if (wifiSsid) {
+      strncpy(ssid, wifiSsid, MAX_SSID_SIZE);
+    }
+  }
 
-bool isArrayEmpty(void* array, size_t arraySize);
+  void Wifi::setPassword(const char *wifiPassword) {
+    if (wifiPassword) {
+      strncpy(password, wifiPassword, MAX_WIFI_PASSWORD_SIZE);
+    }
+  }
 
-#endif
+};  // namespace Supla

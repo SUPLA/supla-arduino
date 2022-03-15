@@ -100,19 +100,24 @@ void cpp_main(void* param)
   while (true) {
     SuplaDevice.iterate();
     if (millis() - lastTime > 10) {
-      vTaskDelay(1);
+      delay(1);
       lastTime = millis();
     }
     if (millis() - lastTimeHeap > 3000) {
       lastTimeHeap = millis();
-      supla_log(LOG_DEBUG, "Free heep: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
+      static int lastFreeHeap = 0;
+      int curHeap = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+      if (lastFreeHeap != curHeap) {
+        lastFreeHeap = curHeap;
+        supla_log(LOG_DEBUG, "Free heep: %d", lastFreeHeap);
+      }
     }
   }
 }
 
 extern "C" {
   void app_main() {
-    xTaskCreate(&cpp_main, "cpp_main", 8192, NULL, 5, NULL);
+    xTaskCreate(&cpp_main, "cpp_main", 8192, NULL, 1, NULL);
   }
 }
 

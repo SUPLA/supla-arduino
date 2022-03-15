@@ -22,12 +22,16 @@
 #include "supla/channel.h"
 #include "supla/element.h"
 #include "supla/io.h"
+#include "supla/network/network.h"
 #include "supla/storage/storage.h"
 #include "supla/timer.h"
 #include "supla/time.h"
+#include "supla/storage/config.h"
+#include "supla/tools.h"
 
 void SuplaDeviceClass::status(int newStatus, const char *msg, bool alwaysLog) {
   bool showLog = false;
+
   if (currentStatus != newStatus &&
       !(newStatus == STATUS_REGISTER_IN_PROGRESS &&
         currentStatus > STATUS_REGISTER_IN_PROGRESS)) {
@@ -62,7 +66,7 @@ void SuplaDeviceClass::setStatusFuncImpl(
   this->impl_arduino_status = impl_arduino_status;
 }
 
-bool SuplaDeviceClass::isInitialized(bool msg) {
+bool SuplaDeviceClass::isSrpcInitialized(bool msg) {
   if (srpc != nullptr) {
     if (msg)
       status(STATUS_ALREADY_INITIALIZED, "SuplaDevice is already initialized");
@@ -87,13 +91,19 @@ bool SuplaDeviceClass::begin(const char GUID[SUPLA_GUID_SIZE],
 }
 
 bool SuplaDeviceClass::begin(unsigned char version) {
-  if (isInitialized(true)) return false;
+  isSrpcInitialized(true);
+  if (initializationDone) {
+    return false;
+  }
+
   supla_log(LOG_DEBUG, "Supla - starting initialization");
 
   Supla::Storage::Init();
 
-  // Supla::Storage::LoadDeviceConfig();
-  // Supla::Storage::LoadElementConfig();
+  if (Supla::Storage::IsConfigStorageAvailable()) {
+//    loadDeviceConfig();
+  }
+//  Supla::Storage::LoadElementConfig();
 
   // Pefrorm dry run of write state to validate stored state section with
   // current device configuration
@@ -118,8 +128,6 @@ bool SuplaDeviceClass::begin(unsigned char version) {
         delay(0);
       }
     }
-  } else {
-    supla_log(LOG_DEBUG, "Storage not found. Running without state memory");
   }
 
   // Initialize elements
@@ -132,60 +140,57 @@ bool SuplaDeviceClass::begin(unsigned char version) {
   // Enable timers
   Supla::initTimers();
 
+  // Core elements initialization is done
+  initializationDone = true;
+
   if (Supla::Network::Instance() == nullptr) {
     status(STATUS_MISSING_NETWORK_INTERFACE, "Network Interface not defined!");
     return false;
   }
 
-  bool emptyGuidDetected = true;
-  for (int i = 0; i < SUPLA_GUID_SIZE; i++) {
-    if (Supla::Channel::reg_dev.GUID[i] != 0) {
-      emptyGuidDetected = false;
-    }
-  }
+  // TODO optional when config storage is available
+  bool emptyGuidDetected =
+    isArrayEmpty(Supla::Channel::reg_dev.GUID, SUPLA_GUID_SIZE);
   if (emptyGuidDetected) {
     status(STATUS_INVALID_GUID, "Missing GUID");
     return false;
   }
 
+  // TODO switch to cfg mode when config storage is available
   if (Supla::Channel::reg_dev.ServerName[0] == '\0') {
     status(STATUS_UNKNOWN_SERVER_ADDRESS, "Missing server address");
     return false;
   }
 
+  // TODO switch to cfg mode when config storage is available
   if (Supla::Channel::reg_dev.Email[0] == '\0') {
     status(STATUS_MISSING_CREDENTIALS, "Missing email address");
     return false;
   }
 
-  bool emptyAuthKeyDetected = true;
-  for (int i = 0; i < SUPLA_AUTHKEY_SIZE; i++) {
-    if (Supla::Channel::reg_dev.AuthKey[i] != 0) {
-      emptyAuthKeyDetected = false;
-      break;
-    }
-  }
+  // TODO optional when config storage is available
+  bool emptyAuthKeyDetected =
+    isArrayEmpty(Supla::Channel::reg_dev.AuthKey, SUPLA_AUTHKEY_SIZE);
   if (emptyAuthKeyDetected) {
     status(STATUS_INVALID_AUTHKEY, "Missing AuthKey");
     return false;
   }
 
+  // TODO add option to load name from config
   if (strnlen(Supla::Channel::reg_dev.Name, SUPLA_DEVICE_NAME_MAXSIZE) == 0) {
 #if defined(ARDUINO_ARCH_ESP8266)
-    setString(
-        Supla::Channel::reg_dev.Name, "ESP8266", SUPLA_DEVICE_NAME_MAXSIZE);
+    setName("ESP8266");
 #elif defined(ARDUINO_ARCH_ESP32)
-    setString(Supla::Channel::reg_dev.Name, "ESP32", SUPLA_DEVICE_NAME_MAXSIZE);
+    setName("ESP32");
+#elif defined(ARDUINO_ARCH_AVR)
+    setName("ARDUINO MEGA");
 #else
-    setString(
-        Supla::Channel::reg_dev.Name, "ARDUINO", SUPLA_DEVICE_NAME_MAXSIZE);
+    setName("SuplaDevice");
 #endif
   }
 
   if (strnlen(Supla::Channel::reg_dev.SoftVer, SUPLA_SOFTVER_MAXSIZE) == 0) {
-    setString(Supla::Channel::reg_dev.SoftVer,
-              "User SW, lib 2.4.1",
-              SUPLA_SOFTVER_MAXSIZE);
+    setSwVersion("User SW, lib 2.4.1");
   }
 
   supla_log(LOG_DEBUG, "Initializing network layer");
@@ -210,7 +215,9 @@ bool SuplaDeviceClass::begin(unsigned char version) {
 }
 
 void SuplaDeviceClass::setName(const char *Name) {
-  if (isInitialized(true)) return;
+  if (initializationDone) {
+    return;
+  }
   setString(Supla::Channel::reg_dev.Name, Name, SUPLA_DEVICE_NAME_MAXSIZE);
 }
 
@@ -246,7 +253,10 @@ void SuplaDeviceClass::onFastTimer(void) {
 }
 
 void SuplaDeviceClass::iterate(void) {
-  if (!isInitialized(false)) return;
+  if (!initializationDone) {
+    return;
+  }
+
 
   unsigned long _millis = millis();
   unsigned long timeDiff = _millis - lastIterateTime;
@@ -269,6 +279,10 @@ void SuplaDeviceClass::iterate(void) {
       delay(0);
     }
     Supla::Storage::FinalizeSaveState();
+  }
+
+  if (!isSrpcInitialized(false)) {
+    return;
   }
 
   if (waitForIterate != 0 && _millis < waitForIterate) {
@@ -549,6 +563,50 @@ void SuplaDeviceClass::addClock(Supla::Clock *_clock) {
 
 Supla::Clock *SuplaDeviceClass::getClock() {
   return clock;
+}
+
+void SuplaDeviceClass::loadDeviceConfig() {
+  auto cfg = Supla::Storage::ConfigInstance();
+
+  bool configIncomplete = false;
+  char buf[256] = {};
+
+  // Device generic config
+  if (cfg->getDeviceName(buf)) {
+    setName(buf);
+  }
+  deviceMode = cfg->getDeviceMode();
+  if (deviceMode == Supla::DEVICE_MODE_NOT_SET) {
+    deviceMode = Supla::DEVICE_MODE_NORMAL;
+  }
+
+  // Supla protocol specific config
+  if (cfg->isSuplaCommProtocolEnabled()) {
+    if (cfg->getSuplaServer(buf)) {
+      setServer(buf);
+    } else {
+      configIncomplete = true;
+    }
+    setServerPort(cfg->getSuplaServerPort());
+
+    if (cfg->getEmail(buf)) {
+      setEmail(buf);
+    } else {
+      configIncomplete = true;
+    }
+
+  }
+
+
+  // WiFi specific config
+  auto net = Supla::Network::Instance();
+
+  if (net != nullptr) {
+    if (cfg->getWiFiSSID(buf)) {
+
+    }
+  }
+
 }
 
 SuplaDeviceClass SuplaDevice;

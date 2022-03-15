@@ -127,8 +127,8 @@ void Supla::Device::StatusLed::iterateAlways() {
         break;
 
       case PACZKOW_WE_HAVE_A_PROBLEM:
-        onDuration = 500;
-        offDuration = 500;
+        onDuration = 300;
+        offDuration = 100;
         break;
 
       case CUSTOM_SEQUENCE:

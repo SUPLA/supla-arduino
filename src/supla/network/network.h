@@ -25,79 +25,16 @@
 namespace Supla {
 class Network {
  public:
-  static Network *Instance() {
-    return netIntf;
-  }
-
-  static bool Connected() {
-    if (Instance() != nullptr) {
-      return Instance()->connected();
-    }
-    return false;
-  }
-
-  static int Read(void *buf, int count) {
-    if (Instance() != nullptr) {
-      return Instance()->read(buf, count);
-    }
-    return -1;
-  }
-
-  static int Write(void *buf, int count) {
-    if (Instance() != nullptr) {
-      return Instance()->write(buf, count);
-    }
-    return -1;
-  }
-
-  static int Connect(const char *server, int port = -1) {
-    if (Instance() != nullptr) {
-      Instance()->clearTimeCounters();
-      return Instance()->connect(server, port);
-    }
-    return 0;
-  }
-
-  static void Disconnect() {
-    if (Instance() != nullptr) {
-      return Instance()->disconnect();
-    }
-    return;
-  }
-
-  static void Setup() {
-    if (Instance() != nullptr) {
-      return Instance()->setup();
-    }
-    return;
-  }
-
-  static bool IsReady() {
-    if (Instance() != nullptr) {
-      return Instance()->isReady();
-    }
-    return false;
-  }
-
-  static bool Iterate() {
-    if (Instance() != nullptr) {
-      return Instance()->iterate();
-    }
-    return false;
-  }
-
-  static void SetSrpc(void *_srpc) {
-    if (Instance() != nullptr) {
-      Instance()->setSrpc(_srpc);
-    }
-  }
-
-  static bool Ping(void *srpc) {
-    if (Instance() != nullptr) {
-      return Instance()->ping(srpc);
-    }
-    return false;
-  }
+  static Network *Instance();
+  static bool Connected();
+  static int Read(void *buf, int count);
+  static int Write(void *buf, int count);
+  static int Connect(const char *server, int port = -1);
+  static void Disconnect();
+  static void Setup();
+  static bool IsReady();
+  static bool Iterate();
+  static bool Ping(void *srpc);
 
   static void printData(const char *prefix, const void *buf, const int count);
 
@@ -117,7 +54,10 @@ class Network {
 
   virtual void fillStateData(TDSC_ChannelState &channelState);
 
-  void setSrpc(void *_srpc);
+  // WiFi specific part
+  virtual void setSsid(const char *wifiSsid);
+  virtual void setPassword(const char *wifiPassword);
+
   void updateLastSent();
   void updateLastResponse();
   void clearTimeCounters();

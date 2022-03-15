@@ -20,6 +20,7 @@
 
 
 #include <freertos/FreeRTOS.h>
+#include <nvs_flash.h>
 #include <esp_idf_wifi.h>
 #include <supla-common/log.h>
 #include <SuplaDevice.h>
@@ -104,9 +105,10 @@ void cpp_main(void* param)
       lastTime = millis();
       delay(1);
     }
-    if (millis() - lastTimeHeap > 3000) {
+    if (millis() - lastTimeHeap > 10000) {
       lastTimeHeap = millis();
       supla_log(LOG_DEBUG, "Free heep: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
+
     }
   }
 }

@@ -26,6 +26,74 @@ namespace Supla {
 
 Network *Network::netIntf = nullptr;
 
+Network *Network::Instance() {
+  return netIntf;
+}
+
+bool Network::Connected() {
+  if (Instance() != nullptr) {
+    return Instance()->connected();
+  }
+  return false;
+}
+
+int Network::Read(void *buf, int count) {
+  if (Instance() != nullptr) {
+    return Instance()->read(buf, count);
+  }
+  return -1;
+}
+
+int Network::Write(void *buf, int count) {
+  if (Instance() != nullptr) {
+    return Instance()->write(buf, count);
+  }
+  return -1;
+}
+
+int Network::Connect(const char *server, int port) {
+  if (Instance() != nullptr) {
+    Instance()->clearTimeCounters();
+    return Instance()->connect(server, port);
+  }
+  return 0;
+}
+
+void Network::Disconnect() {
+  if (Instance() != nullptr) {
+    return Instance()->disconnect();
+  }
+  return;
+}
+
+void Network::Setup() {
+  if (Instance() != nullptr) {
+    return Instance()->setup();
+  }
+  return;
+}
+
+bool Network::IsReady() {
+  if (Instance() != nullptr) {
+    return Instance()->isReady();
+  }
+  return false;
+}
+
+bool Network::Iterate() {
+  if (Instance() != nullptr) {
+    return Instance()->iterate();
+  }
+  return false;
+}
+
+bool Network::Ping(void *srpc) {
+  if (Instance() != nullptr) {
+    return Instance()->ping(srpc);
+  }
+  return false;
+}
+
 _supla_int_t data_read(void *buf, _supla_int_t count, void *userParams) {
   (void)(userParams);
   return Supla::Network::Read(buf, count);
@@ -270,6 +338,14 @@ void Network::printData(const char *prefix, const void *buf, const int count) {
   }
   supla_log(LOG_DEBUG, "%s: [%s]", prefix, tmp);
 
+}
+
+void Network::setSsid(const char *wifiSsid) {
+  (void)(wifiSsid);
+}
+
+void Network::setPassword(const char *wifiPassword) {
+  (void)(wifiPassword);
 }
 
 };  // namespace Supla

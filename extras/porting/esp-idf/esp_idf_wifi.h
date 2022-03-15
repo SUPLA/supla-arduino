@@ -26,17 +26,15 @@
 #include <esp_wifi.h>
 
 // supla-device includes
-#include <supla/network/network.h>
-
-#define MAX_SSID_SIZE          32
-#define MAX_WIFI_PASSWORD_SIZE 64
+#include <supla/network/netif_wifi.h>
 
 namespace Supla {
-  class EspIdfWifi : public Supla::Network {
+  class EspIdfWifi : public Supla::Wifi {
     public:
       EspIdfWifi(const char *wifiSsid = nullptr,
           const char *wifiPassword = nullptr,
           unsigned char *ip = nullptr);
+      virtual ~EspIdfWifi();
 
       int read(void *buf, int count) override;
       int write(void *buf, int count) override;
@@ -47,8 +45,6 @@ namespace Supla {
       void setup() override;
 
       void enableSSL(bool value);
-      void setSsid(const char *wifiSsid);
-      void setPassword(const char *wifiPassword);
       void setTimeout(int timeoutMs);
       void fillStateData(TDSC_ChannelState &channelState) override;
 
@@ -62,8 +58,6 @@ namespace Supla {
       bool isWifiConnected = false;
       bool isIpReady = false;
       bool isServerConnected = false;
-      char ssid[MAX_SSID_SIZE] = {};
-      char password[MAX_WIFI_PASSWORD_SIZE] = {};
       EventGroupHandle_t wifiEventGroup;
       esp_tls_t *client = nullptr;
       int timeoutMs = 10000;

@@ -19,8 +19,10 @@
 
 #include "supla-common/proto.h"
 #include "supla/network/network.h"
+#include "supla/storage/config.h"
 #include "supla/uptime.h"
 #include "supla/clock/clock.h"
+#include "supla/storage/config.h"
 
 #define ACTIVITY_TIMEOUT 30
 
@@ -59,29 +61,6 @@
 typedef void (*_impl_arduino_status)(int status, const char *msg);
 
 class SuplaDeviceClass {
- protected:
-  void *srpc;
-  int8_t registered;
-  int port;
-  int connectionFailCounter;
-  int networkIsNotReadyCounter;
-
-  unsigned long lastIterateTime;
-  unsigned long waitForIterate;
-
-  int currentStatus;
-
-  _impl_arduino_status impl_arduino_status;
-
-  Supla::Uptime uptime;
-  Supla::Clock *clock;
-
-  bool isInitialized(bool msg);
-  void setString(char *dst, const char *src, int max_size);
-
- private:
-  void status(int status, const char *msg, bool alwaysLog = false);
-
  public:
   SuplaDeviceClass();
   ~SuplaDeviceClass();
@@ -123,6 +102,34 @@ class SuplaDeviceClass {
 
   void setSwVersion(const char *);
   int getCurrentStatus();
+  void loadDeviceConfig();
+
+ protected:
+  void *srpc;
+  int8_t registered;
+  int port;
+  int connectionFailCounter;
+  int networkIsNotReadyCounter;
+
+  unsigned long lastIterateTime;
+  unsigned long waitForIterate;
+  enum Supla::DeviceMode deviceMode = Supla::DEVICE_MODE_NOT_SET;
+  int currentStatus;
+
+  _impl_arduino_status impl_arduino_status;
+
+  Supla::Uptime uptime;
+  Supla::Clock *clock;
+
+  bool isSrpcInitialized(bool msg);
+  // used to indicate if begin() method was called - it will be set to
+  // true even if initialization procedure failed for some reason
+  bool initializationDone = false;
+  void setString(char *dst, const char *src, int max_size);
+
+ private:
+  void status(int status, const char *msg, bool alwaysLog = false);
+
 };
 
 extern SuplaDeviceClass SuplaDevice;

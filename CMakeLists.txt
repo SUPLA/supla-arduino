@@ -29,6 +29,7 @@ set(SUPLA_DEVICE_SRCS
   src/supla/clock/clock.cpp
 
   src/supla/storage/storage.cpp
+  src/supla/storage/config.cpp
 
   src/supla/network/network.cpp
 

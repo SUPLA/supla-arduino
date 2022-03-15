@@ -25,6 +25,7 @@ set(SUPLA_DEVICE_SRCS
   ../../../src/supla/uptime.cpp
 
   ../../../src/supla/storage/storage.cpp
+  ../../../src/supla/storage/config.cpp
 
   ../../../src/supla/network/network.cpp
 
@@ -79,6 +80,7 @@ set(SUPLA_DEVICE_PORTING_SRCS
   ../../porting/esp-idf/esp_idf_wifi.cpp
   ../../porting/esp-idf/esp_idf_gpio.cpp
   ../../porting/esp-idf/spiffs_storage.cpp
+  ../../porting/esp-idf/nvs_config.cpp
 )
 
 

@@ -28,24 +28,17 @@
 #include <WiFiClientSecure.h>
 
 #include "../supla_lib_config.h"
-#include "network.h"
-
-#define MAX_SSID_SIZE          32
-#define MAX_WIFI_PASSWORD_SIZE 64
+#include "netif_wifi.h"
 
 // TODO: change logs to supla_log
 
 namespace Supla {
-class ESPWifi : public Supla::Network {
+class ESPWifi : public Supla::Wifi {
  public:
   ESPWifi(const char *wifiSsid = nullptr,
           const char *wifiPassword = nullptr,
           unsigned char *ip = nullptr)
-      : Network(ip), client(nullptr), isSecured(true), wifiConfigured(false) {
-    ssid[0] = '\0';
-    password[0] = '\0';
-    setSsid(wifiSsid);
-    setPassword(wifiPassword);
+      : Wifi(wifiSsid, wifiPassword, ip) {
 #ifdef ARDUINO_ARCH_ESP32
     enableSSL(false);  // ESP32 WiFiClientSecure does not suport "setInsecure"
 #endif
@@ -212,18 +205,6 @@ class ESPWifi : public Supla::Network {
     fingerprint = value;
   }
 
-  void setSsid(const char *wifiSsid) {
-    if (wifiSsid) {
-      strncpy(ssid, wifiSsid, MAX_SSID_SIZE);
-    }
-  }
-
-  void setPassword(const char *wifiPassword) {
-    if (wifiPassword) {
-      strncpy(password, wifiPassword, MAX_WIFI_PASSWORD_SIZE);
-    }
-  }
-
   void setTimeout(int timeoutMs) {
     if (client) {
       client->setTimeout(timeoutMs);
@@ -249,9 +230,9 @@ class ESPWifi : public Supla::Network {
   }
 
  protected:
-  WiFiClient *client = NULL;
-  bool isSecured;
-  bool wifiConfigured;
+  WiFiClient *client = nullptr;
+  bool isSecured = true;
+  bool wifiConfigured = false;
   String fingerprint;
   char ssid[MAX_SSID_SIZE];
   char password[MAX_WIFI_PASSWORD_SIZE];

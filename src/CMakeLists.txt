@@ -15,6 +15,7 @@ set(SRCS
   supla/action_handler.cpp
 
   supla/storage/storage.cpp
+  supla/storage/config.cpp
 
   supla/control/internal_pin_output.cpp
   supla/control/pin_status_led.cpp

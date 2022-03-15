@@ -25,9 +25,13 @@
 
 namespace Supla {
 
+class Config;
+
 class Storage {
  public:
+
   static Storage *Instance();
+  static Config *ConfigInstance();
   static bool Init();
   static bool ReadState(unsigned char *, int);
   static bool WriteState(const unsigned char *, int);
@@ -37,6 +41,8 @@ class Storage {
   static bool FinalizeSaveState();
   static bool SaveStateAllowed(unsigned long);
   static void ScheduleSave(unsigned long delayMs);
+  static void SetConfigInstance(Config* instance);
+  static bool IsConfigStorageAvailable();
 
   Storage(unsigned int storageStartingOffset = 0);
   virtual ~Storage();
@@ -81,6 +87,7 @@ class Storage {
   unsigned long lastWriteTimestamp;
 
   static Storage *instance;
+  static Config *configInstance;
 };
 
 #pragma pack(push, 1)

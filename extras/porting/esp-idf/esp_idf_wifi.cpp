@@ -18,6 +18,8 @@
 #include <fcntl.h>
 #include <supla/supla_lib_config.h>
 #include <nvs_flash.h>
+#include <supla/storage/storage.h>
+#include <supla/storage/config.h>
 
 #include <cstring>
 
@@ -32,13 +34,13 @@ extern const uint8_t suplaOrgCertPemEnd[] asm("_binary_supla_org_cert_pem_end");
 Supla::EspIdfWifi::EspIdfWifi(const char *wifiSsid,
     const char *wifiPassword,
     unsigned char *ip)
-  : Network(ip) {
-    ssid[0] = '\0';
-    password[0] = '\0';
-    setSsid(wifiSsid);
-    setPassword(wifiPassword);
+  : Wifi(wifiSsid, wifiPassword, ip) {
     netIntfPtr = this;
   }
+
+Supla::EspIdfWifi::~EspIdfWifi() {
+  netIntfPtr = nullptr;
+}
 
 int Supla::EspIdfWifi::read(void *buf, int count) {
   esp_tls_conn_read(client, nullptr, 0);
@@ -199,6 +201,7 @@ void Supla::EspIdfWifi::setup() {
   if (!initDone) {
     nvs_flash_init();
     esp_netif_init();
+
     wifiEventGroup = xEventGroupCreate();
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
@@ -244,18 +247,6 @@ void Supla::EspIdfWifi::setup() {
 
 void Supla::EspIdfWifi::enableSSL(bool value) {
   isSecured = value;
-}
-
-void Supla::EspIdfWifi::setSsid(const char *wifiSsid) {
-  if (wifiSsid) {
-    strncpy(ssid, wifiSsid, MAX_SSID_SIZE);
-  }
-}
-
-void Supla::EspIdfWifi::setPassword(const char *wifiPassword) {
-  if (wifiPassword) {
-    strncpy(password, wifiPassword, MAX_WIFI_PASSWORD_SIZE);
-  }
 }
 
 void Supla::EspIdfWifi::setTimeout(int newTimeoutMs) {
