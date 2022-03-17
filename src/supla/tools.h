@@ -31,4 +31,6 @@ long adjustRange(long input, long inMin, long inMax, long outMin, long outMax);
 
 bool isArrayEmpty(void* array, size_t arraySize);
 
+void deviceSoftwareReset();
+
 #endif

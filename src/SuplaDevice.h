@@ -84,6 +84,13 @@ class SuplaDeviceClass {
   void setAuthKey(const char authkey[SUPLA_AUTHKEY_SIZE]);
   void setEmail(const char *email);
   void setServer(const char *server);
+  void setSwVersion(const char *);
+  void setManufacurerId(_supla_int16_t);
+  void setProductId(_supla_int16_t);
+  void addFlags(_supla_int_t);
+  void removeFlags(_supla_int_t);
+
+  int generateHostname(char*, int size = 6);
 
   // Timer with 100 Hz frequency (10 ms)
   void onTimer(void);
@@ -99,8 +106,13 @@ class SuplaDeviceClass {
   void channelSetActivityTimeoutResult(
       TSDC_SuplaSetActivityTimeoutResult *result);
   void onGetUserLocaltimeResult(TSDC_UserLocalTimeResult *result);
+  int handleCalcfgFromServer(TSD_DeviceCalCfgRequest *request);
 
-  void setSwVersion(const char *);
+  void enterConfigMode();
+  void enterNormalMode();
+  void leaveConfigMode();
+  void saveStateToStorage();
+
   int getCurrentStatus();
   void loadDeviceConfig();
 
@@ -113,6 +125,7 @@ class SuplaDeviceClass {
 
   unsigned long lastIterateTime;
   unsigned long waitForIterate;
+  unsigned long enterCfgModeTimestamp = 0;
   enum Supla::DeviceMode deviceMode = Supla::DEVICE_MODE_NOT_SET;
   int currentStatus;
 
@@ -125,7 +138,12 @@ class SuplaDeviceClass {
   // used to indicate if begin() method was called - it will be set to
   // true even if initialization procedure failed for some reason
   bool initializationDone = false;
+
   void setString(char *dst, const char *src, int max_size);
+
+  void iterateAlwaysElements(unsigned long _millis);
+  bool iterateNetworkSetup(unsigned long _millis);
+  bool iterateSuplaProtocol(unsigned int _millis);
 
  private:
   void status(int status, const char *msg, bool alwaysLog = false);

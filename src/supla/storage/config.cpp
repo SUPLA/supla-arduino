@@ -80,6 +80,8 @@ enum DeviceMode Config::getDeviceMode() {
       case 2:
         return DEVICE_MODE_NORMAL;
       case 3:
+        return DEVICE_MODE_CONFIG;
+      case 4:
         return DEVICE_MODE_SW_UPDATE;
       default:
         return DEVICE_MODE_NOT_SET;
@@ -180,8 +182,11 @@ bool Config::setDeviceMode(enum DeviceMode mode) {
     case DEVICE_MODE_NORMAL:
       value = 2;
       break;
-    case DEVICE_MODE_SW_UPDATE:
+    case DEVICE_MODE_CONFIG:
       value = 3;
+      break;
+    case DEVICE_MODE_SW_UPDATE:
+      value = 4;
       break;
     default:
       value = 0;
@@ -202,11 +207,11 @@ bool Config::setEmail(const char* email) {
 }
 
 bool Config::setGUID(const char* guid) {
-  return setBlob("guid", guid);
+  return setBlob("guid", guid, SUPLA_GUID_SIZE);
 }
 
 bool Config::setAuthKey(const char* authkey) {
-  return setBlob("authkey", authkey);
+  return setBlob("authkey", authkey, SUPLA_AUTHKEY_SIZE);
 }
 
 bool Config::setMqttServer(const char* server) {
@@ -233,3 +238,6 @@ bool Config::setMqttPoolPublicationDelay(int32_t poolDelay) {
   return setInt32("mqttpooldelay", poolDelay);
 }
 
+void Config::commit() {
+  return;
+}

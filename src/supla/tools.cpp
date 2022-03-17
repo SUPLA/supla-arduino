@@ -69,3 +69,13 @@ bool isArrayEmpty(void* array, size_t arraySize) {
   }
   return true;
 }
+
+#if !defined(ARDUINO) && defined(ESP_PLATFORM)
+#include <esp_system.h>
+#endif
+
+void deviceSoftwareReset() {
+#if !defined(ARDUINO) && defined(ESP_PLATFORM)
+  esp_restart();
+#endif
+}

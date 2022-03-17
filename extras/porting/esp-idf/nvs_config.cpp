@@ -66,12 +66,14 @@ int NvsConfig::getStringSize(const char* key) {
   return -1;
 }
 
-bool NvsConfig::setBlob(const char* key, const char* value) {
-  return false;
+bool NvsConfig::setBlob(const char* key, const char* value, size_t blobSize) {
+  esp_err_t err = nvs_set_blob(nvsHandle, key, value, blobSize);
+  return err == ESP_OK;
 }
 
-bool NvsConfig::getBlob(const char* key, char* value, size_t maxSize) {
-  return false;
+bool NvsConfig::getBlob(const char* key, char* value, size_t blobSize) {
+  esp_err_t err = nvs_get_blob(nvsHandle, key, value, &blobSize);
+  return err == ESP_OK;
 }
 
 int NvsConfig::getBlobSize(const char* key) {
@@ -111,4 +113,7 @@ bool NvsConfig::setUInt32(const char* key, const uint32_t value) {
   return false;
 }
 
+void NvsConfig::commit() {
+  nvs_commit(nvsHandle);
+}
 

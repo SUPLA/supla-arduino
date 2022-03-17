@@ -229,6 +229,11 @@ class ESPWifi : public Supla::Wifi {
     }
   }
 
+  bool getMacAddr(uint8_t *out) override {
+    WiFi.macAddress(out);
+    return true;
+  }
+
  protected:
   WiFiClient *client = nullptr;
   bool isSecured = true;

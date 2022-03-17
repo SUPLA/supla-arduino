@@ -21,6 +21,7 @@
 
 #include "supla-common/log.h"
 #include "supla-common/proto.h"
+#include "supla/storage/config.h"
 
 namespace Supla {
 class Network {
@@ -32,9 +33,14 @@ class Network {
   static int Connect(const char *server, int port = -1);
   static void Disconnect();
   static void Setup();
+  static void Uninit();
   static bool IsReady();
   static bool Iterate();
   static bool Ping(void *srpc);
+  static void SetConfigMode();
+  static void SetNormalMode();
+  static bool GetMacAddr(uint8_t*);
+  static void SetHostname(const char*);
 
   static void printData(const char *prefix, const void *buf, const int count);
 
@@ -46,7 +52,12 @@ class Network {
   virtual bool connected() = 0;
   virtual void disconnect() = 0;
   virtual void setup() = 0;
+  virtual void uninit();
   virtual void setTimeout(int);
+  virtual void setConfigMode();
+  virtual void setNormalMode();
+  virtual bool getMacAddr(uint8_t*);
+  virtual void setHostname(const char*);
 
   virtual bool isReady() = 0;
   virtual bool iterate();
@@ -71,8 +82,11 @@ class Network {
   _supla_int_t serverActivityTimeoutS;
   void *srpc;
 
+  enum DeviceMode mode = DEVICE_MODE_NORMAL;
+  bool modeChanged = false;
   bool useLocalIp;
   unsigned char localIp[4];
+  char hostname[32] = {};
 };
 
 // Method passed to SRPC as a callback to read raw data from network interface

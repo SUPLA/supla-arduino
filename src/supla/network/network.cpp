@@ -20,6 +20,7 @@
 #include "supla-common/srpc.h"
 #include "supla/element.h"
 #include "supla/network/network.h"
+#include "supla/storage/config.h"
 #include <supla/time.h>
 
 namespace Supla {
@@ -73,6 +74,13 @@ void Network::Setup() {
   return;
 }
 
+void Network::Uninit() {
+  if (Instance() != nullptr) {
+    return Instance()->uninit();
+  }
+  return;
+}
+
 bool Network::IsReady() {
   if (Instance() != nullptr) {
     return Instance()->isReady();
@@ -92,6 +100,34 @@ bool Network::Ping(void *srpc) {
     return Instance()->ping(srpc);
   }
   return false;
+}
+
+void Network::SetConfigMode() {
+  if (Instance() != nullptr) {
+    Instance()->setConfigMode();
+  }
+  return;
+}
+
+void Network::SetNormalMode() {
+  if (Instance() != nullptr) {
+    Instance()->setNormalMode();
+  }
+  return;
+}
+
+bool Network::GetMacAddr(uint8_t *buf) {
+  if (Instance() != nullptr) {
+    return Instance()->getMacAddr(buf);
+  }
+  return false;
+}
+
+void Network::SetHostname(const char *buf) {
+  if (Instance() != nullptr) {
+    Instance()->setHostname(buf);
+  }
+  return;
 }
 
 _supla_int_t data_read(void *buf, _supla_int_t count, void *userParams) {
@@ -195,14 +231,22 @@ void message_received(void *_srpc,
         if (rd.data.sd_device_calcfg_request->SuperUserAuthorized != 1) {
           result.Result = SUPLA_CALCFG_RESULT_UNAUTHORIZED;
         } else {
-          auto element = Supla::Element::getElementByChannelNumber(
-              rd.data.sd_device_calcfg_request->ChannelNumber);
-          if (element) {
-            result.Result = element->handleCalcfgFromServer(rd.data.sd_device_calcfg_request);
+          if (rd.data.sd_device_calcfg_request->ChannelNumber == -1) {
+            // calcfg with channel == -1 are for whole device, so we route
+            // it to SuplaDeviceClass instance
+            result.Result =
+              ((SuplaDeviceClass *)_sdc)->handleCalcfgFromServer(
+                rd.data.sd_device_calcfg_request);
           } else {
-            supla_log(LOG_DEBUG,
-                "Error: couldn't find element for a requested channel [%d]",
-                rd.data.sd_channel_new_value->ChannelNumber);
+            auto element = Supla::Element::getElementByChannelNumber(
+                rd.data.sd_device_calcfg_request->ChannelNumber);
+            if (element) {
+              result.Result = element->handleCalcfgFromServer(rd.data.sd_device_calcfg_request);
+            } else {
+              supla_log(LOG_DEBUG,
+                  "Error: couldn't find element for a requested channel [%d]",
+                  rd.data.sd_channel_new_value->ChannelNumber);
+            }
           }
         }
         srpc_ds_async_device_calcfg_result(_srpc, &result);
@@ -346,6 +390,29 @@ void Network::setSsid(const char *wifiSsid) {
 
 void Network::setPassword(const char *wifiPassword) {
   (void)(wifiPassword);
+}
+
+void Network::setConfigMode() {
+  mode = Supla::DEVICE_MODE_CONFIG;
+  modeChanged = true;
+}
+
+void Network::setNormalMode() {
+  mode = Supla::DEVICE_MODE_NORMAL;
+  modeChanged = true;
+}
+
+void Network::uninit() {
+}
+
+bool Network::getMacAddr(uint8_t *buf) {
+  (void)(buf);
+  return false;
+}
+
+void Network::setHostname(const char *buf) {
+  strncpy(hostname, buf, 32);
+  supla_log(LOG_DEBUG, "Network AP/hostname: %s", hostname);
 }
 
 };  // namespace Supla

@@ -35,8 +35,8 @@ namespace Supla {
       bool getString(const char* key, char* value, size_t maxSize) override;
       int getStringSize(const char* key) override;
 
-      bool setBlob(const char* key, const char* value) override;
-      bool getBlob(const char* key, char* value, size_t maxSize) override;
+      bool setBlob(const char* key, const char* value, size_t blobSize) override;
+      bool getBlob(const char* key, char* value, size_t blobSize) override;
       int getBlobSize(const char* key) override;
 
       bool getInt8(const char* key, int8_t& result) override;
@@ -48,6 +48,8 @@ namespace Supla {
       bool setUInt8(const char* key, const uint8_t value) override;
       bool setInt32(const char* key, const int32_t value) override;
       bool setUInt32(const char* key, const uint32_t value) override;
+
+      void commit() override;
 
     protected:
       nvs_handle_t nvsHandle = 0;

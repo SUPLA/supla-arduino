@@ -223,7 +223,7 @@ TEST_F(SuplaDeviceTests, BeginStopsAtEmptyGUID) {
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_INVALID_GUID);
 }
 
-TEST_F(SuplaDeviceTests, BeginStopsAtEmptyServer) {
+TEST_F(SuplaDeviceTests, BeginStopsAtEmptyAuthkey) {
   ::testing::InSequence seq;
   NetworkMock net;
   TimerMock timer;
@@ -234,6 +234,24 @@ TEST_F(SuplaDeviceTests, BeginStopsAtEmptyServer) {
 
   char GUID[SUPLA_GUID_SIZE] = {1};
   sd.setGUID(GUID);
+  EXPECT_FALSE(sd.begin());
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_INVALID_AUTHKEY);
+}
+
+TEST_F(SuplaDeviceTests, BeginStopsAtEmptyServer) {
+  ::testing::InSequence seq;
+  NetworkMock net;
+  TimerMock timer;
+
+  SuplaDeviceClass sd;
+
+  EXPECT_CALL(timer, initTimers());
+
+  char GUID[SUPLA_GUID_SIZE] = {1};
+  char AUTHKEY[SUPLA_AUTHKEY_SIZE] = {2};
+  sd.setGUID(GUID);
+  sd.setAuthKey(AUTHKEY);
+  sd.setEmail("john@supla");
   EXPECT_FALSE(sd.begin());
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_UNKNOWN_SERVER_ADDRESS);
 }
@@ -248,30 +266,15 @@ TEST_F(SuplaDeviceTests, BeginStopsAtEmptyEmail) {
   EXPECT_CALL(timer, initTimers());
 
   char GUID[SUPLA_GUID_SIZE] = {1};
+  char AUTHKEY[SUPLA_AUTHKEY_SIZE] = {2};
   sd.setGUID(GUID);
+  sd.setAuthKey(AUTHKEY);
   sd.setServer("supla.rulez");
   EXPECT_FALSE(sd.begin());
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_MISSING_CREDENTIALS);
 }
 
 
-TEST_F(SuplaDeviceTests, BeginStopsAtEmptyAuthkey) {
-  ::testing::InSequence seq;
-  NetworkMock net;
-  TimerMock timer;
-
-  SuplaDeviceClass sd;
-
-  EXPECT_CALL(timer, initTimers());
-
-  char GUID[SUPLA_GUID_SIZE] = {1};
-  char AUTHKEY[SUPLA_AUTHKEY_SIZE] = {2};
-  sd.setGUID(GUID);
-  sd.setServer("supla.rulez");
-  sd.setEmail("john@supla");
-  EXPECT_FALSE(sd.begin());
-  EXPECT_EQ(sd.getCurrentStatus(), STATUS_INVALID_AUTHKEY);
-}
 
 TEST_F(SuplaDeviceTests, SuccessfulBegin) {
   ::testing::InSequence seq;

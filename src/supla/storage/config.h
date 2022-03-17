@@ -31,7 +31,8 @@ namespace Supla {
     DEVICE_MODE_NOT_SET = 0,
     DEVICE_MODE_TEST = 1,
     DEVICE_MODE_NORMAL = 2,
-    DEVICE_MODE_SW_UPDATE = 3
+    DEVICE_MODE_CONFIG = 3,
+    DEVICE_MODE_SW_UPDATE = 4
   };
 
   class Config {
@@ -47,8 +48,8 @@ namespace Supla {
       virtual bool getString(const char* key, char* value, size_t maxSize) = 0;
       virtual int getStringSize(const char* key) = 0;
 
-      virtual bool setBlob(const char* key, const char* value) = 0;
-      virtual bool getBlob(const char* key, char* value, size_t maxSize) = 0;
+      virtual bool setBlob(const char* key, const char* value, size_t blobSize) = 0;
+      virtual bool getBlob(const char* key, char* value, size_t blobSize) = 0;
       virtual int getBlobSize(const char* key) = 0;
 
       virtual bool getInt8(const char* key, int8_t& result) = 0;
@@ -61,25 +62,26 @@ namespace Supla {
       virtual bool setInt32(const char* key, const int32_t value) = 0;
       virtual bool setUInt32(const char* key, const uint32_t value) = 0;
 
+      virtual void commit();
 
       // Device generic config
       virtual bool setDeviceName(const char *name);
       virtual bool setDeviceMode(enum Supla::DeviceMode mode);
+      virtual bool setGUID(const char* guid);
       virtual bool getDeviceName(char *result);
       virtual enum Supla::DeviceMode getDeviceMode();
+      virtual bool getGUID(char* result);
 
       // Supla protocol config
       virtual bool setSuplaCommProtocolEnabled(bool enabled);
       virtual bool setSuplaServer(const char* server);
       virtual bool setSuplaServerPort(int32_t port);
       virtual bool setEmail(const char* email);
-      virtual bool setGUID(const char* guid);
       virtual bool setAuthKey(const char* authkey);
       virtual bool isSuplaCommProtocolEnabled();
       virtual bool getSuplaServer(char* result);
       virtual int32_t getSuplaServerPort();
       virtual bool getEmail(char* result);
-      virtual bool getGUID(char* result);
       virtual bool getAuthKey(char* result);
 
       // MQTT protocol config

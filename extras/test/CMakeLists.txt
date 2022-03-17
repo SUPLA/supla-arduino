@@ -50,6 +50,7 @@ file(GLOB TEST_SRC
   CorrectionTests/*cpp
   ActionTriggerTests/*cpp
   ElectricityMeterTests/*cpp
+  ToolsTests/*cpp
   )
 
 file(GLOB DOUBLE_SRC doubles/*.cpp)
