@@ -17,6 +17,8 @@
 #include <supla/storage/storage.h>
 
 #include "roller_shutter.h"
+#include <supla-common/log.h>
+#include <supla/time.h>
 
 namespace Supla {
 namespace Control {
@@ -83,21 +85,16 @@ int RollerShutter::handleNewValueFromServer(
   setOpenCloseTime(newClosingTime, newOpeningTime);
 
   char task = newValue->value[0];
-  Serial.print(F("RollerShutter["));
-  Serial.print(channel.getChannelNumber());
-  Serial.print(F("] new value from server: "));
+  supla_log(LOG_DEBUG, "RollerShutter[%d] new value from server: %d",
+      channel.getChannelNumber(), task);
   if (task == 0) {
-    Serial.println(F("STOP"));
     stop();
   } else if (task == 1) {
-    Serial.println(F("MOVE_DOWN"));
     moveDown();
   } else if (task == 2) {
-    Serial.println(F("MOVE_UP"));
     moveUp();
   } else if (task >= 10 && task <= 110) {
     setTargetPosition(task - 10);
-    Serial.println(static_cast<int>(task - 10));
   }
 
   return -1;
@@ -117,13 +114,12 @@ void RollerShutter::setOpenCloseTime(uint32_t newClosingTimeMs,
     openingTimeMs = newOpeningTimeMs;
     calibrate = true;
     currentPosition = UNKNOWN_POSITION;
-    Serial.print(F("RollerShutter["));
-    Serial.print(channel.getChannelNumber());
-    Serial.print(F("] new time settings received. Opening time: "));
-    Serial.print(openingTimeMs);
-    Serial.print(F(" ms; closing time: "));
-    Serial.print(closingTimeMs);
-    Serial.println(F(" ms. Starting calibration..."));
+    supla_log(LOG_DEBUG,
+        "RollerShutter[%d] new time settings received. Opening time: %d ms; "
+        "closing time: %d ms. Starting calibration...",
+        channel.getChannelNumber(),
+        openingTimeMs,
+        closingTimeMs);
   }
 }
 
@@ -343,7 +339,7 @@ void RollerShutter::onTimer() {
         if (currentDirection == UP_DIR) {
           stopMovement();
         } else if (currentDirection == STOP_DIR) {
-          Serial.println(F("Calibration: closing"));
+          supla_log(LOG_DEBUG, ("Calibration: closing"));
           calibrationTime = closingTimeMs;
           lastMovementStartTime = millis();
           if (calibrationTime == 0) {
@@ -355,7 +351,7 @@ void RollerShutter::onTimer() {
         if (currentDirection == DOWN_DIR) {
           stopMovement();
         } else if (currentDirection == STOP_DIR) {
-          Serial.println(F("Calibration: opening"));
+          supla_log(LOG_DEBUG, ("Calibration: opening"));
           calibrationTime = openingTimeMs;
           lastMovementStartTime = millis();
           if (calibrationTime == 0) {
@@ -368,14 +364,13 @@ void RollerShutter::onTimer() {
       // Time used for calibaration is 10% higher then requested by user
       calibrationTime *= 1.1;
       if (calibrationTime > 0) {
-        Serial.print(F("Calibration time: "));
-        Serial.println(calibrationTime);
+        supla_log(LOG_DEBUG, ("Calibration time: %d"), calibrationTime);
       }
     }
 
     if (calibrationTime != 0 &&
         millis() - lastMovementStartTime > calibrationTime) {
-      Serial.println(F("Calibration done"));
+      supla_log(LOG_DEBUG, "Calibration done");
       calibrationTime = 0;
       calibrate = false;
       if (currentDirection == UP_DIR) {
@@ -462,7 +457,7 @@ void RollerShutter::onTimer() {
   }
   // if (newCurrentPosition != currentPosition) {
   // currentPosition = newCurrentPosition;
-  TRollerShutterValue value = {};
+  TDSC_RollerShutterValue value = {};
   value.position = currentPosition;
   channel.setNewValue(value);
 }
@@ -490,14 +485,13 @@ void RollerShutter::onLoadState() {
     if (currentPosition >= 0) {
       calibrate = false;
     }
-    Serial.print(F("RollerShutter["));
-    Serial.print(channel.getChannelNumber());
-    Serial.print(F("] settings restored from storage. Opening time: "));
-    Serial.print(openingTimeMs);
-    Serial.print(F(" ms; closing time: "));
-    Serial.print(closingTimeMs);
-    Serial.print(F(" ms. Position: "));
-    Serial.println(currentPosition);
+    supla_log(LOG_DEBUG,
+        "RollerShutter[%d] settings restored from storage. Opening time: %d "
+        "ms; closing time: %d ms. Position: %d",
+        channel.getChannelNumber(),
+        openingTimeMs,
+        closingTimeMs,
+        currentPosition);
   }
 }
 

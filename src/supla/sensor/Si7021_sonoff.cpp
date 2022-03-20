@@ -14,6 +14,7 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#ifdef ARDUINO
 #include "Si7021_sonoff.h"
 
 namespace Supla {
@@ -116,3 +117,4 @@ bool Si7021Sonoff::waitState(bool state) {
 
 };  // namespace Sensor
 };  // namespace Supla
+#endif /*ARDUINO*/

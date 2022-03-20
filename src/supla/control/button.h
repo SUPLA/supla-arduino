@@ -17,7 +17,7 @@
 #ifndef _button_h
 #define _button_h
 
-#include <Arduino.h>
+#include <stdint.h>
 #include "simple_button.h"
 
 namespace Supla {

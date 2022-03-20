@@ -15,6 +15,7 @@
 */
 
 #include "therm_hygro_meter.h"
+#include <supla/time.h>
 
 Supla::Sensor::ThermHygroMeter::ThermHygroMeter() {
   channel.setType(SUPLA_CHANNELTYPE_HUMIDITYANDTEMPSENSOR);

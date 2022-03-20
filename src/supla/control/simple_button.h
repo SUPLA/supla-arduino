@@ -17,7 +17,7 @@
 #ifndef _simple_button_h
 #define _simple_button_h
 
-#include <Arduino.h>
+#include <stdint.h>
 
 #include "../element.h"
 #include "../events.h"

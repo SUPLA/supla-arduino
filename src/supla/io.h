@@ -19,6 +19,8 @@
 
 #include <stdint.h>
 
+#include "definitions.h"
+
 namespace Supla {
 // This class can be used to override digitalRead and digitalWrite methods.
 // If you want to add custom behavior i.e. during read/write from some
@@ -33,9 +35,19 @@ class Io {
   static void pinMode(uint8_t pin, uint8_t mode);
   static int digitalRead(uint8_t pin);
   static void digitalWrite(uint8_t pin, uint8_t val);
+  static void analogWrite(uint8_t pin, int value);
+  static unsigned int pulseIn(uint8_t pin,
+      uint8_t value,
+      unsigned long timeoutMicro);
+
   static void pinMode(int channelNumber, uint8_t pin, uint8_t mode);
   static int digitalRead(int channelNumber, uint8_t pin);
   static void digitalWrite(int channelNumber, uint8_t pin, uint8_t val);
+  static void analogWrite(int channelNumber, uint8_t pin, int value);
+  static unsigned int pulseIn(int channelNumber,
+      uint8_t pin,
+      uint8_t value,
+      unsigned long timeoutMicro);
 
   static Io *ioInstance;
 
@@ -43,7 +55,12 @@ class Io {
   virtual ~Io();
   virtual void customPinMode(int channelNumber, uint8_t pin, uint8_t mode);
   virtual int customDigitalRead(int channelNumber, uint8_t pin);
+  virtual unsigned int customPulseIn(int channelNumber,
+      uint8_t pin,
+      uint8_t value,
+      unsigned long timeoutMicro);
   virtual void customDigitalWrite(int channelNumber, uint8_t pin, uint8_t val);
+  virtual void customAnalogWrite(int channelNumber, uint8_t pin, int val);
 };
 };  // namespace Supla
 

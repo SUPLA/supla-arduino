@@ -17,10 +17,7 @@
 #ifndef _network_interface_h
 #define _network_interface_h
 
-#ifndef __AVR__
-#include <cstddef>
-#include <cstdint>
-#endif
+#include <stdint.h>
 
 #include "supla-common/log.h"
 #include "supla-common/proto.h"
@@ -33,28 +30,28 @@ class Network {
   }
 
   static bool Connected() {
-    if (Instance() != NULL) {
+    if (Instance() != nullptr) {
       return Instance()->connected();
     }
     return false;
   }
 
   static int Read(void *buf, int count) {
-    if (Instance() != NULL) {
+    if (Instance() != nullptr) {
       return Instance()->read(buf, count);
     }
     return -1;
   }
 
   static int Write(void *buf, int count) {
-    if (Instance() != NULL) {
+    if (Instance() != nullptr) {
       return Instance()->write(buf, count);
     }
     return -1;
   }
 
   static int Connect(const char *server, int port = -1) {
-    if (Instance() != NULL) {
+    if (Instance() != nullptr) {
       Instance()->clearTimeCounters();
       return Instance()->connect(server, port);
     }
@@ -62,45 +59,47 @@ class Network {
   }
 
   static void Disconnect() {
-    if (Instance() != NULL) {
+    if (Instance() != nullptr) {
       return Instance()->disconnect();
     }
     return;
   }
 
   static void Setup() {
-    if (Instance() != NULL) {
+    if (Instance() != nullptr) {
       return Instance()->setup();
     }
     return;
   }
 
   static bool IsReady() {
-    if (Instance() != NULL) {
+    if (Instance() != nullptr) {
       return Instance()->isReady();
     }
     return false;
   }
 
   static bool Iterate() {
-    if (Instance() != NULL) {
+    if (Instance() != nullptr) {
       return Instance()->iterate();
     }
     return false;
   }
 
   static void SetSrpc(void *_srpc) {
-    if (Instance() != NULL) {
+    if (Instance() != nullptr) {
       Instance()->setSrpc(_srpc);
     }
   }
 
   static bool Ping(void *srpc) {
-    if (Instance() != NULL) {
+    if (Instance() != nullptr) {
       return Instance()->ping(srpc);
     }
     return false;
   }
+
+  static void printData(const char *prefix, const void *buf, const int count);
 
   Network(uint8_t ip[4]);
   virtual ~Network();

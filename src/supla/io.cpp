@@ -14,9 +14,43 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "io.h"
 
+#include "io.h"
+#include <supla-common/log.h>
+
+#ifdef ARDUINO
 #include <Arduino.h>
+#elif defined(ESP_PLATFORM)
+#include <esp_idf_gpio.h>
+// methods implemented in extras/porting/esp-idf/gpio.cpp
+#else
+// TODO implement those methods or extract them to separate interface
+void pinMode(uint8_t pin, uint8_t mode) {
+  (void)(pin);
+  (void)(mode);
+}
+
+int digitalRead(uint8_t pin) {
+  (void)(pin);
+  return 0;
+}
+void digitalWrite(uint8_t pin, uint8_t val) {
+  (void)(pin);
+  (void)(val);
+}
+
+void analogWrite(uint8_t pin, int val) {
+  (void)(pin);
+  (void)(val);
+}
+
+unsigned int pulseIn(uint8_t pin, uint8_t val, unsigned long timeoutMicro) {
+  (void)(pin);
+  (void)(val);
+  (void)(timeoutMicro);
+  return 0;
+}
+#endif
 
 namespace Supla {
 void Io::pinMode(uint8_t pin, uint8_t mode) {
@@ -34,7 +68,7 @@ void Io::digitalWrite(uint8_t pin, uint8_t val) {
 void Io::pinMode(int channelNumber, uint8_t pin, uint8_t mode) {
   if (ioInstance) {
     ioInstance->customPinMode(channelNumber, pin, mode);
-  } else { 
+  } else {
     ::pinMode(pin, mode);
   }
 }
@@ -47,12 +81,11 @@ int Io::digitalRead(int channelNumber, uint8_t pin) {
 }
 
 void Io::digitalWrite(int channelNumber, uint8_t pin, uint8_t val) {
-  Serial.print(" **** Digital write[");
-  Serial.print(channelNumber);
-  Serial.print("], pin: ");
-  Serial.print(pin);
-  Serial.print("; value: ");
-  Serial.println(val);
+  if (channelNumber >= 0) {
+    supla_log(LOG_DEBUG, " **** Digital write[%d], gpio: %d; value %d",
+        channelNumber, pin, val);
+  }
+
   if (ioInstance) {
     ioInstance->customDigitalWrite(channelNumber, pin, val);
     return;
@@ -83,6 +116,43 @@ void Io::customDigitalWrite(int channelNumber, uint8_t pin, uint8_t val) {
 void Io::customPinMode(int channelNumber, uint8_t pin, uint8_t mode) {
   (void)(channelNumber);
   ::pinMode(pin, mode);
+}
+
+void Io::analogWrite(int channelNumber, uint8_t pin, int val) {
+  supla_log(LOG_DEBUG, " **** Analog write[%d], gpio: %d; value %d",
+      channelNumber, pin, val);
+
+  if (ioInstance) {
+    ioInstance->customAnalogWrite(channelNumber, pin, val);
+    return;
+  }
+  ::analogWrite(pin, val);
+}
+
+void Io::analogWrite(uint8_t pin, int val) {
+  analogWrite(-1, pin, val);
+}
+
+void Io::customAnalogWrite(int channelNumber, uint8_t pin, int val) {
+  (void)(channelNumber);
+  ::analogWrite(pin, val);
+}
+
+unsigned int Io::pulseIn(uint8_t pin, uint8_t value,
+      unsigned long timeoutMicro) {
+  return pulseIn(-1, pin, value, timeoutMicro);
+}
+
+unsigned int Io::pulseIn(int channelNumber, uint8_t pin, uint8_t value,
+      unsigned long timeoutMicro) {
+  (void)(channelNumber);
+  return ::pulseIn(pin, value, timeoutMicro);
+}
+
+unsigned int Io::customPulseIn(int channelNumber, uint8_t pin, uint8_t value,
+      unsigned long timeoutMicro) {
+  (void)(channelNumber);
+  return ::pulseIn(pin, value, timeoutMicro);
 }
 
 };  // namespace Supla

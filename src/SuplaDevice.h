@@ -53,6 +53,8 @@
 #define STATUS_NO_LOCATION_AVAILABLE     34
 #define STATUS_UNKNOWN_ERROR             35
 
+#define STATUS_CONFIG_MODE               40
+#define STATUS_SW_DOWNLOAD               50
 
 typedef void (*_impl_arduino_status)(int status, const char *msg);
 
@@ -88,10 +90,10 @@ class SuplaDeviceClass {
   void addClock(Supla::Clock *clock);
   Supla::Clock *getClock();
 
-  bool begin(char GUID[SUPLA_GUID_SIZE],
+  bool begin(const char GUID[SUPLA_GUID_SIZE],
              const char *Server,
              const char *email,
-             char authkey[SUPLA_AUTHKEY_SIZE],
+             const char authkey[SUPLA_AUTHKEY_SIZE],
              unsigned char version = 16);
 
   bool begin(unsigned char version = 16);
@@ -99,8 +101,8 @@ class SuplaDeviceClass {
   // Use ASCII only in name
   void setName(const char *Name);
 
-  void setGUID(char GUID[SUPLA_GUID_SIZE]);
-  void setAuthKey(char authkey[SUPLA_AUTHKEY_SIZE]);
+  void setGUID(const char GUID[SUPLA_GUID_SIZE]);
+  void setAuthKey(const char authkey[SUPLA_AUTHKEY_SIZE]);
   void setEmail(const char *email);
   void setServer(const char *server);
 

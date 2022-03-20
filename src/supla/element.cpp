@@ -14,9 +14,9 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include <Arduino.h>
-
-#include "supla/element.h"
+#include "time.h"
+#include "element.h"
+#include <supla-common/log.h>
 
 namespace Supla {
 Element *Element::firstPtr = nullptr;
@@ -143,9 +143,9 @@ Element & Element::disableChannelState() {
 }
 
 void Element::handleChannelConfig(TSD_ChannelConfig *result) {
-  Serial.print(F("Channel["));
-  Serial.print(result->ChannelNumber);
-  Serial.println(F("]: received channel config reply, but handling is missing"));
+  (void)(result);
+  supla_log(LOG_DEBUG,
+      "Channel[%d]: received channel config reply, but handling is missing");
 }
 
 };  // namespace Supla

@@ -15,9 +15,10 @@
 */
 
 #include "virtual_relay.h"
+#include "../time.h"
 
 Supla::Control::VirtualRelay::VirtualRelay(_supla_int_t functions)
-    : Relay(-1, true, functions), state(false) {
+    : Relay(-1, true, functions) {
 }
 
 void Supla::Control::VirtualRelay::onInit() {

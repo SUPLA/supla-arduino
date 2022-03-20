@@ -20,6 +20,7 @@
 #define supla_proto_H_
 
 #ifdef _WIN32
+// *** WINDOWS ***
 
 #include <WinSock2.h>
 #define _supla_int_t int
@@ -27,7 +28,9 @@
 #define _supla_int64_t __int64
 #define _supla_timeval timeval
 
+
 #elif defined(__AVR__)
+// *** ARDUINO MEGA ***
 
 #define SPROTO_WITHOUT_OUT_BUFFER
 
@@ -42,11 +45,18 @@ struct _supla_timeval {
 #define _supla_int_t long
 #define _supla_int64_t long long
 
-#elif defined(ESP8266) || defined(ESP32)
+#elif defined(ESP8266) || defined(ESP32) || defined(ESP_PLATFORM)
+// *** Espressif NONOS SDK for ESP8266 OR ARDUINO WITH ESP8266 or ESP32 ***
+// *** ESP-IDF, ESP8266 RTOS SDK ***
+#ifndef ESP_PLATFORM
+#ifndef ARDUINO
 #include <mem.h>
 #define PROTO_ICACHE_FLASH ICACHE_FLASH_ATTR
+#endif /*ARDUINO*/
+#endif /*ESP_PLATFORM*/
 
-#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+#if defined(ARDUINO) || defined(ESP_PLATFORM)
+// *** Only ARDUINO ESPxxx and ESP-IDS, RTOS SDK (NONOS is excluded) ***
 #define SPROTO_WITHOUT_OUT_BUFFER
 #endif /*ARDUINO_ARCH_ESP8266*/
 
@@ -59,6 +69,7 @@ struct _supla_timeval {
 #define _supla_int_t int
 #define _supla_int64_t long long
 #elif defined(__arm__)
+// *** ARM - RPI? *** 
 
 struct _supla_timeval {
   long long tv_sec;
@@ -71,16 +82,13 @@ struct _supla_timeval {
 #define _supla_int64_t long long
 
 #else /*__arm__*/
+// *** OTHER? Linux, what else? ***
 #include <sys/time.h>
 #define _supla_int16_t short
 #define _supla_int_t int
 #define _supla_int64_t long long
 #define _supla_timeval timeval
 #endif
-
-#if defined(ARDUINO)
-#undef PROTO_ICACHE_FLASH
-#endif /*defined(ARDUINO)*/
 
 #ifndef PROTO_ICACHE_FLASH
 #define PROTO_ICACHE_FLASH
@@ -104,8 +112,8 @@ extern char sproto_tag[SUPLA_TAG_SIZE];
 #define SUPLA_PROTO_VERSION_MIN 1
 #if defined(ARDUINO_ARCH_AVR)     // Arduino IDE for Arduino HW
 #define SUPLA_MAX_DATA_SIZE 1248  // Registration header + 32 channels x 21 B
-#elif defined(ARDUINO_ARCH_ESP8266) || \
-    defined(ARDUINO_ARCH_ESP32)   // Arduino IDE for ESP8266
+#elif defined(ARDUINO) || \
+    defined(SUPLA_DEVICE)   // Other Arduino compilations and SUPLA_DEVICE
 #define SUPLA_MAX_DATA_SIZE 3264  // Registration header + 128 channels x 21 B
 #elif defined(ESP8266)
 #define SUPLA_MAX_DATA_SIZE 1536
@@ -395,6 +403,7 @@ extern char sproto_tag[SUPLA_TAG_SIZE];
 #define SUPLA_CHANNELFNC_ACTIONTRIGGER 700                // ver. >= 16
 #define SUPLA_CHANNELFNC_DIGIGLASS_HORIZONTAL 800         // ver. >= 14
 #define SUPLA_CHANNELFNC_DIGIGLASS_VERTICAL 810           // ver. >= 14
+#define SUPLA_CHANNELFNC_CONTROLLINGTHEFACADEBLIND 900    // ver. >= 17
 
 #define SUPLA_BIT_FUNC_CONTROLLINGTHEGATEWAYLOCK 0x00000001
 #define SUPLA_BIT_FUNC_CONTROLLINGTHEGATE 0x00000002
@@ -412,6 +421,7 @@ extern char sproto_tag[SUPLA_TAG_SIZE];
 #define SUPLA_BIT_FUNC_RAINSENSOR 0x00002000                // ver. >= 12
 #define SUPLA_BIT_FUNC_WEIGHTSENSOR 0x00004000              // ver. >= 12
 #define SUPLA_BIT_FUNC_CONTROLLINGTHEROOFWINDOW 0x00008000  // ver. >= 13
+#define SUPLA_BIT_FUNC_CONTROLLINGTHEFACADEBLIND 0x0010000  // ver. >= 17
 
 #define SUPLA_EVENT_CONTROLLINGTHEGATEWAYLOCK 10
 #define SUPLA_EVENT_CONTROLLINGTHEGATE 20
@@ -451,6 +461,8 @@ extern char sproto_tag[SUPLA_TAG_SIZE];
 #define SUPLA_MFR_DGF 13
 #define SUPLA_MFR_COMELIT 14
 
+#define SUPLA_DEVICE_FLAG_CALCFG_ENTER_CFG_MODE 0x0010  // ver. >= 17
+
 #define SUPLA_CHANNEL_FLAG_ZWAVE_BRIDGE 0x0001  // ver. >= 12
 #define SUPLA_CHANNEL_FLAG_IR_BRIDGE 0x0002     // ver. >= 12
 #define SUPLA_CHANNEL_FLAG_RF_BRIDGE 0x0004     // ver. >= 12
@@ -458,7 +470,10 @@ extern char sproto_tag[SUPLA_TAG_SIZE];
 #define SUPLA_CHANNEL_FLAG_CHART_TYPE_BAR 0x0010                  // ver. >= 12
 #define SUPLA_CHANNEL_FLAG_CHART_DS_TYPE_DIFFERENTAL 0x0020       // ver. >= 12
 #define SUPLA_CHANNEL_FLAG_CHART_INTERPOLATE_MEASUREMENTS 0x0040  // ver. >= 12
-// Free bits for future use:  0x0080, 0x0100, 0x0200, 0x0400, 0x0800
+#define SUPLA_CHANNEL_FLAG_RS_SBS_AND_STOP_ACTIONS 0x0080         // ver. >= 17
+#define SUPLA_CHANNEL_FLAG_RGBW_SET_LEVEL_WITHOUT_SWITCHING_ON \
+  0x0100  // ver. >= 17
+// Free bits for future use:  0x0200, 0x0400, 0x0800
 #define SUPLA_CHANNEL_FLAG_RS_AUTO_CALIBRATION 0x1000    // ver. >= 15
 #define SUPLA_CHANNEL_FLAG_CALCFG_RESET_COUNTERS 0x2000  // ver. >= 15
 // Free bits for future use: 0x8000
@@ -1317,12 +1332,62 @@ typedef struct {
 #define RS_VALUE_FLAG_MOTOR_PROBLEM 0x8
 #define RS_VALUE_FLAG_CALIBRATION_IN_PROGRESS 0x10
 
+#define SUPLA_FACADEBLIND_TYPE_STANDS_IN_POSITION_WHILE_TILTING 1
+#define SUPLA_FACADEBLIND_TYPE_CHANGES_POSITION_WHILE_TILTING 2
+#define SUPLA_FACADEBLINE_TYPE_TILTS_ONLY_WHEN_FULLY_CLOSED 3
+
+// Roller shutter channel value payload
+// Device -> Server -> Client
 typedef struct {
-  char position;  // -1 == calibration. -1 - 100%
-  char tilt;
-  char bottom_position;  // Percentage points to the windowsill
-  _supla_int16_t flags;
-} TRollerShutterValue;
+  signed char position;  // -1 == calibration. -1 - 100%, DSC
+  char reserved1;
+  signed char bottom_position;  // Percentage points to the windowsill, SC
+  _supla_int16_t flags;         // DSC
+  char reserved2;
+  char reserved3;
+  char reserved4;
+} TDSC_RollerShutterValue;
+
+// Roller shutter channel value payload
+// Client -> Server -> Device
+typedef struct {
+  signed char position;  // 0 - STOP
+                         // 1 - DOWN
+                         // 2 - UP
+                         // 3 - DOWN_OR_STOP
+                         // 4 - UP_OR_STOP
+                         // 5 - STEP_BY_STEP
+                         // 10-110 - target position + 10
+  char reserved[7];
+} TCSD_RollerShutterValue;
+
+// Facade blind channel value payload
+// Device -> Server -> Client
+typedef struct {
+  signed char position;  // -1 == calibration. -1 - 100%, DSC
+  signed char tilt;      // -1 == not used/calibration, -1 - 100%, DSC
+  char reserved;
+  _supla_int16_t flags;             // DSC
+  unsigned char tilt_0_angle;       // SC
+  unsigned char tilt_100_angle;     // SC
+  unsigned char facade_blind_type;  // DSC SUPLA_FACADEBLIND_TYPE_*
+} TDSC_FacadeBlindValue;
+
+// Facade blind channel value payload
+// Client -> Server -> Device
+typedef struct {
+  signed char position;  // -1 - not set (actual behavior is device specific)
+                         // 0 - STOP
+                         // 1 - DOWN
+                         // 2 - UP
+                         // 3 - DOWN_OR_STOP
+                         // 4 - UP_OR_STOP
+                         // 5 - STEP_BY_STEP
+                         // 10-110 - target position + 10
+  signed char tilt;      // -1 - not set (actual behavior is device specific)
+                         // 10-110 - target position + 10
+  char reserved[6];
+} TCSD_FacadeBlindValue;
 
 typedef struct {
   unsigned _supla_int64_t calculated_value;  // * 0.001
@@ -1366,8 +1431,10 @@ typedef struct {
 #define SUPLA_CALCFG_CMD_SET_LIGHTSOURCE_LIFESPAN 6000    // v. >= 12
 #define SUPLA_CALCFG_CMD_RESET_COUNTERS 7000              // v. >= 15
 #define SUPLA_CALCFG_CMD_RECALIBRATE 8000                 // v. >= 15
+#define SUPLA_CALCFG_CMD_ENTER_CFG_MODE 9000              // v. >= 17
 
 #define SUPLA_CALCFG_DATATYPE_RS_SETTINGS 1000
+#define SUPLA_CALCFG_DATATYPE_FB_SETTINGS 1100  // v. >= 17
 
 #define CALCFG_ZWAVE_SCREENTYPE_UNKNOWN 0
 #define CALCFG_ZWAVE_SCREENTYPE_MULTILEVEL 1
@@ -1466,6 +1533,13 @@ typedef struct {
   _supla_int_t FullOpeningTimeMS;
   _supla_int_t FullClosingTimeMS;
 } TCalCfg_RollerShutterSettings;
+
+typedef struct {
+  _supla_int_t FullOpeningTimeMS;
+  _supla_int_t FullClosingTimeMS;
+  _supla_int_t TiltingTimeMS;
+  unsigned char FacadeBlindType;  // SUPLA_FACADEBLIND_TYPE_
+} TCalCfg_FacadeBlindSettings;    // v. >= 17
 
 #define RGBW_BRIGHTNESS_ONOFF 0x1
 #define RGBW_COLOR_ONOFF 0x2
@@ -1827,6 +1901,13 @@ typedef struct {
   _supla_int_t ClosingTimeMS;
   _supla_int_t OpeningTimeMS;
 } TSD_ChannelConfig_Rollershutter;  // v. >= 16
+
+typedef struct {
+  _supla_int_t ClosingTimeMS;
+  _supla_int_t OpeningTimeMS;
+  _supla_int_t TiltingTimeMS;
+  unsigned char FacadeBlindType;  // SUPLA_FACADEBLIND_TYPE_
+} TSD_ChannelConfig_FacadeBlind;  // v. >= 17
 
 typedef struct {
   unsigned _supla_int_t ActiveActions;

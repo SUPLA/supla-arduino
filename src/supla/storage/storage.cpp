@@ -14,8 +14,9 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include <Arduino.h>
 #include <string.h>
+#include <supla/time.h>
+#include <supla-common/log.h>
 
 #include "storage.h"
 
@@ -122,7 +123,7 @@ bool Storage::prepareState(bool performDryRun) {
 bool Storage::readState(unsigned char *buf, int size) {
   if (elementStateOffset + sizeof(SectionPreamble) + elementStateSize <
       currentStateOffset + size) {
-    Serial.println(F("Warning! Attempt to read state outside of section size"));
+    supla_log(LOG_DEBUG, "Warning! Attempt to read state outside of section size");
     return false;
   }
   currentStateOffset += readStorage(currentStateOffset, buf, size);
@@ -139,10 +140,10 @@ bool Storage::writeState(const unsigned char *buf, int size) {
   if (elementStateSize > 0 &&
       elementStateOffset + sizeof(SectionPreamble) + elementStateSize <
           currentStateOffset + size) {
-    Serial.println(
-        F("Warning! Attempt to write state outside of section size."));
-    Serial.println(
-        F("Storage: rewriting element state section. All data will be lost."));
+    supla_log(LOG_DEBUG,
+        "Warning! Attempt to write state outside of section size.");
+    supla_log(LOG_DEBUG,
+        "Storage: rewriting element state section. All data will be lost.");
     elementStateSize = 0;
     elementStateOffset = 0;
     return false;
@@ -155,7 +156,6 @@ bool Storage::writeState(const unsigned char *buf, int size) {
 
   // Calculation of offset for section data - in case sector is missing
   if (elementStateOffset == 0) {
-    Serial.print(F("Initialization of elementStateOffset: "));
     elementStateOffset = storageStartingOffset + sizeof(Preamble);
     if (deviceConfigOffset != 0) {
       elementStateOffset += sizeof(SectionPreamble) + deviceConfigSize;
@@ -163,14 +163,15 @@ bool Storage::writeState(const unsigned char *buf, int size) {
     if (elementConfigOffset != 0) {
       elementStateOffset += sizeof(SectionPreamble) + elementConfigSize;
     }
-    Serial.println(elementStateOffset);
+    supla_log(LOG_DEBUG, "Initialization of elementStateOffset: %d",
+        elementStateOffset);
 
     currentStateOffset = elementStateOffset + sizeof(SectionPreamble);
 
     sectionsCount++;
 
     // Update Storage preamble with new section count
-    Serial.println(F("Update Storage preamble"));
+    supla_log(LOG_DEBUG, "Updating Storage preamble");
     unsigned char suplaTag[] = {'S', 'U', 'P', 'L', 'A'};
     Preamble preamble;
     memcpy(preamble.suplaTag, suplaTag, 5);
@@ -190,9 +191,9 @@ bool Storage::finalizeSaveState() {
   if (dryRun) {
     dryRun = false;
     if (elementStateSize != newSectionSize) {
-      Serial.println(
-          F("Element state section size doesn't match current device "
-            "configuration"));
+      supla_log(LOG_DEBUG,
+          "Element state section size doesn't match current device "
+            "configuration");
       elementStateOffset = 0;
       elementStateSize = 0;
       return false;
@@ -215,16 +216,16 @@ bool Storage::finalizeSaveState() {
 }
 
 bool Storage::init() {
-  Serial.println(F("Storage initialization"));
+  supla_log(LOG_DEBUG, "Storage initialization");
   unsigned int currentOffset = storageStartingOffset;
-  Preamble preamble;
+  Preamble preamble = {};
   currentOffset +=
       readStorage(currentOffset, (unsigned char *)&preamble, sizeof(preamble));
 
   unsigned char suplaTag[] = {'S', 'U', 'P', 'L', 'A'};
 
   if (memcmp(suplaTag, preamble.suplaTag, 5)) {
-    Serial.println(F("Storage: missing Supla tag. Rewriting..."));
+    supla_log(LOG_DEBUG, "Storage: missing Supla tag. Rewriting...");
 
     memcpy(preamble.suplaTag, suplaTag, 5);
     preamble.version = SUPLA_STORAGE_VERSION;
@@ -235,13 +236,14 @@ bool Storage::init() {
     commit();
 
   } else if (preamble.version != SUPLA_STORAGE_VERSION) {
-    Serial.print(F("Storage: storage version ["));
-    Serial.print(preamble.version);
-    Serial.println(F("] is not supported. Storage not initialized"));
+    supla_log(
+        LOG_DEBUG,
+        "Storage: storage version [%d] is not supported. Storage not initialized",
+        preamble.version);
     return false;
   } else {
-    Serial.print(F("Storage: Number of sections "));
-    Serial.println(preamble.sectionsCount);
+    supla_log(LOG_DEBUG, "Storage: Number of sections %d",
+        preamble.sectionsCount);
   }
 
   if (preamble.sectionsCount == 0) {
@@ -249,22 +251,19 @@ bool Storage::init() {
   }
 
   for (int i = 0; i < preamble.sectionsCount; i++) {
-    Serial.print(F("Reading section: "));
-    Serial.println(i);
+    supla_log(LOG_DEBUG, "Reading section: %d", i);
     SectionPreamble section;
     unsigned int sectionOffset = currentOffset;
     currentOffset +=
         readStorage(currentOffset, (unsigned char *)&section, sizeof(section));
 
-    Serial.print(F("Section type: "));
-    Serial.print(static_cast<int>(section.type));
-    Serial.print(F("; size: "));
-    Serial.println(section.size);
+    supla_log(LOG_DEBUG, "Section type: %d; size: %d",
+        static_cast<int>(section.type), section.size);
 
     if (section.crc1 != section.crc2) {
-      Serial.println(
-          F("Warning! CRC copies on section doesn't match. Please check your "
-            "storage hardware"));
+      supla_log(LOG_DEBUG,
+          "Warning! CRC copies on section doesn't match. Please check your "
+          "storage hardware");
     }
 
     switch (section.type) {
@@ -284,7 +283,7 @@ bool Storage::init() {
         break;
       }
       default: {
-        Serial.println(F("Warning! Unknown section type"));
+        supla_log(LOG_DEBUG, "Warning! Unknown section type");
         break;
       }
     }

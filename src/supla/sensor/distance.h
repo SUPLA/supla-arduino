@@ -25,25 +25,14 @@ namespace Supla {
 namespace Sensor {
 class Distance : public ChannelElement {
  public:
-  Distance() : lastReadTime(0) {
-    channel.setType(SUPLA_CHANNELTYPE_DISTANCESENSOR);
-    channel.setDefault(SUPLA_CHANNELFNC_DISTANCESENSOR);
-    channel.setNewValue(DISTANCE_NOT_AVAILABLE);
-  }
+  Distance();
 
-  virtual double getValue() {
-    return DISTANCE_NOT_AVAILABLE;
-  }
+  virtual double getValue();
 
-  void iterateAlways() {
-    if (lastReadTime + 100 < millis()) {
-      lastReadTime = millis();
-      channel.setNewValue(getValue());
-    }
-  }
+  void iterateAlways() override;
 
  protected:
-  unsigned long lastReadTime;
+  unsigned long lastReadTime = 0;
 };
 
 };  // namespace Sensor
