@@ -22,6 +22,8 @@
 // meter  https://github.com/mandulaj/PZEM-004T-v30
 #include <PZEM004Tv30.h>
 
+#define PZEM_0_DEFAULT_ADDR   0xF8
+
 #if defined(PZEM004_SOFTSERIAL)
 #include <SoftwareSerial.h>
 #endif
@@ -34,15 +36,24 @@ namespace Sensor {
 class PZEMv3 : public OnePhaseElectricityMeter {
  public:
 #if defined(PZEM004_SOFTSERIAL)
-  PZEMv3(int8_t pinRX, int8_t pinTX) : pzem(pinRX, pinTX) {
+    PZEMv3_ADDR(uint8_t pinRX1,
+                uint8_t pinTX1,
+                uint8_t pzem_addr = PZEM_0_DEFAULT_ADDR)
+      : pzem{PZEM004Tv30(pinRX1, pinTX1, pzem_addr)} {
   }
 #endif
 
 #if defined(ESP32)
-  PZEMv3(HardwareSerial *serial, int8_t pinRx, int8_t pinTx) : pzem(serial, pinRx, pinTx) {
+    PZEMv3_ADDR(HardwareSerial *serial,
+                uint8_t pinRx1,
+                uint8_t pinTx1,
+                uint8_t pzem_addr = PZEM_0_DEFAULT_ADDR)
+      : pzem{PZEM004Tv30(serial, pinRx1, pinTx1, pzem_addr)} {
   }
 #else 
-  PZEMv3(HardwareSerial *serial) : pzem(serial) {
+    PZEMv3_ADDR(HardwareSerial *serial,
+                uint8_t pzem_addr = PZEM_0_DEFAULT_ADDR)
+      : pzem{PZEM004Tv30(serial, pzem_addr)} {
   }
 #endif
 
@@ -56,6 +67,7 @@ class PZEMv3 : public OnePhaseElectricityMeter {
     // If current reading is NAN, we assume that PZEM there is no valid communication
     // with PZEM. Sensor shouldn't show any data
     if (isnan(current)) {
+      current = 0.0;
       resetReadParameters();
       return;
     }
@@ -77,7 +89,7 @@ class PZEMv3 : public OnePhaseElectricityMeter {
     setFreq(pzem.frequency() * 100);
     setPowerFactor(0, pzem.pf() * 1000);
     setPowerApparent(0, apparent * 100000);
-    setPowerReactive(0, reactive * 10000);
+    setPowerReactive(0, reactive * 100000);
   }
 
   void resetStorage() {
