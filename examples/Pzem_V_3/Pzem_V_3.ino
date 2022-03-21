@@ -55,7 +55,9 @@ void setup() {
    * Otherwise you will get "Channel conflict!" error.
    */
 
-  new Supla::Sensor::PZEMv3(5, 4);  // (RX,TX)
+  new Supla::Sensor::PZEMv3(5, 4);  // (RX,TX)  "PZEM Addr default to 0xF8"
+
+   // new Supla::Sensor::PZEMv3(5, 4, 0x10);  // (RX,TX, PZEM Addr)
 
   /*
    * SuplaDevice Initialization.
