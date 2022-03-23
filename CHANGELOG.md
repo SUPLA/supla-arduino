@@ -1,6 +1,6 @@
 # CHANGELOG.md
 
-## 2.4.1 (unreleased)
+## 2.4.1 (2022-03-23)
 
   - Change: (Arduino) move WiFi events for ESP8266 Arduino WiFi class to protected section
   - Change: (Arduino) Arduino ESP32 boards switch to version 2.x. Older boards will not compile ([see instructions](https://github.com/SUPLA/supla-device/commit/c533e73a4c811c026187374635dd812d4e294c8b))
