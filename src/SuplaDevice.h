@@ -133,7 +133,7 @@ class SuplaDeviceClass {
   unsigned long lastIterateTime;
   unsigned long waitForIterate;
   unsigned long deviceRestartTimeoutTimestamp = 0;
-  int forceRestartTimeMs = 0;
+  unsigned int forceRestartTimeMs = 0;
   enum Supla::DeviceMode deviceMode = Supla::DEVICE_MODE_NOT_SET;
   int currentStatus;
 
