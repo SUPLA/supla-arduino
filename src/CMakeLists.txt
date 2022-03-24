@@ -14,6 +14,8 @@ set(SRCS
   supla/at_channel.cpp
   supla/action_handler.cpp
 
+  supla/device/last_state_logger.cpp
+
   supla/storage/storage.cpp
   supla/storage/config.cpp
 

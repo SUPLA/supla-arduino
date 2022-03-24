@@ -70,6 +70,77 @@ bool isArrayEmpty(void* array, size_t arraySize) {
   return true;
 }
 
+int generateHexString(const void *input, char *output, int inputLength, char separator) {
+  const char hexMap[] = "0123456789ABCDEF";
+  int destIdx = 0;
+
+  for (int i = 0; i < inputLength; i++) {
+    if (i && separator) {
+      output[destIdx++] = separator;
+    }
+    int high = static_cast<const uint8_t *>(input)[i] / 16;
+    if (high > 15) {
+      high = 15;
+    }
+    output[destIdx++] = hexMap[high];
+    output[destIdx++] = hexMap[static_cast<const uint8_t *>(input)[i] % 16];
+  }
+  output[destIdx] = 0;
+  return destIdx;
+}
+
+uint32_t hexStringToInt(const char *str, int len) {
+  uint32_t result = 0;
+
+  for (int i = 0; i < len; i++) {
+    if (i) {
+      result <<= 4;
+    }
+    uint32_t n = 0;
+
+    if (str[i] >= 'A' && str[i] <= 'F') {
+      n = str[i] - 55;
+    } else if (str[i] >= 'a' && str[i] <= 'f') {
+      n = str[i] - 87;
+    } else if (str[i] >= '0' && str[i] <= '9') {
+      n = str[i] - 48;
+    }
+
+    result += n;
+  }
+
+  return result;
+};
+
+void urlDecodeInplace(char *buffer, int size) {
+  auto insertPtr = buffer;
+  auto parserPtr = buffer;
+  auto endPtr = &buffer[size];
+  while (*parserPtr != '\0' && parserPtr < endPtr) {
+    if (*parserPtr == '+') {
+      *insertPtr = ' ';
+    } else if (*parserPtr == '%') {
+      parserPtr++; // skip '%'
+      if (parserPtr + 1 < endPtr) {
+        *insertPtr = static_cast<char>(hexStringToInt(parserPtr, 2));
+        parserPtr++; // there are 2 bytes, so we shift one here
+        // decode %HEX
+      } else {
+        *insertPtr = '\0';
+        parserPtr = endPtr;
+        // invalid character at the end of buffer - may be result of
+        // limitted buffer size -> truncate it
+      }
+    } else {
+      *insertPtr = *parserPtr;
+    }
+    insertPtr++;
+    parserPtr++;
+  }
+  *insertPtr = '\0';
+}
+
+
 #if !defined(ARDUINO) && defined(ESP_PLATFORM)
 #include <esp_system.h>
 #endif

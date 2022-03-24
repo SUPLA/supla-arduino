@@ -1,0 +1,56 @@
+/*
+ Copyright (C) AC SOFTWARE SP. Z O.O.
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+*/
+
+#ifndef _supla_web_server_h_
+#define _supla_web_server_h_
+
+#include <supla/network/html_generator.h>
+
+class SuplaDeviceClass;
+
+#define HTML_KEY_LENGTH 16
+#define HTML_VAL_LENGTH 50
+
+namespace Supla {
+
+extern const unsigned char favico[1150];
+
+class WebServer {
+  public:
+    WebServer(Supla::HtmlGenerator *);
+    virtual ~WebServer();
+    virtual void start() = 0;
+    virtual void stop() = 0;
+    void setSuplaDeviceClass(SuplaDeviceClass *);
+    void notifyClientConnected();
+    virtual void parsePost(const char* postContent,
+        int size,
+        bool lastChunk = true);
+    virtual void resetParser();
+
+    Supla::HtmlGenerator *htmlGenerator = nullptr;
+  protected:
+    bool destroyGenerator = false;
+    SuplaDeviceClass *sdc = nullptr;
+    bool keyFound = false;
+    int partialSize = 0;
+    char key[HTML_KEY_LENGTH] = {};
+    char value[HTML_VAL_LENGTH] = {};
+};
+
+};
+
+#endif /*_supla_web_server_h_*/

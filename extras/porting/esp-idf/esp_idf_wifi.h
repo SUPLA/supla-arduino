@@ -28,6 +28,7 @@
 // supla-device includes
 #include <supla/network/netif_wifi.h>
 
+
 namespace Supla {
   class EspIdfWifi : public Supla::Wifi {
     public:

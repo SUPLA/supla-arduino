@@ -31,6 +31,26 @@ long adjustRange(long input, long inMin, long inMax, long outMin, long outMax);
 
 bool isArrayEmpty(void* array, size_t arraySize);
 
+// Converts inputLength bytes from input to HEX and adds bytes separator
+// if required.
+// output buffor has to be at least (2 * inputLength + 1) bytes long without
+// separator, or: (3 * inputLength) bytes long with separator.
+// Trailing '\0' is added.
+// Returns amount of non-null chars written.
+int generateHexString(const void *input,
+    char *output,
+    int inputLength,
+    char separator = 0);
+
+// Converts hex string value to integer
+uint32_t hexStringToInt(const char *str, int len);
+
+// Decode url string from buffer into buffer (inplace)
+// Replace '+' with ' '.
+// Replace %xy with proper byte.
+// If not complete % parameter is found at the end, then it is omitted.
+void urlDecodeInplace(char *buffer, int size);
+
 void deviceSoftwareReset();
 
 #endif

@@ -20,6 +20,7 @@
 #include "supla-common/log.h"
 #include "supla-common/srpc.h"
 #include "supla/channel.h"
+#include "supla/device/last_state_logger.h"
 #include "supla/element.h"
 #include "supla/io.h"
 #include "supla/network/network.h"
@@ -45,9 +46,26 @@ void SuplaDeviceClass::status(int newStatus, const char *msg, bool alwaysLog) {
     }
     currentStatus = newStatus;
     showLog = true;
+    if (lastStateLogger) {
+      lastStateLogger->log(msg);
+    }
   }
   if (alwaysLog || showLog)
     supla_log(LOG_INFO, "Current status: [%d] %s", newStatus, msg);
+}
+
+char *SuplaDeviceClass::getLastStateLog() {
+  if (lastStateLogger) {
+    return lastStateLogger->getLog();
+  }
+  return nullptr;
+}
+
+bool SuplaDeviceClass::prepareLastStateLog() {
+  if (lastStateLogger) {
+    return lastStateLogger->prepareLastStateLog();
+  }
+  return false;
 }
 
 SuplaDeviceClass::SuplaDeviceClass()
@@ -103,11 +121,13 @@ bool SuplaDeviceClass::begin(unsigned char version) {
 
   supla_log(LOG_DEBUG, "Supla - starting initialization");
 
+
   Supla::Storage::Init();
 
   if (Supla::Storage::IsConfigStorageAvailable()) {
     addFlags(SUPLA_DEVICE_FLAG_CALCFG_ENTER_CFG_MODE);
     loadDeviceConfig();
+    lastStateLogger = new Supla::Device::LastStateLogger();
   }
 //  Supla::Storage::LoadElementConfig();
 
@@ -795,25 +815,21 @@ int SuplaDeviceClass::generateHostname(char *buf, int size) {
     }
   }
 
- uint8_t mac[6] = {};
+  uint8_t mac[6] = {};
+  name[destIdx++] = '-';
 
   if (Supla::Network::GetMacAddr(mac)) {
-    name[destIdx++] = '-';
-    const char hexMap[] = "0123456789ABCDEF";
-    for (int i = (6 - size); i < 6; i++) {
-      int high = mac[i] / 16;
-      if (high > 15) {
-        high = 15;
-      }
-      name[destIdx++] = hexMap[high];
-      name[destIdx++] = hexMap[mac[i] % 16];
-    }
+    destIdx += generateHexString(mac + (6 - size), &(name[destIdx]), (6 - size));
   }
 
   name[destIdx++] = 0;
   strncpy(buf, name, 32);
 
   return destIdx;
+}
+
+void SuplaDeviceClass::disableCfgModeTimeout() {
+  enterCfgModeTimestamp = 0;
 }
 
 SuplaDeviceClass SuplaDevice;

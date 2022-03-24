@@ -12,6 +12,7 @@ COMPONENT_SRCDIRS := ../../../src/supla-common \
 										 ../../../src/supla/storage \
 										 ../../../src/ \
 										 ../../../src/supla/network \
+										 ../../../src/supla/network/html \
 										 ../../porting/esp-idf
 
 CFLAGS += -DSUPLA_DEVICE -DSUPLA_DEVICE_ESP8266

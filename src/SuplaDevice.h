@@ -23,6 +23,7 @@
 #include "supla/uptime.h"
 #include "supla/clock/clock.h"
 #include "supla/storage/config.h"
+#include "supla/device/last_state_logger.h"
 
 #define ACTIVITY_TIMEOUT 30
 
@@ -112,9 +113,12 @@ class SuplaDeviceClass {
   void enterNormalMode();
   void leaveConfigMode();
   void saveStateToStorage();
+  void disableCfgModeTimeout();
 
   int getCurrentStatus();
   void loadDeviceConfig();
+  bool prepareLastStateLog();
+  char *getLastStateLog();
 
  protected:
   void *srpc;
@@ -133,6 +137,7 @@ class SuplaDeviceClass {
 
   Supla::Uptime uptime;
   Supla::Clock *clock;
+  Supla::Device::LastStateLogger *lastStateLogger = nullptr;
 
   bool isSrpcInitialized(bool msg);
   // used to indicate if begin() method was called - it will be set to
