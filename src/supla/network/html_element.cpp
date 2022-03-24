@@ -58,4 +58,12 @@ HtmlElement *HtmlElement::next() {
   return nextPtr;
 }
 
+const char *HtmlElement::selected(bool isSelected) {
+  return isSelected ? " selected" : "";
+}
+
+bool HtmlElement::handleResponse(const char* key, const char* value) {
+  return false;
+}
+
 };

@@ -17,7 +17,8 @@
 #include "wifi_parameters.h"
 #include <supla/storage/storage.h>
 #include <supla/network/web_sender.h>
-#include "supla/network/network.h"
+#include <supla/network/network.h>
+#include <string.h>
 
 namespace Supla {
 
@@ -40,7 +41,20 @@ namespace Html {
     }
   }
 
-  //    virtual bool handleResponse() = 0;
+  bool WifiParameters::handleResponse(const char* key, const char* value) {
+    auto cfg = Supla::Storage::ConfigInstance();
+    if (strcmp(key, "sid") == 0) {
+      cfg->setWiFiSSID(value);
+      return true;
+    } else if (strcmp(key, "wpw") == 0) {
+      if (strlen(value) > 0) {
+        cfg->setWiFiPassword(value);
+      }
+      return true;
+    }
+
+    return false;
+  }
 
 };
 };

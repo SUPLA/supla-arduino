@@ -36,18 +36,15 @@ namespace Html {
           "<div class=\"w\">"
           "<i><select name=\"pro\" onchange=\"protocolChanged();\" "
           "id=\"protocol\">"
-          "<option value=\"0\" "
+          "<option value=\"0\""
           );
-      if (cfg->isSuplaCommProtocolEnabled()) {
-        sender->send("selected");
-      }
+      sender->send(selected(cfg->isSuplaCommProtocolEnabled()));
+
       sender->send(
           ">Supla</option>"
-          "<option value=\"1\" "
+          "<option value=\"1\""
           );
-      if (cfg->isMqttCommProtocolEnabled()) {
-        sender->send("selected");
-      }
+      sender->send(selected(cfg->isMqttCommProtocolEnabled()));
       sender->send(
           ">MQTT</option>"
           "</select>"
@@ -92,24 +89,18 @@ namespace Html {
           "<i><input name=\"mqttport\" min=\"1\" max=\"65535\" type=\"number\""
           " value=\""
           );
-      int port = cfg->getMqttServerPort();
-      snprintf(buf, 512, "%d", port);
-      sender->send(buf);
+      sender->send(cfg->getMqttServerPort());
       sender->send(
           "\"><label>Port</label></i>"
           "<i><select name=\"mqtttls\">"
           "<option value=\"0\" "
           );
-      if (!cfg->isMqttTlsEnabled()) {
-        sender->send("selected");
-      }
+      sender->send(selected(!cfg->isMqttTlsEnabled()));
       sender->send(
           ">NO</option>"
           "<option value=\"1\" "
           );
-      if (cfg->isMqttTlsEnabled()) {
-        sender->send("selected");
-      }
+      sender->send(selected(cfg->isMqttTlsEnabled()));
       sender->send(
           ">YES</option></select>"
           "<label>TLS</label></i>"
@@ -117,16 +108,12 @@ namespace Html {
           "<select name=\"mqttauth\" id=\"sel_mauth\" onchange=\"mAuthChanged();\">"
           "<option value=\"0\" "
           );
-      if (!cfg->isMqttAuthEnabled()) {
-        sender->send("selected");
-      }
+      sender->send(selected(!cfg->isMqttAuthEnabled()));
       sender->send(
           ">NO</option>"
           "<option value=\"1\" "
           );
-      if (cfg->isMqttAuthEnabled()) {
-        sender->send("selected");
-      }
+      sender->send(selected(cfg->isMqttAuthEnabled()));
       sender->send(
           ">YES</option></select>"
           "<label>Auth</label>"
@@ -152,33 +139,25 @@ namespace Html {
           "<label>Topic prefix</label></i>"
           "<i><input name=\"mqttqos\" min=\"0\" max=\"2\" type=\"number\" value=\""
           );
-      int qos = cfg->getMqttQos();
-      snprintf(buf, 512, "%d", qos);
-      sender->send(buf);
+      sender->send(cfg->getMqttQos());
       sender->send(
           "\"><label>QoS</label></i>"
           "<i><select name=\"mqttretain\">"
           "<option value=\"0\" "
           );
-      if (!cfg->isMqttRetainEnabled()) {
-        sender->send("selected");
-      }
+      sender->send(selected(!cfg->isMqttRetainEnabled()));
       sender->send(
           ">NO</option>"
           "<option value=\"1\" "
           );
-      if (cfg->isMqttRetainEnabled()) {
-        sender->send("selected");
-      }
+      sender->send(selected(cfg->isMqttRetainEnabled()));
       sender->send(
           ">YES</option></select>"
           "<label>Retain</label></i>"
           "<i>"
           "<input name=\"mqttpooldelay\" min=\"0\" max=\"3600\" type=\"number\" value=\""
           );
-      int ppd = cfg->getMqttPoolPublicationDelay();
-      snprintf(buf, 512, "%d", ppd);
-      sender->send(buf);
+      sender->send(cfg->getMqttPoolPublicationDelay());
       sender->send(
           "\"><label>Pool publication delay (sec.)</label></i>"
           "</div>"

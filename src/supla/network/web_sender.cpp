@@ -14,40 +14,16 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _supla_html_element_h_
-#define _supla_html_element_h_
+#include "web_sender.h"
+#include <stdio.h>
 
 namespace Supla {
 
-class WebSender;
-
-enum HtmlSection {
-  HTML_SECTION_FORM,
-  HTML_SECTION_DEVICE_INFO,
-  HTML_SECTION_NETWORK,
-  HTML_SECTION_PROTOCOL
+  WebSender::~WebSender() {};
+  void WebSender::send(int number) {
+    char buf[100];
+    snprintf(buf, sizeof(buf), "%d", number);
+    send(buf);
+  }
 };
 
-
-class HtmlElement {
-  public:
-    static HtmlElement *begin();
-    static HtmlElement *last();
-
-    static const char *selected(bool isSelected);
-
-    HtmlElement *next();
-
-    HtmlElement(HtmlSection section = HTML_SECTION_FORM);
-    virtual ~HtmlElement();
-    virtual void send(Supla::WebSender *sender) = 0;
-    virtual bool handleResponse(const char* key, const char* value);
-    HtmlSection section;
-  protected:
-    static HtmlElement *firstPtr;
-    HtmlElement *nextPtr;
-};
-
-};
-
-#endif

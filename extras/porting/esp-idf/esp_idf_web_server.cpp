@@ -149,11 +149,14 @@ Supla::EspIdfSender::~EspIdfSender() {
 }
 
 void Supla::EspIdfSender::send(const char *buf, int size) {
-  if (!buf || !reqHandler || size == 0) {
+  if (!buf || !reqHandler) {
     return;
   }
   if (size == -1) {
     size = strlen(buf);
+  }
+  if (size == 0) {
+    return;
   }
 
   httpd_resp_send_chunk(reqHandler, buf, size);

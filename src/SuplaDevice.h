@@ -111,7 +111,10 @@ class SuplaDeviceClass {
 
   void enterConfigMode();
   void enterNormalMode();
-  void leaveConfigMode();
+  // Schedules timeout to leave config mode. When provided timeout is 0
+  // then leaving config mode will be done asap.
+  void scheduleLeaveConfigMode(int timeout = 0);
+  void leaveConfigModeAndRestart();
   void saveStateToStorage();
   void disableCfgModeTimeout();
 
@@ -129,7 +132,8 @@ class SuplaDeviceClass {
 
   unsigned long lastIterateTime;
   unsigned long waitForIterate;
-  unsigned long enterCfgModeTimestamp = 0;
+  unsigned long deviceRestartTimeoutTimestamp = 0;
+  int forceRestartTimeMs = 0;
   enum Supla::DeviceMode deviceMode = Supla::DEVICE_MODE_NOT_SET;
   int currentStatus;
 

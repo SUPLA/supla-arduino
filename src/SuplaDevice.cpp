@@ -291,6 +291,17 @@ void SuplaDeviceClass::iterate(void) {
 
   unsigned long _millis = millis();
 
+  if (deviceRestartTimeoutTimestamp != 0 &&
+      _millis - deviceRestartTimeoutTimestamp > 5 * 60 * 1000) {
+    supla_log(LOG_INFO, "Config mode 5 min timeout. Reset device");
+    leaveConfigModeAndRestart();
+  }
+  if (forceRestartTimeMs &&
+      _millis - deviceRestartTimeoutTimestamp > forceRestartTimeMs) {
+    supla_log(LOG_INFO, "Leave cfg mode requested. Reset device");
+    leaveConfigModeAndRestart();
+  }
+
   iterateAlwaysElements(_millis);
 
   if (!isSrpcInitialized(false)) {
@@ -348,11 +359,6 @@ void SuplaDeviceClass::iterate(void) {
       }
     }
   } else {
-    if (enterCfgModeTimestamp != 0 &&
-        _millis - enterCfgModeTimestamp > 5 * 60 * 1000) {
-      supla_log(LOG_INFO, "Config mode 5 min timeout. Reset device");
-      leaveConfigMode();
-    }
   }
 }
 
@@ -696,9 +702,9 @@ void SuplaDeviceClass::enterConfigMode() {
     // if we enter cfg mode with deviceMode already set to cfgmode, then
     // configuration is incomplete, so there is no timeout to leave config
     // mode
-    enterCfgModeTimestamp = 0;
+    deviceRestartTimeoutTimestamp = 0;
   } else {
-    enterCfgModeTimestamp = millis();
+    deviceRestartTimeoutTimestamp = millis();
   }
 
   deviceMode = Supla::DEVICE_MODE_CONFIG;
@@ -708,7 +714,7 @@ void SuplaDeviceClass::enterConfigMode() {
   // TODO start local http server
 }
 
-void SuplaDeviceClass::leaveConfigMode() {
+void SuplaDeviceClass::leaveConfigModeAndRestart() {
   supla_log(LOG_INFO, "Leaving config mode");
   deviceMode = Supla::DEVICE_MODE_NORMAL;
   saveStateToStorage();
@@ -719,8 +725,8 @@ void SuplaDeviceClass::leaveConfigMode() {
   // TODO stop supla timers
 
   Supla::Network::Uninit();
-  supla_log(LOG_INFO, "Resetting in 1s...");
-  delay(1000);
+  supla_log(LOG_INFO, "Resetting in 0.5s...");
+  delay(500);
   supla_log(LOG_INFO, "See you soon!");
   deviceSoftwareReset();
 }
@@ -829,7 +835,18 @@ int SuplaDeviceClass::generateHostname(char *buf, int size) {
 }
 
 void SuplaDeviceClass::disableCfgModeTimeout() {
-  enterCfgModeTimestamp = 0;
+  if (!forceRestartTimeMs) {
+    deviceRestartTimeoutTimestamp = 0;
+  }
+}
+
+void SuplaDeviceClass::scheduleLeaveConfigMode(int timeout) {
+  if (timeout <= 0) {
+    forceRestartTimeMs = 1;
+  } else {
+    forceRestartTimeMs = timeout;
+  }
+  deviceRestartTimeoutTimestamp = millis();
 }
 
 SuplaDeviceClass SuplaDevice;

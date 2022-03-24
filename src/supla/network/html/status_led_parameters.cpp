@@ -36,25 +36,19 @@ namespace Html {
 
       sender->send(
           "<i><select name=\"led\">"
-          "<option value=\"0\" "
+          "<option value=\"0\""
           );
-      if (value == 0) {
-        sender->send("selected");
-      }
+      sender->send(selected(value == 0));
       sender->send(
           ">ON - WHEN CONNECTED</option>"
-          "<option value=\"1\" "
+          "<option value=\"1\""
           );
-      if (value == 1) {
-        sender->send("selected");
-      }
+      sender->send(selected(value == 1));
       sender->send(
           ">OFF - WHEN CONNECTED</option>"
-          "<option value=\"2\" "
+          "<option value=\"2\""
           );
-      if (value == 2) {
-        sender->send("selected");
-      }
+      sender->send(selected(value == 2));
       sender->send(
           ">ALWAYS OFF</option></select>"
           "<label>Status LED</label></i>"

@@ -17,6 +17,7 @@
  */
 
 #include "tools.h"
+#include "string.h"
 
 void float2DoublePacked(float number, uint8_t *bar, int byteOrder) {
   (void)(byteOrder);
@@ -111,6 +112,27 @@ uint32_t hexStringToInt(const char *str, int len) {
 
   return result;
 };
+
+uint32_t stringToUInt(const char *str, int len) {
+  if (len == -1) {
+    len = strlen(str);
+  }
+
+  uint32_t result = 0;
+
+  for (int i = 0; i < len; i++) {
+    if (str[i] < '0' || str[i] > '9') {
+      return 0;
+    }
+    if (i) {
+      result *= 10;
+    }
+
+    result += static_cast<uint8_t>(str[i]-'0');
+  }
+
+  return result;
+}
 
 void urlDecodeInplace(char *buffer, int size) {
   auto insertPtr = buffer;

@@ -30,7 +30,7 @@ class WifiParameters : public HtmlElement {
     WifiParameters();
     virtual ~WifiParameters();
     virtual void send(Supla::WebSender *sender) override;
-//    virtual bool handleResponse() override;
+    virtual bool handleResponse(const char* key, const char* value) override;
 };
 
 };

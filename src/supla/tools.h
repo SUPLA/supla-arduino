@@ -45,6 +45,10 @@ int generateHexString(const void *input,
 // Converts hex string value to integer
 uint32_t hexStringToInt(const char *str, int len);
 
+// Converts hex string value to integer
+uint32_t stringToUInt(const char *str, int len = -1);
+
+
 // Decode url string from buffer into buffer (inplace)
 // Replace '+' with ' '.
 // Replace %xy with proper byte.

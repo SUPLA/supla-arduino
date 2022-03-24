@@ -17,9 +17,12 @@
 #include "web_server.h"
 #include <supla-common/log.h>
 #include "supla/network/html_generator.h"
+#include "supla/network/network.h"
+#include <supla/storage/storage.h>
 #include <SuplaDevice.h>
 #include <string.h>
 #include <supla/tools.h>
+#include <supla/network/html_element.h>
 
 const unsigned char Supla::favico[] = {
   0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x10, 0x10, 0x00, 0x00, 0x01, 0x00,
@@ -183,6 +186,21 @@ void Supla::WebServer::parsePost(const char* postContent,
         urlDecodeInplace(value, HTML_VAL_LENGTH);
         // handle key value here
         supla_log(LOG_DEBUG, "SERVER: key %s, value %s", key, value);
+        for (auto htmlElement = Supla::HtmlElement::begin(); htmlElement;
+            htmlElement = htmlElement->next()) {
+          if (htmlElement->handleResponse(key, value)) {
+            break;
+          }
+        }
+        if (strcmp(key, "rbt") == 0) {
+          int reboot = stringToUInt(value);
+          supla_log(LOG_DEBUG, "rbt found %d", reboot);
+          if (reboot == 2) {
+            sdc->scheduleLeaveConfigMode(2500);
+          } else if (reboot) {
+            sdc->scheduleLeaveConfigMode();
+          }
+        }
         partialSize = 0;
         memset(key, 0, HTML_KEY_LENGTH);
         memset(value, 0, HTML_VAL_LENGTH);
@@ -194,6 +212,9 @@ void Supla::WebServer::parsePost(const char* postContent,
 
 
   if (lastChunk) {
+    if (Supla::Storage::ConfigInstance()) {
+      Supla::Storage::ConfigInstance()->commit();
+    }
     resetParser();
   }
 }
