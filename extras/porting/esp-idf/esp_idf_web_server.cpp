@@ -20,6 +20,7 @@
 #include <supla-common/log.h>
 #include <stddef.h>
 #include <supla/tools.h>
+#include <supla/time.h>
 
 static Supla::EspIdfWebServer *serverInstance = nullptr;
 
@@ -75,6 +76,7 @@ esp_err_t postHandler(httpd_req_t *req) {
 
       serverInstance->parsePost(content, ret, (contentLen == 0));
 
+      delay(1);
     }
     if (ret <= 0) {
       serverInstance->resetParser();
