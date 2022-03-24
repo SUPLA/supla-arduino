@@ -28,10 +28,21 @@ set(SUPLA_DEVICE_SRCS
 
   src/supla/clock/clock.cpp
 
+  src/supla/device/last_state_logger.cpp
+  src/supla/device/status_led.cpp
+
   src/supla/storage/storage.cpp
   src/supla/storage/config.cpp
 
   src/supla/network/network.cpp
+  src/supla/network/html_element.cpp
+  src/supla/network/html_generator.cpp
+  src/supla/network/web_server.cpp
+  src/supla/network/netif_wifi.cpp
+  src/supla/network/html/device_info.cpp
+  src/supla/network/html/protocol_parameters.cpp
+  src/supla/network/html/status_led_parameters.cpp
+  src/supla/network/html/wifi_parameters.cpp
 
   src/supla/control/action_trigger.cpp
   src/supla/control/bistable_relay.cpp
