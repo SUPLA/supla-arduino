@@ -128,8 +128,15 @@ bool SuplaDeviceClass::begin(unsigned char version) {
     addFlags(SUPLA_DEVICE_FLAG_CALCFG_ENTER_CFG_MODE);
     loadDeviceConfig();
     lastStateLogger = new Supla::Device::LastStateLogger();
+
+    // Load elements configuration
+    for (auto element = Supla::Element::begin(); element != nullptr;
+        element = element->next()) {
+      element->onLoadConfig();
+      delay(0);
+    }
   }
-//  Supla::Storage::LoadElementConfig();
+
 
   // Pefrorm dry run of write state to validate stored state section with
   // current device configuration

@@ -65,24 +65,6 @@ bool Storage::WriteState(const unsigned char *buf, int size) {
   return false;
 }
 
-bool Storage::LoadDeviceConfig() {
-  if (ConfigInstance()) {
-    return ConfigInstance()->loadDeviceConfig();
-  } else if (Instance()) {
-    return Instance()->loadDeviceConfig();
-  }
-  return false;
-}
-
-bool Storage::LoadElementConfig() {
-  if (ConfigInstance()) {
-    return ConfigInstance()->loadElementConfig();
-  } else if (Instance()) {
-    return Instance()->loadElementConfig();
-  }
-  return false;
-}
-
 bool Storage::PrepareState(bool dryRun) {
   if (Instance()) {
     return Instance()->prepareState(dryRun);
@@ -316,14 +298,6 @@ bool Storage::init() {
     currentOffset += section.size;
   }
 
-  return true;
-}
-
-bool Storage::loadDeviceConfig() {
-  return true;
-}
-
-bool Storage::loadElementConfig() {
   return true;
 }
 

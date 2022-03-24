@@ -40,8 +40,6 @@ namespace Supla {
       Config();
       virtual ~Config();
       virtual bool init() = 0;
-      virtual bool loadDeviceConfig() = 0;
-      virtual bool loadElementConfig() = 0;
 
       // Generic getters and setters
       virtual bool setString(const char* key, const char* value) = 0;

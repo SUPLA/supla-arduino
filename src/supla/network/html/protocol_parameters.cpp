@@ -19,6 +19,8 @@
 #include <supla/network/web_sender.h>
 #include "supla/network/network.h"
 #include <stdio.h>
+#include <string.h>
+#include <supla/tools.h>
 
 namespace Supla {
 
@@ -165,7 +167,75 @@ namespace Html {
     }
   }
 
-  //    virtual bool handleResponse() = 0;
+  bool ProtocolParameters::handleResponse(const char* key, const char* value) {
+    auto cfg = Supla::Storage::ConfigInstance();
+    if (strcmp(key, "pro") == 0) {
+      int protocol = stringToUInt(value);
+      supla_log(LOG_DEBUG, "entering pro %d", protocol);
+      switch (protocol) {
+        default:
+        case 0: {
+      supla_log(LOG_DEBUG, "entering pro supla");
+          cfg->setSuplaCommProtocolEnabled(true);
+          cfg->setMqttCommProtocolEnabled(false);
+          break;
+        }
+        case 1: {
+      supla_log(LOG_DEBUG, "entering pro mqtt");
+          cfg->setSuplaCommProtocolEnabled(false);
+          cfg->setMqttCommProtocolEnabled(true);
+          break;
+        }
+      }
+      return true;
+    } else if (strcmp(key, "svr") == 0) {
+      cfg->setSuplaServer(value);
+      return true;
+    } else if (strcmp(key, "eml") == 0) {
+      cfg->setEmail(value);
+      return true;
+    } else if (strcmp(key, "mqttserver") == 0) {
+      cfg->setMqttServer(value);
+      return true;
+    } else if (strcmp(key, "mqttport") == 0) {
+      int port = stringToUInt(value);
+      cfg->setMqttServerPort(port);
+      return true;
+    } else if (strcmp(key, "mqtttls") == 0) {
+      int enabled = stringToUInt(value);
+      cfg->setMqttTlsEnabled(enabled == 1);
+      return true;
+    } else if (strcmp(key, "mqttauth") == 0) {
+      int enabled = stringToUInt(value);
+      cfg->setMqttAuthEnabled(enabled == 1);
+      return true;
+    } else if (strcmp(key, "mqttuser") == 0) {
+      cfg->setMqttUser(value);
+      return true;
+    } else if (strcmp(key, "mqttpasswd") == 0) {
+      if (strlen(value) > 0) {
+        cfg->setMqttPassword(value);
+      }
+      return true;
+    } else if (strcmp(key, "mqttprefix") == 0) {
+      cfg->setMqttPrefix(value);
+      return true;
+    } else if (strcmp(key, "mqttqos") == 0) {
+      int qos = stringToUInt(value);
+      cfg->setMqttQos(qos);
+      return true;
+    } else if (strcmp(key, "mqttretain") == 0) {
+      int enabled = stringToUInt(value);
+      cfg->setMqttRetainEnabled(enabled == 1);
+      return true;
+    } else if (strcmp(key, "mqttpooldelay") == 0) {
+      int poolDelay = stringToUInt(value);
+      cfg->setMqttPoolPublicationDelay(poolDelay);
+      return true;
+    }
+
+    return false;
+  }
 
 };
 };

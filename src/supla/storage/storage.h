@@ -35,8 +35,6 @@ class Storage {
   static bool Init();
   static bool ReadState(unsigned char *, int);
   static bool WriteState(const unsigned char *, int);
-  static bool LoadDeviceConfig();
-  static bool LoadElementConfig();
   static bool PrepareState(bool dryRun = false);
   static bool FinalizeSaveState();
   static bool SaveStateAllowed(unsigned long);
@@ -54,8 +52,6 @@ class Storage {
   virtual bool readState(unsigned char *, int);
   virtual bool writeState(const unsigned char *, int);
 
-  virtual bool loadDeviceConfig();
-  virtual bool loadElementConfig();
   virtual bool prepareState(bool performDryRun);
   virtual bool finalizeSaveState();
   virtual bool saveStateAllowed(unsigned long);

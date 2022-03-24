@@ -29,8 +29,8 @@ class ProtocolParameters : public HtmlElement {
   public:
     ProtocolParameters();
     virtual ~ProtocolParameters();
-    virtual void send(Supla::WebSender *sender);
-//    virtual bool handleResponse() = 0;
+    virtual void send(Supla::WebSender *sender) override;
+    virtual bool handleResponse(const char* key, const char* value) override;
 };
 
 };

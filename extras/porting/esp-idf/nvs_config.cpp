@@ -42,14 +42,6 @@ bool NvsConfig::init() {
   return true;
 }
 
-bool NvsConfig::loadDeviceConfig() {
-  return true;
-}
-
-bool NvsConfig::loadElementConfig() {
-  return true;
-}
-
 // Generic getters and setters
 bool NvsConfig::setString(const char* key, const char* value) {
   esp_err_t err = nvs_set_str(nvsHandle, key, value);
@@ -81,36 +73,44 @@ int NvsConfig::getBlobSize(const char* key) {
 }
 
 bool NvsConfig::getInt8(const char* key, int8_t& result) {
-  return false;
+  esp_err_t err = nvs_get_i8(nvsHandle, key, &result);
+  return err == ESP_OK;
 }
 
 bool NvsConfig::getUInt8(const char* key, uint8_t& result) {
-  return false;
+  esp_err_t err = nvs_get_u8(nvsHandle, key, &result);
+  return err == ESP_OK;
 }
 
 bool NvsConfig::getInt32(const char* key, int32_t& result) {
-  return false;
+  esp_err_t err = nvs_get_i32(nvsHandle, key, &result);
+  return err == ESP_OK;
 }
 
 bool NvsConfig::getUInt32(const char* key, uint32_t& result) {
-  return false;
+  esp_err_t err = nvs_get_u32(nvsHandle, key, &result);
+  return err == ESP_OK;
 }
 
 
 bool NvsConfig::setInt8(const char* key, const int8_t value) {
-  return false;
+  esp_err_t err = nvs_set_i8(nvsHandle, key, value);
+  return err == ESP_OK;
 }
 
 bool NvsConfig::setUInt8(const char* key, const uint8_t value) {
-  return false;
+  esp_err_t err = nvs_set_u8(nvsHandle, key, value);
+  return err == ESP_OK;
 }
 
 bool NvsConfig::setInt32(const char* key, const int32_t value) {
-  return false;
+  esp_err_t err = nvs_set_i32(nvsHandle, key, value);
+  return err == ESP_OK;
 }
 
 bool NvsConfig::setUInt32(const char* key, const uint32_t value) {
-  return false;
+  esp_err_t err = nvs_set_u32(nvsHandle, key, value);
+  return err == ESP_OK;
 }
 
 void NvsConfig::commit() {
