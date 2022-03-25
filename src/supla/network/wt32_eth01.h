@@ -97,7 +97,9 @@ class WT32_ETH01 : public Supla::Network {
 
     int connect(const char *server, int port = -1) {
       String message;
-      if (client == NULL) {
+      if (client != NULL) {
+        client = NULL;
+      }
         if (isSecured) {
           message = "Secured connection";
           auto clientSec = new WiFiClientSecure();
@@ -113,7 +115,6 @@ class WT32_ETH01 : public Supla::Network {
           message = "unsecured connection";
           client = new WiFiClient();
         }
-      }
 
       int connectionPort = (isSecured ? 2016 : 2015);
       if (port != -1) {
