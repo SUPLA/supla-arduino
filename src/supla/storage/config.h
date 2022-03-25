@@ -24,6 +24,7 @@
 #define MAX_SSID_SIZE          32
 #define MAX_WIFI_PASSWORD_SIZE 64
 #define MQTT_CLIENTID_MAX_SIZE 23
+#define MQTT_PASSWORD_MAX_SIZE 33
 
 namespace Supla {
 

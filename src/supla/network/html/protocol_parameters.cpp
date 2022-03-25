@@ -59,7 +59,7 @@ namespace Html {
       sender->send(
           "<div class=\"w\" id=\"proto_supla\">"
           "<h3>Supla Settings</h3>"
-          "<i><input name=\"svr\" value=\""
+          "<i><input name=\"svr\" maxlength=\"64\" value=\""
           );
       char buf[512];
       if (cfg->getSuplaServer(buf)) {
@@ -67,7 +67,7 @@ namespace Html {
       }
       sender->send(
           "\"><label>Server</label></i>"
-          "<i><input name=\"eml\" value=\""
+          "<i><input name=\"eml\" maxlength=\"255\" value=\""
           );
       if (cfg->getEmail(buf)) {
         sender->send(buf);
@@ -81,7 +81,7 @@ namespace Html {
       sender->send(
           "<div class=\"w mqtt\">"
           "<h3>MQTT Settings</h3>"
-          "<i><input name=\"mqttserver\" value=\""
+          "<i><input name=\"mqttserver\" maxlength=\"64\" value=\""
           );
       if (cfg->getMqttServer(buf)) {
         sender->send(buf);
@@ -120,7 +120,7 @@ namespace Html {
           ">YES</option></select>"
           "<label>Auth</label>"
           "</i>"
-          "<i id=\"mauth_usr\"><input name=\"mqttuser\" value=\""
+          "<i id=\"mauth_usr\"><input name=\"mqttuser\" maxlength=\"22\" value=\""
           );
       if (cfg->getMqttUser(buf)) {
         sender->send(buf);
@@ -131,7 +131,7 @@ namespace Html {
           "<i id=\"mauth_pwd\">"
           "<input name=\"mqttpasswd\" maxlength=\"32\">"
           "<label>Password (Required. Max 32)</label></i>"
-          "<i><input name=\"mqttprefix\" value=\""
+          "<i><input name=\"mqttprefix\" maxlength=\"48\" value=\""
           );
       if (cfg->getMqttPrefix(buf)) {
         sender->send(buf);

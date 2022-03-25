@@ -22,7 +22,7 @@
 class SuplaDeviceClass;
 
 #define HTML_KEY_LENGTH 16
-#define HTML_VAL_LENGTH 50
+#define HTML_VAL_LENGTH 500
 
 namespace Supla {
 
