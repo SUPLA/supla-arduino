@@ -171,17 +171,14 @@ namespace Html {
     auto cfg = Supla::Storage::ConfigInstance();
     if (strcmp(key, "pro") == 0) {
       int protocol = stringToUInt(value);
-      supla_log(LOG_DEBUG, "entering pro %d", protocol);
       switch (protocol) {
         default:
         case 0: {
-      supla_log(LOG_DEBUG, "entering pro supla");
           cfg->setSuplaCommProtocolEnabled(true);
           cfg->setMqttCommProtocolEnabled(false);
           break;
         }
         case 1: {
-      supla_log(LOG_DEBUG, "entering pro mqtt");
           cfg->setSuplaCommProtocolEnabled(false);
           cfg->setMqttCommProtocolEnabled(true);
           break;
