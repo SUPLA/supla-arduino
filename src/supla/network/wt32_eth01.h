@@ -13,6 +13,7 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
+/*  - for WT32-ETH01 - */
 
 #ifndef wt32_eth1_h__
 #define wt32_eth1_h__
@@ -97,8 +98,9 @@ class WT32_ETH01 : public Supla::Network {
 
     int connect(const char *server, int port = -1) {
       String message;
-      if (client != NULL) {
-        client = NULL;
+      if (client) {
+        delete client;
+        client = nullptr;
       }
         if (isSecured) {
           message = "Secured connection";
