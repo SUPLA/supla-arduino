@@ -39,6 +39,7 @@ Supla::EspIdfWifi::EspIdfWifi(const char *wifiSsid,
     unsigned char *ip)
   : Wifi(wifiSsid, wifiPassword, ip) {
     netIntfPtr = this;
+    mutexClient = xSemaphoreCreateMutex();
   }
 
 Supla::EspIdfWifi::~EspIdfWifi() {
@@ -259,7 +260,6 @@ void Supla::EspIdfWifi::setup() {
   setWifiConnected(false);
   setIpReady(false);
   if (!initDone) {
-    mutexClient = xSemaphoreCreateMutex();
     nvs_flash_init();
     esp_netif_init();
 
