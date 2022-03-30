@@ -122,6 +122,7 @@ class SuplaDeviceClass {
   void loadDeviceConfig();
   bool prepareLastStateLog();
   char *getLastStateLog();
+  void addLastStateLog(const char*);
 
  protected:
   void *srpc;

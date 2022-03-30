@@ -375,7 +375,7 @@ void Network::fillStateData(TDSC_ChannelState &channelState) {
 
 void Network::printData(const char *prefix, const void *buf, const int count) {
   char tmp[TMP_STRING_SIZE] = {};
-  for (int i = 0; i < count && (i * 3 < TMP_STRING_SIZE); i++) {
+  for (int i = 0; i < count && ((i + 1) * 3 < TMP_STRING_SIZE); i++) {
     sprintf(tmp + i * 3,
         "%02X ",
         static_cast<unsigned int>(static_cast<const unsigned char *>(buf)[i]));
@@ -413,6 +413,10 @@ bool Network::getMacAddr(uint8_t *buf) {
 void Network::setHostname(const char *buf) {
   strncpy(hostname, buf, 32);
   supla_log(LOG_DEBUG, "Network AP/hostname: %s", hostname);
+}
+
+void Network::setSuplaDeviceClass(SuplaDeviceClass *ptr) {
+  sdc = ptr;
 }
 
 };  // namespace Supla

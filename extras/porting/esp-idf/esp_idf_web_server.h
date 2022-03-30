@@ -31,6 +31,7 @@ class EspIdfSender : public Supla::WebSender {
 
   protected:
     httpd_req_t* reqHandler;
+    bool error = false;
 };
 
 class EspIdfWebServer : public Supla::WebServer {

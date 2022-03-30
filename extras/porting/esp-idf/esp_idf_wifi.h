@@ -48,7 +48,7 @@ namespace Supla {
       bool getMacAddr(uint8_t *out) override;
 
       void enableSSL(bool value);
-      void setTimeout(int timeoutMs);
+      void setTimeout(int timeoutMs) override;
       void fillStateData(TDSC_ChannelState &channelState) override;
 
       void setIpReady(bool ready);
@@ -56,8 +56,10 @@ namespace Supla {
       void setWifiConnected(bool state);
 
       bool isInConfigMode();
-
+      void logWifiReason(int);
+      void logConnReason(int, int, int);
     protected:
+
       bool isSecured = true;
       bool initDone = false;
       bool isWifiConnected = false;
@@ -67,6 +69,10 @@ namespace Supla {
       esp_tls_t *client = nullptr;
       int timeoutMs = 10000;
       unsigned _supla_int_t ipv4 = 0;
+      int lastReasons[2] = {};
+      int lastReasonIdx = 0;
+      int lastConnErr = 0;
+      int lastTlsErr = 0;
 #ifdef SUPLA_DEVICE_ESP32
       esp_netif_t* staNetIf = nullptr;
       esp_netif_t* apNetIf = nullptr;

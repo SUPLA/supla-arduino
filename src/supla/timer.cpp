@@ -128,6 +128,7 @@ void initTimers() {
   sei();  // allow interrupts
 #elif defined(ESP_PLATFORM)
   // ESP-IDF and ESP8266 RTOS (non Arduino)
+
   slowerTimer = xTimerCreate(
       "SuplaSlowerTm", pdMS_TO_TICKS(10), pdTRUE, (void*)0, &slowerTimerCb);
   if (xTimerStart(slowerTimer, 100) != pdPASS) {

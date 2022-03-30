@@ -22,9 +22,9 @@
 #include <SuplaDevice.h>
 
 const char headerBegin[] =
-  "<html lang=en><meta content=\"text/html; charset=UTF-8\"http-equiv=content-t"
-  "ype><meta content=\"width=device-width,initial-scale=1,maximum-scale=1,user-"
-  "scalable=no\"name=viewport><title>Configuration Page</title>";
+"<!doctype html><html lang=en><meta content=\"text/html;charset=UTF-8\"http-equ"
+"iv=content-type><meta content=\"width=device-width,initial-scale=1,maximum-sca"
+"le=1,user-scalable=no\"name=viewport><title>Configuration Page</title>";
 
 
 const char styles[] =

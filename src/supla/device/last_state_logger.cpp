@@ -16,6 +16,7 @@
 
 #include "last_state_logger.h"
 #include <string.h>
+#include <supla-common/log.h>
 
 namespace Supla {
   namespace Device {
@@ -43,6 +44,8 @@ namespace Supla {
       buffer[LAST_STATE_LOGGER_BUFFER_SIZE - 3] = '.';
       buffer[LAST_STATE_LOGGER_BUFFER_SIZE - 2] = '.';
       buffer[LAST_STATE_LOGGER_BUFFER_SIZE - 1] = '\0';
+
+      supla_log(LOG_INFO, "LAST STATE ADDED: %s", buffer);
     }
 
     char *LastStateLogger::getLog() {

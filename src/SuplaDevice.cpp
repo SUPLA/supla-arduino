@@ -46,9 +46,7 @@ void SuplaDeviceClass::status(int newStatus, const char *msg, bool alwaysLog) {
     }
     currentStatus = newStatus;
     showLog = true;
-    if (lastStateLogger) {
-      lastStateLogger->log(msg);
-    }
+    addLastStateLog(msg);
   }
   if (alwaysLog || showLog)
     supla_log(LOG_INFO, "Current status: [%d] %s", newStatus, msg);
@@ -70,7 +68,7 @@ bool SuplaDeviceClass::prepareLastStateLog() {
 
 SuplaDeviceClass::SuplaDeviceClass()
     : port(-1),
-      connectionFailCounter(0),
+      connectionFailCounter(-2),
       networkIsNotReadyCounter(0),
       currentStatus(STATUS_UNKNOWN),
       impl_arduino_status(nullptr),
@@ -125,9 +123,9 @@ bool SuplaDeviceClass::begin(unsigned char version) {
   Supla::Storage::Init();
 
   if (Supla::Storage::IsConfigStorageAvailable()) {
+    lastStateLogger = new Supla::Device::LastStateLogger();
     addFlags(SUPLA_DEVICE_FLAG_CALCFG_ENTER_CFG_MODE);
     loadDeviceConfig();
-    lastStateLogger = new Supla::Device::LastStateLogger();
 
     // Load elements configuration
     for (auto element = Supla::Element::begin(); element != nullptr;
@@ -180,6 +178,7 @@ bool SuplaDeviceClass::begin(unsigned char version) {
     status(STATUS_MISSING_NETWORK_INTERFACE, "Network Interface not defined!");
     return false;
   }
+  Supla::Network::Instance()->setSuplaDeviceClass(this);
 
   if (isArrayEmpty(Supla::Channel::reg_dev.GUID, SUPLA_GUID_SIZE)) {
     status(STATUS_INVALID_GUID, "Missing GUID");
@@ -559,7 +558,7 @@ void SuplaDeviceClass::loadDeviceConfig() {
 
   // Supla protocol specific config
   if (cfg->isSuplaCommProtocolEnabled()) {
-    if (cfg->getSuplaServer(buf)) {
+    if (cfg->getSuplaServer(buf) && strlen(buf) > 0) {
       setServer(buf);
     } else {
       supla_log(LOG_DEBUG, "Config incomplete: missing server");
@@ -567,7 +566,7 @@ void SuplaDeviceClass::loadDeviceConfig() {
     }
     setServerPort(cfg->getSuplaServerPort());
 
-    if (cfg->getEmail(buf)) {
+    if (cfg->getEmail(buf) && strlen(buf) > 0) {
       setEmail(buf);
     } else {
       supla_log(LOG_DEBUG, "Config incomplete: missing email");
@@ -583,6 +582,8 @@ void SuplaDeviceClass::loadDeviceConfig() {
   // MQTT protocol specific config
   if (cfg->isMqttCommProtocolEnabled()) {
     // TODO add MQTT config
+    addLastStateLog("MQTT protocol is not supported yet");
+    configIncomplete = true;
     supla_log(LOG_ERR, "MQTT support not implemented yet");
   }
 
@@ -590,17 +591,19 @@ void SuplaDeviceClass::loadDeviceConfig() {
   auto net = Supla::Network::Instance();
 
   if (net != nullptr) {
-    if (cfg->getWiFiSSID(buf)) {
+    if (cfg->getWiFiSSID(buf) && strlen(buf) > 0) {
       net->setSsid(buf);
     } else {
       supla_log(LOG_DEBUG, "Config incomplete: missing WiFi SSID");
+      addLastStateLog("Missing WiFi SSID");
       configIncomplete = true;
     }
 
-    if (cfg->getWiFiPassword(buf)) {
+    if (cfg->getWiFiPassword(buf) && strlen(buf) > 0) {
       net->setPassword(buf);
     } else {
       supla_log(LOG_DEBUG, "Config incomplete: missing WiFi password");
+      addLastStateLog("Missing WiFi password");
       configIncomplete = true;
     }
   }
@@ -616,7 +619,7 @@ void SuplaDeviceClass::iterateAlwaysElements(unsigned long _millis) {
 
   // Iterate all elements
   for (auto element = Supla::Element::begin(); element != nullptr;
-       element = element->next()) {
+      element = element->next()) {
     element->iterateAlways();
     delay(0);
   }
@@ -641,10 +644,12 @@ bool SuplaDeviceClass::iterateNetworkSetup(unsigned long _millis) {
   }
 
   if (!Supla::Network::IsReady()) {
-    uptime.setConnectionLostCause(
-        SUPLA_LASTCONNECTIONRESETCAUSE_WIFI_CONNECTION_LOST);
+    if (connectionFailCounter >= 0) {
+      status(STATUS_NETWORK_DISCONNECTED, "No connection to network");
+      uptime.setConnectionLostCause(
+          SUPLA_LASTCONNECTIONRESETCAUSE_WIFI_CONNECTION_LOST);
+    }
     waitForIterate = _millis + 100;
-    status(STATUS_NETWORK_DISCONNECTED, "No connection to network");
     networkIsNotReadyCounter++;
     if (networkIsNotReadyCounter > 20) {
       networkIsNotReadyCounter = 0;
@@ -660,7 +665,7 @@ bool SuplaDeviceClass::iterateNetworkSetup(unsigned long _millis) {
 
 bool SuplaDeviceClass::iterateSuplaProtocol(unsigned int _millis) {
   if (srpc_iterate(srpc) == SUPLA_RESULT_FALSE) {
-    status(STATUS_ITERATE_FAIL, "Iterate fail");
+    status(STATUS_ITERATE_FAIL, "Communication failure");
     Supla::Network::Disconnect();
 
     waitForIterate = _millis + 5000;
@@ -854,6 +859,12 @@ void SuplaDeviceClass::scheduleLeaveConfigMode(int timeout) {
     forceRestartTimeMs = timeout;
   }
   deviceRestartTimeoutTimestamp = millis();
+}
+
+void SuplaDeviceClass::addLastStateLog(const char *msg) {
+  if (lastStateLogger) {
+    lastStateLogger->log(msg);
+  }
 }
 
 SuplaDeviceClass SuplaDevice;

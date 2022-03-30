@@ -125,6 +125,7 @@ Supla::EspIdfWebServer::~EspIdfWebServer() {
 
 void Supla::EspIdfWebServer::start() {
   httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+  config.lru_purge_enable = true;
 
   if (server) {
     stop();
@@ -147,11 +148,13 @@ void Supla::EspIdfWebServer::stop() {
 Supla::EspIdfSender::EspIdfSender(httpd_req_t *req) : reqHandler(req) {}
 
 Supla::EspIdfSender::~EspIdfSender() {
-  httpd_resp_send_chunk(reqHandler, nullptr, 0);
+  if (!error) {
+    httpd_resp_send_chunk(reqHandler, nullptr, 0);
+  }
 }
 
 void Supla::EspIdfSender::send(const char *buf, int size) {
-  if (!buf || !reqHandler) {
+  if (error || !buf || !reqHandler) {
     return;
   }
   if (size == -1) {
@@ -161,5 +164,9 @@ void Supla::EspIdfSender::send(const char *buf, int size) {
     return;
   }
 
-  httpd_resp_send_chunk(reqHandler, buf, size);
+  esp_err_t err = httpd_resp_send_chunk(reqHandler, buf, size);
+  if (err != ESP_OK) {
+    error = true;
+  }
+
 }
