@@ -344,3 +344,7 @@ bool Config::getMqttPrefix(char* result) {
 void Config::commit() {
   return;
 }
+
+bool Config::generateGuidAndAuthkey() {
+  return false;
+}

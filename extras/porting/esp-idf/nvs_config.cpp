@@ -18,6 +18,8 @@
 #include <nvs_flash.h>
 #include <nvs.h>
 #include <supla-common/log.h>
+#include <supla-common/proto.h>
+#include <esp_system.h>
 
 using namespace Supla;
 
@@ -117,3 +119,15 @@ void NvsConfig::commit() {
   nvs_commit(nvsHandle);
 }
 
+bool NvsConfig::generateGuidAndAuthkey() {
+  char guid[SUPLA_GUID_SIZE];
+  char authkey[SUPLA_AUTHKEY_SIZE];
+
+  esp_fill_random(guid, SUPLA_GUID_SIZE);
+  esp_fill_random(authkey, SUPLA_AUTHKEY_SIZE);
+
+  setGUID(guid);
+  setAuthKey(authkey);
+  commit();
+  return true;
+}

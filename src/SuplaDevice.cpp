@@ -33,8 +33,10 @@
 void SuplaDeviceClass::status(int newStatus, const char *msg, bool alwaysLog) {
   bool showLog = false;
 
-  if (currentStatus == STATUS_CONFIG_MODE) {
+  if (currentStatus == STATUS_CONFIG_MODE && newStatus != STATUS_INVALID_GUID &&
+      newStatus != STATUS_INVALID_AUTHKEY) {
     // Config mode is final state and the only exit goes through reset
+    // with exception for invalid GUID and AUTHKEY
     return;
   }
 
@@ -180,19 +182,24 @@ bool SuplaDeviceClass::begin(unsigned char version) {
   }
   Supla::Network::Instance()->setSuplaDeviceClass(this);
 
+  bool generateGuidAndAuthkey = false;
   if (isArrayEmpty(Supla::Channel::reg_dev.GUID, SUPLA_GUID_SIZE)) {
-    status(STATUS_INVALID_GUID, "Missing GUID");
     // when config storage is available, GUID will be generated automatically
     if (!Supla::Storage::IsConfigStorageAvailable()) {
+      status(STATUS_INVALID_GUID, "Missing GUID");
       return false;
+    } else {
+      generateGuidAndAuthkey = true;
     }
   }
 
   if (isArrayEmpty(Supla::Channel::reg_dev.AuthKey, SUPLA_AUTHKEY_SIZE)) {
-    status(STATUS_INVALID_AUTHKEY, "Missing AuthKey");
     // when config storage is available, AuthKey will be generated automatically
     if (!Supla::Storage::IsConfigStorageAvailable()) {
+      status(STATUS_INVALID_AUTHKEY, "Missing AuthKey");
       return false;
+    } else {
+      generateGuidAndAuthkey = true;
     }
   }
 
@@ -249,6 +256,30 @@ bool SuplaDeviceClass::begin(unsigned char version) {
   srpc_set_proto_version(srpc, version);
 
   supla_log(LOG_DEBUG, "Using Supla protocol version %d", version);
+
+  if (generateGuidAndAuthkey) {
+    auto cfg = Supla::Storage::ConfigInstance();
+    if (cfg->generateGuidAndAuthkey()) {
+      supla_log(LOG_INFO, "Successfully generated GUID and AuthKey");
+      char buf[512] = {};
+      if (cfg->getGUID(buf)) {
+        setGUID(buf);
+      }
+      if (cfg->getAuthKey(buf)) {
+        setAuthKey(buf);
+      }
+      generateHexString(Supla::Channel::reg_dev.GUID, buf, SUPLA_GUID_SIZE);
+      supla_log(LOG_INFO, "New GUID: %s", buf);
+      generateHexString(Supla::Channel::reg_dev.AuthKey, buf, SUPLA_AUTHKEY_SIZE);
+      supla_log(LOG_INFO, "New AuthKey: %s", buf);
+    } else {
+      supla_log(LOG_ERR, "Failed to generate GUID and AuthKey");
+      status(STATUS_INVALID_GUID, "Missing GUID");
+      status(STATUS_INVALID_AUTHKEY, "Missing AuthKey");
+      return false;
+    }
+
+  }
 
   status(STATUS_INITIALIZED, "SuplaDevice initialized");
   return true;
@@ -594,16 +625,16 @@ void SuplaDeviceClass::loadDeviceConfig() {
     if (cfg->getWiFiSSID(buf) && strlen(buf) > 0) {
       net->setSsid(buf);
     } else {
-      supla_log(LOG_DEBUG, "Config incomplete: missing WiFi SSID");
-      addLastStateLog("Missing WiFi SSID");
+      supla_log(LOG_DEBUG, "Config incomplete: missing Wi-Fi SSID");
+      addLastStateLog("Missing Wi-Fi SSID");
       configIncomplete = true;
     }
 
     if (cfg->getWiFiPassword(buf) && strlen(buf) > 0) {
       net->setPassword(buf);
     } else {
-      supla_log(LOG_DEBUG, "Config incomplete: missing WiFi password");
-      addLastStateLog("Missing WiFi password");
+      supla_log(LOG_DEBUG, "Config incomplete: missing Wi-Fi password");
+      addLastStateLog("Missing Wi-Fi password");
       configIncomplete = true;
     }
   }

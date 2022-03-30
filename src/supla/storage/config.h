@@ -64,6 +64,7 @@ namespace Supla {
       virtual void commit();
 
       // Device generic config
+      virtual bool generateGuidAndAuthkey();
       virtual bool setDeviceName(const char *name);
       virtual bool setDeviceMode(enum Supla::DeviceMode mode);
       virtual bool setGUID(const char* guid);

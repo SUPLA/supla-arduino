@@ -28,6 +28,8 @@ namespace Supla {
       virtual ~NvsConfig();
       bool init() override;
 
+      bool generateGuidAndAuthkey() override;
+
       // Generic getters and setters
       bool setString(const char* key, const char* value) override;
       bool getString(const char* key, char* value, size_t maxSize) override;
