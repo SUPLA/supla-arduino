@@ -18,6 +18,9 @@
 #include <supla/network/web_sender.h>
 #include <supla/storage/storage.h>
 #include <supla/storage/config.h>
+#include <supla/tools.h>
+
+#include <string.h>
 
 namespace Supla {
 
@@ -54,6 +57,30 @@ namespace Html {
           "<label>Status LED</label></i>"
           );
     }
+  }
+
+  bool StatusLedParameters::handleResponse(const char* key, const char* value) {
+    auto cfg = Supla::Storage::ConfigInstance();
+    if (strcmp(key, "led") == 0) {
+      int led = stringToUInt(value);
+      switch (led) {
+        default:
+        case 0: {
+          cfg->setInt8("statusled", 0);
+          break;
+        }
+        case 1: {
+          cfg->setInt8("statusled", led);
+          break;
+        }
+        case 2: {
+          cfg->setInt8("statusled", led);
+          break;
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
 };

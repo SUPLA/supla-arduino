@@ -44,6 +44,7 @@ namespace Supla {
       public:
         StatusLed(uint8_t outPin, bool invert = false);
 
+        void onLoadConfig() override;
         void onInit() override;
         void iterateAlways() override;
         void onTimer() override;
