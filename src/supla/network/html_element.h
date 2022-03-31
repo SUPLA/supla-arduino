@@ -45,7 +45,7 @@ class HtmlElement {
     HtmlSection section;
   protected:
     static HtmlElement *firstPtr;
-    HtmlElement *nextPtr;
+    HtmlElement *nextPtr = nullptr;
 };
 
 };

@@ -43,7 +43,7 @@ class EspIdfWebServer : public Supla::WebServer {
 
     bool dataSaved = false;
   protected:
-    httpd_handle_t server;
+    httpd_handle_t server = {};
 };
 
 };
