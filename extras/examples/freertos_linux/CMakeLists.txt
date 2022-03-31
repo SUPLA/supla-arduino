@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(empty-supla-freertos-example)
+project(supla-freertos-example)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -47,12 +47,12 @@ include_directories(
   .
   )
 
-add_executable(empty-supla-freertos-example
+add_executable(supla-freertos-example
   ${BOARD_SRC}
   )
 
-set_target_properties(empty-supla-freertos-example PROPERTIES LINK_LIBRARIES -pthread)
-target_link_libraries (empty-supla-freertos-example LINK_PUBLIC
+set_target_properties(supla-freertos-example PROPERTIES LINK_LIBRARIES -pthread)
+target_link_libraries (supla-freertos-example LINK_PUBLIC
   supladevice
   )
 

@@ -3,7 +3,7 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := supla-empty-esp8266-mk
+PROJECT_NAME := supla-esp8266-mk
 
 ifdef SUPLA_DEVICE_PATH
 EXTRA_COMPONENT_DIRS := $(abspath ${SUPLA_DEVICE_PATH}/extras/esp-idf)

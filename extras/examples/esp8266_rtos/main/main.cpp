@@ -15,7 +15,7 @@
 */
 
 /*
- Example of empty supla-device project for ESP8266 with EPS8266 RTOS SDK
+ Example of supla-device project for ESP8266 with EPS8266 RTOS SDK
  */
 
 

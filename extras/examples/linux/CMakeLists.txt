@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(empty-supla-linux-example)
+project(supla-linux-example)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -21,12 +21,12 @@ include_directories(
   .
   )
 
-add_executable(empty-supla-linux-example
+add_executable(supla-linux-example
   ${BOARD_SRC}
   )
 
-set_target_properties(empty-supla-linux-example PROPERTIES LINK_LIBRARIES -pthread)
-target_link_libraries (empty-supla-linux-example LINK_PUBLIC
+set_target_properties(supla-linux-example PROPERTIES LINK_LIBRARIES -pthread)
+target_link_libraries (supla-linux-example LINK_PUBLIC
   supladevice
   OpenSSL::SSL
   )

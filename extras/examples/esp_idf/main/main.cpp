@@ -15,7 +15,7 @@
 */
 
 /*
- Example of empty supla-device project for ESP32 with EPS-IDF SDK
+ Example of supla-device project for ESP32 with EPS-IDF SDK
  */
 
 #include <freertos/FreeRTOS.h>
