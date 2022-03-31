@@ -259,7 +259,7 @@ bool SuplaDeviceClass::begin(unsigned char version) {
 
   if (generateGuidAndAuthkey) {
     auto cfg = Supla::Storage::ConfigInstance();
-    if (cfg->generateGuidAndAuthkey()) {
+    if (cfg && cfg->generateGuidAndAuthkey()) {
       supla_log(LOG_INFO, "Successfully generated GUID and AuthKey");
       char buf[512] = {};
       if (cfg->getGUID(buf)) {
