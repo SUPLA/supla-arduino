@@ -20,79 +20,59 @@
 
 
 #include <FreeRTOS.h>
-#include <esp_idf_wifi.h>
-#include <supla-common/log.h>
+#include <esp_heap_caps.h>
+
 #include <SuplaDevice.h>
+#include <supla-common/log.h>
 #include <supla/control/virtual_relay.h>
 #include <supla/time.h>
-#include "esp_heap_caps.h"
-#include <supla/control/rgb_leds.h>
-#include <supla/control/rgbw_leds.h>
-#include <supla/control/dimmer_leds.h>
 #include <supla/control/roller_shutter.h>
+#include <supla/control/button.h>
+#include <supla/device/status_led.h>
 
+#include <supla/network/html/device_info.h>
+#include <supla/network/html/protocol_parameters.h>
+#include <supla/network/html/status_led_parameters.h>
+#include <supla/network/html/wifi_parameters.h>
+
+#include <esp_idf_wifi.h>
+#include <esp_idf_web_server.h>
+#include <spiffs_storage.h>
+#include <nvs_config.h>
 
 extern "C" void cpp_main(void*);
 
+
+
 void cpp_main(void* param)
 {
+  new Supla::EspIdfWifi;
+  new Supla::SpiffsStorage(512);
+  new Supla::NvsConfig;
+  new Supla::Device::StatusLed(2, true); // nodemcu GPIO2, inverted state
+  auto server = new Supla::EspIdfWebServer;
 
-  Supla::EspIdfWifi wifi("wifi_ssid", "wifi_password");
+  // HTML www component (they appear in sections according to creation
+  // sequence)
+  new Supla::Html::DeviceInfo(&SuplaDevice);
+  new Supla::Html::WifiParameters;
+  new Supla::Html::ProtocolParameters;
+  new Supla::Html::StatusLedParameters;
 
-  // Replace the falowing GUID with value that you can retrieve from
-  // https://www.supla.org/arduino/get-guid
-  char GUID[SUPLA_GUID_SIZE] =
-   {0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00};
 
-  // Replace the following AUTHKEY with value that you can retrieve from:
-  // https://www.supla.org/arduino/get-authkey
-  char AUTHKEY[SUPLA_AUTHKEY_SIZE] =
-   {0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00};
-
-  auto r1 = new Supla::Control::VirtualRelay();
+  auto r1 = new Supla::Control::Relay(12);
   auto r2 = new Supla::Control::VirtualRelay();
+  auto b1 = new Supla::Control::Button(14, true, true);
+  b1->addAction(Supla::TOGGLE, r1, Supla::ON_PRESS);
 
-  new Supla::Control::RGBLeds(1,2,3);
-  new Supla::Control::RGBLeds(4,5,6);
-  new Supla::Control::DimmerLeds(7);
-  new Supla::Control::RGBWLeds(8,9,10,11);
-  new Supla::Control::RollerShutter(12, 13, true);
+  supla_log(LOG_DEBUG, "Free heap: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
+  SuplaDevice.setName("Example device");
+  SuplaDevice.begin();
+  supla_log(LOG_DEBUG, "Free heap: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
 
-
-  supla_log(LOG_DEBUG, "Free heep: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
-  SuplaDevice.setServerPort(2016);
-  SuplaDevice.begin(GUID, "svrX.supla.org", "happy@supla.org", AUTHKEY);
-  supla_log(LOG_DEBUG, "Free heep: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
+  // TODO : remove after adding automatic server setup
+  server->start();
+  server->setSuplaDeviceClass(&SuplaDevice);
 
   unsigned int lastTime = 0;
   unsigned int lastTimeHeap = 0;
@@ -109,7 +89,7 @@ void cpp_main(void* param)
       int curHeap = heap_caps_get_free_size(MALLOC_CAP_8BIT);
       if (lastFreeHeap != curHeap) {
         lastFreeHeap = curHeap;
-        supla_log(LOG_DEBUG, "Free heep: %d", lastFreeHeap);
+        supla_log(LOG_DEBUG, "Free heap: %d", lastFreeHeap);
       }
     }
   }
