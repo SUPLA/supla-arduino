@@ -444,6 +444,10 @@ void Supla::EspIdfWifi::logWifiReason(int reason) {
         sdc->addLastStateLog("Wi-Fi: disconnecting from AP");
         break;
       }
+      case 15: {
+        sdc->addLastStateLog("Wi-Fi: 4way handshake timeout (incorrect password)");
+        break;
+      }
       case 200: {
         sdc->addLastStateLog("Wi-Fi: beacon timeout");
         break;
@@ -463,7 +467,7 @@ void Supla::EspIdfWifi::logWifiReason(int reason) {
         break;
       }
       case 204: {
-        sdc->addLastStateLog("Wi-Fi: handshake timeout");
+        sdc->addLastStateLog("Wi-Fi: handshake timeout (incorrect password)");
         break;
       }
       case 205: {
