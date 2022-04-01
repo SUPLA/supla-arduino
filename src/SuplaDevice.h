@@ -24,6 +24,7 @@
 #include "supla/clock/clock.h"
 #include "supla/storage/config.h"
 #include "supla/device/last_state_logger.h"
+#include "supla/action_handler.h"
 
 #define ACTIVITY_TIMEOUT 30
 
@@ -61,7 +62,7 @@
 
 typedef void (*_impl_arduino_status)(int status, const char *msg);
 
-class SuplaDeviceClass {
+class SuplaDeviceClass : public Supla::ActionHandler {
  public:
   SuplaDeviceClass();
   ~SuplaDeviceClass();
@@ -117,12 +118,15 @@ class SuplaDeviceClass {
   void leaveConfigModeAndRestart();
   void saveStateToStorage();
   void disableCfgModeTimeout();
+  void resetToFactorySettings();
 
   int getCurrentStatus();
   void loadDeviceConfig();
   bool prepareLastStateLog();
   char *getLastStateLog();
   void addLastStateLog(const char*);
+
+  void handleAction(int event, int action) override;
 
  protected:
   void *srpc;
@@ -137,6 +141,8 @@ class SuplaDeviceClass {
   unsigned int forceRestartTimeMs = 0;
   enum Supla::DeviceMode deviceMode = Supla::DEVICE_MODE_NOT_SET;
   int currentStatus;
+  bool goToConfigModeAsap = false;
+  bool triggerResetToFacotrySettings = false;
 
   _impl_arduino_status impl_arduino_status;
 

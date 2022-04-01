@@ -44,6 +44,14 @@ bool NvsConfig::init() {
   return true;
 }
 
+void NvsConfig::removeAll() {
+  esp_err_t err = nvs_erase_all(nvsHandle);
+  if (err != ESP_OK) {
+    supla_log(LOG_ERR, "Failed to erase NVS storage (%d)", err);
+  }
+  nvs_commit(nvsHandle);
+}
+
 // Generic getters and setters
 bool NvsConfig::setString(const char* key, const char* value) {
   esp_err_t err = nvs_set_str(nvsHandle, key, value);

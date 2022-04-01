@@ -27,6 +27,7 @@ namespace Supla {
       NvsConfig();
       virtual ~NvsConfig();
       bool init() override;
+      void removeAll() override;
 
       bool generateGuidAndAuthkey() override;
 

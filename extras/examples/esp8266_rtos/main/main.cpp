@@ -63,7 +63,11 @@ void cpp_main(void* param)
   auto r1 = new Supla::Control::Relay(12);
   auto r2 = new Supla::Control::VirtualRelay();
   auto b1 = new Supla::Control::Button(14, true, true);
-  b1->addAction(Supla::TOGGLE, r1, Supla::ON_PRESS);
+  b1->setHoldTime(1000);
+  b1->setMulticlickTime(300);
+  b1->addAction(Supla::TOGGLE, r1, Supla::ON_CLICK_1);
+  b1->addAction(Supla::RESET_TO_FACTORY_SETTINGS, SuplaDevice, Supla::ON_CLICK_3);
+  b1->addAction(Supla::TOGGLE_CONFIG_MODE, SuplaDevice, Supla::ON_HOLD);
 
   supla_log(LOG_DEBUG, "Free heap: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
   SuplaDevice.setName("Example device");

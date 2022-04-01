@@ -29,6 +29,7 @@
 #include "supla/time.h"
 #include "supla/storage/config.h"
 #include "supla/tools.h"
+#include "supla/actions.h"
 
 void SuplaDeviceClass::status(int newStatus, const char *msg, bool alwaysLog) {
   bool showLog = false;
@@ -336,6 +337,16 @@ void SuplaDeviceClass::iterate(void) {
   if (forceRestartTimeMs &&
       _millis - deviceRestartTimeoutTimestamp > forceRestartTimeMs) {
     supla_log(LOG_INFO, "Leave cfg mode requested. Reset device");
+    leaveConfigModeAndRestart();
+  }
+
+  if (goToConfigModeAsap) {
+    goToConfigModeAsap = false;
+    enterConfigMode();
+  }
+
+  if (triggerResetToFacotrySettings) {
+    resetToFactorySettings();
     leaveConfigModeAndRestart();
   }
 
@@ -895,6 +906,44 @@ void SuplaDeviceClass::scheduleLeaveConfigMode(int timeout) {
 void SuplaDeviceClass::addLastStateLog(const char *msg) {
   if (lastStateLogger) {
     lastStateLogger->log(msg);
+  }
+}
+
+void SuplaDeviceClass::handleAction(int event, int action) {
+  (void)(event);
+  switch (action) {
+    case Supla::SOFT_RESTART: {
+      scheduleLeaveConfigMode(0);
+      break;
+    }
+    case Supla::ENTER_CONFIG_MODE: {
+      if (deviceMode != Supla::DEVICE_MODE_CONFIG) {
+        goToConfigModeAsap = true;
+      }
+      break;
+    }
+    case Supla::TOGGLE_CONFIG_MODE: {
+      if (deviceMode != Supla::DEVICE_MODE_CONFIG) {
+        goToConfigModeAsap = true;
+      } else {
+        scheduleLeaveConfigMode(0);
+      }
+      break;
+    }
+    case Supla::RESET_TO_FACTORY_SETTINGS: {
+      triggerResetToFacotrySettings = true;;
+      break;
+    }
+  }
+}
+
+void SuplaDeviceClass::resetToFactorySettings() {
+  auto cfg = Supla::Storage::ConfigInstance();
+  if (cfg) {
+    cfg->removeAll();
+    cfg->setGUID(Supla::Channel::reg_dev.GUID);
+    cfg->setAuthKey(Supla::Channel::reg_dev.AuthKey);
+    cfg->commit();
   }
 }
 

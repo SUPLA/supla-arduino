@@ -41,6 +41,7 @@ namespace Supla {
       Config();
       virtual ~Config();
       virtual bool init() = 0;
+      virtual void removeAll() = 0;
 
       // Generic getters and setters
       virtual bool setString(const char* key, const char* value) = 0;
