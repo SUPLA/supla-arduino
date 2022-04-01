@@ -67,4 +67,4 @@ target_link_libraries(supladevicetests
 add_test(NAME supladevicetests
   COMMAND supladevicetests)
 
-target_compile_options(supladevicelib PRIVATE -Werror -Wall -Wextra)
+target_compile_options(supladevicelib PRIVATE -Werror -Wall -Wextra -DSUPLA_TEST)

@@ -124,12 +124,14 @@ Supla::EspIdfWebServer::~EspIdfWebServer() {
 }
 
 void Supla::EspIdfWebServer::start() {
+  if (server) {
+    return;
+  }
+
   httpd_config_t config = HTTPD_DEFAULT_CONFIG();
   config.lru_purge_enable = true;
 
-  if (server) {
-    stop();
-  }
+  supla_log(LOG_INFO, "Starting local web server");
 
   if (httpd_start(&server, &config) == ESP_OK) {
     httpd_register_uri_handler(server, &uriGet);
@@ -139,6 +141,7 @@ void Supla::EspIdfWebServer::start() {
 }
 
 void Supla::EspIdfWebServer::stop() {
+  supla_log(LOG_INFO, "Stopping local web server");
   if (server) {
     httpd_stop(server);
     server = nullptr;

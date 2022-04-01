@@ -63,6 +63,8 @@ const char *HtmlElement::selected(bool isSelected) {
 }
 
 bool HtmlElement::handleResponse(const char* key, const char* value) {
+  (void)(key);
+  (void)(value);
   return false;
 }
 

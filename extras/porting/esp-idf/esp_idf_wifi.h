@@ -30,6 +30,8 @@
 
 
 namespace Supla {
+  class Mutex;
+
   class EspIdfWifi : public Supla::Wifi {
     public:
       EspIdfWifi(const char *wifiSsid = nullptr,
@@ -73,6 +75,7 @@ namespace Supla {
       int lastReasonIdx = 0;
       int lastConnErr = 0;
       int lastTlsErr = 0;
+      Supla::Mutex *mutex = nullptr;
 #ifdef SUPLA_DEVICE_ESP32
       esp_netif_t* staNetIf = nullptr;
       esp_netif_t* apNetIf = nullptr;

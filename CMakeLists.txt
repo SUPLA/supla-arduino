@@ -14,6 +14,8 @@ set(SUPLA_DEVICE_SRCS
   src/supla/action_handler.cpp
   src/supla/time.cpp
   src/supla/timer.cpp
+  src/supla/mutex.cpp
+  src/supla/auto_lock.cpp
 
   src/supla/condition.cpp
   src/supla/condition_getter.cpp

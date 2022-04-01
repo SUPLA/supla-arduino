@@ -14,28 +14,25 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _supla_last_state_logger_h_
-#define _supla_last_state_logger_h_
+#include "auto_lock.h"
+#include "mutex.h"
 
-#define LAST_STATE_LOGGER_BUFFER_SIZE 500
+Supla::AutoLock::AutoLock(Mutex *mut) : mutex(mut) {
+  lock();
+}
 
+Supla::AutoLock::~AutoLock() {
+  unlock();
+}
 
-namespace Supla {
-  class Mutex;
+void Supla::AutoLock::lock() {
+  if (mutex) {
+    mutex->lock();
+  }
+}
 
-  namespace Device {
-    class LastStateLogger {
-      public:
-        LastStateLogger();
-        virtual void log(const char *);
-        virtual char *getLog();
-        virtual bool prepareLastStateLog();
-
-      protected:
-        char buffer[LAST_STATE_LOGGER_BUFFER_SIZE] = {};
-        int index = 0;
-        Supla::Mutex *mutex = nullptr;
-    };
-  };  // namespace Device
-};  // namespace Supla
-#endif
+void Supla::AutoLock::unlock() {
+  if (mutex) {
+    mutex->unlock();
+  }
+}

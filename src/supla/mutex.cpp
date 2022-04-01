@@ -14,28 +14,26 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _supla_last_state_logger_h_
-#define _supla_last_state_logger_h_
-
-#define LAST_STATE_LOGGER_BUFFER_SIZE 500
+#include "mutex.h"
 
 
-namespace Supla {
-  class Mutex;
-
-  namespace Device {
-    class LastStateLogger {
-      public:
-        LastStateLogger();
-        virtual void log(const char *);
-        virtual char *getLog();
-        virtual bool prepareLastStateLog();
-
-      protected:
-        char buffer[LAST_STATE_LOGGER_BUFFER_SIZE] = {};
-        int index = 0;
-        Supla::Mutex *mutex = nullptr;
-    };
-  };  // namespace Device
-};  // namespace Supla
+#if defined(ARDUINO) || defined(SUPLA_TEST)
+// TODO implement mutex for Arduino targets on ESP
+Supla::Mutex *Supla::Mutex::Create() {
+  // put target specific stuff here
+  return new Supla::Mutex;
+}
 #endif
+
+Supla::Mutex::~Mutex() {
+  unlock();
+}
+
+Supla::Mutex::Mutex() {
+}
+
+void Supla::Mutex::lock() {
+}
+
+void Supla::Mutex::unlock() {
+}

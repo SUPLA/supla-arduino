@@ -24,6 +24,7 @@
 #include "supla/element.h"
 #include "supla/io.h"
 #include "supla/network/network.h"
+#include "supla/network/web_server.h"
 #include "supla/storage/storage.h"
 #include "supla/timer.h"
 #include "supla/time.h"
@@ -34,8 +35,10 @@
 void SuplaDeviceClass::status(int newStatus, const char *msg, bool alwaysLog) {
   bool showLog = false;
 
-  if (currentStatus == STATUS_CONFIG_MODE && newStatus != STATUS_INVALID_GUID &&
-      newStatus != STATUS_INVALID_AUTHKEY) {
+  if (currentStatus == STATUS_CONFIG_MODE
+      && newStatus != STATUS_LEAVING_CONFIG_MODE
+      && newStatus != STATUS_INVALID_GUID
+      && newStatus != STATUS_INVALID_AUTHKEY) {
     // Config mode is final state and the only exit goes through reset
     // with exception for invalid GUID and AUTHKEY
     return;
@@ -182,6 +185,9 @@ bool SuplaDeviceClass::begin(unsigned char version) {
     return false;
   }
   Supla::Network::Instance()->setSuplaDeviceClass(this);
+  if (Supla::WebServer::Instance()) {
+    Supla::WebServer::Instance()->setSuplaDeviceClass(this);
+  }
 
   bool generateGuidAndAuthkey = false;
   if (isArrayEmpty(Supla::Channel::reg_dev.GUID, SUPLA_GUID_SIZE)) {
@@ -340,15 +346,7 @@ void SuplaDeviceClass::iterate(void) {
     leaveConfigModeAndRestart();
   }
 
-  if (goToConfigModeAsap) {
-    goToConfigModeAsap = false;
-    enterConfigMode();
-  }
-
-  if (triggerResetToFacotrySettings) {
-    resetToFactorySettings();
-    leaveConfigModeAndRestart();
-  }
+  handleLocalActionTriggers();
 
   iterateAlwaysElements(_millis);
 
@@ -765,11 +763,14 @@ void SuplaDeviceClass::enterConfigMode() {
   Supla::Network::Disconnect();
   Supla::Network::SetConfigMode();
   Supla::Network::Setup();
-  // TODO start local http server
+
+  if (Supla::WebServer::Instance()) {
+    Supla::WebServer::Instance()->start();
+  }
 }
 
 void SuplaDeviceClass::leaveConfigModeAndRestart() {
-  supla_log(LOG_INFO, "Leaving config mode");
+  status(STATUS_LEAVING_CONFIG_MODE, "Leaving config mode");
   deviceMode = Supla::DEVICE_MODE_NORMAL;
   saveStateToStorage();
   if (Supla::Storage::ConfigInstance()) {
@@ -777,6 +778,10 @@ void SuplaDeviceClass::leaveConfigModeAndRestart() {
   }
 
   // TODO stop supla timers
+
+  if (Supla::WebServer::Instance()) {
+    Supla::WebServer::Instance()->stop();
+  }
 
   Supla::Network::Uninit();
   supla_log(LOG_INFO, "Resetting in 0.5s...");
@@ -895,6 +900,7 @@ void SuplaDeviceClass::disableCfgModeTimeout() {
 }
 
 void SuplaDeviceClass::scheduleLeaveConfigMode(int timeout) {
+  status(STATUS_LEAVING_CONFIG_MODE, "Leaving config mode");
   if (timeout <= 0) {
     forceRestartTimeMs = 1;
   } else {
@@ -934,6 +940,14 @@ void SuplaDeviceClass::handleAction(int event, int action) {
       triggerResetToFacotrySettings = true;;
       break;
     }
+    case Supla::START_LOCAL_WEB_SERVER: {
+      triggerStartLocalWebServer = true;;
+      break;
+    }
+    case Supla::STOP_LOCAL_WEB_SERVER: {
+      triggerStopLocalWebServer = true;;
+      break;
+    }
   }
 }
 
@@ -944,6 +958,32 @@ void SuplaDeviceClass::resetToFactorySettings() {
     cfg->setGUID(Supla::Channel::reg_dev.GUID);
     cfg->setAuthKey(Supla::Channel::reg_dev.AuthKey);
     cfg->commit();
+  }
+}
+
+void SuplaDeviceClass::handleLocalActionTriggers() {
+  if (goToConfigModeAsap) {
+    goToConfigModeAsap = false;
+    enterConfigMode();
+  }
+
+  if (triggerResetToFacotrySettings) {
+    resetToFactorySettings();
+    leaveConfigModeAndRestart();
+  }
+
+  if (triggerStartLocalWebServer) {
+    triggerStartLocalWebServer = false;
+    if (Supla::WebServer::Instance()) {
+      Supla::WebServer::Instance()->start();
+    }
+  }
+
+  if (triggerStopLocalWebServer) {
+    triggerStopLocalWebServer = false;
+    if (Supla::WebServer::Instance()) {
+      Supla::WebServer::Instance()->stop();
+    }
   }
 }
 

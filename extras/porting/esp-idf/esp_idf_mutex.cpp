@@ -14,28 +14,26 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _supla_last_state_logger_h_
-#define _supla_last_state_logger_h_
-
-#define LAST_STATE_LOGGER_BUFFER_SIZE 500
+#include "esp_idf_mutex.h"
 
 
-namespace Supla {
-  class Mutex;
+Supla::Mutex *Supla::Mutex::Create() {
+  return new Supla::EspIdfMutex;
+}
 
-  namespace Device {
-    class LastStateLogger {
-      public:
-        LastStateLogger();
-        virtual void log(const char *);
-        virtual char *getLog();
-        virtual bool prepareLastStateLog();
+Supla::EspIdfMutex::~EspIdfMutex() {
+  unlock();
+}
 
-      protected:
-        char buffer[LAST_STATE_LOGGER_BUFFER_SIZE] = {};
-        int index = 0;
-        Supla::Mutex *mutex = nullptr;
-    };
-  };  // namespace Device
-};  // namespace Supla
-#endif
+Supla::EspIdfMutex::EspIdfMutex() {
+  mutex = xSemaphoreCreateMutex();
+}
+
+void Supla::EspIdfMutex::lock() {
+  xSemaphoreTake(mutex, portMAX_DELAY);
+}
+
+void Supla::EspIdfMutex::unlock() {
+    xSemaphoreGive(mutex);
+}
+

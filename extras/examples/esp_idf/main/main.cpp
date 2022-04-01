@@ -68,7 +68,7 @@ void cpp_main(void* param)
   new Supla::NvsConfig;
 
 // Cfg mode web server
-  auto server = new Supla::EspIdfWebServer;
+  new Supla::EspIdfWebServer;
 
   // Show all SUPLA related logs
   esp_log_level_set("SUPLA", ESP_LOG_DEBUG);
@@ -77,17 +77,20 @@ void cpp_main(void* param)
 
   auto r1 = new Supla::Control::VirtualRelay();
   auto r2 = new Supla::Control::VirtualRelay();
-#define RELAY3_GPIO 32
+#define RELAY3_GPIO 8
   auto r3 = new Supla::Control::Relay(RELAY3_GPIO);
 
   new Supla::Control::RollerShutter(12, 13, true);
 
-  auto b1 = new Supla::Control::Button(33, true, true);
+  auto b1 = new Supla::Control::Button(7, true, true);
 
-  b1->setMulticlickTime(300, false);
+  b1->setHoldTime(1000);
+  b1->setMulticlickTime(300);
   b1->addAction(Supla::TOGGLE, r1, Supla::ON_CLICK_1);
-  b1->addAction(Supla::TOGGLE, r2, Supla::ON_CLICK_2);
-  b1->addAction(Supla::TOGGLE, r3, Supla::ON_CLICK_3);
+  b1->addAction(Supla::START_LOCAL_WEB_SERVER, SuplaDevice, Supla::ON_CLICK_2);
+  b1->addAction(Supla::STOP_LOCAL_WEB_SERVER, SuplaDevice, Supla::ON_CLICK_3);
+  b1->addAction(Supla::RESET_TO_FACTORY_SETTINGS, SuplaDevice, Supla::ON_CLICK_5);
+  b1->addAction(Supla::TOGGLE_CONFIG_MODE, SuplaDevice, Supla::ON_HOLD);
 
   r1->setDefaultStateRestore();
   r2->setDefaultStateRestore();
@@ -97,10 +100,6 @@ void cpp_main(void* param)
   SuplaDevice.begin();
   supla_log(LOG_DEBUG, "Free heap: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
   supla_log(LOG_DEBUG, "port tick period %d", portTICK_PERIOD_MS);
-
-  // TODO remove after adding automatic server start
-  server->start();
-  server->setSuplaDeviceClass(&SuplaDevice);
 
   unsigned int lastTime = 0;
   unsigned int lastTimeHeap = 0;

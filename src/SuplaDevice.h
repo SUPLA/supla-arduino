@@ -58,6 +58,7 @@
 #define STATUS_UNKNOWN_ERROR             35
 
 #define STATUS_CONFIG_MODE               40
+#define STATUS_LEAVING_CONFIG_MODE       41
 #define STATUS_SW_DOWNLOAD               50
 
 typedef void (*_impl_arduino_status)(int status, const char *msg);
@@ -143,6 +144,8 @@ class SuplaDeviceClass : public Supla::ActionHandler {
   int currentStatus;
   bool goToConfigModeAsap = false;
   bool triggerResetToFacotrySettings = false;
+  bool triggerStartLocalWebServer = false;
+  bool triggerStopLocalWebServer = false;
 
   _impl_arduino_status impl_arduino_status;
 
@@ -160,6 +163,7 @@ class SuplaDeviceClass : public Supla::ActionHandler {
   void iterateAlwaysElements(unsigned long _millis);
   bool iterateNetworkSetup(unsigned long _millis);
   bool iterateSuplaProtocol(unsigned int _millis);
+  void handleLocalActionTriggers();
 
  private:
   void status(int status, const char *msg, bool alwaysLog = false);

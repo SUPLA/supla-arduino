@@ -50,7 +50,7 @@ void cpp_main(void* param)
   new Supla::SpiffsStorage(512);
   new Supla::NvsConfig;
   new Supla::Device::StatusLed(2, true); // nodemcu GPIO2, inverted state
-  auto server = new Supla::EspIdfWebServer;
+  new Supla::EspIdfWebServer;
 
   // HTML www component (they appear in sections according to creation
   // sequence)
@@ -66,7 +66,9 @@ void cpp_main(void* param)
   b1->setHoldTime(1000);
   b1->setMulticlickTime(300);
   b1->addAction(Supla::TOGGLE, r1, Supla::ON_CLICK_1);
-  b1->addAction(Supla::RESET_TO_FACTORY_SETTINGS, SuplaDevice, Supla::ON_CLICK_3);
+  b1->addAction(Supla::START_LOCAL_WEB_SERVER, SuplaDevice, Supla::ON_CLICK_2);
+  b1->addAction(Supla::STOP_LOCAL_WEB_SERVER, SuplaDevice, Supla::ON_CLICK_3);
+  b1->addAction(Supla::RESET_TO_FACTORY_SETTINGS, SuplaDevice, Supla::ON_CLICK_5);
   b1->addAction(Supla::TOGGLE_CONFIG_MODE, SuplaDevice, Supla::ON_HOLD);
 
   supla_log(LOG_DEBUG, "Free heap: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
@@ -74,9 +76,6 @@ void cpp_main(void* param)
   SuplaDevice.begin();
   supla_log(LOG_DEBUG, "Free heap: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
 
-  // TODO : remove after adding automatic server setup
-  server->start();
-  server->setSuplaDeviceClass(&SuplaDevice);
 
   unsigned int lastTime = 0;
   unsigned int lastTimeHeap = 0;

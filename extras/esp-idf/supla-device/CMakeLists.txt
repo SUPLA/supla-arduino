@@ -23,6 +23,8 @@ set(SUPLA_DEVICE_SRCS
   ../../../src/supla/timer.cpp
   ../../../src/supla/tools.cpp
   ../../../src/supla/uptime.cpp
+  ../../../src/supla/mutex.cpp
+  ../../../src/supla/auto_lock.cpp
 
   ../../../src/supla/storage/storage.cpp
   ../../../src/supla/storage/config.cpp
@@ -92,6 +94,7 @@ set(SUPLA_DEVICE_PORTING_SRCS
   ../../porting/esp-idf/spiffs_storage.cpp
   ../../porting/esp-idf/nvs_config.cpp
   ../../porting/esp-idf/esp_idf_web_server.cpp
+  ../../porting/esp-idf/esp_idf_mutex.cpp
 )
 
 

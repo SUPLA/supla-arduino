@@ -81,6 +81,7 @@ void Supla::Device::StatusLed::iterateAlways() {
         currentSequence = SERVER_CONNECTING;
         break;
 
+      case STATUS_LEAVING_CONFIG_MODE:
       case STATUS_REGISTERED_AND_READY:
         currentSequence = REGISTERED_AND_READY;
         break;

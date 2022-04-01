@@ -15,20 +15,20 @@
    */
 
 #include <esp_netif.h>
-#include <freertos/semphr.h>
 #include <fcntl.h>
 #include <supla/supla_lib_config.h>
 #include <nvs_flash.h>
 #include <supla/storage/storage.h>
 #include <supla/storage/config.h>
 #include <SuplaDevice.h>
+#include <supla/mutex.h>
+#include <supla/auto_lock.h>
 
 #include <cstring>
 
 #include "esp_idf_wifi.h"
 
 static Supla::EspIdfWifi *netIntfPtr = nullptr;
-SemaphoreHandle_t mutexClient = NULL;
 
 extern const uint8_t suplaOrgCertPemStart[] asm(
     "_binary_supla_org_cert_pem_start");
@@ -39,7 +39,7 @@ Supla::EspIdfWifi::EspIdfWifi(const char *wifiSsid,
     unsigned char *ip)
   : Wifi(wifiSsid, wifiPassword, ip) {
     netIntfPtr = this;
-    mutexClient = xSemaphoreCreateMutex();
+    mutex = Supla::Mutex::Create();
   }
 
 Supla::EspIdfWifi::~EspIdfWifi() {
@@ -47,29 +47,27 @@ Supla::EspIdfWifi::~EspIdfWifi() {
 }
 
 int Supla::EspIdfWifi::read(void *buf, int count) {
-  xSemaphoreTake( mutexClient, portMAX_DELAY );
+  Supla::AutoLock autoLock(mutex);
   if (client == nullptr) {
-    xSemaphoreGive( mutexClient );
     return 0;
   }
 
   esp_tls_conn_read(client, nullptr, 0);
   int tlsErr = 0;
   esp_tls_get_and_clear_last_error(client->error_handle, &tlsErr, nullptr);
-  xSemaphoreGive( mutexClient );
+  autoLock.unlock();
   if (tlsErr != 0 && -tlsErr != ESP_TLS_ERR_SSL_WANT_READ &&
       -tlsErr != ESP_TLS_ERR_SSL_WANT_WRITE) {
     supla_log(LOG_ERR, "Connection error %d", tlsErr);
     Disconnect();
     return 0;
   }
-  xSemaphoreTake( mutexClient, portMAX_DELAY );
+  autoLock.lock();
   if (client == nullptr) {
-    xSemaphoreGive( mutexClient );
     return 0;
   }
   _supla_int_t size = esp_tls_get_bytes_avail(client);
-  xSemaphoreGive( mutexClient );
+  autoLock.unlock();
   if (size < 0) {
     supla_log(LOG_ERR, "error in esp tls get bytes avail %d", size);
     Disconnect();
@@ -78,13 +76,12 @@ int Supla::EspIdfWifi::read(void *buf, int count) {
   if (size > 0) {
     int ret = 0;
     do {
-      xSemaphoreTake( mutexClient, portMAX_DELAY );
+      autoLock.lock();
       if (client == nullptr) {
-        xSemaphoreGive( mutexClient );
         return 0;
       }
       ret = esp_tls_conn_read(client, buf, count);
-      xSemaphoreGive( mutexClient );
+      autoLock.unlock();
 
       if (ret == ESP_TLS_ERR_SSL_WANT_READ ||
           ret == ESP_TLS_ERR_SSL_WANT_WRITE) {
@@ -114,9 +111,8 @@ int Supla::EspIdfWifi::read(void *buf, int count) {
 }
 
 int Supla::EspIdfWifi::write(void *buf, int count) {
-  xSemaphoreTake( mutexClient, portMAX_DELAY );
+  Supla::AutoLock autoLock(mutex);
   if (client == nullptr) {
-    xSemaphoreGive( mutexClient );
     return 0;
   }
 #ifdef SUPLA_COMM_DEBUG
@@ -126,14 +122,12 @@ int Supla::EspIdfWifi::write(void *buf, int count) {
   if (sendSize == 0) {
     isServerConnected = false;
   }
-  xSemaphoreGive( mutexClient );
   return sendSize;
 }
 
 int Supla::EspIdfWifi::connect(const char *server, int port) {
-  xSemaphoreTake( mutexClient, portMAX_DELAY );
+  Supla::AutoLock autoLock(mutex);
   if (client != nullptr) {
-    xSemaphoreGive( mutexClient );
     supla_log(LOG_ERR, "client ptr should be null when trying to connect");
     return 0;
   }
@@ -164,7 +158,6 @@ int Supla::EspIdfWifi::connect(const char *server, int port) {
     if (esp_tls_get_conn_sockfd(client, &socketFd) == ESP_OK) {
       fcntl(socketFd, F_SETFL, O_NONBLOCK);
     }
-    xSemaphoreGive( mutexClient );
 
   } else {
     supla_log(LOG_DEBUG, "last errors %d %d %d", client->error_handle->last_error,
@@ -172,7 +165,6 @@ int Supla::EspIdfWifi::connect(const char *server, int port) {
     logConnReason(client->error_handle->last_error,
         client->error_handle->esp_tls_error_code,
         client->error_handle->esp_tls_flags);
-    xSemaphoreGive( mutexClient );
     disconnect();
   }
 
@@ -186,13 +178,12 @@ bool Supla::EspIdfWifi::connected() {
 }
 
 void Supla::EspIdfWifi::disconnect() {
-  xSemaphoreTake( mutexClient, portMAX_DELAY );
+  Supla::AutoLock autoLock(mutex);
   isServerConnected = false;
   if (client != nullptr) {
     esp_tls_conn_delete(client);
     client = nullptr;
   }
-  xSemaphoreGive( mutexClient );
 }
 
 bool Supla::EspIdfWifi::isReady() {
