@@ -16,6 +16,7 @@
 
 #include "auto_lock.h"
 #include "mutex.h"
+#include <supla-common/log.h>
 
 Supla::AutoLock::AutoLock(Mutex *mut) : mutex(mut) {
   lock();
@@ -27,12 +28,14 @@ Supla::AutoLock::~AutoLock() {
 
 void Supla::AutoLock::lock() {
   if (mutex) {
+  supla_log(LOG_DEBUG, "mutex %d, lock", mutex);
     mutex->lock();
   }
 }
 
 void Supla::AutoLock::unlock() {
   if (mutex) {
+  supla_log(LOG_DEBUG, "mutex %d, unlock", mutex);
     mutex->unlock();
   }
 }

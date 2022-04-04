@@ -16,7 +16,6 @@
 
 #include "mutex.h"
 
-
 #if defined(ARDUINO) || defined(SUPLA_TEST) || defined(SUPLA_LINUX) || \
   defined(SUPLA_FREERTOS)
 // TODO implement mutex for Arduino targets on ESP

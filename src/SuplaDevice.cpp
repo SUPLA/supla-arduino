@@ -384,7 +384,7 @@ void SuplaDeviceClass::iterate(void) {
             result,
             Supla::Channel::reg_dev.ServerName);
         Supla::Network::Disconnect();
-        waitForIterate = _millis + 2000;
+        waitForIterate = _millis + 10000;
         connectionFailCounter++;
         return;
       }
@@ -417,7 +417,7 @@ void SuplaDeviceClass::onVersionError(TSDC_SuplaVersionError *version_error) {
 
   Supla::Network::Disconnect();
 
-  waitForIterate = millis() + 5000;
+  waitForIterate = millis() + 15000;
 }
 
 void SuplaDeviceClass::onRegisterResult(
@@ -509,7 +509,7 @@ void SuplaDeviceClass::onRegisterResult(
   }
 
   Supla::Network::Disconnect();
-  waitForIterate = millis() + 5000;
+  waitForIterate = millis() + 10000;
 }
 
 void SuplaDeviceClass::channelSetActivityTimeoutResult(
@@ -708,7 +708,7 @@ bool SuplaDeviceClass::iterateSuplaProtocol(unsigned int _millis) {
     status(STATUS_ITERATE_FAIL, "Communication failure");
     Supla::Network::Disconnect();
 
-    waitForIterate = _millis + 5000;
+    waitForIterate = _millis + 2000;
     return false;
   }
 

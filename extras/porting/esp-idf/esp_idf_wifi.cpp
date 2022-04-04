@@ -165,6 +165,7 @@ int Supla::EspIdfWifi::connect(const char *server, int port) {
     logConnReason(client->error_handle->last_error,
         client->error_handle->esp_tls_error_code,
         client->error_handle->esp_tls_flags);
+    autoLock.unlock();
     disconnect();
   }
 
