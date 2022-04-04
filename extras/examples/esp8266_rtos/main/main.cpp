@@ -72,7 +72,7 @@ void cpp_main(void* param)
   b1->addAction(Supla::TOGGLE_CONFIG_MODE, SuplaDevice, Supla::ON_HOLD);
 
   supla_log(LOG_DEBUG, "Free heap: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
-  SuplaDevice.setName("Example device");
+  SuplaDevice.setName("SUPLA-Example");
   SuplaDevice.begin();
   supla_log(LOG_DEBUG, "Free heap: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
 

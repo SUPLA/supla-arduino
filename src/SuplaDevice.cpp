@@ -226,13 +226,13 @@ bool SuplaDeviceClass::begin(unsigned char version) {
 
   if (strnlen(Supla::Channel::reg_dev.Name, SUPLA_DEVICE_NAME_MAXSIZE) == 0) {
 #if defined(ARDUINO_ARCH_ESP8266)
-    setName("ESP8266");
+    setName("SUPLA-ESP8266");
 #elif defined(ARDUINO_ARCH_ESP32)
-    setName("ESP32");
+    setName("SUPLA-ESP32");
 #elif defined(ARDUINO_ARCH_AVR)
-    setName("ARDUINO MEGA");
+    setName("SUPLA-ARDUINO");
 #else
-    setName("SuplaDevice");
+    setName("SUPLA-DEVICE");
 #endif
   }
 
@@ -857,7 +857,7 @@ int SuplaDeviceClass::generateHostname(char *buf, int size) {
   }
 
   if (nameLength == 0) {
-    setName("SuplaDevice");
+    setName("SUPLA-DEVICE");
     nameLength = strlen(Supla::Channel::reg_dev.Name);
   }
 
@@ -884,7 +884,7 @@ int SuplaDeviceClass::generateHostname(char *buf, int size) {
   name[destIdx++] = '-';
 
   if (Supla::Network::GetMacAddr(mac)) {
-    destIdx += generateHexString(mac + (6 - size), &(name[destIdx]), (6 - size));
+    destIdx += generateHexString(mac + (6 - size), &(name[destIdx]), size);
   }
 
   name[destIdx++] = 0;
