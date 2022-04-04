@@ -137,7 +137,9 @@ TEST_F(SuplaDeviceTestsFullStartup, FailedConnectionShouldSetupNetworkAgain) {
   EXPECT_CALL(el1, iterateAlways()).Times(AtLeast(1));
   EXPECT_CALL(el2, iterateAlways()).Times(AtLeast(1));
 
-  for (int i = 0; i < 2*31; i++) sd.iterate();
+  for (int i = 0; i < 10*31; i++) {
+    sd.iterate();
+  }
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_SERVER_DISCONNECTED);
 }
 
