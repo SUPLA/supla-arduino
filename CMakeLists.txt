@@ -78,6 +78,20 @@ set(SUPLA_DEVICE_SRCS
   src/supla/sensor/virtual_binary.cpp
 )
 
+set(NETTLE_SRCS
+  src/nettle/bignum.c
+  src/nettle/gmp-glue.c
+  src/nettle/mini-gmp.c
+  src/nettle/pkcs1-rsa-sha256.c
+  src/nettle/pkcs1.c
+  src/nettle/rsa-sha256-verify.c
+  src/nettle/rsa-verify.c
+  src/nettle/rsa.c
+  src/nettle/sha256-compress.c
+  src/nettle/sha256.c
+  src/nettle/write-be32.c
+  )
+
 set(SUPLA_COMMON_SRCS
   src/supla-common/lck.c
   src/supla-common/log.c
@@ -90,6 +104,7 @@ target_sources(supladevice
   PUBLIC
   ${SUPLA_DEVICE_SRCS}
   ${SUPLA_COMMON_SRCS}
+  ${NETTLE_SRCS}
   )
 
 target_include_directories (supladevice

@@ -88,6 +88,21 @@ set(SUPLA_DEVICE_SRCS
   ../../../src/supla/sensor/HC_SR04.cpp
 )
 
+set(NETTLE_SRCS
+  ../../../src/nettle/bignum.c
+  ../../../src/nettle/gmp-glue.c
+  ../../../src/nettle/mini-gmp.c
+  ../../../src/nettle/pkcs1-rsa-sha256.c
+  ../../../src/nettle/pkcs1.c
+  ../../../src/nettle/rsa-sha256-verify.c
+  ../../../src/nettle/rsa-verify.c
+  ../../../src/nettle/rsa.c
+  ../../../src/nettle/sha256-compress.c
+  ../../../src/nettle/sha256.c
+  ../../../src/nettle/write-be32.c
+  )
+
+
 set(SUPLA_DEVICE_PORTING_SRCS
   ../../porting/esp-idf/esp_idf_wifi.cpp
   ../../porting/esp-idf/esp_idf_gpio.cpp
@@ -101,6 +116,7 @@ set(SUPLA_DEVICE_PORTING_SRCS
 idf_component_register(SRCS
   ${SUPLA_COMMONM_SRCS}
   ${SUPLA_DEVICE_SRCS}
+  ${NETTLE_SRCS}
   ${SUPLA_DEVICE_PORTING_SRCS}
   INCLUDE_DIRS "../../../src/" "../../porting/esp-idf"
   REQUIRES esp-tls nvs_flash spiffs esp_http_server
