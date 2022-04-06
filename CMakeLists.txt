@@ -16,6 +16,8 @@ set(SUPLA_DEVICE_SRCS
   src/supla/timer.cpp
   src/supla/mutex.cpp
   src/supla/auto_lock.cpp
+  src/supla/sha256.cpp
+  src/supla/rsa_verificator.cpp
 
   src/supla/condition.cpp
   src/supla/condition_getter.cpp
