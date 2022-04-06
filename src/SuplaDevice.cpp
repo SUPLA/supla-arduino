@@ -336,7 +336,7 @@ void SuplaDeviceClass::iterate(void) {
   unsigned long _millis = millis();
 
   if (deviceRestartTimeoutTimestamp != 0 &&
-      _millis - deviceRestartTimeoutTimestamp > 5 * 60 * 1000) {
+      _millis - deviceRestartTimeoutTimestamp > 5ul * 60 * 1000) {
     supla_log(LOG_INFO, "Config mode 5 min timeout. Reset device");
     leaveConfigModeAndRestart();
   }

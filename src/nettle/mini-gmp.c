@@ -237,6 +237,7 @@ const int mp_bits_per_limb = GMP_LIMB_BITS;
 
 /* Memory allocation and other helper functions. */
 static void gmp_die(const char *msg) {
+  (void)(msg);
   //  os_printf("%s\n", msg);
   while (1)
     ; /* starve the watchdog */
@@ -254,6 +255,7 @@ static void *gmp_default_alloc(size_t size) {
 }
 
 static void *gmp_default_realloc(void *old, size_t old_size, size_t new_size) {
+  (void)(old_size);
   mp_ptr p;
 
   p = realloc(old, new_size);
@@ -264,6 +266,7 @@ static void *gmp_default_realloc(void *old, size_t old_size, size_t new_size) {
 }
 
 static void gmp_default_free(void *p, size_t size) {
+  (void)(size);
   free(p);
 }
 
@@ -589,7 +592,8 @@ static mp_bitcnt_t mpn_common_scan(
 
   while (limb == 0) {
     i++;
-    if (i == un) return (ux == 0 ? ~(mp_bitcnt_t)0 : un * GMP_LIMB_BITS);
+    if (i == un)
+      return (ux == 0 ? ~(mp_bitcnt_t)0 : (mp_bitcnt_t)(un * GMP_LIMB_BITS));
     limb = ux ^ up[i];
   }
   gmp_ctz(cnt, limb);
@@ -1031,7 +1035,7 @@ static size_t mpn_get_str_bits(unsigned char *sp,
   unsigned char mask;
   size_t sn, j;
   mp_size_t i;
-  int shift;
+  unsigned int shift;
 
   sn = ((un - 1) * GMP_LIMB_BITS + mpn_limb_size_in_base_2(up[un - 1]) + bits -
       1) /
@@ -3498,7 +3502,7 @@ int mpz_set_str(mpz_t r, const char *sp, int base) {
     else
       digit = base; /* fail */
 
-    if (digit >= base) {
+    if (digit >= (unsigned int)(base)) {
       gmp_free(dp);
       r->_mp_size = 0;
       return -1;
