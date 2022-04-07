@@ -16,6 +16,11 @@
 
 #include "fronius.h"
 
+#include <supla/time.h>
+#include <supla-common/log.h>
+#include <string.h>
+#include <stdlib.h>
+
 using namespace Supla;
 using namespace PV;
 
@@ -44,20 +49,19 @@ Fronius::Fronius(IPAddress ip, int port, int deviceId)
 void Fronius::iterateAlways() {
   if (dataFetchInProgress) {
     if (millis() - connectionTimeoutMs > 30000) {
-      Serial.println(F("Fronius: connection timeout. Remote host is not responding"));
+      supla_log(LOG_DEBUG, "Fronius: connection timeout. Remote host is not responding");
       pvClient.stop();
       dataFetchInProgress = false;
       dataIsReady = false;
       return;
     }
     if (!pvClient.connected()) {
-      Serial.println(F("Fronius fetch completed"));
+      supla_log(LOG_DEBUG, "Fronius fetch completed");
       dataFetchInProgress = false;
       dataIsReady = true;
     }
     if (pvClient.available()) {
-      Serial.print(F("Reading data from Fronius: "));
-      Serial.println(pvClient.available());
+      supla_log(LOG_DEBUG, "Reading data from Fronius: %d", pvClient.available());
     }
     while (pvClient.available()) {
       char c;
@@ -73,41 +77,30 @@ void Fronius::iterateAlways() {
             switch (valueToFetch) {
               case TOTAL_ENERGY: {
                 float totalProd = atof(varValue);
-                Serial.print(F("Total production: "));
-                Serial.print(totalProd);
-                Serial.println(F(" Wh"));
                 totalGeneratedEnergy = totalProd * 100;
 
                 break;
               }
               case PAC: {
                 float curPower = atof(varValue);
-                Serial.print(F("Current power: "));
-                Serial.println(curPower);
                 currentPower = curPower * 100000;
 
                 break;
               }
               case IAC: {
                 float curCurrent = atof(varValue);
-                Serial.print(F("Current: "));
-                Serial.println(curCurrent);
                 currentCurrent = curCurrent * 1000;
 
                 break;
               }
               case FAC: {
                 float curFreq = atof(varValue);
-                Serial.print(F("Frequency: "));
-                Serial.println(curFreq);
                 currentFreq = curFreq * 100;
 
                 break;
               }
               case UAC: {
                 float curVoltage = atof(varValue);
-                Serial.print(F("Voltage: "));
-                Serial.println(curVoltage);
                 currentVoltage = curVoltage * 100;
 
                 break;
@@ -158,13 +151,12 @@ bool Fronius::iterateConnected(void *srpc) {
   if (!dataFetchInProgress) {
     if (lastReadTime == 0 || millis() - lastReadTime > refreshRateSec*1000) {
       lastReadTime = millis();
-      Serial.print(F("Fronius connecting "));
-      Serial.println(deviceId);
+      supla_log(LOG_DEBUG, "Fronius connecting %d", deviceId);
       if (pvClient.connect(ip, port)) {
         retryCounter = 0;
         dataFetchInProgress = true;
         connectionTimeoutMs = lastReadTime;
-        Serial.println(F("Succesful connect"));
+        supla_log(LOG_DEBUG, "Succesful connect");
 
         char buf[100];
         strcpy(buf, "GET /solar_api/v1/GetInverterRealtimeData.cgi?Scope=Device&DeviceID=");
@@ -179,10 +171,7 @@ bool Fronius::iterateConnected(void *srpc) {
 
       } else {  // if connection wasn't successful, try few times. If it fails,
                 // then assume that inverter is off during the night
-        Serial.print(F("Failed to connect to Fronius at: "));
-        Serial.print(ip);
-        Serial.print(F(":"));
-        Serial.println(port);
+        supla_log(LOG_DEBUG, "Failed to connect to Fronius");
         retryCounter++;
         if (retryCounter > 3) {
           currentPower = 0;
