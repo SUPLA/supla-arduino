@@ -114,3 +114,64 @@ TEST(ToolsTest, urlDecodeInplaceTests) {
   }
 
 }
+
+TEST(ToolsTest, urlEncodeTests) {
+  {
+    char input[] = "ala ma supla";
+    char output[1024] = {};
+    EXPECT_EQ(urlEncode(input, output, 1024), 16);
+    EXPECT_STREQ(output, "ala%20ma%20supla");
+  }
+
+  {
+    // unreserved chars only
+    char input[] = "azAZ01234567890~.-_";
+    char output[1024] = {};
+    EXPECT_EQ(urlEncode(input, output, 1024), 19);
+    EXPECT_STREQ(output, input);
+  }
+
+  {
+    char input[] = "~@#$   +~-';][/., ala MA supla";
+    char output[1024] = {};
+    EXPECT_EQ(urlEncode(input, output, 1024), 62);
+    EXPECT_STREQ(output, "~%40%23%24%20%20%20%2B~-%27%3B%5D%5B%2F.%2C%20ala%20MA%20supla");
+  }
+
+  {
+    char input[] = "AlA  ma supla";
+    char output[10] = {};
+    EXPECT_EQ(urlEncode(input, output, 10), 9);
+    EXPECT_STREQ(output, "AlA%20%20");
+  }
+
+  {
+    char input[] = "ala 1 ma supla";
+    char output[10] = {};
+    EXPECT_EQ(urlEncode(input, output, 10), 7);
+    EXPECT_STREQ(output, "ala%201");
+  }
+
+  {
+    char input[] = "ala  ma supla";
+    char output[11] = {};
+    EXPECT_EQ(urlEncode(input, output, 11), 10);
+    EXPECT_STREQ(output, "ala%20%20m");
+  }
+
+  {
+    char input[] = "ala ma suplę";
+    char output[1024] = {};
+    EXPECT_EQ(urlEncode(input, output, 1024), 21);
+    EXPECT_STREQ(output, "ala%20ma%20supl%C4%99");
+  }
+
+  {
+    char input[] = "";
+    char output[1024] = {};
+    EXPECT_EQ(urlEncode(input, output, 1024), 0);
+    EXPECT_STREQ(output, "");
+  }
+
+}
+

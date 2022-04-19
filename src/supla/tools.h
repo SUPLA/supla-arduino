@@ -48,12 +48,17 @@ uint32_t hexStringToInt(const char *str, int len);
 // Converts hex string value to integer
 uint32_t stringToUInt(const char *str, int len = -1);
 
-
 // Decode url string from buffer into buffer (inplace)
 // Replace '+' with ' '.
 // Replace %xy with proper byte.
 // If not complete % parameter is found at the end, then it is omitted.
 void urlDecodeInplace(char *buffer, int size);
+
+// Encode url string from input to output
+// Returns number of non-null bytes added to output
+int urlEncode(char *input, char *output, int outputMaxSize);
+
+int stringAppend(char *output, const char *input, int maxSize);
 
 void deviceSoftwareReset();
 

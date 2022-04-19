@@ -25,6 +25,7 @@
 #include "config.h"
 #include <supla-common/proto.h>
 #include <string.h>
+#include <supla/device/sw_update.h>
 
 using namespace Supla;
 
@@ -347,4 +348,27 @@ void Config::commit() {
 
 bool Config::generateGuidAndAuthkey() {
   return false;
+}
+
+bool Config::getSwUpdateServer(char *url) {
+  return getString("swupdateurl", url, SUPLA_MAX_URL_LENGTH);
+}
+
+bool Config::isSwUpdateBeta() {
+  // by default beta sw update is disabled
+  int8_t result = 0;
+  getInt8("swupdatebeta", result);
+  return result == 1;
+}
+
+bool Config::setSwUpdateServer(const char *url) {
+  if (strlen(url) > SUPLA_MAX_URL_LENGTH - 1) {
+    return false;
+  }
+  return setString("swupdateurl", url);
+}
+
+bool Config::setSwUpdateBeta(bool enabled) {
+  int8_t value = (enabled ? 1 : 0);
+  return setInt8("swupdatebeta", value);
 }

@@ -162,6 +162,42 @@ void urlDecodeInplace(char *buffer, int size) {
   *insertPtr = '\0';
 }
 
+int urlEncode(char *input, char *output, int outputMaxSize) {
+  auto parserPtr = input;
+  auto outputPtr = output;
+  auto lastOutputPtr = output + outputMaxSize - 1;
+  while (*parserPtr && outputPtr < lastOutputPtr) {
+    if ((*parserPtr >= '0' && *parserPtr <= '9')
+        || (*parserPtr >= 'A' && *parserPtr <= 'Z')
+        || (*parserPtr >= 'a' && *parserPtr <= 'z')
+        || *parserPtr == '-'
+        || *parserPtr == '_'
+        || *parserPtr == '.'
+        || *parserPtr == '~') {
+      *outputPtr++ = *parserPtr;
+    } else {
+      if (outputPtr + 3 <= lastOutputPtr) {
+        *outputPtr++ = '%';
+        outputPtr += generateHexString(parserPtr, outputPtr, 1, 0);
+      } else {
+        break;
+      }
+    }
+    parserPtr++;
+  }
+  *outputPtr = '\0';
+
+  return outputPtr - output;
+}
+
+int stringAppend(char *output, const char *input, int maxSize) {
+  int inputSize = strlen(input);
+  if (inputSize < maxSize) {
+    strcpy(output, input);
+    return inputSize;
+  }
+  return 0;
+}
 
 #if !defined(ARDUINO) && defined(ESP_PLATFORM)
 #include <esp_system.h>

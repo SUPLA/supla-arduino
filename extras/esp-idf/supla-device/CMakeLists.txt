@@ -41,6 +41,9 @@ set(SUPLA_DEVICE_SRCS
   ../../../src/supla/network/html/wifi_parameters.cpp
   ../../../src/supla/network/html/protocol_parameters.cpp
   ../../../src/supla/network/html/status_led_parameters.cpp
+  ../../../src/supla/network/html/custom_sw_update.cpp
+  ../../../src/supla/network/html/sw_update_beta.cpp
+  ../../../src/supla/network/html/sw_update.cpp
 
   ../../../src/supla/clock/clock.cpp
 
@@ -76,6 +79,7 @@ set(SUPLA_DEVICE_SRCS
 
   ../../../src/supla/device/status_led.cpp
   ../../../src/supla/device/last_state_logger.cpp
+  ../../../src/supla/device/sw_update.cpp
 # not all files from sensor folder are compiled here. Some still require
 # porting from ARDUINO
   ../../../src/supla/sensor/binary.cpp
@@ -112,6 +116,7 @@ set(SUPLA_DEVICE_PORTING_SRCS
   ../../porting/esp-idf/nvs_config.cpp
   ../../porting/esp-idf/esp_idf_web_server.cpp
   ../../porting/esp-idf/esp_idf_mutex.cpp
+  ../../porting/esp-idf/esp_idf_ota.cpp
 )
 
 
@@ -121,7 +126,7 @@ idf_component_register(SRCS
   ${NETTLE_SRCS}
   ${SUPLA_DEVICE_PORTING_SRCS}
   INCLUDE_DIRS "../../../src/" "../../porting/esp-idf"
-  REQUIRES esp-tls nvs_flash spiffs esp_http_server
+  REQUIRES esp-tls nvs_flash spiffs esp_http_server app_update esp_http_client json
   EMBED_TXTFILES supla_org_cert.pem
 )
 

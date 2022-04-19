@@ -17,6 +17,7 @@ set(SRCS
   supla/auto_lock.cpp
 
   supla/device/last_state_logger.cpp
+  supla/device/sw_update.cpp
 
   supla/storage/storage.cpp
   supla/storage/config.cpp

@@ -72,6 +72,10 @@ namespace Supla {
       virtual bool getDeviceName(char *result);
       virtual enum Supla::DeviceMode getDeviceMode();
       virtual bool getGUID(char* result);
+      virtual bool getSwUpdateServer(char *url);
+      virtual bool isSwUpdateBeta();
+      virtual bool setSwUpdateServer(const char *url);
+      virtual bool setSwUpdateBeta(bool enabled);
 
       // Supla protocol config
       virtual bool setSuplaCommProtocolEnabled(bool enabled);

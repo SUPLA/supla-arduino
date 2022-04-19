@@ -15,6 +15,11 @@
    */
 
 #include <esp_netif.h>
+
+#ifdef SUPLA_DEVICE_ESP32
+#include <esp_mac.h>
+#endif
+
 #include <fcntl.h>
 #include <supla/supla_lib_config.h>
 #include <nvs_flash.h>
@@ -27,6 +32,12 @@
 #include <cstring>
 
 #include "esp_idf_wifi.h"
+
+#ifndef SUPLA_DEVICE_ESP32
+// delete name variant is deprecated in ESP-IDF, however ESP8266 RTOS still
+// use it.
+#define esp_tls_conn_destroy esp_tls_conn_delete
+#endif
 
 static Supla::EspIdfWifi *netIntfPtr = nullptr;
 
@@ -182,7 +193,7 @@ void Supla::EspIdfWifi::disconnect() {
   Supla::AutoLock autoLock(mutex);
   isServerConnected = false;
   if (client != nullptr) {
-    esp_tls_conn_delete(client);
+    esp_tls_conn_destroy(client);
     client = nullptr;
   }
 }
@@ -329,12 +340,15 @@ void Supla::EspIdfWifi::uninit() {
     esp_event_handler_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, eventHandler);
     esp_event_handler_unregister(IP_EVENT, IP_EVENT_STA_LOST_IP, eventHandler);
     esp_event_handler_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, eventHandler);
+    esp_wifi_stop();
 #ifdef SUPLA_DEVICE_ESP32
     if (apNetIf) {
-      esp_netif_destroy(apNetIf);
+      esp_netif_destroy_default_wifi(apNetIf);
+      apNetIf = nullptr;
     }
     if (staNetIf) {
-      esp_netif_destroy(staNetIf);
+      esp_netif_destroy_default_wifi(staNetIf);
+      staNetIf = nullptr;
     }
 #endif
 
@@ -343,7 +357,6 @@ void Supla::EspIdfWifi::uninit() {
     esp_wifi_deauth_sta(0);
     esp_wifi_disconnect();
 
-    esp_wifi_stop();
     esp_wifi_deinit();
 
     vEventGroupDelete(wifiEventGroup);

@@ -63,6 +63,12 @@
 
 typedef void (*_impl_arduino_status)(int status, const char *msg);
 
+namespace Supla {
+  namespace Device {
+    class SwUpdate;
+  };
+};
+
 class SuplaDeviceClass : public Supla::ActionHandler {
  public:
   SuplaDeviceClass();
@@ -93,7 +99,7 @@ class SuplaDeviceClass : public Supla::ActionHandler {
   void addFlags(_supla_int_t);
   void removeFlags(_supla_int_t);
 
-  int generateHostname(char*, int size = 6);
+  int generateHostname(char*, int macSize = 6);
 
   // Timer with 100 Hz frequency (10 ms)
   void onTimer(void);
@@ -113,9 +119,9 @@ class SuplaDeviceClass : public Supla::ActionHandler {
 
   void enterConfigMode();
   void enterNormalMode();
-  // Schedules timeout to leave config mode. When provided timeout is 0
-  // then leaving config mode will be done asap.
-  void scheduleLeaveConfigMode(int timeout = 0);
+  // Schedules timeout to restart device. When provided timeout is 0
+  // then restart will be done asap.
+  void scheduleSoftRestart(int timeout = 0);
   void leaveConfigModeAndRestart();
   void saveStateToStorage();
   void disableCfgModeTimeout();
@@ -126,6 +132,8 @@ class SuplaDeviceClass : public Supla::ActionHandler {
   bool prepareLastStateLog();
   char *getLastStateLog();
   void addLastStateLog(const char*);
+  void setRsaPublicKeyPtr(const uint8_t *ptr);
+  const uint8_t *getRsaPublicKey();
 
   void handleAction(int event, int action) override;
 
@@ -146,6 +154,9 @@ class SuplaDeviceClass : public Supla::ActionHandler {
   bool triggerResetToFacotrySettings = false;
   bool triggerStartLocalWebServer = false;
   bool triggerStopLocalWebServer = false;
+  bool triggerCheckSwUpdate = false;
+  Supla::Device::SwUpdate *swUpdate = nullptr;
+  const uint8_t *rsaPublicKey = nullptr;
 
   _impl_arduino_status impl_arduino_status;
 
@@ -161,9 +172,10 @@ class SuplaDeviceClass : public Supla::ActionHandler {
   void setString(char *dst, const char *src, int max_size);
 
   void iterateAlwaysElements(unsigned long _millis);
-  bool iterateNetworkSetup(unsigned long _millis);
+  bool iterateNetworkSetup();
   bool iterateSuplaProtocol(unsigned int _millis);
   void handleLocalActionTriggers();
+  void checkIfRestartIsNeeded(unsigned long _millis);
 
  private:
   void status(int status, const char *msg, bool alwaysLog = false);

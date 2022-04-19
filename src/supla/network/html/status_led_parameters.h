@@ -27,7 +27,7 @@ class StatusLedParameters : public HtmlElement {
   public:
     StatusLedParameters();
     virtual ~StatusLedParameters();
-    virtual void send(Supla::WebSender *sender);
+    virtual void send(Supla::WebSender *sender) override;
     virtual bool handleResponse(const char* key, const char* value) override;
 };
 

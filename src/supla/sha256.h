@@ -31,6 +31,7 @@ namespace Supla {
       ~Sha256();
       void update(const uint8_t *data, const int size);
       struct sha256_ctx* getHash();
+      void digest(uint8_t *output, int length = 32);
 
     protected:
       struct sha256_ctx hash;

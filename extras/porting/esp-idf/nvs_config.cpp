@@ -15,6 +15,11 @@
 */
 
 #include "nvs_config.h"
+
+#ifdef SUPLA_DEVICE_ESP32
+#include <esp_random.h>
+#endif
+
 #include <nvs_flash.h>
 #include <nvs.h>
 #include <supla-common/log.h>

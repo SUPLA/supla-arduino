@@ -34,6 +34,7 @@ set(SUPLA_DEVICE_SRCS
 
   src/supla/device/last_state_logger.cpp
   src/supla/device/status_led.cpp
+  src/supla/device/sw_update.cpp
 
   src/supla/storage/storage.cpp
   src/supla/storage/config.cpp
@@ -48,6 +49,9 @@ set(SUPLA_DEVICE_SRCS
   src/supla/network/html/protocol_parameters.cpp
   src/supla/network/html/status_led_parameters.cpp
   src/supla/network/html/wifi_parameters.cpp
+  src/supla/network/html/sw_update_beta.cpp
+  src/supla/network/html/sw_update.cpp
+  src/supla/network/html/custom_sw_update.cpp
 
   src/supla/control/action_trigger.cpp
   src/supla/control/bistable_relay.cpp

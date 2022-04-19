@@ -41,6 +41,8 @@ class EspIdfWebServer : public Supla::WebServer {
     virtual void start() override;
     virtual void stop() override;
 
+    bool handlePost(httpd_req_t *req);
+
     bool dataSaved = false;
   protected:
     httpd_handle_t server = {};

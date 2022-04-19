@@ -132,6 +132,7 @@ TEST_F(SuplaDeviceTestsFullStartup, FailedConnectionShouldSetupNetworkAgain) {
   EXPECT_CALL(net, connected()).WillRepeatedly(Return(false));
   EXPECT_CALL(net, connect(_, _)).WillRepeatedly(Return(0));
   EXPECT_CALL(net, disconnect()).Times(AtLeast(1));
+  EXPECT_CALL(net, iterate()).WillRepeatedly(Return(true));
 
   EXPECT_CALL(net, setup()).Times(1);
   EXPECT_CALL(el1, iterateAlways()).Times(AtLeast(1));

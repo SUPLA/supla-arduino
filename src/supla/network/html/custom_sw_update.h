@@ -14,23 +14,24 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "sha256.h"
+#ifndef _supla_html_custom_sw_update_h_
+#define _supla_html_custom_sw_update_h_
 
-Supla::Sha256::Sha256(){
-  sha256_init(&hash);
-}
+#include <supla/network/html_element.h>
 
-Supla::Sha256::~Sha256() {
-}
+namespace Supla {
 
-void Supla::Sha256::update(const uint8_t *data, const int size) {
-  sha256_update(&hash, size, static_cast<const unsigned char *>(data));
-}
+namespace Html {
 
-struct sha256_ctx* Supla::Sha256::getHash() {
-  return &hash;
-}
+class CustomSwUpdate : public HtmlElement {
+  public:
+    CustomSwUpdate();
+    virtual ~CustomSwUpdate();
+    virtual void send(Supla::WebSender *sender) override;
+    virtual bool handleResponse(const char* key, const char* value) override;
+};
 
-void Supla::Sha256::digest(uint8_t *output, int length) {
-  sha256_digest(&hash, length, output);
-}
+};
+};
+
+#endif

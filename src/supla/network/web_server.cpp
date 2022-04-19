@@ -204,9 +204,9 @@ void Supla::WebServer::parsePost(const char* postContent,
           int reboot = stringToUInt(value);
           supla_log(LOG_DEBUG, "rbt found %d", reboot);
           if (reboot == 2) {
-            sdc->scheduleLeaveConfigMode(2500);
+            sdc->scheduleSoftRestart(2500);
           } else if (reboot) {
-            sdc->scheduleLeaveConfigMode();
+            sdc->scheduleSoftRestart();
           }
         }
         partialSize = 0;

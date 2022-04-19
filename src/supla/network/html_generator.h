@@ -27,6 +27,7 @@ class HtmlGenerator {
     virtual ~HtmlGenerator();
 
     virtual void sendPage(Supla::WebSender*, bool dataSaved = false);
+    virtual void sendBetaPage(Supla::WebSender*, bool dataSaved = false);
 
     virtual void sendHeaderBegin(Supla::WebSender*);
     virtual void sendHeader(Supla::WebSender*);
@@ -35,7 +36,9 @@ class HtmlGenerator {
     virtual void sendDataSaved(Supla::WebSender*);
     virtual void sendLogo(Supla::WebSender*);
     virtual void sendDeviceInfo(Supla::WebSender*);
-    virtual void sendForm(Supla::WebSender*);
+    virtual void sendForm(Supla::WebSender*); // form send in standard request
+    virtual void sendBetaForm(Supla::WebSender*); // form send in /beta request
+    virtual void sendSubmitButton(Supla::WebSender*);
     virtual void sendBodyEnd(Supla::WebSender*);
 
     // methods called in sendHeader default implementation
