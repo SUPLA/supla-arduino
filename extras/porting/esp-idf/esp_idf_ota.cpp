@@ -165,13 +165,13 @@ void Supla::EspIdfOta::start() {
 
   client = esp_http_client_init(&configCheckUpdate);
   if (client == NULL) {
-    fail("SW update: failed to initialise HTTP connection");
+    fail("SW update: failed initialize connection with update server");
     return;
   }
   esp_err_t err;
   err = esp_http_client_open(client, 0);
   if (err != ESP_OK) {
-    fail("SW update: failed to open HTTP connection");
+    fail("SW update: failed to open connection with update server");
     return;
   }
   esp_http_client_fetch_headers(client);

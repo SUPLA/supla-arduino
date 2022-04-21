@@ -37,7 +37,7 @@ void SuplaDeviceClass::status(int newStatus, const char *msg, bool alwaysLog) {
   bool showLog = false;
 
   if (currentStatus == STATUS_CONFIG_MODE
-      && newStatus != STATUS_LEAVING_CONFIG_MODE
+      && newStatus != STATUS_SOFTWARE_RESET
       && newStatus != STATUS_INVALID_GUID
       && newStatus != STATUS_INVALID_AUTHKEY) {
     // Config mode is final state and the only exit goes through reset
@@ -806,7 +806,6 @@ bool SuplaDeviceClass::iterateSuplaProtocol(unsigned int _millis) {
 }
 
 void SuplaDeviceClass::enterConfigMode() {
-  status(STATUS_CONFIG_MODE, "Config mode", true);
   if (deviceMode == Supla::DEVICE_MODE_CONFIG) {
     // if we enter cfg mode with deviceMode already set to cfgmode, then
     // configuration is incomplete, so there is no timeout to leave config
@@ -824,10 +823,11 @@ void SuplaDeviceClass::enterConfigMode() {
   if (Supla::WebServer::Instance()) {
     Supla::WebServer::Instance()->start();
   }
+  status(STATUS_CONFIG_MODE, "Config mode", true);
 }
 
 void SuplaDeviceClass::leaveConfigModeAndRestart() {
-  status(STATUS_LEAVING_CONFIG_MODE, "Leaving config mode");
+  status(STATUS_SOFTWARE_RESET, "Software reset");
   saveStateToStorage();
   auto cfg = Supla::Storage::ConfigInstance();
   if (cfg) {
@@ -1056,10 +1056,9 @@ void SuplaDeviceClass::handleLocalActionTriggers() {
 
   if (triggerCheckSwUpdate) {
     triggerCheckSwUpdate = false;
-    deviceMode = Supla::DEVICE_MODE_SW_UPDATE;
-    // TODO replace instant SW download with CheckSwUpdate
-    // new Supla::Device::CheckSwUpdate; // Element
-    // remove below lines
+    if (deviceMode != Supla::DEVICE_MODE_CONFIG) {
+      deviceMode = Supla::DEVICE_MODE_SW_UPDATE;
+    }
   }
 }
 
@@ -1071,7 +1070,7 @@ void SuplaDeviceClass::checkIfRestartIsNeeded(unsigned long _millis) {
   }
   if (forceRestartTimeMs &&
       _millis - deviceRestartTimeoutTimestamp > forceRestartTimeMs) {
-    supla_log(LOG_INFO, "Reset requested. Reset device");
+    supla_log(LOG_DEBUG, "Reset requested. Reset device");
     leaveConfigModeAndRestart();
   }
 }
