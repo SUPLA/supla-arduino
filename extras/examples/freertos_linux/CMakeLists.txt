@@ -18,6 +18,7 @@ set(BOARD_SRC
 add_library(supladevice "")
 target_compile_definitions(supladevice PUBLIC SUPLA_FREERTOS)
 add_subdirectory($ENV{SUPLA_DEVICE_PATH} supla-device)
+add_subdirectory($ENV{SUPLA_DEVICE_PATH}/extras/porting/freertos_linux supla-device-freertos)
 
 # FreeRTOS sources required for Linux compilation (from portable folder)
 set(FREERTOS_SRC

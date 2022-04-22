@@ -199,12 +199,3 @@ int stringAppend(char *output, const char *input, int maxSize) {
   return 0;
 }
 
-#if !defined(ARDUINO) && defined(ESP_PLATFORM)
-#include <esp_system.h>
-#endif
-
-void deviceSoftwareReset() {
-#if !defined(ARDUINO) && defined(ESP_PLATFORM)
-  esp_restart();
-#endif
-}

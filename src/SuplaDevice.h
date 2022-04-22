@@ -122,7 +122,7 @@ class SuplaDeviceClass : public Supla::ActionHandler {
   // Schedules timeout to restart device. When provided timeout is 0
   // then restart will be done asap.
   void scheduleSoftRestart(int timeout = 0);
-  void leaveConfigModeAndRestart();
+  void softRestart();
   void saveStateToStorage();
   void disableCfgModeTimeout();
   void resetToFactorySettings();
@@ -137,19 +137,28 @@ class SuplaDeviceClass : public Supla::ActionHandler {
 
   void handleAction(int event, int action) override;
 
- protected:
-  void *srpc;
-  int8_t registered;
-  int port;
-  int connectionFailCounter;
-  int networkIsNotReadyCounter;
+  // Enables automatic software reset of device in case of network/server
+  // connection problems longer thatn timeSec.
+  // timeSec is always round down to multiplication of 10 s.
+  // timeSec <= 60 will disable automatic restart.
+  void setAutomaticResetOnConnectionProblem(unsigned int timeSec);
 
-  unsigned long lastIterateTime;
-  unsigned long waitForIterate;
+ protected:
+  void *srpc = nullptr;
+  int8_t registered = 0;
+  int port = -1;
+  unsigned int connectionFailCounter = 0;
+  unsigned int lastConnectionResetCounter = 0;
+  int networkIsNotReadyCounter = 0;
+
+  unsigned long lastIterateTime = 0;
+  unsigned long waitForIterate = 0;
   unsigned long deviceRestartTimeoutTimestamp = 0;
   unsigned int forceRestartTimeMs = 0;
+  unsigned int resetOnConnectionFailCounter = 0;
+
   enum Supla::DeviceMode deviceMode = Supla::DEVICE_MODE_NOT_SET;
-  int currentStatus;
+  int currentStatus = STATUS_UNKNOWN;
   bool goToConfigModeAsap = false;
   bool triggerResetToFacotrySettings = false;
   bool triggerStartLocalWebServer = false;
@@ -158,10 +167,10 @@ class SuplaDeviceClass : public Supla::ActionHandler {
   Supla::Device::SwUpdate *swUpdate = nullptr;
   const uint8_t *rsaPublicKey = nullptr;
 
-  _impl_arduino_status impl_arduino_status;
+  _impl_arduino_status impl_arduino_status = nullptr;
 
   Supla::Uptime uptime;
-  Supla::Clock *clock;
+  Supla::Clock *clock = nullptr;
   Supla::Device::LastStateLogger *lastStateLogger = nullptr;
 
   bool isSrpcInitialized(bool msg);

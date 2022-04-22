@@ -1,5 +1,6 @@
 set(SUPLA_DEVICE_LINUX_SRCS
   linux_network.cpp
+  linux_platform.cpp
 )
 
 target_sources(supladevice

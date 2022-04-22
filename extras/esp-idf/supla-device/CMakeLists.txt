@@ -110,6 +110,7 @@ set(NETTLE_SRCS
 
 
 set(SUPLA_DEVICE_PORTING_SRCS
+  ../../porting/esp-idf/esp_platform.cpp
   ../../porting/esp-idf/esp_idf_wifi.cpp
   ../../porting/esp-idf/esp_idf_gpio.cpp
   ../../porting/esp-idf/spiffs_storage.cpp

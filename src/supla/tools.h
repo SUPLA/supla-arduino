@@ -60,6 +60,7 @@ int urlEncode(char *input, char *output, int outputMaxSize);
 
 int stringAppend(char *output, const char *input, int maxSize);
 
+// This method should be implemented in platform specific cpp file
 void deviceSoftwareReset();
 
 #endif

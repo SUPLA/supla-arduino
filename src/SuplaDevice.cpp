@@ -73,21 +73,9 @@ bool SuplaDeviceClass::prepareLastStateLog() {
   return false;
 }
 
-SuplaDeviceClass::SuplaDeviceClass()
-    : port(-1),
-      connectionFailCounter(-2),
-      networkIsNotReadyCounter(0),
-      currentStatus(STATUS_UNKNOWN),
-      impl_arduino_status(nullptr),
-      clock(nullptr) {
-  srpc = nullptr;
-  registered = 0;
-  lastIterateTime = 0;
-  waitForIterate = 0;
-}
+SuplaDeviceClass::SuplaDeviceClass() {}
 
-SuplaDeviceClass::~SuplaDeviceClass() {
-}
+SuplaDeviceClass::~SuplaDeviceClass() {}
 
 void SuplaDeviceClass::setStatusFuncImpl(
     _impl_arduino_status impl_arduino_status) {
@@ -379,6 +367,7 @@ void SuplaDeviceClass::iterate(void) {
         if (1 == result) {
           uptime.resetConnectionUptime();
           connectionFailCounter = 0;
+          lastConnectionResetCounter = 0;
           supla_log(LOG_DEBUG, "Connected to Supla Server");
 
         } else {
@@ -731,26 +720,32 @@ void SuplaDeviceClass::iterateAlwaysElements(unsigned long _millis) {
 
 bool SuplaDeviceClass::iterateNetworkSetup() {
   // Restart network after >1 min of failed connection attempts
-  if (connectionFailCounter > 30) {
-    connectionFailCounter = 0;
+  if (networkIsNotReadyCounter == 0 &&
+      lastConnectionResetCounter != connectionFailCounter &&
+      connectionFailCounter > 0 &&
+      connectionFailCounter % 6 == 0) {
+    lastConnectionResetCounter = connectionFailCounter;
     supla_log(LOG_DEBUG,
               "Connection fail counter overflow. Trying to setup network "
               "interface again");
     Supla::Network::Setup();
-    return false;
   }
 
   if (!Supla::Network::IsReady()) {
-    if (connectionFailCounter >= 0) {
+    if (connectionFailCounter > 0) {
       status(STATUS_NETWORK_DISCONNECTED, "No connection to network");
       uptime.setConnectionLostCause(
           SUPLA_LASTCONNECTIONRESETCAUSE_WIFI_CONNECTION_LOST);
     }
     waitForIterate = 100;
     networkIsNotReadyCounter++;
-    if (networkIsNotReadyCounter > 20) {
+    // We wait 10s before we increment "connectionFailCounter".
+    // This has to be aligned with waitForIterate timeout for establishing
+    // connection with server when network isReady() == true.
+    if (networkIsNotReadyCounter > 100) {
       networkIsNotReadyCounter = 0;
       connectionFailCounter++;
+      supla_log(LOG_DEBUG, "Conn fail counter %d", connectionFailCounter);
     }
     return false;
   }
@@ -786,7 +781,6 @@ bool SuplaDeviceClass::iterateSuplaProtocol(unsigned int _millis) {
 
       lastIterateTime = _millis;
       waitForIterate = 2000;
-      connectionFailCounter++;
     }
     return false;
   } else if (registered == 1) {
@@ -826,7 +820,7 @@ void SuplaDeviceClass::enterConfigMode() {
   status(STATUS_CONFIG_MODE, "Config mode", true);
 }
 
-void SuplaDeviceClass::leaveConfigModeAndRestart() {
+void SuplaDeviceClass::softRestart() {
   status(STATUS_SOFTWARE_RESET, "Software reset");
   saveStateToStorage();
   auto cfg = Supla::Storage::ConfigInstance();
@@ -1038,7 +1032,7 @@ void SuplaDeviceClass::handleLocalActionTriggers() {
 
   if (triggerResetToFacotrySettings) {
     resetToFactorySettings();
-    leaveConfigModeAndRestart();
+    softRestart();
   }
 
   if (triggerStartLocalWebServer) {
@@ -1067,12 +1061,17 @@ void SuplaDeviceClass::checkIfRestartIsNeeded(unsigned long _millis) {
   if (deviceRestartTimeoutTimestamp != 0 &&
       _millis - deviceRestartTimeoutTimestamp > 5ul * 60 * 1000) {
     supla_log(LOG_INFO, "Config mode 5 min timeout. Reset device");
-    leaveConfigModeAndRestart();
+    softRestart();
   }
   if (forceRestartTimeMs &&
       _millis - deviceRestartTimeoutTimestamp > forceRestartTimeMs) {
     supla_log(LOG_DEBUG, "Reset requested. Reset device");
-    leaveConfigModeAndRestart();
+    softRestart();
+  }
+  if (resetOnConnectionFailCounter > 6 &&
+      connectionFailCounter == resetOnConnectionFailCounter) {
+    supla_log(LOG_INFO, "Connection fail counter overflow - software reset");
+    softRestart();
   }
 }
 
@@ -1082,6 +1081,11 @@ const uint8_t *SuplaDeviceClass::getRsaPublicKey() {
 
 void SuplaDeviceClass::setRsaPublicKeyPtr(const uint8_t *ptr) {
   rsaPublicKey = ptr;
+}
+
+void SuplaDeviceClass::setAutomaticResetOnConnectionProblem(
+    unsigned int timeSec) {
+  resetOnConnectionFailCounter = timeSec / 10;
 }
 
 SuplaDeviceClass SuplaDevice;
