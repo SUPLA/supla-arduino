@@ -1033,6 +1033,7 @@ void SuplaDeviceClass::handleLocalActionTriggers() {
   if (goToConfigModeAsap) {
     goToConfigModeAsap = false;
     enterConfigMode();
+    disableCfgModeTimeout();
   }
 
   if (triggerResetToFacotrySettings) {
