@@ -59,6 +59,7 @@ void delayMicroseconds(unsigned long delayMicro) {
 
 #elif SUPLA_LINUX
 #include <chrono>
+#include <thread>
 
 std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
@@ -68,12 +69,12 @@ unsigned long millis() {
     .count();
 }
 
-void delay(unsigned long) {
-// TODO
+void delay(unsigned long v) {
+  std::this_thread::sleep_for(std::chrono::milliseconds(v));
 }
 
-void delayMicroseconds(unsigned long delayMicro) {
-// TODO
+void delayMicroseconds(unsigned long v) {
+  std::this_thread::sleep_for(std::chrono::microseconds(v));
 }
 
 #else

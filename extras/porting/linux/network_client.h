@@ -28,7 +28,7 @@ namespace Supla {
       virtual int connect(IPAddress ip, uint16_t port);
       virtual int connect(const char *host, uint16_t port);
       virtual size_t write(uint8_t);
-      virtual size_t write(const uint8_t *buf, size_t size) override;
+      virtual size_t write(const uint8_t *buf, size_t size);
 
       virtual int available();
       virtual int read();

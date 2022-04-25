@@ -68,7 +68,7 @@ set(SUPLA_DEVICE_SRCS
   src/supla/control/simple_button.cpp
   src/supla/control/virtual_relay.cpp
 
-  src/supla/pv/fronius.cpp
+  #  src/supla/pv/fronius.cpp
 
 # not all files from sensor folder are compiled here. Some still require
 # porting from ARDUINO

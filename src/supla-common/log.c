@@ -152,12 +152,12 @@ void supla_vlog(int __pri, const char *message) {
       ESP_LOGE(SUPLA_TAG, "%s", message);
   };
 }
-#elif defined(SUPLA_DEVICE)
-void supla_vlog(int __pri, const char *message) {
-  (void)(__pri);
-  printf("%s\n", message);
+//#elif defined(SUPLA_DEVICE)
+//void supla_vlog(int __pri, const char *message) {
+//  (void)(__pri);
+//  printf("%s\n", message);
   // TODO add implementation
-}
+//}
 #elif defined(ESP8266)
 // supla-espressif-esp variant
 void LOG_ICACHE_FLASH supla_vlog(int __pri, const char *message) {
@@ -195,6 +195,10 @@ void LOG_ICACHE_FLASH supla_vlog(int __pri, const char *message) {
 
 #ifndef __LOG_CALLBACK
   struct timeval now;
+#endif
+#ifdef SUPLA_DEVICE
+  int debug_mode = 1;
+  int run_as_daemon = 0;
 #endif
 
   if (message == NULL || (debug_mode == 0 && __pri == LOG_DEBUG)) return;
