@@ -156,9 +156,8 @@ bool Fronius::iterateConnected(void *srpc) {
         retryCounter = 0;
         dataFetchInProgress = true;
         connectionTimeoutMs = lastReadTime;
-        supla_log(LOG_DEBUG, "Succesful connect");
 
-        char buf[100];
+        char buf[200];
         strcpy(buf, "GET /solar_api/v1/GetInverterRealtimeData.cgi?Scope=Device&DeviceID=");
         char idBuf[20];
         sprintf(idBuf, "%d", deviceId);

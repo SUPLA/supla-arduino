@@ -27,16 +27,22 @@ namespace Supla {
 
       virtual int connect(IPAddress ip, uint16_t port);
       virtual int connect(const char *host, uint16_t port);
-      virtual size_t write(uint8_t);
-      virtual size_t write(const uint8_t *buf, size_t size);
+      virtual std::size_t write(uint8_t);
+      virtual std::size_t write(const uint8_t *buf, std::size_t size);
+      virtual std::size_t print(const char *);
+      virtual std::size_t println(const char *);
+      virtual std::size_t println();
 
       virtual int available();
       virtual int read();
-      virtual int read(uint8_t* buf, size_t size);
-      int read(char* buf, size_t size);
+      virtual int read(uint8_t* buf, std::size_t size);
+      virtual int read(char* buf, std::size_t size);
 
       virtual void stop();
       virtual uint8_t connected();
+
+    protected:
+      int connectionFd = -1;
 
   };
 };
