@@ -2,6 +2,13 @@ set(SUPLA_DEVICE_LINUX_SRCS
   linux_network.cpp
   linux_timers.cpp
   network_client.cpp
+
+  supla/source/cmd.cpp
+
+  supla/parser/simple.cpp
+
+  supla/sensor/thermometer_parsed.cpp
+
   ../../../src/supla/pv/fronius.cpp
   ../../../src/supla/pv/afore.cpp
 )
