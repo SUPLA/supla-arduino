@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#include <poll.h>
 
 Supla::NetworkClient::NetworkClient() {}
 
@@ -49,7 +50,8 @@ int Supla::NetworkClient::connect(const char *server, uint16_t port) {
     return 0;
   }
 
-  int err;
+  int err = 0;
+  int flagsCopy = 0;
   for (struct addrinfo *addr = addresses; addr != nullptr; addr = addr->ai_next) {
     connectionFd =
       socket(addresses->ai_family, addresses->ai_socktype, addresses->ai_protocol);
@@ -58,11 +60,34 @@ int Supla::NetworkClient::connect(const char *server, uint16_t port) {
       continue;
     }
 
+    flagsCopy = fcntl(connectionFd, F_GETFL, 0);
+    fcntl(connectionFd, F_SETFL, O_NONBLOCK);
     if (::connect(connectionFd, addr->ai_addr, addr->ai_addrlen) == 0) {
       break;
     }
 
     err = errno;
+    bool isConnected = false;
+
+    if (errno == EWOULDBLOCK || errno == EINPROGRESS) {
+      struct pollfd pfd = {};
+      pfd.fd = connectionFd;
+      pfd.events = POLLOUT;
+
+      int result = poll(&pfd, 1, 3000);
+      if (result > 0) {
+        socklen_t len = sizeof(err);
+        int retval = getsockopt(connectionFd, SOL_SOCKET, SO_ERROR, &err, &len);
+
+        if (retval == 0 && err == 0) {
+          isConnected = true;
+        }
+      }
+    }
+
+    if (isConnected) {
+      break;
+    }
     close(connectionFd);
     connectionFd = -1;
   }

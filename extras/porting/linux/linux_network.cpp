@@ -23,6 +23,7 @@
 #include <supla/supla_lib_config.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <poll.h>
 
 #include <iostream>
 
@@ -86,6 +87,7 @@ void print_ssl_certs(SSL *ssl) {
 }
 
 Supla::LinuxNetwork::LinuxNetwork() : Network(nullptr) {
+  signal(SIGPIPE, SIG_IGN);
 }
 
 Supla::LinuxNetwork::~LinuxNetwork() {
@@ -173,7 +175,8 @@ int Supla::LinuxNetwork::connect(const char *server, int port) {
     return 0;
   }
 
-  int err;
+  int err = 0;
+  int flagsCopy = 0;
   for (struct addrinfo *addr = addresses; addr != nullptr; addr = addr->ai_next) {
     connectionFd =
       socket(addresses->ai_family, addresses->ai_socktype, addresses->ai_protocol);
@@ -182,11 +185,34 @@ int Supla::LinuxNetwork::connect(const char *server, int port) {
       continue;
     }
 
+    flagsCopy = fcntl(connectionFd, F_GETFL, 0);
+    fcntl(connectionFd, F_SETFL, O_NONBLOCK);
     if (::connect(connectionFd, addr->ai_addr, addr->ai_addrlen) == 0) {
       break;
     }
 
     err = errno;
+    bool isConnected = false;
+
+    if (errno == EWOULDBLOCK || errno == EINPROGRESS) {
+      struct pollfd pfd = {};
+      pfd.fd = connectionFd;
+      pfd.events = POLLOUT;
+
+      int result = poll(&pfd, 1, 3000);
+      if (result > 0) {
+        socklen_t len = sizeof(err);
+        int retval = getsockopt(connectionFd, SOL_SOCKET, SO_ERROR, &err, &len);
+
+        if (retval == 0 && err == 0) {
+          isConnected = true;
+        }
+      }
+    }
+
+    if (isConnected) {
+      break;
+    }
     connectionFd = -1;
     close(connectionFd);
   }
@@ -197,6 +223,8 @@ int Supla::LinuxNetwork::connect(const char *server, int port) {
     supla_log(LOG_ERR, "%s: %s", server, strerror(err));
     return 0;
   }
+
+  fcntl(connectionFd, F_SETFL, flagsCopy);
 
   SSL_set_fd(ssl, connectionFd);
   SSL_connect(ssl);
@@ -214,8 +242,12 @@ bool Supla::LinuxNetwork::connected() {
 }
 
 void Supla::LinuxNetwork::disconnect() {
-  SSL_free(ssl);
-  close(connectionFd);
+  if (ssl) {
+    SSL_free(ssl);
+  }
+  if (connectionFd >= 0) {
+    close(connectionFd);
+  }
   connectionFd = -1;
   ssl = nullptr;
 }
