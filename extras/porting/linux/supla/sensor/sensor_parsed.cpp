@@ -18,6 +18,8 @@
 
 Supla::Sensor::SensorParsed::SensorParsed(Supla::Parser::Parser *parser) :
   parser(parser) {
+  static int instanceCounter = 0;
+  id = instanceCounter++;
 }
 
 void Supla::Sensor::SensorParsed::setMapping(const std::string &parameter,
@@ -28,8 +30,11 @@ void Supla::Sensor::SensorParsed::setMapping(const std::string &parameter,
 
 void Supla::Sensor::SensorParsed::setMapping(const std::string &parameter,
     const int index) {
-  parameterToKey[parameter] = parameter;
-  parser->addKey(parameter, index);
+  std::string key = parameter;
+  key += "_";
+  key += std::to_string(id);
+  parameterToKey[parameter] = key;
+  parser->addKey(key, index);
 }
 
 void Supla::Sensor::SensorParsed::setMultiplier(const std::string &parameter,

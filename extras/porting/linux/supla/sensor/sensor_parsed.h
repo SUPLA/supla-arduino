@@ -46,6 +46,7 @@ namespace Supla {
         Supla::Parser::Parser *parser = nullptr;
         std::map<std::string, std::string> parameterToKey;
         std::map<std::string, double> parameterMultiplier;
+        int id;
     };
   };  // namespace Sensor
 };  // namespace Supla
