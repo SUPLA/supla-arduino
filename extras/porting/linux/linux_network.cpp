@@ -68,10 +68,10 @@ int32_t print_ssl_error(SSL *ssl, int ret_code) {
 }
 
 void print_ssl_certs(SSL *ssl) {
-  X509 *cert;
+  X509 *cert = nullptr;
   char *line;
 
-  cert = SSL_get_peer_certificate(ssl);
+  cert = SSL_get1_peer_certificate(ssl);
   if (cert != NULL) {
     supla_log(LOG_DEBUG, "Server certificates:");
     line = X509_NAME_oneline(X509_get_subject_name(cert), 0, 0);
