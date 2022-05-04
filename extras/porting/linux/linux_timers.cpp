@@ -20,10 +20,10 @@
 #include <SuplaDevice.h>
 #include <supla/time.h>
 
-void supla100msTimer() {
+void supla10msTimer() {
   while (1) {
     SuplaDevice.onTimer();
-    delay(100);
+    delay(10);
   }
 }
 
@@ -36,7 +36,7 @@ void supla1msTimer() {
 
 void Supla::Linux::Timers::init() {
   supla_log(LOG_DEBUG, "Starting linux timers...");
-  std::thread standardTimer(supla100msTimer);
+  std::thread standardTimer(supla10msTimer);
   standardTimer.detach();
 
   std::thread fastTimer(supla1msTimer);
