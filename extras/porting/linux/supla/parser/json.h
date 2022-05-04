@@ -14,4 +14,37 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#ifndef __SUPLA_PARSER_JSON_H_
+#define __SUPLA_PARSER_JSON_H_
 
+#include "parser.h"
+#include <supla/source/source.h>
+
+#include <nlohmann/json.hpp>
+#include <vector>
+#include <map>
+#include <string>
+
+namespace Supla {
+  namespace Parser {
+    class Json : public Parser {
+      public:
+        Json(Supla::Source::Source *);
+        virtual ~Json();
+
+        virtual bool refreshSource() override;
+
+        virtual double getValue(const std::string &key) override;
+
+        virtual bool isValid() override;
+      protected:
+
+        bool valid = false;
+        std::map<std::string, int> keys;
+
+        nlohmann::json json;
+
+    };
+  };
+};
+#endif /*__SUPLA_PARSER_JSON_H_*/

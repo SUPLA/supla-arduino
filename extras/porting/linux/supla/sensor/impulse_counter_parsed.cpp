@@ -14,28 +14,35 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "thermometer_parsed.h"
+#include "impulse_counter_parsed.h"
+#include <supla/time.h>
 
-Supla::Sensor::ThermometerParsed::ThermometerParsed(
+Supla::Sensor::ImpulseCounterParsed::ImpulseCounterParsed(
     Supla::Parser::Parser *parser) : SensorParsed(parser) {
-
+  channel.setType(SUPLA_CHANNELTYPE_IMPULSE_COUNTER);
 }
 
-void Supla::Sensor::ThermometerParsed::onInit() {
+void Supla::Sensor::ImpulseCounterParsed::iterateAlways() {
+  if (millis() - lastReadTime > 10000) {
+    lastReadTime = millis();
+    channel.setNewValue(getValue());
+  }
+}
+
+void Supla::Sensor::ImpulseCounterParsed::onInit() {
   channel.setNewValue(getValue());
 }
 
+unsigned _supla_int64_t Supla::Sensor::ImpulseCounterParsed::getValue() {
+  double value = 0;
 
-double Supla::Sensor::ThermometerParsed::getValue() {
-  double value = TEMPERATURE_NOT_AVAILABLE;
-
-  if (isParameterConfigured(Supla::Parser::Temperature)) {
+  if (isParameterConfigured(Supla::Parser::Counter)) {
     if (refreshParserSource()) {
-      value = getParameterValue(Supla::Parser::Temperature);
+      value = getParameterValue(Supla::Parser::Counter);
       if (!parser->isValid()) {
-        return TEMPERATURE_NOT_AVAILABLE;
+        return 0;
       }
     }
   }
-  return value;
+  return static_cast<unsigned _supla_int64_t>(value);
 }

@@ -14,29 +14,34 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _SUPLA_SENSOR_THERMOMETER_PARSED_H_
-#define _SUPLA_SENSOR_THERMOMETER_PARSED_H_
+#ifndef _SUPLA_SENSOR_IMPULSE_COUNTER_PARSED_H_
+#define _SUPLA_SENSOR_IMPULSE_COUNTER_PARSED_H_
 
-#include <supla/sensor/thermometer.h>
+#include <supla/channel_element.h>
 #include <supla/parser/parser.h>
 #include "sensor_parsed.h"
 #include <string>
 
-
 namespace Supla {
   namespace Parser {
-    const char Temperature[] = "temperature";
+    const char Counter[] = "counter";
   };
 
   namespace Sensor {
 
-    class ThermometerParsed : public Thermometer, public SensorParsed {
+    class ImpulseCounterParsed : public ChannelElement, public SensorParsed {
       public:
-        ThermometerParsed(Supla::Parser::Parser *);
-        virtual double getValue() override;
+        ImpulseCounterParsed(Supla::Parser::Parser *);
+
+        virtual unsigned _supla_int64_t getValue();
         virtual void onInit() override;
+        virtual void iterateAlways() override;
+
+      protected:
+        unsigned long lastReadTime = 0;
     };
   };  // namespace Source
 };  // namespace Supla
 
-#endif /*_SUPLA_SENSOR_THERMOMETER_PARSED_H_*/
+#endif /*_SUPLA_SENSOR_IMPULSE_COUNTER_PARSED_H_*/
+

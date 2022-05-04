@@ -27,25 +27,19 @@ namespace Supla {
   namespace Parser {
     class Simple : public Parser {
       public:
-        Simple(Supla::Source::Source *, int valuesCount = 1);
+        Simple(Supla::Source::Source *);
         virtual ~Simple();
 
         virtual bool refreshSource() override;
 
-        virtual double getValue(int index = 0) override;
-        virtual void setMultiplier(double multiplier, int index = 0);
+        virtual double getValue(const std::string &key) override;
 
-        virtual bool isValid() override;
       protected:
-        Supla::Source::Source *source = nullptr;
         std::string sourceContent;
 
-        bool valid = false;
-        int valuesCount = 1;
-        std::vector<double> values;
-        std::vector<double> multipliers;
+        std::map<int, double> values;
     };
-  };  // namespace Source
+  };  // namespace Parser
 };  // namespace Supla
 
 #endif /*_SUPLA_PARSER_SIMPLE_H_*/

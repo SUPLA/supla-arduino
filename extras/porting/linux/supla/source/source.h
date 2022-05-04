@@ -17,8 +17,6 @@
 #ifndef _SUPLA_SOURCE_SOURCE_H_
 #define _SUPLA_SOURCE_SOURCE_H_
 
-#include <supla/parser/parser.h>
-
 #include <string>
 
 namespace Supla {

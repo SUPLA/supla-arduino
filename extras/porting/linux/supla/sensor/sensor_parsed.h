@@ -14,29 +14,41 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _SUPLA_SENSOR_THERMOMETER_PARSED_H_
-#define _SUPLA_SENSOR_THERMOMETER_PARSED_H_
+#ifndef _SUPLA_SENSOR_PARSED_H_
+#define _SUPLA_SENSOR_PARSED_H_
 
-#include <supla/sensor/thermometer.h>
 #include <supla/parser/parser.h>
-#include "sensor_parsed.h"
 #include <string>
-
+#include <map>
 
 namespace Supla {
-  namespace Parser {
-    const char Temperature[] = "temperature";
-  };
-
   namespace Sensor {
 
-    class ThermometerParsed : public Thermometer, public SensorParsed {
+    class SensorParsed {
       public:
-        ThermometerParsed(Supla::Parser::Parser *);
-        virtual double getValue() override;
-        virtual void onInit() override;
+        SensorParsed(Supla::Parser::Parser *);
+
+        void setMapping(const std::string &parameter, const std::string &key);
+
+        void setMapping(const std::string &parameter, const int index);
+
+        void setMultiplier(const std::string &parameter, double multiplier);
+
+        bool refreshParserSource();
+
+        bool isParameterConfigured(const std::string &parameter);
+
+        void enableDebug();
+
+      protected:
+        double getParameterValue(const std::string &parameter);
+
+        Supla::Parser::Parser *parser = nullptr;
+        std::map<std::string, std::string> parameterToKey;
+        std::map<std::string, double> parameterMultiplier;
     };
-  };  // namespace Source
+  };  // namespace Sensor
 };  // namespace Supla
 
-#endif /*_SUPLA_SENSOR_THERMOMETER_PARSED_H_*/
+#endif /*_SUPLA_SENSOR_PARSED_H_*/
+

@@ -17,20 +17,29 @@
 #ifndef _SUPLA_PARSER_PARSER_H_
 #define _SUPLA_PARSER_PARSER_H_
 
+#include <supla/source/source.h>
 #include <string>
+#include <map>
 
 namespace Supla {
-
   namespace Parser {
+
     class Parser {
       public:
+        Parser(Supla::Source::Source *);
         virtual ~Parser(){};
         virtual bool refreshSource() = 0;
 
-        virtual double getValue(int index = 0) = 0;
-        virtual void setMultiplier(double multiplier, int index = 0) = 0;
+        virtual void addKey(const std::string& key, int index);
+        virtual double getValue(const std::string &key) = 0;
 
-        virtual bool isValid() = 0;
+        virtual bool isValid();
+        void enableDebug();
+      protected:
+        std::map<std::string, int> keys;
+        bool valid = false;
+        bool debug = false;
+        Supla::Source::Source *source = nullptr;
     };
   };  // namespace Parser
 };  // namespace Supla

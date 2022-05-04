@@ -17,24 +17,20 @@
 #include "simple.h"
 #include <sstream>
 
-Supla::Parser::Simple::Simple(Supla::Source::Source *src, int valuesCount)
-  : source(src), valuesCount(valuesCount) {
-  for (int i = 0; i < valuesCount; i++) {
-    values.push_back(0);
-    multipliers.push_back(1);
-  }
+Supla::Parser::Simple::Simple(Supla::Source::Source *src)
+  : Supla::Parser::Parser(src) {
 }
 
 Supla::Parser::Simple::~Simple() {}
 
-double Supla::Parser::Simple::getValue(int index) {
-  if (index < 0 || index > valuesCount) {
+double Supla::Parser::Simple::getValue(const std::string &key) {
+  int index = keys[key];
+  if (index < 0) {
     valid = false;
     return 0;
   }
 
   return values[index];
-
 }
 
 
@@ -50,9 +46,7 @@ bool Supla::Parser::Simple::refreshSource() {
     std::stringstream ss(sourceContent);
     std::string line;
 
-    for (int i = 0; i < valuesCount; i++) {
-      std::getline(ss, line, '\n');
-
+    for (int i = 0; std::getline(ss, line, '\n'); i++) {
       std::stringstream sline(line);
       sline >> values[i];
     }
@@ -64,14 +58,3 @@ bool Supla::Parser::Simple::refreshSource() {
   return false;
 }
 
-bool Supla::Parser::Simple::isValid() {
-  return valid;
-}
-
-void Supla::Parser::Simple::setMultiplier(double multiplier, int index) {
-  if (index < 0 || index > valuesCount) {
-    return;
-  }
-
-  multipliers[index] = multiplier;
-}

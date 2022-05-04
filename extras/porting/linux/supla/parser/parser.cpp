@@ -14,29 +14,18 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _SUPLA_SENSOR_THERMOMETER_PARSED_H_
-#define _SUPLA_SENSOR_THERMOMETER_PARSED_H_
+#include "parser.h"
 
-#include <supla/sensor/thermometer.h>
-#include <supla/parser/parser.h>
-#include "sensor_parsed.h"
-#include <string>
+Supla::Parser::Parser::Parser(Supla::Source::Source *src) : source(src) {}
 
+void Supla::Parser::Parser::addKey(const std::string& key, int index) {
+  keys[key] = index;
+}
 
-namespace Supla {
-  namespace Parser {
-    const char Temperature[] = "temperature";
-  };
+bool Supla::Parser::Parser::isValid() {
+  return valid;
+}
 
-  namespace Sensor {
-
-    class ThermometerParsed : public Thermometer, public SensorParsed {
-      public:
-        ThermometerParsed(Supla::Parser::Parser *);
-        virtual double getValue() override;
-        virtual void onInit() override;
-    };
-  };  // namespace Source
-};  // namespace Supla
-
-#endif /*_SUPLA_SENSOR_THERMOMETER_PARSED_H_*/
+void Supla::Parser::Parser::enableDebug() {
+  debug = true;
+}
