@@ -36,12 +36,9 @@ bool Supla::Parser::Json::refreshSource() {
     if (debug) {
       supla_log(LOG_DEBUG, "Source: %s", sourceContent.c_str());
     }
-    try
-    {
+    try {
       json = nlohmann::json::parse(sourceContent);
-    }
-    catch (nlohmann::json::parse_error& ex)
-    {
+    } catch (nlohmann::json::parse_error& ex) {
       supla_log(LOG_ERR, "JSON parsing error at byte %d", ex.byte);
       return valid;
     }

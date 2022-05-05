@@ -7,6 +7,7 @@ set(SUPLA_DEVICE_LINUX_SRCS
   network_client.cpp
 
   supla/source/cmd.cpp
+  supla/source/file.cpp
 
   supla/parser/parser.cpp
   supla/parser/simple.cpp

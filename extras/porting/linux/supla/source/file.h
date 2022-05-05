@@ -14,4 +14,29 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#ifndef _SUPLA_SOURCE_FILE_H_
+#define _SUPLA_SOURCE_FILE_H_
 
+#include <supla/parser/parser.h>
+#include "source.h"
+#include <filesystem>
+
+namespace Supla {
+
+  namespace Source {
+    class File : public Source {
+      public:
+        File(const char *filePath, int expirationSec = 10*60);
+        virtual ~File();
+        virtual std::string getContent() override;
+
+        void setExpirationTime(int timeSec);
+
+      protected:
+        std::filesystem::path filePath;
+        int fileExpirationSec = 10*60;
+    };
+  };  // namespace Source
+};  // namespace Supla
+
+#endif /*_SUPLA_SOURCE_FILE_H_*/

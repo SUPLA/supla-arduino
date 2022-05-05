@@ -14,4 +14,47 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#include "file.h"
+#include <chrono>
+#include <iostream>
+#include <fstream>
 
+Supla::Source::File::File(const char *filePath, int expirationSec) :
+  filePath(filePath), fileExpirationSec(expirationSec) {
+}
+
+Supla::Source::File::~File() {}
+
+std::string Supla::Source::File::getContent() {
+  std::string result;
+  std::ifstream file;
+  try {
+    file.open(filePath);
+    auto fileTime = std::filesystem::last_write_time(filePath);
+    auto now = std::filesystem::file_time_type::clock::now();
+
+    if (fileTime + std::chrono::seconds(fileExpirationSec) < now) {
+      // file is too old
+      return result;
+    } else {
+      std::string line;
+      while (std::getline(file, line)) {
+        result.append(line).append("\n");
+        if (result.length() > 1024 * 1024 * 10) {
+          // file is too big - cut it at 10 MB
+          break;
+        }
+      }
+    }
+  } catch (std::filesystem::filesystem_error) {}
+
+  file.close();
+  return result;
+}
+
+void Supla::Source::File::setExpirationTime(int timeSec) {
+  if (timeSec < 1) {
+    timeSec = 1;
+  }
+  fileExpirationSec = timeSec;
+}

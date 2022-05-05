@@ -52,7 +52,7 @@ double Supla::Sensor::SensorParsed::getParameterValue(
 }
 
 bool Supla::Sensor::SensorParsed::refreshParserSource() {
-  if (parser && parser->refreshSource()) {
+  if (parser && parser->refreshParserSource()) {
     return true;
   }
   return false;

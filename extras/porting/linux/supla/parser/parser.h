@@ -28,18 +28,22 @@ namespace Supla {
       public:
         Parser(Supla::Source::Source *);
         virtual ~Parser(){};
-        virtual bool refreshSource() = 0;
+        bool refreshParserSource();
 
         virtual void addKey(const std::string& key, int index);
         virtual double getValue(const std::string &key) = 0;
 
         virtual bool isValid();
         void enableDebug();
+        void setRefreshTime(unsigned int timeMs);
       protected:
+        virtual bool refreshSource() = 0;
         std::map<std::string, int> keys;
         bool valid = false;
         bool debug = false;
         Supla::Source::Source *source = nullptr;
+        uint64_t lastRefreshTime = 0;
+        unsigned int refreshTimeMs = 5*1000; // 5 s
     };
   };  // namespace Parser
 };  // namespace Supla

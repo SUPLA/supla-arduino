@@ -15,6 +15,7 @@
 */
 
 #include "parser.h"
+#include <supla/time.h>
 
 Supla::Parser::Parser::Parser(Supla::Source::Source *src) : source(src) {}
 
@@ -28,4 +29,19 @@ bool Supla::Parser::Parser::isValid() {
 
 void Supla::Parser::Parser::enableDebug() {
   debug = true;
+}
+
+bool Supla::Parser::Parser::refreshParserSource() {
+  if (!lastRefreshTime || millis() - lastRefreshTime > refreshTimeMs) {
+    lastRefreshTime = millis();
+    return refreshSource();
+  }
+  return true;
+}
+
+void Supla::Parser::Parser::setRefreshTime(unsigned int timeMs) {
+  if (timeMs < 10) {
+    timeMs = 10;
+  }
+  refreshTimeMs = timeMs;
 }

@@ -25,7 +25,7 @@ Supla::Parser::Simple::~Simple() {}
 
 double Supla::Parser::Simple::getValue(const std::string &key) {
   int index = keys[key];
-  if (index < 0) {
+  if (index < 0 || index >= values.size()) {
     valid = false;
     return 0;
   }
@@ -36,7 +36,7 @@ double Supla::Parser::Simple::getValue(const std::string &key) {
 
 bool Supla::Parser::Simple::refreshSource() {
   if (source) {
-    sourceContent = source->getContent();
+    std::string sourceContent = source->getContent();
 
     if (sourceContent.length() == 0) {
       valid = false;
@@ -45,6 +45,7 @@ bool Supla::Parser::Simple::refreshSource() {
 
     std::stringstream ss(sourceContent);
     std::string line;
+    values.clear();
 
     for (int i = 0; std::getline(ss, line, '\n'); i++) {
       std::stringstream sline(line);

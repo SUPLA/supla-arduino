@@ -164,8 +164,10 @@ void Supla::Sensor::ElectricityMeterParsed::readValuesFromDevice() {
     if (isParameterConfigured(Supla::Parser::Frequency)) {
       setFreq(getParameterValue(Supla::Parser::Frequency));
     }
-  }
 
+  } else {
+      resetReadParameters();
+  }
 }
 
 

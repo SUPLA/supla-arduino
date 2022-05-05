@@ -35,8 +35,6 @@ namespace Supla {
         virtual double getValue(const std::string &key) override;
 
       protected:
-        std::string sourceContent;
-
         std::map<int, double> values;
     };
   };  // namespace Parser
