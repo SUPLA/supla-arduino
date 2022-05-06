@@ -17,6 +17,7 @@ set(SUPLA_DEVICE_LINUX_SRCS
   supla/sensor/thermometer_parsed.cpp
   supla/sensor/impulse_counter_parsed.cpp
   supla/sensor/electricity_meter_parsed.cpp
+  supla/sensor/binary_parsed.cpp
 
   ../../../src/supla/pv/fronius.cpp
   ../../../src/supla/pv/afore.cpp
