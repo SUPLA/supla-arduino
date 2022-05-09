@@ -19,6 +19,8 @@
 #include <supla/time.h>
 #include <SuplaDevice.h>
 #include <linux_network.h>
+#include <supla/version.h>
+#include <supla-common/tools.h>
 
 #include <supla/control/virtual_relay.h>
 #include <supla/control/rgb_leds.h>
@@ -26,6 +28,7 @@
 #include <supla/control/rgbw_leds.h>
 
 #include <unistd.h>
+#include <cxxopts.hpp>
 
 // Below includes are added just for CI compilation check. Some of them
 // are not used in any cpp file, so they would not be compiled otherwise.
@@ -67,72 +70,149 @@
 #include <supla/timer.h>
 #include <supla/tools.h>
 #include <supla/uptime.h>
+#include <supla/pv/fronius.h>
+#include <supla/pv/afore.h>
 
-int main() {
-  supla_log(LOG_DEBUG, "Hello Linux with Supla!");
+#include <fstream>
 
-  Supla::LinuxNetwork network;
+#include <supla/sha256.h>
+#include <supla/rsa_verificator.h>
 
-  // Replace the falowing GUID with value that you can retrieve from
-  // https://www.supla.org/arduino/get-guid
-  char GUID[SUPLA_GUID_SIZE] =
-   {0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00};
+#include <supla/sensor/thermometer_parsed.h>
+#include <supla/sensor/impulse_counter_parsed.h>
+#include <supla/sensor/electricity_meter_parsed.h>
+#include <supla/parser/simple.h>
+#include <supla/parser/json.h>
+#include <supla/source/cmd.h>
+#include <supla/source/file.h>
+#include <supla/sensor/binary_parsed.h>
 
-  // Replace the following AUTHKEY with value that you can retrieve from:
-  // https://www.supla.org/arduino/get-authkey
-  char AUTHKEY[SUPLA_AUTHKEY_SIZE] =
-   {0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00};
+// reguired by linux_log.c
+int logLevel = LOG_INFO;
+int runAsDaemon = 0;
 
-  auto r1 = new Supla::Control::VirtualRelay();
-  auto r2 = new Supla::Control::VirtualRelay();
-  auto r3 = new Supla::Control::VirtualRelay();
-  auto r4 = new Supla::Control::VirtualRelay();
+int main(int argc, char *argv[]) {
+  try {
+    cxxopts::Options options(argv[0], "Supla device client. See www.supla.org");
 
-  new Supla::Control::RGBWLeds(1,2,3,4);
-  new Supla::Control::RGBLeds(1,2,3);
-  new Supla::Control::DimmerLeds(1);
+    options.add_options()
+      ("D,debug", "Enable debug logs")
+      ("V,verbose", "Enable verbose debug logs", cxxopts::value<bool>()->default_value("false"))
+      ("i,integer", "Int param", cxxopts::value<int>())
+      ("c,config", "Config file name", cxxopts::value<std::string>()->default_value("etc/supla-device.cfg"))
+      ("d,daemon", "Run in daemon mode (run in background and log to syslog)")
+      ("h,help", "Show this help")
+      ("v,version", "Show version")
+      ;
 
-  new Supla::Control::RGBWLeds(1,2,3,4);
-  new Supla::Control::RGBLeds(1,2,3);
-  SuplaDevice.setServerPort(2016);
-  SuplaDevice.begin(GUID, "svrX.supla.org", "happy@supla.org", AUTHKEY);
+    auto result = options.parse(argc, argv);
 
-  while (true) {
-    SuplaDevice.iterate();
-    usleep(100);
+    if (result.count("help"))
+    {
+      std::cout << options.help() << std::endl;
+      exit(0);
+    }
+
+    if (result.count("version"))
+    {
+      std::cout << argv[0] << " version: " << suplaDeviceVersion << std::endl;
+      exit(0);
+    }
+
+
+    if (result.count("debug")) {
+      logLevel = LOG_DEBUG;
+    }
+
+    if (result.count("verbose")) {
+      logLevel = LOG_VERBOSE;
+    }
+
+    if (result.count("daemon")) {
+      runAsDaemon = 1;
+      if (!st_try_fork()) {
+        supla_log(LOG_ERR, "Can't start daemon");
+        exit(1);
+      }
+    }
+
+    st_hook_signals();
+
+    std::string cfgFile = result["config"].as<std::string>();
+    supla_log(LOG_INFO, "Using config file %s", cfgFile.c_str());
+    if (!st_file_exists(cfgFile.c_str())) {
+      supla_log(LOG_ERR, "Config file does not exists");
+//      exit(1);
+    }
+
+
+    Supla::LinuxNetwork network;
+
+    // Replace the falowing GUID with value that you can retrieve from
+    // https://www.supla.org/arduino/get-guid
+    char GUID[SUPLA_GUID_SIZE] =
+    {0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00};
+
+    // Replace the following AUTHKEY with value that you can retrieve from:
+    // https://www.supla.org/arduino/get-authkey
+    char AUTHKEY[SUPLA_AUTHKEY_SIZE] =
+    {0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00};
+
+    auto r1 = new Supla::Control::VirtualRelay();
+    auto r2 = new Supla::Control::VirtualRelay();
+    auto r3 = new Supla::Control::VirtualRelay();
+    auto r4 = new Supla::Control::VirtualRelay();
+
+    new Supla::Control::RGBWLeds(1,2,3,4);
+    new Supla::Control::RGBLeds(1,2,3);
+    new Supla::Control::DimmerLeds(1);
+
+    new Supla::Control::RGBWLeds(1,2,3,4);
+    new Supla::Control::RGBLeds(1,2,3);
+
+    SuplaDevice.setServerPort(2016);
+    SuplaDevice.begin(GUID, "svrX.supla.org", "happy@supla.org", AUTHKEY);
+
+    while (st_app_terminate == 0) {
+      SuplaDevice.iterate();
+      delay(10);
+    }
+    supla_log(LOG_INFO, "Exit");
+    exit(0);
+
+  } catch (const cxxopts::OptionException& e) {
+    std::cout << "error parsing options: " << e.what() << std::endl;
+    exit(1);
   }
-
-  supla_log(LOG_DEBUG, "we are %d ms since app start", millis());
-
-  return 0;
 }
+

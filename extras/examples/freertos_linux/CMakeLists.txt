@@ -17,7 +17,7 @@ set(BOARD_SRC
 # that everything depends on local board files...
 add_library(supladevice "")
 add_subdirectory($ENV{SUPLA_DEVICE_PATH} supla-device)
-add_subdirectory($ENV{SUPLA_DEVICE_PATH}/extras/porting/freertos supla-device-freertos)
+add_subdirectory($ENV{SUPLA_DEVICE_PATH}/extras/porting/freertos_linux supla-device-freertos)
 
 target_sources(supladevice PUBLIC ${FREERTOS_SRC} )
 

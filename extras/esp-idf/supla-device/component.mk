@@ -27,8 +27,10 @@ COMPONENT_OBJS := \
   ../../../src/supla/auto_lock.o \
   ../../../src/supla/sha256.o \
   ../../../src/supla/rsa_verificator.o \
+	\
   ../../../src/supla/storage/storage.o \
   ../../../src/supla/storage/config.o \
+	\
   ../../../src/supla/network/network.o \
   ../../../src/supla/network/netif_wifi.o \
   ../../../src/supla/network/web_server.o \
@@ -39,7 +41,12 @@ COMPONENT_OBJS := \
   ../../../src/supla/network/html/wifi_parameters.o \
   ../../../src/supla/network/html/protocol_parameters.o \
   ../../../src/supla/network/html/status_led_parameters.o \
+  ../../../src/supla/network/html/custom_sw_update.o \
+  ../../../src/supla/network/html/sw_update_beta.o \
+  ../../../src/supla/network/html/sw_update.o \
+  \
   ../../../src/supla/clock/clock.o \
+	\
   ../../../src/supla/control/action_trigger.o \
   ../../../src/supla/control/bistable_relay.o \
   ../../../src/supla/control/bistable_roller_shutter.o \
@@ -58,6 +65,7 @@ COMPONENT_OBJS := \
   ../../../src/supla/control/sequence_button.o \
   ../../../src/supla/control/simple_button.o \
   ../../../src/supla/control/virtual_relay.o \
+	\
   ../../../src/supla/condition.o \
   ../../../src/supla/condition_getter.o \
   ../../../src/supla/conditions/on_less.o \
@@ -68,8 +76,11 @@ COMPONENT_OBJS := \
   ../../../src/supla/conditions/on_between_eq.o \
   ../../../src/supla/conditions/on_equal.o \
   ../../../src/supla/conditions/on_invalid.o \
+	\
   ../../../src/supla/device/status_led.o \
   ../../../src/supla/device/last_state_logger.o \
+  ../../../src/supla/device/sw_update.o \
+	\
   ../../../src/supla/sensor/binary.o \
   ../../../src/supla/sensor/electricity_meter.o \
   ../../../src/supla/sensor/hygro_meter.o \
@@ -80,6 +91,7 @@ COMPONENT_OBJS := \
   ../../../src/supla/sensor/virtual_binary.o \
   ../../../src/supla/sensor/distance.o \
   ../../../src/supla/sensor/HC_SR04.o \
+	\
   ../../../src/nettle/bignum.o \
   ../../../src/nettle/gmp-glue.o \
   ../../../src/nettle/mini-gmp.o \
@@ -91,12 +103,16 @@ COMPONENT_OBJS := \
   ../../../src/nettle/sha256-compress.o \
   ../../../src/nettle/sha256.o \
   ../../../src/nettle/write-be32.o \
+	\
+  ../../porting/esp-idf/esp_platform.o \
   ../../porting/esp-idf/esp_idf_wifi.o \
   ../../porting/esp-idf/esp_idf_gpio.o \
   ../../porting/esp-idf/spiffs_storage.o \
   ../../porting/esp-idf/nvs_config.o \
   ../../porting/esp-idf/esp_idf_web_server.o \
-  ../../porting/esp-idf/esp_idf_mutex.o
+  ../../porting/esp-idf/esp_idf_mutex.o \
+  ../../porting/esp-idf/esp_idf_ota.o \
+
 
 COMPONENT_SRCDIRS := ../../../src/supla-common \
 										 ../../../src/supla \
