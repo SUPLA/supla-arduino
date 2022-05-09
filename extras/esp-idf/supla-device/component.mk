@@ -122,7 +122,7 @@ COMPONENT_SRCDIRS := ../../../src/supla-common \
 										 ../../../src/supla/device \
 										 ../../../src/supla/sensor \
 										 ../../../src/supla/storage \
-										 ../../../src/ \
+										 ../../../src \
 										 ../../../src/supla/network \
 										 ../../../src/supla/network/html \
 										 ../../porting/esp-idf \
