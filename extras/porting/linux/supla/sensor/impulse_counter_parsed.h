@@ -14,32 +14,35 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _virtual_binary_h
-#define _virtual_binary_h
+#ifndef _SUPLA_SENSOR_IMPULSE_COUNTER_PARSED_H_
+#define _SUPLA_SENSOR_IMPULSE_COUNTER_PARSED_H_
 
-#include "../channel_element.h"
-#include "../action_handler.h"
-#include "../actions.h"
+#include <supla/channel_element.h>
+#include <supla/parser/parser.h>
+#include "sensor_parsed.h"
+#include <string>
 
 namespace Supla {
-namespace Sensor {
-class VirtualBinary : public ChannelElement, public ActionHandler {
- public:
-  VirtualBinary();
-  virtual bool getValue();
-  void iterateAlways();
-  void onInit();
-  void handleAction(int event, int action);
-  void set();
-  void clear();
-  void toggle();
+  namespace Parser {
+    const char Counter[] = "counter";
+  };
 
- protected:
-  bool state;
-  unsigned long lastReadTime;
-};
+  namespace Sensor {
 
-};  // namespace Sensor
+    class ImpulseCounterParsed : public ChannelElement, public SensorParsed {
+      public:
+        ImpulseCounterParsed(Supla::Parser::Parser *);
+
+        virtual unsigned _supla_int64_t getValue();
+        virtual void onInit() override;
+        virtual void iterateAlways() override;
+
+      protected:
+        unsigned long lastReadTime = 0;
+        bool isDataErrorLogged = false;
+    };
+  };  // namespace Source
 };  // namespace Supla
 
-#endif
+#endif /*_SUPLA_SENSOR_IMPULSE_COUNTER_PARSED_H_*/
+

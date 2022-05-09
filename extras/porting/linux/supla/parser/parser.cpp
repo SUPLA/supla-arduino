@@ -14,32 +14,30 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _virtual_binary_h
-#define _virtual_binary_h
+#include "parser.h"
+#include <supla/time.h>
 
-#include "../channel_element.h"
-#include "../action_handler.h"
-#include "../actions.h"
+Supla::Parser::Parser::Parser(Supla::Source::Source *src) : source(src) {}
 
-namespace Supla {
-namespace Sensor {
-class VirtualBinary : public ChannelElement, public ActionHandler {
- public:
-  VirtualBinary();
-  virtual bool getValue();
-  void iterateAlways();
-  void onInit();
-  void handleAction(int event, int action);
-  void set();
-  void clear();
-  void toggle();
+void Supla::Parser::Parser::addKey(const std::string& key, int index) {
+  keys[key] = index;
+}
 
- protected:
-  bool state;
-  unsigned long lastReadTime;
-};
+bool Supla::Parser::Parser::isValid() {
+  return valid;
+}
 
-};  // namespace Sensor
-};  // namespace Supla
+bool Supla::Parser::Parser::refreshParserSource() {
+  if (!lastRefreshTime || millis() - lastRefreshTime > refreshTimeMs) {
+    lastRefreshTime = millis();
+    return refreshSource();
+  }
+  return true;
+}
 
-#endif
+void Supla::Parser::Parser::setRefreshTime(unsigned int timeMs) {
+  if (timeMs < 10) {
+    timeMs = 10;
+  }
+  refreshTimeMs = timeMs;
+}

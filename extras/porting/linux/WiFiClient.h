@@ -14,32 +14,13 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _virtual_binary_h
-#define _virtual_binary_h
+#ifndef __SUPLA_WIFICLIENT_H_
+#define __SUPLA_WIFICLIENT_H_
 
-#include "../channel_element.h"
-#include "../action_handler.h"
-#include "../actions.h"
+#include "network_client.h"
 
-namespace Supla {
-namespace Sensor {
-class VirtualBinary : public ChannelElement, public ActionHandler {
- public:
-  VirtualBinary();
-  virtual bool getValue();
-  void iterateAlways();
-  void onInit();
-  void handleAction(int event, int action);
-  void set();
-  void clear();
-  void toggle();
+typedef class Supla::NetworkClient WiFiClient;
 
- protected:
-  bool state;
-  unsigned long lastReadTime;
-};
+#endif /*__SUPLA_WIFICLIENT_H_*/
 
-};  // namespace Sensor
-};  // namespace Supla
 
-#endif

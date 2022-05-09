@@ -87,6 +87,10 @@ int Relay::handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue) {
 }
 
 void Relay::turnOn(_supla_int_t duration) {
+  supla_log(LOG_INFO,
+      "Relay[%d] turn ON (duration %d ms)",
+      channel.getChannelNumber(),
+      duration);
   durationMs = duration;
   durationTimestamp = millis();
   if (keepTurnOnDurationMs) {
@@ -101,6 +105,10 @@ void Relay::turnOn(_supla_int_t duration) {
 }
 
 void Relay::turnOff(_supla_int_t duration) {
+  supla_log(LOG_INFO,
+      "Relay[%d] turn OFF (duration %d ms)",
+      channel.getChannelNumber(),
+      duration);
   durationMs = duration;
   durationTimestamp = millis();
   Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOffValue());
@@ -117,6 +125,10 @@ bool Relay::isOn() {
 }
 
 void Relay::toggle(_supla_int_t duration) {
+  supla_log(LOG_DEBUG,
+      "Relay[%d] toggle (duration %d ms)",
+      channel.getChannelNumber(),
+      duration);
   if (isOn()) {
     turnOff(duration);
   } else {
@@ -156,7 +168,7 @@ void Relay::onLoadState() {
   Supla::Storage::ReadState((unsigned char *)&storedTurnOnDurationMs,
                             sizeof(storedTurnOnDurationMs));
   if (keepTurnOnDurationMs) {
-    supla_log(LOG_DEBUG, "Relay[%d]: restored durationMs: %d",
+    supla_log(LOG_INFO, "Relay[%d]: restored durationMs: %d",
         channel.getChannelNumber(), storedTurnOnDurationMs);
   } else {
     storedTurnOnDurationMs = 0;
@@ -165,7 +177,7 @@ void Relay::onLoadState() {
   bool enabled = false;
   Supla::Storage::ReadState((unsigned char *)&enabled, sizeof(enabled));
   if (stateOnInit < 0) {
-    supla_log(LOG_DEBUG, "Relay[%d]: restored relay state: %s",
+    supla_log(LOG_INFO, "Relay[%d]: restored relay state: %s",
         channel.getChannelNumber(), enabled ? "ON" : "OFF");
     if (enabled) {
       stateOnInit = STATE_ON_INIT_RESTORED_ON;

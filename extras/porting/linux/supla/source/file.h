@@ -14,32 +14,30 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _virtual_binary_h
-#define _virtual_binary_h
+#ifndef _SUPLA_SOURCE_FILE_H_
+#define _SUPLA_SOURCE_FILE_H_
 
-#include "../channel_element.h"
-#include "../action_handler.h"
-#include "../actions.h"
+#include <supla/parser/parser.h>
+#include "source.h"
+#include <filesystem>
 
 namespace Supla {
-namespace Sensor {
-class VirtualBinary : public ChannelElement, public ActionHandler {
- public:
-  VirtualBinary();
-  virtual bool getValue();
-  void iterateAlways();
-  void onInit();
-  void handleAction(int event, int action);
-  void set();
-  void clear();
-  void toggle();
 
- protected:
-  bool state;
-  unsigned long lastReadTime;
-};
+  namespace Source {
+    class File : public Source {
+      public:
+        File(const char *filePath, int expirationSec = 10*60);
+        virtual ~File();
+        virtual std::string getContent() override;
 
-};  // namespace Sensor
+        void setExpirationTime(int timeSec);
+
+      protected:
+        std::filesystem::path filePath;
+        int fileExpirationSec = 10*60;
+        bool fileIsTooOldLog = false;
+    };
+  };  // namespace Source
 };  // namespace Supla
 
-#endif
+#endif /*_SUPLA_SOURCE_FILE_H_*/

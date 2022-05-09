@@ -17,6 +17,7 @@
 #include <string.h>
 
 #include "SuplaDevice.h"
+#include "supla/version.h"
 #include "supla-common/log.h"
 #include "supla-common/srpc.h"
 #include "supla/channel.h"
@@ -143,7 +144,7 @@ bool SuplaDeviceClass::begin(unsigned char version) {
     }
     // If state storage validation was successful, perform read state
     if (Supla::Storage::FinalizeSaveState()) {
-      supla_log(LOG_DEBUG,
+      supla_log(LOG_INFO,
           "Storage state section validation completed. Loading elements "
           "state...");
       // Iterate all elements and load state
@@ -226,7 +227,7 @@ bool SuplaDeviceClass::begin(unsigned char version) {
   }
 
   if (strnlen(Supla::Channel::reg_dev.SoftVer, SUPLA_SOFTVER_MAXSIZE) == 0) {
-    setSwVersion("User SW, lib 2.4.1");
+    setSwVersion(suplaDeviceVersion);
   }
 
   supla_log(LOG_DEBUG, "Initializing network layer");
@@ -251,7 +252,7 @@ bool SuplaDeviceClass::begin(unsigned char version) {
   // Set Supla protocol interface version
   srpc_set_proto_version(srpc, version);
 
-  supla_log(LOG_DEBUG, "Using Supla protocol version %d", version);
+  supla_log(LOG_INFO, "Using Supla protocol version %d", version);
 
   if (generateGuidAndAuthkey) {
     auto cfg = Supla::Storage::ConfigInstance();
@@ -267,7 +268,7 @@ bool SuplaDeviceClass::begin(unsigned char version) {
       generateHexString(Supla::Channel::reg_dev.GUID, buf, SUPLA_GUID_SIZE);
       supla_log(LOG_INFO, "New GUID: %s", buf);
       generateHexString(Supla::Channel::reg_dev.AuthKey, buf, SUPLA_AUTHKEY_SIZE);
-      supla_log(LOG_INFO, "New AuthKey: %s", buf);
+      supla_log(LOG_DEBUG, "New AuthKey: %s", buf);
     } else {
       supla_log(LOG_ERR, "Failed to generate GUID and AuthKey");
       status(STATUS_INVALID_GUID, "Missing GUID");
@@ -368,7 +369,7 @@ void SuplaDeviceClass::iterate(void) {
           uptime.resetConnectionUptime();
           connectionFailCounter = 0;
           lastConnectionResetCounter = 0;
-          supla_log(LOG_DEBUG, "Connected to Supla Server");
+          supla_log(LOG_INFO, "Connected to Supla Server");
 
         } else {
           status(STATUS_SERVER_DISCONNECTED, "Not connected to Supla server");
@@ -454,7 +455,7 @@ void SuplaDeviceClass::iterate(void) {
 
 void SuplaDeviceClass::onVersionError(TSDC_SuplaVersionError *version_error) {
   status(STATUS_PROTOCOL_VERSION_ERROR, "Protocol version error");
-  supla_log(LOG_DEBUG,
+  supla_log(LOG_ERR,
       "Protocol version error. Server min: %d; Server version: %d",
       version_error->server_version_min,
       version_error->server_version);
@@ -695,7 +696,7 @@ void SuplaDeviceClass::loadDeviceConfig() {
   }
 
   if (configIncomplete) {
-    supla_log(LOG_DEBUG, "Config incomplete: deviceMode = CONFIG");
+    supla_log(LOG_INFO, "Config incomplete: deviceMode = CONFIG");
     deviceMode = Supla::DEVICE_MODE_CONFIG;
   }
 }
@@ -725,7 +726,7 @@ bool SuplaDeviceClass::iterateNetworkSetup() {
       connectionFailCounter > 0 &&
       connectionFailCounter % 6 == 0) {
     lastConnectionResetCounter = connectionFailCounter;
-    supla_log(LOG_DEBUG,
+    supla_log(LOG_WARNING,
               "Connection fail counter overflow. Trying to setup network "
               "interface again");
     Supla::Network::Setup();
@@ -769,7 +770,7 @@ bool SuplaDeviceClass::iterateSuplaProtocol(unsigned int _millis) {
     registered = -1;
     status(STATUS_REGISTER_IN_PROGRESS, "Register in progress");
     if (!srpc_ds_async_registerdevice_e(srpc, &Supla::Channel::reg_dev)) {
-      supla_log(LOG_DEBUG, "Fatal SRPC failure!");
+      supla_log(LOG_WARNING, "Fatal SRPC failure!");
     }
     return false;
   } else if (registered == -1) {

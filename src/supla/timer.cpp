@@ -32,6 +32,8 @@
 #elif defined(ESP_PLATFORM)
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
+#elif defined(SUPLA_LINUX)
+#include <linux_timers.h>
 #endif
 
 namespace {
@@ -142,7 +144,7 @@ void initTimers() {
   }
 
 #elif defined(SUPLA_LINUX)
-  supla_log(LOG_ERR, "Timers initialization: TODO");
+  Supla::Linux::Timers::init();
 #elif defined(SUPLA_FREERTOS)
   supla_log(LOG_ERR, "Timers initialication: TODO");
 #else

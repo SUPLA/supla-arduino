@@ -14,32 +14,37 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _virtual_binary_h
-#define _virtual_binary_h
+#ifndef __SUPLA_PARSER_JSON_H_
+#define __SUPLA_PARSER_JSON_H_
 
-#include "../channel_element.h"
-#include "../action_handler.h"
-#include "../actions.h"
+#include "parser.h"
+#include <supla/source/source.h>
+
+#include <nlohmann/json.hpp>
+#include <vector>
+#include <map>
+#include <string>
 
 namespace Supla {
-namespace Sensor {
-class VirtualBinary : public ChannelElement, public ActionHandler {
- public:
-  VirtualBinary();
-  virtual bool getValue();
-  void iterateAlways();
-  void onInit();
-  void handleAction(int event, int action);
-  void set();
-  void clear();
-  void toggle();
+  namespace Parser {
+    class Json : public Parser {
+      public:
+        Json(Supla::Source::Source *);
+        virtual ~Json();
 
- protected:
-  bool state;
-  unsigned long lastReadTime;
+        virtual bool refreshSource() override;
+
+        virtual double getValue(const std::string &key) override;
+
+        virtual bool isValid() override;
+      protected:
+
+        bool valid = false;
+        std::map<std::string, int> keys;
+
+        nlohmann::json json;
+
+    };
+  };
 };
-
-};  // namespace Sensor
-};  // namespace Supla
-
-#endif
+#endif /*__SUPLA_PARSER_JSON_H_*/

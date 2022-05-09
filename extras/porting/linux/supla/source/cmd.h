@@ -14,32 +14,26 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _virtual_binary_h
-#define _virtual_binary_h
+#ifndef _SUPLA_SOURCE_CMD_H_
+#define _SUPLA_SOURCE_CMD_H_
 
-#include "../channel_element.h"
-#include "../action_handler.h"
-#include "../actions.h"
+#include <supla/parser/parser.h>
+#include "source.h"
+#include <string>
 
 namespace Supla {
-namespace Sensor {
-class VirtualBinary : public ChannelElement, public ActionHandler {
- public:
-  VirtualBinary();
-  virtual bool getValue();
-  void iterateAlways();
-  void onInit();
-  void handleAction(int event, int action);
-  void set();
-  void clear();
-  void toggle();
 
- protected:
-  bool state;
-  unsigned long lastReadTime;
-};
+  namespace Source {
+    class Cmd : public Source {
+      public:
+        Cmd(const char *cmd);
+        virtual ~Cmd();
+        virtual std::string getContent() override;
 
-};  // namespace Sensor
+      protected:
+        std::string cmdLine;
+    };
+  };  // namespace Source
 };  // namespace Supla
 
-#endif
+#endif /*_SUPLA_SOURCE_CMD_H_*/

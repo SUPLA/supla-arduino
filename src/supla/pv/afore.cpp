@@ -15,6 +15,10 @@
 */
 
 #include "afore.h"
+#include <supla-common/log.h>
+#include <supla/time.h>
+#include <string.h>
+#include <stdlib.h>
 
 using namespace Supla;
 using namespace PV;
@@ -43,20 +47,19 @@ Afore::Afore(IPAddress ip, int port, const char *loginAndPass)
 void Afore::iterateAlways() {
   if (dataFetchInProgress) {
     if (millis() - connectionTimeoutMs > 30000) {
-      Serial.println(F("AFORE: connection timeout. Remote host is not responding"));
+      supla_log(LOG_DEBUG, "AFORE: connection timeout. Remote host is not responding");
       pvClient.stop();
       dataFetchInProgress = false;
       dataIsReady = false;
       return;
     }
     if (!pvClient.connected()) {
-      Serial.println(F("AFORE fetch completed"));
+      supla_log(LOG_DEBUG, "AFORE fetch completed");
       dataFetchInProgress = false;
       dataIsReady = true;
     }
     if (pvClient.available()) {
-      Serial.print(F("Reading data from afore: "));
-      Serial.println(pvClient.available());
+      supla_log(LOG_DEBUG, "Reading data from afore: %d", pvClient.available());
     }
     while (pvClient.available()) {
       char c;
@@ -70,15 +73,11 @@ void Afore::iterateAlways() {
           sscanf(buf, "%s = \"%s\";", varName, varValue);
           if (strncmp(varName, "webdata_now_p", strlen("webdata_now_p")) == 0) {
             float curPower = atof(varValue);
-            Serial.print(F("Current power: "));
-            Serial.println(curPower);
             currentPower = curPower * 100000;
           }
           if (strncmp(varName, "webdata_total_e", strlen("webdata_total_e")) ==
               0) {
             float totalProd = atof(varValue);
-            Serial.print(F("Total production: "));
-            Serial.println(totalProd);
 
             totalGeneratedEnergy = totalProd * 100000;
           }
@@ -116,12 +115,11 @@ bool Afore::iterateConnected(void *srpc) {
   if (!dataFetchInProgress) {
     if (lastReadTime == 0 || millis() - lastReadTime > refreshRateSec*1000) {
       lastReadTime = millis();
-      Serial.println(F("AFORE connecting"));
+      supla_log(LOG_DEBUG, "AFORE connecting");
       if (pvClient.connect(ip, port)) {
         retryCounter = 0;
         dataFetchInProgress = true;
         connectionTimeoutMs = lastReadTime;
-        Serial.println(F("Succesful connect"));
 
         pvClient.print("GET /status.html HTTP/1.1\nAuthorization: Basic ");
         pvClient.println(loginAndPassword);
@@ -130,10 +128,7 @@ bool Afore::iterateConnected(void *srpc) {
 
       } else {  // if connection wasn't successful, try few times. If it fails,
                 // then assume that inverter is off during the night
-        Serial.print(F("Failed to connect to Afore at: "));
-        Serial.print(ip);
-        Serial.print(F(":"));
-        Serial.println(port);
+        supla_log(LOG_DEBUG, "Failed to connect to Afore");
         retryCounter++;
         if (retryCounter > 3) {
           currentPower = 0;

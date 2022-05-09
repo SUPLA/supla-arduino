@@ -14,32 +14,32 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _virtual_binary_h
-#define _virtual_binary_h
+#include "linux_timers.h"
+#include <supla-common/log.h>
+#include <thread>
+#include <SuplaDevice.h>
+#include <supla/time.h>
 
-#include "../channel_element.h"
-#include "../action_handler.h"
-#include "../actions.h"
+void supla10msTimer() {
+  while (1) {
+    SuplaDevice.onTimer();
+    delay(10);
+  }
+}
 
-namespace Supla {
-namespace Sensor {
-class VirtualBinary : public ChannelElement, public ActionHandler {
- public:
-  VirtualBinary();
-  virtual bool getValue();
-  void iterateAlways();
-  void onInit();
-  void handleAction(int event, int action);
-  void set();
-  void clear();
-  void toggle();
+void supla1msTimer() {
+  while (1) {
+    SuplaDevice.onFastTimer();
+    delay(1);
+  }
+}
 
- protected:
-  bool state;
-  unsigned long lastReadTime;
-};
+void Supla::Linux::Timers::init() {
+  supla_log(LOG_DEBUG, "Starting linux timers...");
+  std::thread standardTimer(supla10msTimer);
+  standardTimer.detach();
 
-};  // namespace Sensor
-};  // namespace Supla
+  std::thread fastTimer(supla1msTimer);
+  fastTimer.detach();
 
-#endif
+}
