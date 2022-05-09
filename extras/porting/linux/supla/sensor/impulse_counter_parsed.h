@@ -39,6 +39,7 @@ namespace Supla {
 
       protected:
         unsigned long lastReadTime = 0;
+        bool isDataErrorLogged = false;
     };
   };  // namespace Source
 };  // namespace Supla

@@ -1,5 +1,6 @@
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.10.5/json.tar.xz)
-FetchContent_MakeAvailable(json)
+FetchContent_Declare(cxxopts URL https://github.com/jarro2783/cxxopts/archive/refs/tags/v3.0.0.tar.gz)
+FetchContent_MakeAvailable(json cxxopts)
 
 set(SUPLA_DEVICE_LINUX_SRCS
   linux_network.cpp
@@ -21,6 +22,11 @@ set(SUPLA_DEVICE_LINUX_SRCS
 
   ../../../src/supla/pv/fronius.cpp
   ../../../src/supla/pv/afore.cpp
+
+  ../../../src/supla-common/tools.c
+  ../../../src/supla-common/eh.c
+
+  linux_log.c
 )
 
 target_sources(supladevice
@@ -37,4 +43,5 @@ target_compile_definitions(supladevice PUBLIC SUPLA_LINUX)
 
 target_link_libraries (supladevice PUBLIC
   nlohmann_json::nlohmann_json
+  cxxopts::cxxopts
   )

@@ -16,6 +16,7 @@
 
 #include "bistable_relay.h"
 #include <supla/time.h>
+#include <supla-common/log.h>
 
 using namespace Supla;
 using namespace Control;
@@ -136,6 +137,9 @@ bool BistableRelay::isStatusUnknown() {
 }
 
 void BistableRelay::internalToggle() {
+  supla_log(LOG_INFO,
+      "BistableRelay[%d] toggle relay",
+      channel.getChannelNumber());
   busy = true;
   disarmTimeMs = millis();
   Supla::Io::digitalWrite(channel.getChannelNumber(), pin, pinOnValue());

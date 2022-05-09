@@ -18,6 +18,7 @@
 #include <chrono>
 #include <iostream>
 #include <fstream>
+#include <supla-common/log.h>
 
 Supla::Source::File::File(const char *filePath, int expirationSec) :
   filePath(filePath), fileExpirationSec(expirationSec) {
@@ -34,9 +35,14 @@ std::string Supla::Source::File::getContent() {
     auto now = std::filesystem::file_time_type::clock::now();
 
     if (fileTime + std::chrono::seconds(fileExpirationSec) < now) {
+      if (!fileIsTooOldLog) {
+        fileIsTooOldLog = true;
+        supla_log(LOG_DEBUG, "File: file \"%s\" is too old", filePath.c_str());
+      }
       // file is too old
       return result;
     } else {
+      fileIsTooOldLog = false;
       std::string line;
       while (std::getline(file, line)) {
         result.append(line).append("\n");

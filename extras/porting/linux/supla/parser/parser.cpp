@@ -27,10 +27,6 @@ bool Supla::Parser::Parser::isValid() {
   return valid;
 }
 
-void Supla::Parser::Parser::enableDebug() {
-  debug = true;
-}
-
 bool Supla::Parser::Parser::refreshParserSource() {
   if (!lastRefreshTime || millis() - lastRefreshTime > refreshTimeMs) {
     lastRefreshTime = millis();

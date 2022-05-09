@@ -35,6 +35,8 @@ namespace Supla {
         ThermometerParsed(Supla::Parser::Parser *);
         virtual double getValue() override;
         virtual void onInit() override;
+      protected:
+        bool isDataErrorLogged = false;
     };
   };  // namespace Source
 };  // namespace Supla

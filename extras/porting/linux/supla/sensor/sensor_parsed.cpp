@@ -62,9 +62,3 @@ bool Supla::Sensor::SensorParsed::isParameterConfigured(
     const std::string &parameter) {
   return parameterToKey.count(parameter) > 0;
 }
-
-void Supla::Sensor::SensorParsed::enableDebug() {
-  if (parser) {
-    parser->enableDebug();
-  }
-}

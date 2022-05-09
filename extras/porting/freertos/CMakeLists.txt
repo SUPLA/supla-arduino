@@ -1,4 +1,5 @@
 set(SUPLA_DEVICE_FREERTOS_SRCS
+  freertos_log.c
 )
 
 # FreeRTOS sources required for Linux compilation (from portable folder)

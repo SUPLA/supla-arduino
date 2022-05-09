@@ -16,6 +16,7 @@
 
 #include "impulse_counter_parsed.h"
 #include <supla/time.h>
+#include <supla-common/log.h>
 
 Supla::Sensor::ImpulseCounterParsed::ImpulseCounterParsed(
     Supla::Parser::Parser *parser) : SensorParsed(parser) {
@@ -39,10 +40,20 @@ unsigned _supla_int64_t Supla::Sensor::ImpulseCounterParsed::getValue() {
   if (isParameterConfigured(Supla::Parser::Counter)) {
     if (refreshParserSource()) {
       value = getParameterValue(Supla::Parser::Counter);
-      if (!parser->isValid()) {
-        return 0;
-      }
     }
+    if (!parser->isValid()) {
+      if (!isDataErrorLogged) {
+        isDataErrorLogged = true;
+        supla_log(LOG_WARNING,
+            "ImpulseCounterParsed: data source is not valid");
+      }
+      return 0;
+    } else {
+      isDataErrorLogged = false;
+    }
+  } else {
+    supla_log(LOG_WARNING,
+        "ImpulseCounterParsed: \"counter\" parameter is not configured");
   }
   return static_cast<unsigned _supla_int64_t>(value);
 }

@@ -36,31 +36,31 @@ int32_t print_ssl_error(SSL *ssl, int ret_code) {
 
   switch (ssl_error) {
     case SSL_ERROR_NONE:
-      supla_log(LOG_DEBUG, "SSL_ERROR_NONE");
+      supla_log(LOG_ERR, "SSL_ERROR_NONE");
       break;
     case SSL_ERROR_SSL:
-      supla_log(LOG_DEBUG, "SSL_ERROR_SSL");
+      supla_log(LOG_ERR, "SSL_ERROR_SSL");
       break;
     case SSL_ERROR_WANT_READ:
-      supla_log(LOG_DEBUG, "SSL_ERROR_WANT_READ");
+      supla_log(LOG_ERR, "SSL_ERROR_WANT_READ");
       break;
     case SSL_ERROR_WANT_WRITE:
-      supla_log(LOG_DEBUG, "SSL_ERROR_WANT_WRITE");
+      supla_log(LOG_ERR, "SSL_ERROR_WANT_WRITE");
       break;
     case SSL_ERROR_WANT_X509_LOOKUP:
-      supla_log(LOG_DEBUG, "SSL_ERROR_WANT_X509_LOOKUP");
+      supla_log(LOG_ERR, "SSL_ERROR_WANT_X509_LOOKUP");
       break;
     case SSL_ERROR_SYSCALL:
-      supla_log(LOG_DEBUG, "SSL_ERROR_SYSCALL");
+      supla_log(LOG_ERR, "SSL_ERROR_SYSCALL");
       break;
     case SSL_ERROR_ZERO_RETURN:
-      supla_log(LOG_DEBUG, "SSL_ERROR_ZERO_RETURN");
+      supla_log(LOG_ERR, "SSL_ERROR_ZERO_RETURN");
       break;
     case SSL_ERROR_WANT_CONNECT:
-      supla_log(LOG_DEBUG, "SSL_ERROR_WANT_CONNECT");
+      supla_log(LOG_ERR, "SSL_ERROR_WANT_CONNECT");
       break;
     case SSL_ERROR_WANT_ACCEPT:
-      supla_log(LOG_DEBUG, "SSL_ERROR_WANT_ACCEPT");
+      supla_log(LOG_ERR, "SSL_ERROR_WANT_ACCEPT");
       break;
   }
 
@@ -111,7 +111,7 @@ int Supla::LinuxNetwork::read(void *buf, int count) {
         break;
       }
       case SSL_ERROR_ZERO_RETURN: {
-        supla_log(LOG_DEBUG, "Connection closed by peer");
+        supla_log(LOG_INFO, "Connection closed by peer");
         Disconnect();
         break;
       }
@@ -149,7 +149,7 @@ int Supla::LinuxNetwork::connect(const char *server, int port) {
         "Server port is not 2016. Trying to establish secured connection anyway");
   }
 
-  supla_log(LOG_DEBUG,
+  supla_log(LOG_INFO,
       "Establishing connection with: %s (port: %d)",
       server,
       connectionPort);

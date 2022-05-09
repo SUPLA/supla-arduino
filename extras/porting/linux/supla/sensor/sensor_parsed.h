@@ -38,8 +38,6 @@ namespace Supla {
 
         bool isParameterConfigured(const std::string &parameter);
 
-        void enableDebug();
-
       protected:
         double getParameterValue(const std::string &parameter);
 

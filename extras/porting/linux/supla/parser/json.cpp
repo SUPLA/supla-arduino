@@ -33,9 +33,7 @@ bool Supla::Parser::Json::refreshSource() {
       return valid;
     }
 
-    if (debug) {
-      supla_log(LOG_DEBUG, "Source: %s", sourceContent.c_str());
-    }
+    supla_log(LOG_VERBOSE, "Source: %s", sourceContent.c_str());
     try {
       json = nlohmann::json::parse(sourceContent);
     } catch (nlohmann::json::parse_error& ex) {

@@ -15,6 +15,7 @@
 */
 
 #include "thermometer_parsed.h"
+#include <supla-common/log.h>
 
 Supla::Sensor::ThermometerParsed::ThermometerParsed(
     Supla::Parser::Parser *parser) : SensorParsed(parser) {
@@ -32,10 +33,15 @@ double Supla::Sensor::ThermometerParsed::getValue() {
   if (isParameterConfigured(Supla::Parser::Temperature)) {
     if (refreshParserSource()) {
       value = getParameterValue(Supla::Parser::Temperature);
-      if (!parser->isValid()) {
-        return TEMPERATURE_NOT_AVAILABLE;
-      }
     }
+    if (!parser->isValid()) {
+      if (!isDataErrorLogged) {
+        isDataErrorLogged = true;
+        supla_log(LOG_WARNING, "ThermometerParsed: source data error");
+      }
+      return TEMPERATURE_NOT_AVAILABLE;
+    }
+    isDataErrorLogged = false;
   }
   return value;
 }

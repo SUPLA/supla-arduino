@@ -85,6 +85,7 @@ namespace Supla {
         virtual void onInit() override;
 
       protected:
+        bool isDataErrorLogged = false;
     };
   };  // namespace Sensor
 };  // namespace Supla
