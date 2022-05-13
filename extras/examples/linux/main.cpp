@@ -87,6 +87,8 @@
 #include <supla/source/file.h>
 #include <supla/sensor/binary_parsed.h>
 
+#include <linux_yaml_config.h>
+
 // reguired by linux_log.c
 int logLevel = LOG_INFO;
 int runAsDaemon = 0;
@@ -99,7 +101,7 @@ int main(int argc, char *argv[]) {
       ("D,debug", "Enable debug logs")
       ("V,verbose", "Enable verbose debug logs", cxxopts::value<bool>()->default_value("false"))
       ("i,integer", "Int param", cxxopts::value<int>())
-      ("c,config", "Config file name", cxxopts::value<std::string>()->default_value("etc/supla-device.cfg"))
+      ("c,config", "Config file name", cxxopts::value<std::string>()->default_value("etc/supla-device.yaml"))
       ("d,daemon", "Run in daemon mode (run in background and log to syslog)")
       ("h,help", "Show this help")
       ("v,version", "Show version")
@@ -119,16 +121,21 @@ int main(int argc, char *argv[]) {
       exit(0);
     }
 
+    std::string cfgFile = result["config"].as<std::string>();
+    auto  config = std::make_unique<Supla::LinuxYamlConfig>(cfgFile);
+    // we init it earlier than in SuplaDevice.begin, because it is needed
+    // earlier
+    config->init();
 
-    if (result.count("debug")) {
+    if (result.count("debug") || config->isDebug()) {
       logLevel = LOG_DEBUG;
     }
 
-    if (result.count("verbose")) {
+    if (result.count("verbose") || config->isVerbose()) {
       logLevel = LOG_VERBOSE;
     }
 
-    if (result.count("daemon")) {
+    if (result.count("daemon") || config->isDaemon()) {
       runAsDaemon = 1;
       if (!st_try_fork()) {
         supla_log(LOG_ERR, "Can't start daemon");
@@ -136,77 +143,30 @@ int main(int argc, char *argv[]) {
       }
     }
 
+    supla_log(LOG_INFO, " *** Starting supla-device ***");
+    supla_log(LOG_INFO, "Using config file %s", cfgFile.c_str());
+
     st_hook_signals();
 
-    std::string cfgFile = result["config"].as<std::string>();
-    supla_log(LOG_INFO, "Using config file %s", cfgFile.c_str());
-    if (!st_file_exists(cfgFile.c_str())) {
-      supla_log(LOG_ERR, "Config file does not exists");
-//      exit(1);
+    if (!config->loadChannels()) {
+      supla_log(LOG_ERR, "Loading channels failed. Exit");
+      exit(1);
     }
-
 
     Supla::LinuxNetwork network;
 
-    // Replace the falowing GUID with value that you can retrieve from
-    // https://www.supla.org/arduino/get-guid
-    char GUID[SUPLA_GUID_SIZE] =
-    {0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00};
+    SuplaDevice.begin();
 
-    // Replace the following AUTHKEY with value that you can retrieve from:
-    // https://www.supla.org/arduino/get-authkey
-    char AUTHKEY[SUPLA_AUTHKEY_SIZE] =
-    {0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00};
-
-    auto r1 = new Supla::Control::VirtualRelay();
-    auto r2 = new Supla::Control::VirtualRelay();
-    auto r3 = new Supla::Control::VirtualRelay();
-    auto r4 = new Supla::Control::VirtualRelay();
-
-    new Supla::Control::RGBWLeds(1,2,3,4);
-    new Supla::Control::RGBLeds(1,2,3);
-    new Supla::Control::DimmerLeds(1);
-
-    new Supla::Control::RGBWLeds(1,2,3,4);
-    new Supla::Control::RGBLeds(1,2,3);
-
-    SuplaDevice.setServerPort(2016);
-    SuplaDevice.begin(GUID, "svrX.supla.org", "happy@supla.org", AUTHKEY);
+    if (SuplaDevice.getCurrentStatus() != STATUS_INITIALIZED) {
+      supla_log(LOG_INFO, "Incomplete configuration. Please fix it and try again");
+      exit(1);
+    }
 
     while (st_app_terminate == 0) {
       SuplaDevice.iterate();
       delay(10);
     }
+
     supla_log(LOG_INFO, "Exit");
     exit(0);
 
@@ -215,4 +175,3 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 }
-
