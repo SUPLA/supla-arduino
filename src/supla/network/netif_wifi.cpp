@@ -37,4 +37,8 @@ namespace Supla {
     }
   }
 
+  bool Wifi::isWifiConfigRequired() {
+    return true;
+  }
+
 };  // namespace Supla

@@ -18,11 +18,19 @@
 #define __SUPLA_IPADDRESS_H_
 
 #include <cstdint>
+#include <string>
 
-typedef union {
-  uint8_t addr[4];
-  uint32_t full;
-} IPAddress;
+class IPAddress {
+  public:
+  IPAddress();
+  IPAddress(uint8_t ip1, uint8_t ip2, uint8_t ip3, uint8_t ip4);
+  IPAddress(const std::string &ip);
+
+  union {
+    uint8_t addr[4] = {};
+    uint32_t full;
+  };
+};
 
 #endif /*__SUPLA_IPADDRESS_H_*/
 

@@ -42,6 +42,8 @@ int generateHexString(const void *input,
     int inputLength,
     char separator = 0);
 
+void hexStringToArray(const char *input, char *output, int outputLength);
+
 // Converts hex string value to integer
 uint32_t hexStringToInt(const char *str, int len);
 

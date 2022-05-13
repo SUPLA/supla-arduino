@@ -59,3 +59,6 @@ bool Supla::Parser::Simple::refreshSource() {
   return false;
 }
 
+bool Supla::Parser::Simple::isBasedOnIndex() {
+  return true;
+}

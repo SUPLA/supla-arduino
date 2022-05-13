@@ -1,10 +1,17 @@
+include(FetchContent)
+
+find_package(yaml-cpp REQUIRED)
+find_package(OpenSSL REQUIRED)
+
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.10.5/json.tar.xz)
 FetchContent_Declare(cxxopts URL https://github.com/jarro2783/cxxopts/archive/refs/tags/v3.0.0.tar.gz)
 FetchContent_MakeAvailable(json cxxopts)
 
 set(SUPLA_DEVICE_LINUX_SRCS
   linux_network.cpp
+  linux_yaml_config.cpp
   linux_platform.cpp
+  IPAddress.cpp
 
   linux_timers.cpp
   network_client.cpp
@@ -32,18 +39,23 @@ set(SUPLA_DEVICE_LINUX_SRCS
 )
 
 target_sources(supladevice
-  PUBLIC
+  PRIVATE
   ${SUPLA_DEVICE_LINUX_SRCS}
   )
 
 target_include_directories (supladevice
   PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}
+  ${YAML_INCLUDE_DIRS}
   )
 
 target_compile_definitions(supladevice PUBLIC SUPLA_LINUX)
 
+#target_compile_options(supladevice PRIVATE -Wall -Wextra -Wpedantic -Werror)
+
 target_link_libraries (supladevice PUBLIC
   nlohmann_json::nlohmann_json
   cxxopts::cxxopts
+  OpenSSL::SSL
+  ${YAML_CPP_LIBRARIES}
   )

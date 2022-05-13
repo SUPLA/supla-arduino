@@ -14,32 +14,18 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _SUPLA_PARSER_SIMPLE_H_
-#define _SUPLA_PARSER_SIMPLE_H_
+#include "IPAddress.h"
+#include <arpa/inet.h>
 
-#include <supla/source/source.h>
-#include "parser.h"
-#include <string>
-#include <vector>
+IPAddress::IPAddress() {}
 
-namespace Supla {
+IPAddress::IPAddress(uint8_t ip1, uint8_t ip2, uint8_t ip3, uint8_t ip4) {
+    addr[0] = ip1;
+    addr[1] = ip2;
+    addr[2] = ip3;
+    addr[3] = ip4;
+}
 
-  namespace Parser {
-    class Simple : public Parser {
-      public:
-        Simple(Supla::Source::Source *);
-        virtual ~Simple();
-
-        virtual bool isBasedOnIndex() override;
-        virtual bool refreshSource() override;
-
-        virtual double getValue(const std::string &key) override;
-
-      protected:
-        std::map<int, double> values;
-    };
-  };  // namespace Parser
-};  // namespace Supla
-
-#endif /*_SUPLA_PARSER_SIMPLE_H_*/
-
+IPAddress::IPAddress(const std::string &ip) {
+  full = inet_addr(ip.c_str());
+}

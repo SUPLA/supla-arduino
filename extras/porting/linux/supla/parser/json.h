@@ -36,6 +36,7 @@ namespace Supla {
 
         virtual double getValue(const std::string &key) override;
 
+        bool isBasedOnIndex() override;
         virtual bool isValid() override;
       protected:
 

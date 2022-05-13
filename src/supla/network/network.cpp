@@ -419,4 +419,8 @@ void Network::setSuplaDeviceClass(SuplaDeviceClass *ptr) {
   sdc = ptr;
 }
 
+bool Network::isWifiConfigRequired() {
+  return false;
+}
+
 };  // namespace Supla

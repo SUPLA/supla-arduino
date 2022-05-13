@@ -34,6 +34,7 @@ namespace Supla {
         virtual double getValue(const std::string &key) = 0;
 
         virtual bool isValid();
+        virtual bool isBasedOnIndex() = 0;
         void setRefreshTime(unsigned int timeMs);
       protected:
         virtual bool refreshSource() = 0;

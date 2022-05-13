@@ -31,6 +31,7 @@ class Wifi : public Supla::Network {
 
   void setSsid(const char *wifiSsid) override;
   void setPassword(const char *wifiPassword) override;
+  bool isWifiConfigRequired() override;
 
  protected:
   char ssid[MAX_SSID_SIZE] = {};

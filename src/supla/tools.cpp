@@ -90,6 +90,13 @@ int generateHexString(const void *input, char *output, int inputLength, char sep
   return destIdx;
 }
 
+void hexStringToArray(const char *input, char *output, int outputLength) {
+  for (int i = 0; i < outputLength; i++) {
+    output[i] = hexStringToInt(input + 2*i, 2);
+  }
+  return;
+}
+
 uint32_t hexStringToInt(const char *str, int len) {
   uint32_t result = 0;
 

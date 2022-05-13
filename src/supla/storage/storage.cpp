@@ -306,12 +306,14 @@ int Storage::updateStorage(unsigned int offset, const unsigned char *buf, int si
     return 0;
   }
 
-  unsigned char currentData[size];
+  unsigned char *currentData = new unsigned char [size];
   readStorage(offset, currentData, size, false);
 
   if (memcmp(currentData, buf, size)) {
+    delete [] currentData;
     return writeStorage(offset, buf, size);
   }
+  delete [] currentData;
   return size;
 }
 

@@ -630,10 +630,12 @@ void SuplaDeviceClass::loadDeviceConfig() {
   char buf[256] = {};
 
   // Device generic config
+  memset(buf, 0, sizeof(buf));
   if (cfg->getDeviceName(buf)) {
     setName(buf);
   }
 
+  memset(buf, 0, sizeof(buf));
   if (cfg->getGUID(buf)) {
     setGUID(buf);
   }
@@ -645,21 +647,24 @@ void SuplaDeviceClass::loadDeviceConfig() {
 
   // Supla protocol specific config
   if (cfg->isSuplaCommProtocolEnabled()) {
+    memset(buf, 0, sizeof(buf));
     if (cfg->getSuplaServer(buf) && strlen(buf) > 0) {
       setServer(buf);
     } else {
-      supla_log(LOG_DEBUG, "Config incomplete: missing server");
+      supla_log(LOG_INFO, "Config incomplete: missing server");
       configIncomplete = true;
     }
     setServerPort(cfg->getSuplaServerPort());
 
+    memset(buf, 0, sizeof(buf));
     if (cfg->getEmail(buf) && strlen(buf) > 0) {
       setEmail(buf);
     } else {
-      supla_log(LOG_DEBUG, "Config incomplete: missing email");
+      supla_log(LOG_INFO, "Config incomplete: missing email");
       configIncomplete = true;
     }
 
+    memset(buf, 0, sizeof(buf));
     if (cfg->getAuthKey(buf)) {
       setAuthKey(buf);
     }
@@ -677,19 +682,21 @@ void SuplaDeviceClass::loadDeviceConfig() {
   // WiFi specific config
   auto net = Supla::Network::Instance();
 
-  if (net != nullptr) {
+  if (net != nullptr && net->isWifiConfigRequired()) {
+    memset(buf, 0, sizeof(buf));
     if (cfg->getWiFiSSID(buf) && strlen(buf) > 0) {
       net->setSsid(buf);
     } else {
-      supla_log(LOG_DEBUG, "Config incomplete: missing Wi-Fi SSID");
+      supla_log(LOG_INFO, "Config incomplete: missing Wi-Fi SSID");
       addLastStateLog("Missing Wi-Fi SSID");
       configIncomplete = true;
     }
 
+    memset(buf, 0, sizeof(buf));
     if (cfg->getWiFiPassword(buf) && strlen(buf) > 0) {
       net->setPassword(buf);
     } else {
-      supla_log(LOG_DEBUG, "Config incomplete: missing Wi-Fi password");
+      supla_log(LOG_INFO, "Config incomplete: missing Wi-Fi password");
       addLastStateLog("Missing Wi-Fi password");
       configIncomplete = true;
     }

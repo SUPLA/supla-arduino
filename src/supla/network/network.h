@@ -68,6 +68,7 @@ class Network {
   virtual void fillStateData(TDSC_ChannelState &channelState);
 
   // WiFi specific part
+  virtual bool isWifiConfigRequired();
   virtual void setSsid(const char *wifiSsid);
   virtual void setPassword(const char *wifiPassword);
 

@@ -61,3 +61,6 @@ double Supla::Parser::Json::getValue(const std::string &key) {
   return 0;
 }
 
+bool Supla::Parser::Json::isBasedOnIndex() {
+  return false;
+}
