@@ -67,10 +67,10 @@ steps:
   commands:
   - export SUPLA_DEVICE_PATH=/drone/src
   - cd extras/examples/linux
-  - rm -f build/supla-linux-example
+  - rm -f build/supla-device-linux
   - cmake -B build
   - cmake --build build
-  - /bin/bash -c "[ -f build/supla-linux-example ] && true || false"
+  - /bin/bash -c "[ -f build/supla-device-linux ] && true || false"
 
 - name: arduino_esp8266_compilation_check
   image: devel/arduino-cli
