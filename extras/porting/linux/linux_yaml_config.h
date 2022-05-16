@@ -131,6 +131,8 @@ namespace Supla {
       virtual int32_t getSuplaServerPort() override;
       virtual bool getEmail(char* result) override;
 
+      std::string getStateFilesPath();
+
     protected:
       bool parseChannel(const YAML::Node& ch, int channelNumber);
       Supla::Parser::Parser* addParser(const YAML::Node& parser,
@@ -151,9 +153,12 @@ namespace Supla {
       bool addBinaryParsed(const YAML::Node& ch,
           int channelNumber,
           Supla::Parser::Parser *parser);
+      void loadGuidAuthFromPath(const std::string& path);
+      void saveGuidAuth(const std::string& path);
 
       std::string file;
       YAML::Node config;
+      std::string stateFilesLocaltion;
 
       std::string guid;
       std::string authkey;
