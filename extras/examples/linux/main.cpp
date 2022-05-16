@@ -88,6 +88,7 @@
 #include <supla/sensor/binary_parsed.h>
 
 #include <linux_yaml_config.h>
+#include <linux_file_state_logger.h>
 
 // reguired by linux_log.c
 int logLevel = LOG_INFO;
@@ -153,6 +154,8 @@ int main(int argc, char *argv[]) {
       exit(1);
     }
 
+    SuplaDevice.setLastStateLogger(
+        new Supla::Device::FileStateLogger(config->getStateFilesPath()));
     Supla::LinuxNetwork network;
 
     SuplaDevice.begin();

@@ -119,7 +119,9 @@ bool SuplaDeviceClass::begin(unsigned char version) {
   Supla::Storage::Init();
 
   if (Supla::Storage::IsConfigStorageAvailable()) {
-    lastStateLogger = new Supla::Device::LastStateLogger();
+    if (!lastStateLogger) {
+      lastStateLogger = new Supla::Device::LastStateLogger();
+    }
     addFlags(SUPLA_DEVICE_FLAG_CALCFG_ENTER_CFG_MODE);
     loadDeviceConfig();
 
@@ -1094,6 +1096,11 @@ void SuplaDeviceClass::setRsaPublicKeyPtr(const uint8_t *ptr) {
 void SuplaDeviceClass::setAutomaticResetOnConnectionProblem(
     unsigned int timeSec) {
   resetOnConnectionFailCounter = timeSec / 10;
+}
+
+void SuplaDeviceClass::setLastStateLogger(
+    Supla::Device::LastStateLogger *logger) {
+  lastStateLogger = logger;
 }
 
 SuplaDeviceClass SuplaDevice;

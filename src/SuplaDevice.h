@@ -143,6 +143,8 @@ class SuplaDeviceClass : public Supla::ActionHandler {
   // timeSec <= 60 will disable automatic restart.
   void setAutomaticResetOnConnectionProblem(unsigned int timeSec);
 
+  void setLastStateLogger(Supla::Device::LastStateLogger *logger);
+
  protected:
   void *srpc = nullptr;
   int8_t registered = 0;
