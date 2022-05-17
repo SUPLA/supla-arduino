@@ -138,7 +138,7 @@ class SuplaDeviceClass : public Supla::ActionHandler {
   void handleAction(int event, int action) override;
 
   // Enables automatic software reset of device in case of network/server
-  // connection problems longer thatn timeSec.
+  // connection problems longer than timeSec.
   // timeSec is always round down to multiplication of 10 s.
   // timeSec <= 60 will disable automatic restart.
   void setAutomaticResetOnConnectionProblem(unsigned int timeSec);

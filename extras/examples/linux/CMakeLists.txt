@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.13)
 project(supla-device-linux)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_BUILD_TYPE Debug)
 
@@ -12,6 +14,7 @@ set(BOARD_SRC
   main.cpp
   )
 
+link_libraries( "$<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:-lstdc++fs>" )
 # supladevice library target is used in porting/linux cmake
 add_library(supladevice "")
 add_subdirectory($ENV{SUPLA_DEVICE_PATH} supla-device)
