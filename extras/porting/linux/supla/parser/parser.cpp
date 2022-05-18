@@ -16,6 +16,7 @@
 
 #include "parser.h"
 #include <supla/time.h>
+#include <supla-common/log.h>
 
 Supla::Parser::Parser::Parser(Supla::Source::Source *src) : source(src) {}
 

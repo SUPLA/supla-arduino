@@ -104,6 +104,7 @@ int main(int argc, char *argv[]) {
       ("i,integer", "Int param", cxxopts::value<int>())
       ("c,config", "Config file name", cxxopts::value<std::string>()->default_value("etc/supla-device.yaml"))
       ("d,daemon", "Run in daemon mode (run in background and log to syslog)")
+      ("s,service", "Run as a service (log to syslog but don't fork)")
       ("h,help", "Show this help")
       ("v,version", "Show version")
       ;
@@ -122,8 +123,33 @@ int main(int argc, char *argv[]) {
       exit(0);
     }
 
+    if (result.count("daemon")) {
+      runAsDaemon = 1;
+      if (!st_try_fork()) {
+        supla_log(LOG_ERR, "Can't start daemon");
+        exit(1);
+      }
+    }
+
+    if (result.count("service") && result.count("daemon")) {
+      supla_log(LOG_ERR, "Can't use daemon and service mode at the same time");
+      exit(1);
+    }
+
+    if (result.count("service")) {
+      runAsDaemon = true; // just for using syslog
+      if ((chdir("/")) < 0) {
+        supla_log(LOG_ERR, "Can't start as a service");
+        exit(1);
+      }
+
+      close(STDIN_FILENO);
+      close(STDOUT_FILENO);
+      close(STDERR_FILENO);
+    }
+
     std::string cfgFile = result["config"].as<std::string>();
-    auto  config = std::make_unique<Supla::LinuxYamlConfig>(cfgFile);
+    auto config = std::make_unique<Supla::LinuxYamlConfig>(cfgFile);
     // we init it earlier than in SuplaDevice.begin, because it is needed
     // earlier
     config->init();
@@ -136,14 +162,6 @@ int main(int argc, char *argv[]) {
       logLevel = LOG_VERBOSE;
     }
 
-    if (result.count("daemon") || config->isDaemon()) {
-      runAsDaemon = 1;
-      if (!st_try_fork()) {
-        supla_log(LOG_ERR, "Can't start daemon");
-        exit(1);
-      }
-    }
-
     supla_log(LOG_INFO, " *** Starting supla-device ***");
     supla_log(LOG_INFO, "Using config file %s", cfgFile.c_str());
 
@@ -153,6 +171,7 @@ int main(int argc, char *argv[]) {
       supla_log(LOG_ERR, "Loading channels failed. Exit");
       exit(1);
     }
+
 
     SuplaDevice.setLastStateLogger(
         new Supla::Device::FileStateLogger(config->getStateFilesPath()));
@@ -169,8 +188,8 @@ int main(int argc, char *argv[]) {
       SuplaDevice.iterate();
       delay(10);
     }
-
     supla_log(LOG_INFO, "Exit");
+
     exit(0);
 
   } catch (const cxxopts::OptionException& e) {

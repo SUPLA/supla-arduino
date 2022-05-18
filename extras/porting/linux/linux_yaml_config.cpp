@@ -98,18 +98,6 @@ bool Supla::LinuxYamlConfig::isVerbose() {
   return false;
 }
 
-bool Supla::LinuxYamlConfig::isDaemon() {
-  try {
-    if (config["daemon"]) {
-      auto daemon = config["daemon"].as<bool>();
-      return daemon;
-    }
-  } catch (const YAML::Exception& ex) {
-    supla_log(LOG_ERR, "Config file YAML error: %s", ex.what());
-  }
-  return false;
-}
-
 void Supla::LinuxYamlConfig::removeAll() {
 }
 
@@ -143,8 +131,7 @@ bool Supla::LinuxYamlConfig::generateGuidAndAuthkey() {
   setGUID(guid);
   setAuthKey(authkey);
 
-  saveGuidAuth(getStateFilesPath());
-  return true;
+  return saveGuidAuth(getStateFilesPath());
 }
 
 // Generic getters and setters
@@ -672,6 +659,10 @@ Supla::Parser::Parser* Supla::LinuxYamlConfig::addParser(
       supla_log(LOG_ERR, "Config: unknown parser type \"%s\"", type.c_str());
       return nullptr;
     }
+    if (parser["refresh_time_ms"]) {
+      int timeMs = parser["refresh_time_ms"].as<int>();
+      prs->setRefreshTime(timeMs);
+    }
   } else {
     supla_log(LOG_ERR, "Config: type not defined for parser");
     return nullptr;
@@ -786,12 +777,12 @@ void Supla::LinuxYamlConfig::loadGuidAuthFromPath(const std::string & path) {
   }
 }
 
-void Supla::LinuxYamlConfig::saveGuidAuth(const std::string& path) {
+bool Supla::LinuxYamlConfig::saveGuidAuth(const std::string& path) {
   if (!std::filesystem::exists(path)) {
     std::error_code err;
     if (!std::filesystem::create_directories(path, err)) {
       supla_log(LOG_WARNING, "Config: failed to create folder for state files");
-      return;
+      return false;
     }
   }
   YAML::Node outputYaml;
@@ -801,5 +792,10 @@ void Supla::LinuxYamlConfig::saveGuidAuth(const std::string& path) {
   std::ofstream out(path + Supla::GuidAuthFileName);
   out << outputYaml;
   out.close();
+  if (out.fail()) {
+    supla_log(LOG_ERR, "Config: failed to write guid/authkey to file");
+    return false;
+  }
 
+  return true;
 }

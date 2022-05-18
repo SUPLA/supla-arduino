@@ -34,8 +34,6 @@
 name: Device name
 # log_level - optional, values: info (default), debug, verbose
 log_level: debug
-# daemon - optional, values: true, false (default)
-daemon: true
 
 supla:
   server: svrXYZ.supla.org
@@ -46,15 +44,14 @@ supla:
 # at the end of the list. Otherwise, you will have to remove device from
 # Cloud and register it again (whole measurement history will be lost).
 channels:
-  - type: relay
-    defaultFunction: light
-    gpio: 4
-  - type: impulseCounterParsed
+  - type: VirtualRelay
+
+  - type: ImpulseCounterParsed
     source:
-      type: file
-      filePath: /home/something
+      type: File
+      file: /home/something
     parser:
-      type: json
+      type: Json
       counter: total_m3
 
  */
@@ -80,7 +77,6 @@ namespace Supla {
 
       bool isDebug();
       bool isVerbose();
-      bool isDaemon();
 
       bool loadChannels();
 
@@ -154,7 +150,7 @@ namespace Supla {
           int channelNumber,
           Supla::Parser::Parser *parser);
       void loadGuidAuthFromPath(const std::string& path);
-      void saveGuidAuth(const std::string& path);
+      bool saveGuidAuth(const std::string& path);
 
       std::string file;
       YAML::Node config;
