@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
 
     if (result.count("version"))
     {
-      std::cout << argv[0] << " version: " << suplaDeviceVersion << std::endl;
+      std::cout << argv[0] << " version: " << SUPLA_SHORT_VERSION << std::endl;
       exit(0);
     }
 
