@@ -239,8 +239,6 @@ class ESPWifi : public Supla::Wifi {
   bool isSecured = true;
   bool wifiConfigured = false;
   String fingerprint;
-  char ssid[MAX_SSID_SIZE];
-  char password[MAX_WIFI_PASSWORD_SIZE];
 
 #ifdef ARDUINO_ARCH_ESP8266
   WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
