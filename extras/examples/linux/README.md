@@ -471,3 +471,61 @@ AMIplus meter on standard single tariff:
           - voltage: voltage_at_phase_2_v
         phase_3:
           - voltage: voltage_at_phase_3_v
+
+# Running supla-device as a service
+
+Following example will use `systemctl` for running supla-device as a service.
+
+First, prepare configuration file in `/etc/supla-device.yaml`.
+
+Create directory for GUID and state files with proper access rights:
+
+    sudo mkdir -p /var/lib/supla-device
+    sudo chown supla_user_name /var/lib/supla-device
+
+Prepare service file: `/etc/systemd/system/supla-device.service`:
+
+    [Unit]
+    Description=Supla Device
+    After=network-online.target
+
+    [Service]
+    User=supla_user_name
+    ExecStart=/home/supla/supla-device/extras/examples/linux/build/supla-device-linux -s
+
+    [Install]
+    WantedBy=multi-user.target
+
+Please adjust `supla_user_name` and ExecStart path to your needs.
+
+Then call:
+
+    sudo systemctl enable supla-device.service
+    sudo systemctl start supla-device.service
+
+And check if it works:
+
+    sudo systemctl status supla-device.service
+
+Example output:
+
+    ● supla-device.service - Supla  Device
+      Loaded: loaded (/etc/systemd/system/supla-device.service; enabled; vendor preset: enabled)
+      Active: active (running) since Wed 2022-05-18 14:38:52 CEST; 8s ago
+    Main PID: 7944 (supla-device-li)
+       Tasks: 3 (limit: 4699)
+      Memory: 980.0K
+     CGroup: /system.slice/supla-device.service
+             └─7944 /home/supla/supla-device/extras/examples/linux/build/supla-device-linux -s
+
+    maj 18 14:38:52 supla-dev-01 supla-device-linux[7944]: Enter normal mode
+    maj 18 14:38:52 supla-dev-01 supla-device-linux[7944]: Using Supla protocol version 16
+    maj 18 14:38:52 supla-dev-01 supla-device-linux[7944]: LAST STATE ADDED: SuplaDevice initialized
+    maj 18 14:38:52 supla-dev-01 supla-device-linux[7944]: Current status: [5] SuplaDevice initialized
+    maj 18 14:38:52 supla-dev-01 supla-device-linux[7944]: Establishing connection with: beta-cloud.supla.org (port: 2016)
+    maj 18 14:38:54 supla-dev-01 supla-device-linux[7944]: Connected to Supla Server
+    maj 18 14:38:54 supla-dev-01 supla-device-linux[7944]: LAST STATE ADDED: Register in progress
+    maj 18 14:38:54 supla-dev-01 supla-device-linux[7944]: Current status: [10] Register in progress
+    maj 18 14:38:54 supla-dev-01 supla-device-linux[7944]: LAST STATE ADDED: Registered and ready
+    maj 18 14:38:54 supla-dev-01 supla-device-linux[7944]: Current status: [17] Registered and ready
+
