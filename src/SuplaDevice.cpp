@@ -487,11 +487,11 @@ void SuplaDeviceClass::onRegisterResult(
       lastIterateTime = millis();
       status(STATUS_REGISTERED_AND_READY, "Registered and ready");
 
-      if (activity_timeout != ACTIVITY_TIMEOUT) {
+      if (activity_timeout != activityTimeout) {
         supla_log(
-            LOG_DEBUG, "Changing activity timeout to %d", ACTIVITY_TIMEOUT);
+            LOG_DEBUG, "Changing activity timeout to %d", activityTimeout);
         TDCS_SuplaSetActivityTimeout at;
-        at.activity_timeout = ACTIVITY_TIMEOUT;
+        at.activity_timeout = activityTimeout;
         srpc_dcs_async_set_activity_timeout(srpc, &at);
       }
 
@@ -1101,6 +1101,10 @@ void SuplaDeviceClass::setAutomaticResetOnConnectionProblem(
 void SuplaDeviceClass::setLastStateLogger(
     Supla::Device::LastStateLogger *logger) {
   lastStateLogger = logger;
+}
+
+void SuplaDeviceClass::setActivityTimeout(_supla_int_t newActivityTimeout) {
+  activityTimeout = newActivityTimeout;
 }
 
 SuplaDeviceClass SuplaDevice;

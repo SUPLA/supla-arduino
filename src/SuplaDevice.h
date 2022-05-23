@@ -26,8 +26,6 @@
 #include "supla/device/last_state_logger.h"
 #include "supla/action_handler.h"
 
-#define ACTIVITY_TIMEOUT 30
-
 #define STATUS_UNKNOWN                   -1
 #define STATUS_ALREADY_INITIALIZED       1
 #define STATUS_MISSING_NETWORK_INTERFACE 2
@@ -135,6 +133,8 @@ class SuplaDeviceClass : public Supla::ActionHandler {
   void setRsaPublicKeyPtr(const uint8_t *ptr);
   const uint8_t *getRsaPublicKey();
 
+  void setActivityTimeout(_supla_int_t newActivityTimeout);
+
   void handleAction(int event, int action) override;
 
   // Enables automatic software reset of device in case of network/server
@@ -158,6 +158,7 @@ class SuplaDeviceClass : public Supla::ActionHandler {
   unsigned long deviceRestartTimeoutTimestamp = 0;
   unsigned int forceRestartTimeMs = 0;
   unsigned int resetOnConnectionFailCounter = 0;
+  _supla_int_t activityTimeout = 30;
 
   enum Supla::DeviceMode deviceMode = Supla::DEVICE_MODE_NOT_SET;
   int currentStatus = STATUS_UNKNOWN;
