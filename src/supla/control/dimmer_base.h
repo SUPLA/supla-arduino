@@ -35,7 +35,7 @@ class DimmerBase : public RGBWBase {
 
   void onLoadState();
   void onSaveState();
-  
+
  protected:
   virtual void iterateDimmerRGBW(int rgbStep, int wStep);
 

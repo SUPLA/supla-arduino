@@ -1065,6 +1065,51 @@ TEST(RgbwDimmerTests, SetValueOnDeviceWithFading) {
   EXPECT_EQ(ch->getValueBrightness(), 0);
 }
 
+TEST(RgbwDimmerTests, MinAndMaxLimits) {
+  // time stub will return +1000 ms on each call to millis
+  TimeInterfaceStub time;
+  ::testing::InSequence seq;
+
+  RgbwBaseForTest rgb;
+  rgb.setBrightnessLimits(100, 500)
+    .setColorBrightnessLimits(600, 700);
+
+  // fade effect 1000 ms, time step 1000 ms
+  // Limits: brightness (100, 500), colorBrightness (600, 700)
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 600, 100));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 700, 500));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 600, 100));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 600, (20*4 + 100 - 1)));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 600, 100));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 700, (20*4 + 100 - 1)));
+  EXPECT_CALL(rgb, setRGBWValueOnDevice(0, 1023, 0, 600, 100));
+
+  auto ch = rgb.getChannel();
+
+  // time stub gives +1000 ms on each call to millis, and fade time is 1000 ms,
+  // so it should set value on device as it is
+  rgb.onInit();
+  rgb.onTimer();  // off
+  rgb.turnOn();
+  rgb.onTimer();  // on
+  rgb.toggle();
+  rgb.onTimer();  // toggle -> off
+  rgb.handleAction(1, Supla::TURN_ON_W_DIMMED);
+  rgb.onTimer();  // white ON
+  rgb.turnOff();
+  rgb.onTimer();  // off
+  rgb.turnOn();
+  rgb.onTimer();  // ON
+  rgb.turnOff();
+  rgb.onTimer();  // OFF
+
+  EXPECT_EQ(ch->getValueRed(), 0);
+  EXPECT_EQ(ch->getValueGreen(), 0);
+  EXPECT_EQ(ch->getValueBlue(), 0);
+  EXPECT_EQ(ch->getValueColorBrightness(), 0);
+  EXPECT_EQ(ch->getValueBrightness(), 0);
+}
+
 class StorageMock: public Supla::Storage {
  public:
   MOCK_METHOD(void, scheduleSave, (unsigned long), (override));
