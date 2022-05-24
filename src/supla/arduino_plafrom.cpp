@@ -20,6 +20,9 @@
 #include "tools.h"
 
 void deviceSoftwareReset() {
+#ifndef __AVR__
+  ESP.restart();
+#endif
 // TODO implement software reset for Arduino IDE based targets
 }
 

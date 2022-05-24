@@ -21,6 +21,11 @@
 
 #ifdef ARDUINO_ARCH_ESP8266
 #include <ESP8266WiFi.h>
+
+// workaround for incompatible names in ESP8266 and ESP32 boards
+#define WIFI_MODE_AP WIFI_AP
+#define WIFI_MODE_STA WIFI_STA
+
 #else
 #include <WiFi.h>
 #endif
@@ -45,38 +50,43 @@ class ESPWifi : public Supla::Wifi {
   }
 
   int read(void *buf, int count) {
-    _supla_int_t size = client->available();
+    if (client) {
+      _supla_int_t size = client->available();
 
-    if (size > 0) {
-      if (size > count) size = count;
-      long readSize = client->read((uint8_t *)buf, size);
+      if (size > 0) {
+        if (size > count) size = count;
+        long readSize = client->read((uint8_t *)buf, size);
 #ifdef SUPLA_COMM_DEBUG
-      Serial.print(F("Received: ["));
-      for (int i = 0; i < readSize; i++) {
+        Serial.print(F("Received: ["));
+        for (int i = 0; i < readSize; i++) {
+          Serial.print(static_cast<unsigned char *>(buf)[i], HEX);
+          Serial.print(F(" "));
+          delay(0);
+        }
+        Serial.println(F("]"));
+#endif
+
+        return readSize;
+      }
+    }
+    return -1;
+  }
+
+  int write(void *buf, int count) {
+    if (client) {
+#ifdef SUPLA_COMM_DEBUG
+      Serial.print(F("Sending: ["));
+      for (int i = 0; i < count; i++) {
         Serial.print(static_cast<unsigned char *>(buf)[i], HEX);
         Serial.print(F(" "));
         delay(0);
       }
       Serial.println(F("]"));
 #endif
-
-      return readSize;
+      long sendSize = client->write((const uint8_t *)buf, count);
+      return sendSize;
     }
-    return -1;
-  }
-
-  int write(void *buf, int count) {
-#ifdef SUPLA_COMM_DEBUG
-    Serial.print(F("Sending: ["));
-    for (int i = 0; i < count; i++) {
-      Serial.print(static_cast<unsigned char *>(buf)[i], HEX);
-      Serial.print(F(" "));
-      delay(0);
-    }
-    Serial.println(F("]"));
-#endif
-    long sendSize = client->write((const uint8_t *)buf, count);
-    return sendSize;
+    return 0;
   }
 
   int connect(const char *server, int port = -1) {
@@ -136,6 +146,8 @@ class ESPWifi : public Supla::Wifi {
   // TODO: add handling of custom local ip
   void setup() {
     if (!wifiConfigured) {
+      // ESP32 requires setHostname to be called before begin...
+      WiFi.setHostname(hostname);
       wifiConfigured = true;
 #ifdef ARDUINO_ARCH_ESP8266
       gotIpEventHandler =
@@ -172,26 +184,47 @@ class ESPWifi : public Supla::Wifi {
             Serial.println(F(" dBm"));
           },
           WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP);
+
       (void)(event_gotIP);
 
       WiFiEventId_t event_disconnected = WiFi.onEvent(
           [](WiFiEvent_t event, WiFiEventInfo_t info) {
-            Serial.println(F("wifi Station disconnected"));
+            Serial.println(F("WiFi Station disconnected"));
+            // ESP32 doesn't reconnect automatically after lost connection
+            WiFi.reconnect();
           },
-          WiFiEvent_t::ARDUINO_EVENT_WIFI_AP_STADISCONNECTED);
+          WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+
       (void)(event_disconnected);
 #endif
-      Serial.print(F("WiFi: establishing connection with SSID: \""));
-      Serial.print(ssid);
-      Serial.println(F("\""));
-      WiFi.begin(ssid, password);
     } else {
+      if (mode == Supla::DEVICE_MODE_CONFIG) {
+        WiFi.mode(WIFI_MODE_AP);
+      } else {
+        WiFi.mode(WIFI_MODE_STA);
+      }
       Serial.println(F("WiFi: resetting WiFi connection"));
       if (client) {
         delete client;
         client = nullptr;
       }
-      WiFi.reconnect();
+      WiFi.disconnect();
+    }
+
+    if (mode == Supla::DEVICE_MODE_CONFIG) {
+      Serial.print("WiFi: enter config mode with SSID: ");
+      Serial.println(hostname);
+      WiFi.mode(WIFI_MODE_AP);
+      WiFi.softAP(hostname, nullptr, 6);
+
+    } else {
+      Serial.print(F("WiFi: establishing connection with SSID: \""));
+      Serial.print(ssid);
+      Serial.println(F("\""));
+      WiFi.mode(WIFI_MODE_STA);
+      WiFi.begin(ssid, password);
+      // ESP8266 requires setHostname to be called after begin...
+      WiFi.setHostname(hostname);
     }
 
     yield();
@@ -232,6 +265,11 @@ class ESPWifi : public Supla::Wifi {
   bool getMacAddr(uint8_t *out) override {
     WiFi.macAddress(out);
     return true;
+  }
+
+  void uninit() override {
+    WiFi.softAPdisconnect(true);
+    WiFi.disconnect(true);
   }
 
  protected:
