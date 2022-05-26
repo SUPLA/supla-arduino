@@ -4,7 +4,7 @@ project(supladevice)
 
 enable_testing()
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_BUILD_TYPE Debug)
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
@@ -46,6 +46,7 @@ file(GLOB TEST_SRC
   ConditionTests/*.cpp
   RgbwDimmerTests/*.cpp
   ButtonTests/*.cpp
+  StorageTests/*.cpp
   SuplaDeviceTests/*.cpp
   CorrectionTests/*cpp
   ActionTriggerTests/*cpp
