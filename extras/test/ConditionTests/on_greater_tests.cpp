@@ -35,4 +35,5 @@ TEST(OnGreaterTests, OnGreaterConditionTests) {
   EXPECT_TRUE(cond->checkConditionFor(50));
   EXPECT_FALSE(cond->checkConditionFor(5));
 
+  delete cond;
 }

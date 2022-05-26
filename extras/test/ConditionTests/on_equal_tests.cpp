@@ -36,4 +36,5 @@ TEST(OnEqualTests, OnEqualConditionTests) {
   EXPECT_TRUE(cond->checkConditionFor(3.1415));
   EXPECT_FALSE(cond->checkConditionFor(5));
 
+  delete cond;
 }

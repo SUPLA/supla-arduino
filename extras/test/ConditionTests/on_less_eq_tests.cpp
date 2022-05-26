@@ -37,7 +37,5 @@ TEST(OnEqualEqTests, OnLessEqConditionTests) {
   EXPECT_FALSE(cond->checkConditionFor(50));
   EXPECT_TRUE(cond->checkConditionFor(5));
 
+  delete cond;
 }
-
-
-

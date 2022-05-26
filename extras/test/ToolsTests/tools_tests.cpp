@@ -84,6 +84,12 @@ TEST(ToolsTests, hexStringToIntTests) {
 
 TEST(ToolsTest, urlDecodeInplaceTests) {
   {
+    char buf[] = "%61la ma+supla%1";
+    urlDecodeInplace(buf, sizeof(buf) - 1);
+    EXPECT_STREQ(buf, "ala ma supla");
+  }
+
+  {
     char buf[] = "ala+ma+supla";
     urlDecodeInplace(buf, sizeof(buf) - 1);
     EXPECT_STREQ(buf, "ala ma supla");
@@ -91,12 +97,6 @@ TEST(ToolsTest, urlDecodeInplaceTests) {
 
   {
     char buf[] = "ala+ma%20supla";
-    urlDecodeInplace(buf, sizeof(buf) - 1);
-    EXPECT_STREQ(buf, "ala ma supla");
-  }
-
-  {
-    char buf[] = "%61la ma+supla%1";
     urlDecodeInplace(buf, sizeof(buf) - 1);
     EXPECT_STREQ(buf, "ala ma supla");
   }

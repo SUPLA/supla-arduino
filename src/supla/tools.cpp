@@ -145,7 +145,7 @@ void urlDecodeInplace(char *buffer, int size) {
   auto insertPtr = buffer;
   auto parserPtr = buffer;
   auto endPtr = &buffer[size];
-  while (*parserPtr != '\0' && parserPtr < endPtr) {
+  while (parserPtr < endPtr && *parserPtr != '\0') {
     if (*parserPtr == '+') {
       *insertPtr = ' ';
     } else if (*parserPtr == '%') {
