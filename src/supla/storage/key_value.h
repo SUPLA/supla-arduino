@@ -21,16 +21,19 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "config.h"
 
 #define SUPLA_STORAGE_KEY_SIZE 15
 
 namespace Supla {
-  namespace Storage {
     class KeyValueElement;
 
-    class KeyValue {
+    class KeyValue : public Config {
       public:
         ~KeyValue();
+        bool initFromMemory(uint8_t *input, size_t inputSize);
+        // returns size of written structure
+        size_t serializeToMemory(uint8_t *output, size_t outputMaxSize);
         bool setString(const char* key, const char* value);
         bool getString(const char* key, char* value, size_t maxSize);
         int getStringSize(const char* key);
@@ -57,7 +60,7 @@ namespace Supla {
     };
 
     enum DataType {
-      DATA_TYPE_NOT_SET,
+      DATA_TYPE_NOT_SET = 0,
       DATA_TYPE_UINT8,
       DATA_TYPE_INT8,
       DATA_TYPE_UINT32,
@@ -73,7 +76,10 @@ namespace Supla {
         bool isKeyEqual(const char *keyToCheck);
         KeyValueElement *getNext();
         bool hasNext();
-        void addNext(KeyValueElement *toBeAdded);
+        void add(KeyValueElement *toBeAdded);
+
+        size_t serialize(uint8_t *destination, size_t maxSize);
+
         bool setString(const char* value);
         bool getString(char* value, size_t maxSize);
         int getStringSize();
@@ -107,7 +113,6 @@ namespace Supla {
         } data;
 
     };
-  };  // namespace Storage
 };  // namespace Supla
 
 #endif /* _supla_storage_key_value_h */

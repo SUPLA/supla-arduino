@@ -23,7 +23,7 @@
 namespace Supla {
 
 class Element;
- 
+
 class Condition : public ActionHandler {
  public:
   Condition(double threshold, bool useAlternativeMeasurement);

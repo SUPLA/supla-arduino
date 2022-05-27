@@ -17,9 +17,20 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <supla/storage/key_value.h>
+#include "supla/storage/config.h"
+
+class KeyValueTest : public Supla::KeyValue {
+  public:
+    bool init() override {
+      return true;
+    };
+    void removeAll() override {};
+};
+
+
 
 TEST(KeyValueElementTests, isKeyEqualTest) {
-  Supla::Storage::KeyValueElement kve("secret");
+  Supla::KeyValueElement kve("secret");
   EXPECT_TRUE(kve.isKeyEqual("secret"));
   EXPECT_FALSE(kve.isKeyEqual("Secret"));
   EXPECT_FALSE(kve.isKeyEqual("secret "));
@@ -28,46 +39,46 @@ TEST(KeyValueElementTests, isKeyEqualTest) {
 }
 
 TEST(KeyValueElementTests, elementSequenceTest) {
-  Supla::Storage::KeyValueElement kve1("1");
+  Supla::KeyValueElement kve1("1");
   EXPECT_EQ(kve1.getNext(), nullptr);
 
-  Supla::Storage::KeyValueElement kve2("2");
+  Supla::KeyValueElement kve2("2");
   EXPECT_EQ(kve1.getNext(), nullptr);
   EXPECT_EQ(kve2.getNext(), nullptr);
 
-  kve1.addNext(&kve2);
+  kve1.add(&kve2);
   EXPECT_EQ(kve1.getNext(), &kve2);
   EXPECT_EQ(kve2.getNext(), nullptr);
 
-  Supla::Storage::KeyValueElement kve3("3");
+  Supla::KeyValueElement kve3("3");
   EXPECT_EQ(kve1.getNext(), &kve2);
   EXPECT_EQ(kve2.getNext(), nullptr);
   EXPECT_EQ(kve3.getNext(), nullptr);
 
-  kve1.addNext(&kve3);
-  EXPECT_EQ(kve1.getNext(), &kve3);
-  EXPECT_EQ(kve2.getNext(), nullptr);
-  EXPECT_EQ(kve3.getNext(), &kve2);
+  kve1.add(&kve3);
+  EXPECT_EQ(kve1.getNext(), &kve2);
+  EXPECT_EQ(kve2.getNext(), &kve3);
+  EXPECT_EQ(kve3.getNext(), nullptr);
 
-  Supla::Storage::KeyValueElement kve4("4");
-  EXPECT_EQ(kve1.getNext(), &kve3);
-  EXPECT_EQ(kve2.getNext(), nullptr);
-  EXPECT_EQ(kve3.getNext(), &kve2);
+  Supla::KeyValueElement kve4("4");
+  EXPECT_EQ(kve1.getNext(), &kve2);
+  EXPECT_EQ(kve2.getNext(), &kve3);
+  EXPECT_EQ(kve3.getNext(), nullptr);
   EXPECT_EQ(kve4.getNext(), nullptr);
 
-  kve3.addNext(&kve4);
-  EXPECT_EQ(kve1.getNext(), &kve3);
-  EXPECT_EQ(kve2.getNext(), nullptr);
+  kve3.add(&kve4);
+  EXPECT_EQ(kve1.getNext(), &kve2);
+  EXPECT_EQ(kve2.getNext(), &kve3);
   EXPECT_EQ(kve3.getNext(), &kve4);
-  EXPECT_EQ(kve4.getNext(), &kve2);
+  EXPECT_EQ(kve4.getNext(), nullptr);
 
 }
 
 TEST(KeyValueElementTests, gettersOnEmptyTest) {
-  Supla::Storage::KeyValueElement kve1("1");
-  Supla::Storage::KeyValueElement kve2("2");
-  Supla::Storage::KeyValueElement kve3("3");
-  Supla::Storage::KeyValueElement kve4("4");
+  Supla::KeyValueElement kve1("1");
+  Supla::KeyValueElement kve2("2");
+  Supla::KeyValueElement kve3("3");
+  Supla::KeyValueElement kve4("4");
 
   uint8_t resultU8 = 1;
   int8_t result8 = 2;
@@ -93,10 +104,10 @@ TEST(KeyValueElementTests, gettersOnEmptyTest) {
 }
 
 TEST(KeyValueElementTests, intTest) {
-  Supla::Storage::KeyValueElement kve1("1");
-  Supla::Storage::KeyValueElement kve2("2");
-  Supla::Storage::KeyValueElement kve3("3");
-  Supla::Storage::KeyValueElement kve4("4");
+  Supla::KeyValueElement kve1("1");
+  Supla::KeyValueElement kve2("2");
+  Supla::KeyValueElement kve3("3");
+  Supla::KeyValueElement kve4("4");
 
   uint8_t resultU8 = 1;
   int8_t result8 = 2;
@@ -201,7 +212,7 @@ TEST(KeyValueElementTests, intTest) {
 }
 
 TEST(KeyValueElementTests, stringTest) {
-  Supla::Storage::KeyValueElement kve1("1");
+  Supla::KeyValueElement kve1("1");
 
   uint8_t resultU8 = 1;
   int8_t result8 = 2;
@@ -234,7 +245,7 @@ TEST(KeyValueElementTests, stringTest) {
 }
 
 TEST(KeyValueElementTests, blobTest) {
-  Supla::Storage::KeyValueElement kve1("1");
+  Supla::KeyValueElement kve1("testing");
 
   uint8_t resultU8 = 1;
   int8_t result8 = 2;
@@ -264,10 +275,23 @@ TEST(KeyValueElementTests, blobTest) {
   EXPECT_FALSE(kve1.getBlob(temp, 9));
   EXPECT_TRUE(kve1.getBlob(temp, 10));
   EXPECT_EQ(strncmp(temp, "1234567890", 10), 0);
+
+  uint8_t expectedData[] = {'t', 'e', 's', 't', 'i', 'n', 'g', '\0', '\0', '\0',
+    '\0', '\0', '\0', '\0', '\0', // key
+    5, // dataType
+    10, 0, // size -- this part is endian dependent - test will fail if it is
+           // run on machine with different endian.
+   '1', '2', '3', '4', '5', '6', '7', '8', '9', '0' // data
+  };
+
+  uint8_t serializedData[100] = {};
+  EXPECT_TRUE(kve1.serialize(serializedData, sizeof(serializedData)));
+  EXPECT_EQ(memcmp(expectedData, serializedData, sizeof(expectedData)), 0);
+  EXPECT_FALSE(kve1.serialize(serializedData, 10));
 }
 
 TEST(KeyValueTests, integrationTest) {
-  Supla::Storage::KeyValue kvStorage;
+  KeyValueTest kvStorage;
 
   uint8_t resultU8 = 1;
   int8_t result8 = 2;
@@ -304,5 +328,128 @@ TEST(KeyValueTests, integrationTest) {
 
   EXPECT_TRUE(kvStorage.getString("wifissid", temp, 50));
   EXPECT_STREQ(temp, "MY wiFi SSID");
+
+
+  uint8_t buffer[1024] = {};
+  size_t dataWritten = kvStorage.serializeToMemory(buffer, 1024);
+  EXPECT_EQ(dataWritten,
+      15 + 1 + 2 + 13 +  // wifissid
+      15 + 1 + 2 + 7 +   // passwdf
+      15 + 1 + 2 + 4     // suplaport
+      );
+
+
+  KeyValueTest kvStorageRestored;
+  EXPECT_TRUE(kvStorageRestored.initFromMemory(buffer, dataWritten));
+
+  EXPECT_TRUE(kvStorageRestored.getString("wifissid", temp, 50));
+  EXPECT_STREQ(temp, "MY wiFi SSID");
+  EXPECT_TRUE(kvStorageRestored.getString("passwd", temp, 50));
+  EXPECT_STREQ(temp, "secret");
+  EXPECT_TRUE(kvStorageRestored.getUInt32("suplaport", resultU32));
+  EXPECT_EQ(resultU32, 2019);
+
+  uint8_t secondBuffer[1024] = {};
+  size_t secondDataWritten = kvStorageRestored.serializeToMemory(
+      secondBuffer, 1024);
+
+  EXPECT_EQ(secondDataWritten, dataWritten);
+  // make sure that serialized data is the same after serialization ->
+  // deserialization -> serialization
+  EXPECT_EQ(memcmp(buffer, secondBuffer, 1024), 0);
+}
+
+TEST(KeyValueTests, variousKVChecks) {
+  KeyValueTest kvStorage;
+
+  int8_t result8 = {};
+  uint8_t resultU8 = {};
+  uint32_t resultU32 = {};
+  int32_t result32 = {};
+
+  EXPECT_TRUE(kvStorage.setInt8("this is too long key", 13));
+  EXPECT_TRUE(kvStorage.getInt8("this is too long key", result8));
+  EXPECT_EQ(result8, 13);
+  // different 15th char
+  EXPECT_FALSE(kvStorage.getInt8("this is too low", result8));
+
+  EXPECT_TRUE(kvStorage.setEmail("this_is_mail@user.com"));
+  char buf[2000] = {};
+  EXPECT_TRUE(kvStorage.getEmail(buf));
+  EXPECT_STREQ(buf, "this_is_mail@user.com");
+
+  //generateGuidAndAuthkey();
+  EXPECT_TRUE(kvStorage.setDeviceName("device name"));
+  EXPECT_TRUE(kvStorage.setDeviceMode(Supla::DEVICE_MODE_NORMAL));
+  EXPECT_TRUE(kvStorage.setGUID("1234567890"));
+
+  EXPECT_TRUE(kvStorage.setSwUpdateServer("update.server"));
+  EXPECT_TRUE(kvStorage.setSwUpdateBeta(true));
+  EXPECT_TRUE(kvStorage.isSwUpdateBeta());
+
+  EXPECT_TRUE(kvStorage.setSuplaCommProtocolEnabled(false));
+  EXPECT_FALSE(kvStorage.isSuplaCommProtocolEnabled());
+
+  EXPECT_TRUE(kvStorage.setSuplaServer("supla.server"));
+  EXPECT_TRUE(kvStorage.setSuplaServerPort(1234));
+  EXPECT_TRUE(kvStorage.setAuthKey("0987654321"));
+
+  EXPECT_TRUE(kvStorage.getSuplaServer(buf));
+  EXPECT_STREQ(buf, "supla.server");
+  EXPECT_EQ(kvStorage.getSuplaServerPort(), 1234);
+  EXPECT_TRUE(kvStorage.getAuthKey(buf));
+  EXPECT_STREQ(buf, "0987654321");
+  EXPECT_TRUE(kvStorage.getDeviceName(buf));
+  EXPECT_STREQ(buf, "device name");
+  EXPECT_EQ(kvStorage.getDeviceMode(), Supla::DEVICE_MODE_NORMAL);
+  EXPECT_TRUE(kvStorage.getGUID(buf));
+  EXPECT_STREQ(buf, "1234567890");
+  EXPECT_TRUE(kvStorage.getSwUpdateServer(buf));
+  EXPECT_STREQ(buf, "update.server");
+
+
+  EXPECT_TRUE(kvStorage.setMqttCommProtocolEnabled(true));
+  EXPECT_TRUE(kvStorage.setMqttServer("mqtt.server"));
+  EXPECT_TRUE(kvStorage.setMqttServerPort(42));
+  EXPECT_TRUE(kvStorage.setMqttUser("mqtt user"));
+  EXPECT_TRUE(kvStorage.setMqttPassword("mqtt pass"));
+  EXPECT_TRUE(kvStorage.setMqttQos(2));
+  EXPECT_TRUE(kvStorage.setMqttPoolPublicationDelay(11));
+  EXPECT_TRUE(kvStorage.setMqttTlsEnabled(true));
+  EXPECT_TRUE(kvStorage.setMqttAuthEnabled(false));
+  EXPECT_TRUE(kvStorage.setMqttRetainEnabled(true));
+  EXPECT_TRUE(kvStorage.setMqttPrefix("supla test"));
+
+  EXPECT_TRUE(kvStorage.isMqttCommProtocolEnabled());
+  EXPECT_TRUE(kvStorage.isMqttTlsEnabled());
+  EXPECT_FALSE(kvStorage.isMqttAuthEnabled());
+  EXPECT_TRUE(kvStorage.isMqttRetainEnabled());
+
+  EXPECT_TRUE(kvStorage.getMqttServer(buf));
+  EXPECT_STREQ(buf, "mqtt.server");
+  EXPECT_EQ(kvStorage.getMqttServerPort(), 42);
+  EXPECT_TRUE(kvStorage.getMqttUser(buf));
+  EXPECT_STREQ(buf, "mqtt user");
+  EXPECT_TRUE(kvStorage.getMqttPassword(buf));
+  EXPECT_STREQ(buf, "mqtt pass");
+  EXPECT_EQ(kvStorage.getMqttQos(), 2);
+  EXPECT_EQ(kvStorage.getMqttPoolPublicationDelay(), 11);
+  EXPECT_TRUE(kvStorage.getMqttPrefix(buf));
+  EXPECT_STREQ(buf, "supla test");
+
+  EXPECT_TRUE(kvStorage.setWiFiSSID("ssid"));
+  EXPECT_TRUE(kvStorage.setWiFiPassword("pass"));
+  EXPECT_TRUE(kvStorage.setAltWiFiSSID("altssid"));
+  EXPECT_TRUE(kvStorage.setAltWiFiPassword("altpass"));
+
+  EXPECT_TRUE(kvStorage.getWiFiSSID(buf));
+  EXPECT_STREQ(buf, "ssid");
+  EXPECT_TRUE(kvStorage.getWiFiPassword(buf));
+  EXPECT_STREQ(buf, "pass");
+  EXPECT_TRUE(kvStorage.getAltWiFiSSID(buf));
+  EXPECT_STREQ(buf, "altssid");
+  EXPECT_TRUE(kvStorage.getAltWiFiPassword(buf));
+  EXPECT_STREQ(buf, "altpass");
+
 }
 
