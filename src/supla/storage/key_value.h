@@ -34,23 +34,23 @@ namespace Supla {
         bool initFromMemory(uint8_t *input, size_t inputSize);
         // returns size of written structure
         size_t serializeToMemory(uint8_t *output, size_t outputMaxSize);
-        bool setString(const char* key, const char* value);
-        bool getString(const char* key, char* value, size_t maxSize);
-        int getStringSize(const char* key);
+        bool setString(const char* key, const char* value) override;
+        bool getString(const char* key, char* value, size_t maxSize) override;
+        int getStringSize(const char* key) override;
 
-        bool setBlob(const char* key, const char* value, size_t blobSize);
-        bool getBlob(const char* key, char* value, size_t blobSize);
-        int getBlobSize(const char* key);
+        bool setBlob(const char* key, const char* value, size_t blobSize) override;
+        bool getBlob(const char* key, char* value, size_t blobSize) override;
+        int getBlobSize(const char* key) override;
 
-        bool getInt8(const char* key, int8_t& result);
-        bool getUInt8(const char* key, uint8_t& result);
-        bool getInt32(const char* key, int32_t& result);
-        bool getUInt32(const char* key, uint32_t& result);
+        bool getInt8(const char* key, int8_t& result) override;
+        bool getUInt8(const char* key, uint8_t& result) override;
+        bool getInt32(const char* key, int32_t& result) override;
+        bool getUInt32(const char* key, uint32_t& result) override;
 
-        bool setInt8(const char* key, const int8_t value);
-        bool setUInt8(const char* key, const uint8_t value);
-        bool setInt32(const char* key, const int32_t value);
-        bool setUInt32(const char* key, const uint32_t value);
+        bool setInt8(const char* key, const int8_t value) override;
+        bool setUInt8(const char* key, const uint8_t value) override;
+        bool setInt32(const char* key, const int32_t value) override;
+        bool setUInt32(const char* key, const uint32_t value) override;
 
 
       protected:
