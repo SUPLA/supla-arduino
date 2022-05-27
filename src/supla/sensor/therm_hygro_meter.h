@@ -26,10 +26,11 @@ namespace Sensor {
 class ThermHygroMeter : public Thermometer {
  public:
   ThermHygroMeter();
+  void onInit() override;
+  void iterateAlways() override;
+
   virtual double getTemp();
   virtual double getHumi();
-  void iterateAlways();
-
 };
 
 };  // namespace Sensor

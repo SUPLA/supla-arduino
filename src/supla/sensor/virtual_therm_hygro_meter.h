@@ -5,36 +5,48 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _thermometer_h
-#define _thermometer_h
+#ifndef _supla_sensor_virtual_therm_hygro_meter_h_
+#define _supla_sensor_virtual_therm_hygro_meter_h_
 
-#include "supla/channel_element.h"
-
-#define TEMPERATURE_NOT_AVAILABLE -275
+#include "therm_hygro_meter.h"
 
 namespace Supla {
-namespace Sensor {
-class Thermometer : public ChannelElement {
- public:
-  Thermometer();
-  virtual double getValue();
-  void onInit() override;
-  void iterateAlways() override;
+  namespace Sensor {
+    class VirtualThermHygroMeter : public Supla::Sensor::ThermHygroMeter{
+      public:
+        double getTemp() override {
+          return temperature;
+        }
 
- protected:
-  unsigned long lastReadTime;
-};
+        double getHumi() override {
+          return humidity;
+        }
 
-};  // namespace Sensor
+        void setTemp(double val) {
+          temperature = val;
+        }
+
+        void setHumi(double val) {
+          humidity = val;
+        }
+
+      protected:
+        double temperature = TEMPERATURE_NOT_AVAILABLE;
+        double humidity = HUMIDITY_NOT_AVAILABLE;
+    };
+  };  // namespace Sensor
 };  // namespace Supla
 
-#endif
+#endif /* _supla_sensor_virtual_therm_hygro_meter_h_ */
+
