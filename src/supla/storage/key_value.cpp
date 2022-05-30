@@ -47,8 +47,8 @@ namespace Supla {
   }
 
   bool KeyValue::generateGuidAndAuthkey() {
-    uint8_t guid[SUPLA_GUID_SIZE];
-    uint8_t authkey[SUPLA_AUTHKEY_SIZE];
+    uint8_t guid[SUPLA_GUID_SIZE] = {};
+    uint8_t authkey[SUPLA_AUTHKEY_SIZE] = {};
 
     // Both ESP varaints use HW RNG after enabling Wi-Fi, so there is no need
     // to initialize seed
