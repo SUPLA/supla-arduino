@@ -34,6 +34,11 @@ namespace Supla {
         bool initFromMemory(uint8_t *input, size_t inputSize);
         // returns size of written structure
         size_t serializeToMemory(uint8_t *output, size_t outputMaxSize);
+        void removeAllMemory();
+
+        bool generateGuidAndAuthkey() override;
+
+        void removeAll() override;
         bool setString(const char* key, const char* value) override;
         bool getString(const char* key, char* value, size_t maxSize) override;
         int getStringSize(const char* key) override;
