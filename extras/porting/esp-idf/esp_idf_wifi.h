@@ -49,7 +49,6 @@ namespace Supla {
       void uninit() override;
       bool getMacAddr(uint8_t *out) override;
 
-      void enableSSL(bool value);
       void setTimeout(int timeoutMs) override;
       void fillStateData(TDSC_ChannelState &channelState) override;
 
@@ -62,7 +61,6 @@ namespace Supla {
       void logConnReason(int, int, int);
     protected:
 
-      bool isSecured = true;
       bool initDone = false;
       bool isWifiConnected = false;
       bool isIpReady = false;

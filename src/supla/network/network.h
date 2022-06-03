@@ -72,6 +72,10 @@ class Network {
   virtual void setSsid(const char *wifiSsid);
   virtual void setPassword(const char *wifiPassword);
 
+  // SSL configuration
+  virtual void setSSLEnabled(bool enabled);
+  void setCACert(const char *rootCA);
+
   void updateLastSent();
   void updateLastResponse();
   void clearTimeCounters();
@@ -92,6 +96,9 @@ class Network {
   bool useLocalIp;
   unsigned char localIp[4];
   char hostname[32] = {};
+
+  bool sslEnabled = true;
+  char *rootCACert = nullptr;
 };
 
 // Method passed to SRPC as a callback to read raw data from network interface

@@ -150,7 +150,7 @@ int Supla::EspIdfWifi::connect(const char *server, int port) {
   cfg.timeout_ms = timeoutMs;
   cfg.non_block = false;
 
-  int connectionPort = (isSecured ? 2016 : 2015);
+  int connectionPort = (sslEnabled ? 2016 : 2015);
   if (port != -1) {
     connectionPort = port;
   }
@@ -363,10 +363,6 @@ void Supla::EspIdfWifi::uninit() {
     esp_event_loop_delete_default();
 
   }
-}
-
-void Supla::EspIdfWifi::enableSSL(bool value) {
-  isSecured = value;
 }
 
 void Supla::EspIdfWifi::setTimeout(int newTimeoutMs) {

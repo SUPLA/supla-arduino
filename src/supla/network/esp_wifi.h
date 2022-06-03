@@ -77,7 +77,7 @@ class ESPWifi : public Supla::Wifi {
   int connect(const char *server, int port = -1) {
     String message;
     if (client == NULL) {
-      if (isSecured) {
+      if (sslEnabled) {
         message = "Secured connection";
         auto clientSec = new WiFiClientSecure();
         client = clientSec;
@@ -100,7 +100,7 @@ class ESPWifi : public Supla::Wifi {
       }
     }
 
-    int connectionPort = (isSecured ? 2016 : 2015);
+    int connectionPort = (sslEnabled ? 2016 : 2015);
     if (port != -1) {
       connectionPort = port;
     }
@@ -217,8 +217,9 @@ class ESPWifi : public Supla::Wifi {
     yield();
   }
 
+  // DEPRECATED, use setSSLEnabled instead
   void enableSSL(bool value) {
-    isSecured = value;
+    setSSLEnabled(value);
   }
 
   void setServersCertFingerprint(String value) {
@@ -261,7 +262,6 @@ class ESPWifi : public Supla::Wifi {
 
  protected:
   WiFiClient *client = nullptr;
-  bool isSecured = true;
   bool wifiConfigured = false;
   String fingerprint;
 

@@ -423,4 +423,13 @@ bool Network::isWifiConfigRequired() {
   return false;
 }
 
+void Network::setSSLEnabled(bool enabled) {
+  sslEnabled = enabled;
+}
+
+void Network::setCACert(const char *rootCA) {
+  (void)(rootCA);
+  // TODO
+}
+
 };  // namespace Supla

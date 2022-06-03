@@ -30,6 +30,7 @@ class ENC28J60 : public Supla::Network {
  public:
   ENC28J60(uint8_t mac[6], IPAddress *ip = NULL) : Network(ip) {
     memcpy(this->mac, mac, 6);
+    sslEnabled = false;
   }
 
   int read(void *buf, int count) {
@@ -102,6 +103,8 @@ class ENC28J60 : public Supla::Network {
     Serial.print(F("dnsServerIP: "));
     Serial.println(Ethernet.dnsServerIP());
   }
+
+  virtual void setSSLEnabled(bool enabled) override {};
 
  protected:
   EthernetClient client;

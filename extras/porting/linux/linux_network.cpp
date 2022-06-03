@@ -145,7 +145,7 @@ int Supla::LinuxNetwork::connect(const char *server, int port) {
   int connectionPort = (port == -1 ? 2015 : port);
   if (connectionPort != 2016) {
     supla_log(
-        LOG_DEBUG,
+        LOG_WARNING,
         "Server port is not 2016. Trying to establish secured connection anyway");
   }
 

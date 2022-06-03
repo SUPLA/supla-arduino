@@ -16,6 +16,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#ifndef ARDUINO_ARCH_AVR
+
 #include "esp_web_server.h"
 #include <string.h>
 #include <supla/network/html_element.h>
@@ -179,3 +181,4 @@ void Supla::EspWebServer::iterateAlways() {
     server.handleClient();
   }
 }
+#endif
