@@ -55,7 +55,7 @@ class WT32_ETH01 : public Supla::Network {
   public:
     WT32_ETH01(uint8_t ethmode,
                unsigned char *ip = nullptr)
-      : Network(ip), client(nullptr), isSecured(true) {
+      : Network(ip), client(nullptr) {
       if ( ethmode == 0) {
         ETH_ADDRESS = 0;
       } else {
@@ -102,7 +102,7 @@ class WT32_ETH01 : public Supla::Network {
         delete client;
         client = nullptr;
       }
-        if (isSecured) {
+        if (sslEnabled) {
           message = "Secured connection";
           auto clientSec = new WiFiClientSecure();
           client = clientSec;
@@ -118,7 +118,7 @@ class WT32_ETH01 : public Supla::Network {
           client = new WiFiClient();
         }
 
-      int connectionPort = (isSecured ? 2016 : 2015);
+      int connectionPort = (sslEnabled ? 2016 : 2015);
       if (port != -1) {
         connectionPort = port;
       }
@@ -178,10 +178,6 @@ class WT32_ETH01 : public Supla::Network {
       ETH.begin(ETH_ADDRESS, ETH_POWER_PIN, ETH_MDC_PIN, ETH_MDIO_PIN, ETH_TYPE, ETH_CLK_MODE);
     }
 
-    void enableSSL(bool value) {
-      isSecured = value;
-    }
-
     void setServersCACert(String value) {
       caCert = value;
     }
@@ -202,7 +198,6 @@ class WT32_ETH01 : public Supla::Network {
   protected:
     WiFiClient *client = NULL;
     uint8_t ETH_ADDRESS;
-    bool isSecured;
     String caCert;
 };
 };  // namespace Supla
