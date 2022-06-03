@@ -13,7 +13,23 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
-
+/*
+    - for LAN8720 + ESP32 -
+  using as less gpio as possible
+  - 50MHz oscillator disable on LAN8720 by bridging the oscillator pins 1 and 2 -
+  -ESP32 Gpio-        -LAN8720 PIN -
+  GPIO22 - EMAC_TXD1   : TX1
+  GPIO19 - EMAC_TXD0   : TX0
+  GPIO21 - EMAC_TX_EN  : TX_EN
+  GPIO26 - EMAC_RXD1   : RX1
+  GPIO25 - EMAC_RXD0   : RX0
+  GPIO27 - EMAC_RX_DV  : CRS
+  GPIO17 - EMAC_TX_CLK : nINT/REFCLK (50MHz)
+  GPIO23 - SMI_MDC     : MDC
+  GPIO18 - SMI_MDIO    : MDIO
+  GND                  : GND
+  3V3                  : VCC
+*/
 #ifndef esp_eth_h__
 #define esp_eth_h__
 
@@ -98,7 +114,10 @@ class ESPETH : public Supla::Network {
 
     int connect(const char *server, int port = -1) {
       String message;
-      if (client == NULL) {
+      if (client) {
+        delete client;
+        client = nullptr;
+      }
         if (isSecured) {
           message = "Secured connection";
           auto clientSec = new WiFiClientSecure();
@@ -114,7 +133,6 @@ class ESPETH : public Supla::Network {
           message = "unsecured connection";
           client = new WiFiClient();
         }
-      }
 
       int connectionPort = (isSecured ? 2016 : 2015);
       if (port != -1) {
