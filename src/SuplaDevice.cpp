@@ -770,7 +770,8 @@ bool SuplaDeviceClass::iterateSuplaProtocol(unsigned int _millis) {
     status(STATUS_ITERATE_FAIL, "Communication failure");
     Supla::Network::Disconnect();
 
-    waitForIterate = 2000;
+    lastIterateTime = _millis;
+    waitForIterate = 5000;
     return false;
   }
 

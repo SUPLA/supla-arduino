@@ -44,9 +44,6 @@ class ESPWifi : public Supla::Wifi {
           const char *wifiPassword = nullptr,
           unsigned char *ip = nullptr)
       : Wifi(wifiSsid, wifiPassword, ip) {
-#ifdef ARDUINO_ARCH_ESP32
-    enableSSL(false);  // ESP32 WiFiClientSecure does not suport "setInsecure"
-#endif
   }
 
   int read(void *buf, int count) {
@@ -57,13 +54,7 @@ class ESPWifi : public Supla::Wifi {
         if (size > count) size = count;
         long readSize = client->read((uint8_t *)buf, size);
 #ifdef SUPLA_COMM_DEBUG
-        Serial.print(F("Received: ["));
-        for (int i = 0; i < readSize; i++) {
-          Serial.print(static_cast<unsigned char *>(buf)[i], HEX);
-          Serial.print(F(" "));
-          delay(0);
-        }
-        Serial.println(F("]"));
+        printData("Recv", buf, readSize);
 #endif
 
         return readSize;
@@ -75,13 +66,7 @@ class ESPWifi : public Supla::Wifi {
   int write(void *buf, int count) {
     if (client) {
 #ifdef SUPLA_COMM_DEBUG
-      Serial.print(F("Sending: ["));
-      for (int i = 0; i < count; i++) {
-        Serial.print(static_cast<unsigned char *>(buf)[i], HEX);
-        Serial.print(F(" "));
-        delay(0);
-      }
-      Serial.println(F("]"));
+      printData("Send", buf, count);
 #endif
       long sendSize = client->write((const uint8_t *)buf, count);
       return sendSize;
@@ -106,6 +91,8 @@ class ESPWifi : public Supla::Wifi {
           message += " without certificate matching";
           clientSec->setInsecure();
         }
+#else
+        clientSec->setInsecure();
 #endif
       } else {
         message = "unsecured connection";

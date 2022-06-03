@@ -136,6 +136,7 @@ int32_t Config::getSuplaServerPort() {
   if (result <= 0 || result > 65536) {
     result = 2016;
   }
+
   return result;
 }
 

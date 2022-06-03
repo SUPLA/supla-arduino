@@ -552,7 +552,10 @@ namespace Supla {
         *destination = data.uint8;
         break;
       }
-      case DATA_TYPE_INT32:
+      case DATA_TYPE_INT32: {
+        memcpy(destination, &(data.int32), sizeof(data.int32));
+        break;
+      }
       case DATA_TYPE_UINT32: {
         memcpy(destination, &(data.uint32), sizeof(data.uint32));
         break;

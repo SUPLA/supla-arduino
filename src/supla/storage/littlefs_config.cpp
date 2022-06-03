@@ -34,6 +34,12 @@ Supla::LittleFsConfig::LittleFsConfig() {}
 Supla::LittleFsConfig::~LittleFsConfig() {}
 
 bool Supla::LittleFsConfig::init() {
+  if (first) {
+    supla_log(LOG_WARNING,
+        "LittleFsConfig: init called on non empty database. Aborting");
+    // init can be done only on empty storage
+    return false;
+  }
   bool result = LittleFS.begin();
   if (!result) {
     supla_log(LOG_WARNING, "LittleFsConfig: formatting partition");
@@ -91,7 +97,10 @@ void Supla::LittleFsConfig::commit() {
 
   size_t dataSize = serializeToMemory(buf, SUPLA_LITTLEFS_CONFIG_BUF_SIZE);
 
-  LittleFS.begin();
+  auto result = LittleFS.begin();
+  if (result) {
+    supla_log(LOG_DEBUG, "LittleFsConfig: init successful");
+  }
   File cfg = LittleFS.open(ConfigFileName, "w");
   if (!cfg) {
     supla_log(LOG_ERR, "LittleFsConfig: failed to open config file for write");
