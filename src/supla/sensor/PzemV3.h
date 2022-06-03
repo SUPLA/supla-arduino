@@ -36,7 +36,7 @@ namespace Sensor {
 class PZEMv3 : public OnePhaseElectricityMeter {
  public:
 #if defined(PZEM004_SOFTSERIAL)
-    PZEMv3_ADDR(uint8_t pinRX1,
+    PZEMv3(uint8_t pinRX1,
                 uint8_t pinTX1,
                 uint8_t pzem_addr = PZEM_0_DEFAULT_ADDR)
       : pzem{PZEM004Tv30(pinRX1, pinTX1, pzem_addr)} {
@@ -44,14 +44,14 @@ class PZEMv3 : public OnePhaseElectricityMeter {
 #endif
 
 #if defined(ESP32)
-    PZEMv3_ADDR(HardwareSerial *serial,
+    PZEMv3(HardwareSerial *serial,
                 uint8_t pinRx1,
                 uint8_t pinTx1,
                 uint8_t pzem_addr = PZEM_0_DEFAULT_ADDR)
       : pzem{PZEM004Tv30(serial, pinRx1, pinTx1, pzem_addr)} {
   }
 #else 
-    PZEMv3_ADDR(HardwareSerial *serial,
+    PZEMv3(HardwareSerial *serial,
                 uint8_t pzem_addr = PZEM_0_DEFAULT_ADDR)
       : pzem{PZEM004Tv30(serial, pzem_addr)} {
   }

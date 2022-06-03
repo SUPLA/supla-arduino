@@ -1,6 +1,6 @@
 # CHANGELOG.md
 
-## 2.4.1 (unreleased)
+## 2.4.1 (2022-03-23)
 
   - Change: (Arduino) move WiFi events for ESP8266 Arduino WiFi class to protected section
   - Change: (Arduino) Arduino ESP32 boards switch to version 2.x. Older boards will not compile ([see instructions](https://github.com/SUPLA/supla-device/commit/c533e73a4c811c026187374635dd812d4e294c8b))
@@ -16,6 +16,7 @@
   - Add: (ESP8266 RTOS, ESP IDF, Linux, FreeRTOS) `ChannelState` basic data reporting
   - Add: (ESP8266 RTOS, ESP IDF) `Supla::Storage` implementation on `spiffs`
   - Add: getters for electricity meter measured values
+  - Add: PZEMv3 with custom PZEM address setting (allow to use single TX/RX pair for multiple PZEM units)
 
 ## 2.4.0 (2021-12-07)
 
