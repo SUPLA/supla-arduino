@@ -178,11 +178,6 @@ class DS18B20 : public Thermometer {
     return value;
   }
 
-  void onInit() {
-    channel.setNewValue(getValue());
-  }
-
-
   DallasTemperature &getHwSensors() {
     return myBus->sensors;
   }

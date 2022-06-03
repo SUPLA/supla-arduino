@@ -21,6 +21,11 @@
 
 #ifdef ARDUINO_ARCH_ESP8266
 #include <ESP8266WiFi.h>
+
+// workaround for incompatible names in ESP8266 and ESP32 boards
+#define WIFI_MODE_AP WIFI_AP
+#define WIFI_MODE_STA WIFI_STA
+
 #else
 #include <WiFi.h>
 #endif
@@ -28,68 +33,51 @@
 #include <WiFiClientSecure.h>
 
 #include "../supla_lib_config.h"
-#include "network.h"
-
-#define MAX_SSID_SIZE          32
-#define MAX_WIFI_PASSWORD_SIZE 64
+#include "netif_wifi.h"
 
 // TODO: change logs to supla_log
 
 namespace Supla {
-class ESPWifi : public Supla::Network {
+class ESPWifi : public Supla::Wifi {
  public:
   ESPWifi(const char *wifiSsid = nullptr,
           const char *wifiPassword = nullptr,
           unsigned char *ip = nullptr)
-      : Network(ip), client(nullptr), isSecured(true), wifiConfigured(false) {
-    ssid[0] = '\0';
-    password[0] = '\0';
-    setSsid(wifiSsid);
-    setPassword(wifiPassword);
-#ifdef ARDUINO_ARCH_ESP32
-    enableSSL(false);  // ESP32 WiFiClientSecure does not suport "setInsecure"
-#endif
+      : Wifi(wifiSsid, wifiPassword, ip) {
   }
 
   int read(void *buf, int count) {
-    _supla_int_t size = client->available();
+    if (client) {
+      _supla_int_t size = client->available();
 
-    if (size > 0) {
-      if (size > count) size = count;
-      long readSize = client->read((uint8_t *)buf, size);
+      if (size > 0) {
+        if (size > count) size = count;
+        long readSize = client->read((uint8_t *)buf, size);
 #ifdef SUPLA_COMM_DEBUG
-      Serial.print(F("Received: ["));
-      for (int i = 0; i < readSize; i++) {
-        Serial.print(static_cast<unsigned char *>(buf)[i], HEX);
-        Serial.print(F(" "));
-        delay(0);
-      }
-      Serial.println(F("]"));
+        printData("Recv", buf, readSize);
 #endif
 
-      return readSize;
+        return readSize;
+      }
     }
     return -1;
   }
 
   int write(void *buf, int count) {
+    if (client) {
 #ifdef SUPLA_COMM_DEBUG
-    Serial.print(F("Sending: ["));
-    for (int i = 0; i < count; i++) {
-      Serial.print(static_cast<unsigned char *>(buf)[i], HEX);
-      Serial.print(F(" "));
-      delay(0);
-    }
-    Serial.println(F("]"));
+      printData("Send", buf, count);
 #endif
-    long sendSize = client->write((const uint8_t *)buf, count);
-    return sendSize;
+      long sendSize = client->write((const uint8_t *)buf, count);
+      return sendSize;
+    }
+    return 0;
   }
 
   int connect(const char *server, int port = -1) {
     String message;
     if (client == NULL) {
-      if (isSecured) {
+      if (sslEnabled) {
         message = "Secured connection";
         auto clientSec = new WiFiClientSecure();
         client = clientSec;
@@ -103,6 +91,8 @@ class ESPWifi : public Supla::Network {
           message += " without certificate matching";
           clientSec->setInsecure();
         }
+#else
+        clientSec->setInsecure();
 #endif
       } else {
         message = "unsecured connection";
@@ -110,7 +100,7 @@ class ESPWifi : public Supla::Network {
       }
     }
 
-    int connectionPort = (isSecured ? 2016 : 2015);
+    int connectionPort = (sslEnabled ? 2016 : 2015);
     if (port != -1) {
       connectionPort = port;
     }
@@ -143,6 +133,8 @@ class ESPWifi : public Supla::Network {
   // TODO: add handling of custom local ip
   void setup() {
     if (!wifiConfigured) {
+      // ESP32 requires setHostname to be called before begin...
+      WiFi.setHostname(hostname);
       wifiConfigured = true;
 #ifdef ARDUINO_ARCH_ESP8266
       gotIpEventHandler =
@@ -179,49 +171,59 @@ class ESPWifi : public Supla::Network {
             Serial.println(F(" dBm"));
           },
           WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP);
+
       (void)(event_gotIP);
 
       WiFiEventId_t event_disconnected = WiFi.onEvent(
           [](WiFiEvent_t event, WiFiEventInfo_t info) {
-            Serial.println(F("wifi Station disconnected"));
+            Serial.println(F("WiFi Station disconnected"));
+            // ESP32 doesn't reconnect automatically after lost connection
+            WiFi.reconnect();
           },
-          WiFiEvent_t::ARDUINO_EVENT_WIFI_AP_STADISCONNECTED);
+          WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+
       (void)(event_disconnected);
 #endif
-      Serial.print(F("WiFi: establishing connection with SSID: \""));
-      Serial.print(ssid);
-      Serial.println(F("\""));
-      WiFi.begin(ssid, password);
     } else {
+      if (mode == Supla::DEVICE_MODE_CONFIG) {
+        WiFi.mode(WIFI_MODE_AP);
+      } else {
+        WiFi.mode(WIFI_MODE_STA);
+      }
       Serial.println(F("WiFi: resetting WiFi connection"));
       if (client) {
         delete client;
         client = nullptr;
       }
-      WiFi.reconnect();
+      WiFi.disconnect();
+    }
+
+    if (mode == Supla::DEVICE_MODE_CONFIG) {
+      Serial.print("WiFi: enter config mode with SSID: ");
+      Serial.println(hostname);
+      WiFi.mode(WIFI_MODE_AP);
+      WiFi.softAP(hostname, nullptr, 6);
+
+    } else {
+      Serial.print(F("WiFi: establishing connection with SSID: \""));
+      Serial.print(ssid);
+      Serial.println(F("\""));
+      WiFi.mode(WIFI_MODE_STA);
+      WiFi.begin(ssid, password);
+      // ESP8266 requires setHostname to be called after begin...
+      WiFi.setHostname(hostname);
     }
 
     yield();
   }
 
+  // DEPRECATED, use setSSLEnabled instead
   void enableSSL(bool value) {
-    isSecured = value;
+    setSSLEnabled(value);
   }
 
   void setServersCertFingerprint(String value) {
     fingerprint = value;
-  }
-
-  void setSsid(const char *wifiSsid) {
-    if (wifiSsid) {
-      strncpy(ssid, wifiSsid, MAX_SSID_SIZE);
-    }
-  }
-
-  void setPassword(const char *wifiPassword) {
-    if (wifiPassword) {
-      strncpy(password, wifiPassword, MAX_WIFI_PASSWORD_SIZE);
-    }
   }
 
   void setTimeout(int timeoutMs) {
@@ -248,13 +250,20 @@ class ESPWifi : public Supla::Network {
     }
   }
 
+  bool getMacAddr(uint8_t *out) override {
+    WiFi.macAddress(out);
+    return true;
+  }
+
+  void uninit() override {
+    WiFi.softAPdisconnect(true);
+    WiFi.disconnect(true);
+  }
+
  protected:
-  WiFiClient *client = NULL;
-  bool isSecured;
-  bool wifiConfigured;
+  WiFiClient *client = nullptr;
+  bool wifiConfigured = false;
   String fingerprint;
-  char ssid[MAX_SSID_SIZE];
-  char password[MAX_WIFI_PASSWORD_SIZE];
 
 #ifdef ARDUINO_ARCH_ESP8266
   WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;

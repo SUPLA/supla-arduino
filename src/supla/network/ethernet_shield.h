@@ -30,6 +30,7 @@ class EthernetShield : public Supla::Network {
  public:
   EthernetShield(uint8_t mac[6], unsigned char *ip = NULL) : Network(ip), isDeviceReady(false) {
     memcpy(this->mac, mac, 6);
+    sslEnabled = false; // SSL is not supported on Arduino MEGA target
   }
 
   int read(void *buf, int count) {
@@ -118,7 +119,9 @@ class EthernetShield : public Supla::Network {
     channelState.IPv4 = Ethernet.localIP();
     Ethernet.MACAddress(channelState.MAC);
   }
-  
+
+  virtual void setSSLEnabled(bool enabled) override {};
+
  protected:
   EthernetClient client;
   uint8_t mac[6];

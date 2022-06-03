@@ -30,13 +30,20 @@ class Element {
   static Element *getElementByChannelNumber(int channelNumber);
   Element *next();
 
-  // method called during SuplaDevice initialization. I.e. load initial state,
-  // initialize pins etc.
-  virtual void onInit();
+  // First method called on element in SuplaDevice.begin()
+  // Called only if Config Storage class is configured
+  // Element should read its configration in this method
+  virtual void onLoadConfig();
 
+  // Second method called on element in SuplaDevice.begin()
   // method called during Config initialization (i.e. read from EEPROM, FRAM).
   // Called only if Storage class is configured
   virtual void onLoadState();
+
+  // Third method called on element in SuplaDevice.begin()
+  // method called during SuplaDevice initialization. I.e. load initial state,
+  // initialize pins etc.
+  virtual void onInit();
 
   // method called periodically during SuplaDevice iteration
   // Called only if Storage class is configured

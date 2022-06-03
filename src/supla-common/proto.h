@@ -87,7 +87,19 @@ struct _supla_timeval {
 #define _supla_int16_t short
 #define _supla_int_t int
 #define _supla_int64_t long long
+// timeval for 64 bit system
+#if __GNUC__
+#if __x86_64__ || __ppc64__
 #define _supla_timeval timeval
+#else
+// timeval for 32 bit system
+struct _supla_timeval {
+  long long tv_sec;
+  long long tv_usec;
+};
+
+#endif /* __x86_64__ || __ppc64__*/
+#endif /* __GNUC__*/
 #endif
 
 #ifndef PROTO_ICACHE_FLASH

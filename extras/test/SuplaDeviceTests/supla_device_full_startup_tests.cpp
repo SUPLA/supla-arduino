@@ -23,6 +23,7 @@
 #include <supla/clock/clock.h>
 #include <supla/storage/storage.h>
 #include <element_mock.h>
+#include <board_mock.h>
 
 using ::testing::Return;
 using ::testing::_;
@@ -43,13 +44,19 @@ class SuplaDeviceTests : public ::testing::Test {
 
 };
 
-class TimeInterfaceStub : public TimeInterface {
+class SimpleTime : public TimeInterface {
   public:
+    SimpleTime() : value(0) {}
+
     virtual unsigned long millis() override {
-      static unsigned long value = 0;
-      value += 1000;
       return value;
     }
+
+    void advance(int advanceMs) {
+      value += advanceMs;
+    }
+
+    unsigned long value;
 };
 
 class StorageMock2: public Supla::Storage {
@@ -85,10 +92,11 @@ class SuplaDeviceTestsFullStartup : public SuplaDeviceTests {
     SrpcMock srpc;
     NetworkMock net;
     TimerMock timer;
-    TimeInterfaceStub time;
+    SimpleTime time;
     SuplaDeviceClass sd;
     ElementMock el1;
     ElementMock el2;
+    BoardMock board;
 
     virtual void SetUp() {
       SuplaDeviceTests::SetUp();
@@ -115,7 +123,7 @@ class SuplaDeviceTestsFullStartup : public SuplaDeviceTests {
     }
 };
 
-using ::testing::AtLeast;  
+using ::testing::AtLeast;
 
 TEST_F(SuplaDeviceTestsFullStartup, NoNetworkShouldCallSetupAgain) {
   EXPECT_CALL(net, isReady()).WillRepeatedly(Return(false));
@@ -123,7 +131,10 @@ TEST_F(SuplaDeviceTestsFullStartup, NoNetworkShouldCallSetupAgain) {
   EXPECT_CALL(el1, iterateAlways()).Times(AtLeast(1));
   EXPECT_CALL(el2, iterateAlways()).Times(AtLeast(1));
 
-  for (int i = 0; i < 50*30; i++) sd.iterate();
+  for (int i = 0; i < 131*10; i++) {
+    sd.iterate();
+    time.advance(100);
+  }
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_NETWORK_DISCONNECTED);
 }
 
@@ -132,12 +143,16 @@ TEST_F(SuplaDeviceTestsFullStartup, FailedConnectionShouldSetupNetworkAgain) {
   EXPECT_CALL(net, connected()).WillRepeatedly(Return(false));
   EXPECT_CALL(net, connect(_, _)).WillRepeatedly(Return(0));
   EXPECT_CALL(net, disconnect()).Times(AtLeast(1));
+  EXPECT_CALL(net, iterate()).WillRepeatedly(Return(true));
 
   EXPECT_CALL(net, setup()).Times(1);
   EXPECT_CALL(el1, iterateAlways()).Times(AtLeast(1));
   EXPECT_CALL(el2, iterateAlways()).Times(AtLeast(1));
 
-  for (int i = 0; i < 2*31; i++) sd.iterate();
+  for (int i = 0; i < 61*10; i++) {
+    sd.iterate();
+    time.advance(100);
+  }
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_SERVER_DISCONNECTED);
 }
 
@@ -147,7 +162,7 @@ TEST_F(SuplaDeviceTestsFullStartup, SrpcFailureShouldCallDisconnect) {
   EXPECT_CALL(net, connect(_, _)).WillRepeatedly(Return(1));
   EXPECT_CALL(net, iterate()).Times(1);
   EXPECT_CALL(srpc, srpc_iterate(_)).WillOnce(Return(SUPLA_RESULT_FALSE));
-  
+
   EXPECT_CALL(net, disconnect()).Times(1);
 
   EXPECT_CALL(el1, iterateAlways()).Times(AtLeast(1));
@@ -165,7 +180,7 @@ TEST_F(SuplaDeviceTestsFullStartup, NoReplyForDeviceRegistrationShoudResetConnec
 
   EXPECT_CALL(net, iterate()).Times(AtLeast(1));
   EXPECT_CALL(srpc, srpc_iterate(_)).WillRepeatedly(Return(SUPLA_RESULT_TRUE));
-  
+
   EXPECT_CALL(el1, iterateAlways()).Times(AtLeast(1));
   EXPECT_CALL(el2, iterateAlways()).Times(AtLeast(1));
 
@@ -173,9 +188,15 @@ TEST_F(SuplaDeviceTestsFullStartup, NoReplyForDeviceRegistrationShoudResetConnec
 
   EXPECT_CALL(srpc, srpc_ds_async_registerdevice_e(_, _)).Times(2);
 
-  for (int i = 0; i < 11; i++) sd.iterate();
+  for (int i = 0; i < 11*10; i++) {
+    sd.iterate();
+    time.advance(100);
+  }
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_SERVER_DISCONNECTED);
-  for (int i = 0; i < 2; i++) sd.iterate();
+  for (int i = 0; i < 2*10; i++) {
+    sd.iterate();
+    time.advance(100);
+  }
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_REGISTER_IN_PROGRESS);
 }
 
@@ -188,7 +209,7 @@ TEST_F(SuplaDeviceTestsFullStartup, SuccessfulStartup) {
 
   EXPECT_CALL(net, iterate()).Times(AtLeast(1));
   EXPECT_CALL(srpc, srpc_iterate(_)).WillRepeatedly(Return(SUPLA_RESULT_TRUE));
-  
+
   EXPECT_CALL(el1, iterateAlways()).Times(35);
   EXPECT_CALL(el2, iterateAlways()).Times(35);
 
@@ -203,7 +224,10 @@ TEST_F(SuplaDeviceTestsFullStartup, SuccessfulStartup) {
   EXPECT_CALL(el2, iterateConnected(_)).Times(30).WillRepeatedly(Return(true));
 
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_INITIALIZED);
-  for (int i = 0; i < 5; i++) sd.iterate();
+  for (int i = 0; i < 5; i++) {
+    sd.iterate();
+    time.advance(1000);
+  }
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_REGISTER_IN_PROGRESS);
 
   TSD_SuplaRegisterDeviceResult register_device_result{};
@@ -213,11 +237,32 @@ TEST_F(SuplaDeviceTestsFullStartup, SuccessfulStartup) {
   register_device_result.version_min = 1;
 
   sd.onRegisterResult(&register_device_result);
+  time.advance(100);
 
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_REGISTERED_AND_READY);
 
-  for (int i = 0; i < 30; i++) sd.iterate();
+  for (int i = 0; i < 30; i++) {
+    sd.iterate();
+    time.advance(1000);
+  }
 
   EXPECT_EQ(sd.getCurrentStatus(), STATUS_REGISTERED_AND_READY);
+}
+
+TEST_F(SuplaDeviceTestsFullStartup, NoNetworkShouldCallSetupAgainAndResetDev) {
+  EXPECT_CALL(net, isReady()).WillRepeatedly(Return(false));
+  EXPECT_CALL(net, setup()).Times(1);
+  EXPECT_CALL(el1, iterateAlways()).Times(AtLeast(1));
+  EXPECT_CALL(el2, iterateAlways()).Times(AtLeast(1));
+  // In tests we can't reast board, so this method will be called few times
+  EXPECT_CALL(board, deviceSoftwareReset()).Times(AtLeast(1));
+  sd.setAutomaticResetOnConnectionProblem(100);
+
+  for (int i = 0; i < 102*10; i++) {
+    sd.iterate();
+    time.advance(100);
+  }
+
+  EXPECT_EQ(sd.getCurrentStatus(), STATUS_NETWORK_DISCONNECTED);
 }
 

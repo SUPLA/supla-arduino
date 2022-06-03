@@ -450,8 +450,12 @@ void RGBWBase::onTimer() {
     }
 
     if (valueChanged) {
+      uint32_t adjColorBrightness = adjustRange(
+          hwColorBrightness, 0, 1023, minColorBrightness, maxColorBrightness);
+      uint32_t adjBrightness = adjustRange(
+          hwBrightness, 0, 1023, minBrightness, maxBrightness);
       setRGBWValueOnDevice(
-          hwRed, hwGreen, hwBlue, hwColorBrightness, hwBrightness);
+          hwRed, hwGreen, hwBlue, adjColorBrightness, adjBrightness);
     }
   }
 }
@@ -522,5 +526,35 @@ RGBWBase &RGBWBase::setDefaultStateRestore() {
 void RGBWBase::setMinIterationBrightness(uint8_t minBright) {
   minIterationBrightness = minBright;
 }
+
+RGBWBase &RGBWBase::setBrightnessLimits(int min, int max) {
+  if (min < 0) {
+    min = 0;
+  }
+  if (max > 1023) {
+    max = 1023;
+  }
+  if (min > max) {
+    min = max;
+  }
+  minBrightness = min;
+  maxBrightness = max;
+  return *this;
+}
+RGBWBase &RGBWBase::setColorBrightnessLimits(int min, int max) {
+  if (min < 0) {
+    min = 0;
+  }
+  if (max > 1023) {
+    max = 1023;
+  }
+  if (min > max) {
+    min = max;
+  }
+  minColorBrightness = min;
+  maxColorBrightness = max;
+  return *this;
+}
+
 };  // namespace Control
 };  // namespace Supla

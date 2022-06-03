@@ -334,7 +334,7 @@ or you can add this line to `.profile` file so it will setup it automatically.
 Now you can go to `extras/examples/` directory and select example for ESP8266 or for ESP32:
 
 ### ESP8266 example
-Use `empty_esp8266_rtos_sdk_project` directory (you can copy it to any location and modify). In this folder call:
+Use `esp8266_rtos` directory (you can copy it to any location and modify). In this folder call:
 
 `make menuconfig` and setup your build (especially select proper USB device for flashing). Then call:
 
@@ -345,7 +345,7 @@ Use `empty_esp8266_rtos_sdk_project` directory (you can copy it to any location 
 `make monitor` - to run serial monitor (use CTRL+] to exit)
 
 ### ESP32 example
-Use `empty_esp_idf_project` directory (you can copy it to any location and modify). In this folder call:
+Use `esp_idf` directory (you can copy it to any location and modify). In this folder call:
 
 `idf.py menuconfig` and setup your build (especially select proper USB device for flashing). Then call:
 

@@ -20,11 +20,115 @@
 #include "supla-common/srpc.h"
 #include "supla/element.h"
 #include "supla/network/network.h"
+#include "supla/storage/config.h"
 #include <supla/time.h>
 
 namespace Supla {
 
 Network *Network::netIntf = nullptr;
+
+Network *Network::Instance() {
+  return netIntf;
+}
+
+bool Network::Connected() {
+  if (Instance() != nullptr) {
+    return Instance()->connected();
+  }
+  return false;
+}
+
+int Network::Read(void *buf, int count) {
+  if (Instance() != nullptr) {
+    return Instance()->read(buf, count);
+  }
+  return -1;
+}
+
+int Network::Write(void *buf, int count) {
+  if (Instance() != nullptr) {
+    return Instance()->write(buf, count);
+  }
+  return -1;
+}
+
+int Network::Connect(const char *server, int port) {
+  if (Instance() != nullptr) {
+    Instance()->clearTimeCounters();
+    return Instance()->connect(server, port);
+  }
+  return 0;
+}
+
+void Network::Disconnect() {
+  if (Instance() != nullptr) {
+    return Instance()->disconnect();
+  }
+  return;
+}
+
+void Network::Setup() {
+  if (Instance() != nullptr) {
+    return Instance()->setup();
+  }
+  return;
+}
+
+void Network::Uninit() {
+  if (Instance() != nullptr) {
+    return Instance()->uninit();
+  }
+  return;
+}
+
+bool Network::IsReady() {
+  if (Instance() != nullptr) {
+    return Instance()->isReady();
+  }
+  return false;
+}
+
+bool Network::Iterate() {
+  if (Instance() != nullptr) {
+    return Instance()->iterate();
+  }
+  return false;
+}
+
+bool Network::Ping(void *srpc) {
+  if (Instance() != nullptr) {
+    return Instance()->ping(srpc);
+  }
+  return false;
+}
+
+void Network::SetConfigMode() {
+  if (Instance() != nullptr) {
+    Instance()->setConfigMode();
+  }
+  return;
+}
+
+void Network::SetNormalMode() {
+  if (Instance() != nullptr) {
+    Instance()->setNormalMode();
+  }
+  return;
+}
+
+bool Network::GetMacAddr(uint8_t *buf) {
+  if (Instance() != nullptr) {
+    return Instance()->getMacAddr(buf);
+  }
+  return false;
+}
+
+void Network::SetHostname(const char *buf) {
+  if (Instance() != nullptr) {
+    Instance()->setHostname(buf);
+  }
+  return;
+}
 
 _supla_int_t data_read(void *buf, _supla_int_t count, void *userParams) {
   (void)(userParams);
@@ -127,14 +231,22 @@ void message_received(void *_srpc,
         if (rd.data.sd_device_calcfg_request->SuperUserAuthorized != 1) {
           result.Result = SUPLA_CALCFG_RESULT_UNAUTHORIZED;
         } else {
-          auto element = Supla::Element::getElementByChannelNumber(
-              rd.data.sd_device_calcfg_request->ChannelNumber);
-          if (element) {
-            result.Result = element->handleCalcfgFromServer(rd.data.sd_device_calcfg_request);
+          if (rd.data.sd_device_calcfg_request->ChannelNumber == -1) {
+            // calcfg with channel == -1 are for whole device, so we route
+            // it to SuplaDeviceClass instance
+            result.Result =
+              ((SuplaDeviceClass *)_sdc)->handleCalcfgFromServer(
+                rd.data.sd_device_calcfg_request);
           } else {
-            supla_log(LOG_DEBUG,
-                "Error: couldn't find element for a requested channel [%d]",
-                rd.data.sd_channel_new_value->ChannelNumber);
+            auto element = Supla::Element::getElementByChannelNumber(
+                rd.data.sd_device_calcfg_request->ChannelNumber);
+            if (element) {
+              result.Result = element->handleCalcfgFromServer(rd.data.sd_device_calcfg_request);
+            } else {
+              supla_log(LOG_DEBUG,
+                  "Error: couldn't find element for a requested channel [%d]",
+                  rd.data.sd_channel_new_value->ChannelNumber);
+            }
           }
         }
         srpc_ds_async_device_calcfg_result(_srpc, &result);
@@ -263,13 +375,61 @@ void Network::fillStateData(TDSC_ChannelState &channelState) {
 
 void Network::printData(const char *prefix, const void *buf, const int count) {
   char tmp[TMP_STRING_SIZE] = {};
-  for (int i = 0; i < count && (i * 3 < TMP_STRING_SIZE); i++) {
+  for (int i = 0; i < count && ((i + 1) * 3 < TMP_STRING_SIZE); i++) {
     sprintf(tmp + i * 3,
         "%02X ",
         static_cast<unsigned int>(static_cast<const unsigned char *>(buf)[i]));
   }
   supla_log(LOG_DEBUG, "%s: [%s]", prefix, tmp);
 
+}
+
+void Network::setSsid(const char *wifiSsid) {
+  (void)(wifiSsid);
+}
+
+void Network::setPassword(const char *wifiPassword) {
+  (void)(wifiPassword);
+}
+
+void Network::setConfigMode() {
+  mode = Supla::DEVICE_MODE_CONFIG;
+  modeChanged = true;
+}
+
+void Network::setNormalMode() {
+  mode = Supla::DEVICE_MODE_NORMAL;
+  modeChanged = true;
+}
+
+void Network::uninit() {
+}
+
+bool Network::getMacAddr(uint8_t *buf) {
+  (void)(buf);
+  return false;
+}
+
+void Network::setHostname(const char *buf) {
+  strncpy(hostname, buf, 32);
+  supla_log(LOG_DEBUG, "Network AP/hostname: %s", hostname);
+}
+
+void Network::setSuplaDeviceClass(SuplaDeviceClass *ptr) {
+  sdc = ptr;
+}
+
+bool Network::isWifiConfigRequired() {
+  return false;
+}
+
+void Network::setSSLEnabled(bool enabled) {
+  sslEnabled = enabled;
+}
+
+void Network::setCACert(const char *rootCA) {
+  (void)(rootCA);
+  // TODO
 }
 
 };  // namespace Supla

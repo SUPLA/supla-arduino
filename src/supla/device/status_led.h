@@ -35,7 +35,7 @@ namespace Supla {
     REGISTERED_AND_READY /* stable ON or OFF depending on config */,
     CONFIG_MODE /* quick flashing 100/100 ms */,
     SW_DOWNLOAD /* very fast flashing 20/20 ms */,
-    PACZKOW_WE_HAVE_A_PROBLEM /* some problem 500/500 ms */,
+    PACZKOW_WE_HAVE_A_PROBLEM /* some problem 300/100 ms */,
     CUSTOM_SEQUENCE /* values set manually, state changes ignored */
   };
 
@@ -44,6 +44,7 @@ namespace Supla {
       public:
         StatusLed(uint8_t outPin, bool invert = false);
 
+        void onLoadConfig() override;
         void onInit() override;
         void iterateAlways() override;
         void onTimer() override;

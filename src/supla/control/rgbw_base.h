@@ -61,6 +61,14 @@ class RGBWBase : public ChannelElement, public ActionHandler {
   virtual RGBWBase &setDefaultStateOn();
   virtual RGBWBase &setDefaultStateOff();
   virtual RGBWBase &setDefaultStateRestore();
+  // Set mapping between interface setting of brightness and actual value
+  // set on device. Values should be between 0 and 1023 (min, max).
+  // I.e. if limit is set to (100, 800), then values from Supla in range
+  // 0-100% are mapped to PWM values in range 100 and 800.
+  virtual RGBWBase &setBrightnessLimits(int min, int max);
+  // Set mapping between interface setting of color brightness and actual value
+  // set on device. Values should be between 0 and 1023 (min, max).
+  virtual RGBWBase &setColorBrightnessLimits(int min, int max);
 
  protected:
   uint8_t addWithLimit(int value, int addition, int limit = 255);
@@ -83,6 +91,10 @@ class RGBWBase : public ChannelElement, public ActionHandler {
   int hwBlue;             // 0 - 255
   int hwColorBrightness;  // 0 - 100
   int hwBrightness;       // 0 - 100
+  int minBrightness = 0;
+  int maxBrightness = 1023;
+  int minColorBrightness = 0;
+  int maxColorBrightness = 1023;
   unsigned long lastTick;
   unsigned long lastMsgReceivedMs;
   int8_t stateOnInit;

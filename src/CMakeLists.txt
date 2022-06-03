@@ -13,8 +13,15 @@ set(SRCS
   supla/correction.cpp
   supla/at_channel.cpp
   supla/action_handler.cpp
+  supla/mutex.cpp
+  supla/auto_lock.cpp
+
+  supla/device/last_state_logger.cpp
+  supla/device/sw_update.cpp
 
   supla/storage/storage.cpp
+  supla/storage/config.cpp
+  supla/storage/key_value.cpp
 
   supla/control/internal_pin_output.cpp
   supla/control/pin_status_led.cpp
@@ -43,6 +50,9 @@ set(SRCS
 
   SuplaDevice.cpp
   supla/network/network.cpp
+  supla/network/web_server.cpp
+  supla/network/html_element.cpp
+  supla/network/html_generator.cpp
   supla/clock/clock.cpp
 
   supla/sensor/therm_hygro_press_meter.cpp

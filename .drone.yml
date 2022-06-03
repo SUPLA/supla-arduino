@@ -26,10 +26,10 @@ steps:
   - echo $SUPLA_DEVICE_PATH
   - ls -al
   - export SUPLA_DEVICE_PATH=/drone/src
-  - cd extras/examples/empty_esp8266_rtos_sdk_project/
-  - rm -f build/supla-empty-esp8266-mk.bin
+  - cd extras/examples/esp8266_rtos/
+  - rm -f build/supla-esp8266-mk.bin
   - /bin/bash -c "source /supla/esp/ESP8266_RTOS_SDK/export.sh && make -j32"
-  - /bin/bash -c "[ -f build/supla-empty-esp8266-mk.bin ] && true || false"
+  - /bin/bash -c "[ -f build/supla-esp8266-mk.bin ] && true || false"
 
 - name: esp_idf_compilation_check
   image: devel/esp-idf
@@ -39,10 +39,10 @@ steps:
   - echo $SUPLA_DEVICE_PATH
   - ls -al
   - export SUPLA_DEVICE_PATH=/drone/src
-  - cd extras/examples/empty_esp_idf_project/
-  - rm -f build/supla_empty_esp32.bin
+  - cd extras/examples/esp_idf/
+  - rm -f build/supla_esp32.bin
   - /bin/bash -c "source /supla/esp/esp-idf/export.sh && idf.py build"
-  - /bin/bash -c "[ -f build/supla_empty_esp32.bin ] && true || false"
+  - /bin/bash -c "[ -f build/supla_esp32.bin ] && true || false"
 
 - name: freertos_linux_compilation_check
   image: devel/freertos
@@ -53,11 +53,11 @@ steps:
   - ls -al
   - export SUPLA_DEVICE_PATH=/drone/src
   - export SUPLA_FREERTOS_PATH=/supla/FreeRTOS
-  - cd extras/examples/empty_freertos_linux_project
-  - rm -f build/empty-supla-freertos-example
+  - cd extras/examples/freertos_linux
+  - rm -f build/supla-freertos-example
   - cmake -B build
   - cmake --build build
-  - /bin/bash -c "[ -f build/empty-supla-freertos-example ] && true || false"
+  - /bin/bash -c "[ -f build/supla-freertos-example ] && true || false"
 
 - name: linux_compilation_check
 # Linux compilation requires generic linux toolset for compilation and building
@@ -66,11 +66,11 @@ steps:
   pull: never
   commands:
   - export SUPLA_DEVICE_PATH=/drone/src
-  - cd extras/examples/empty_linux_project
-  - rm -f build/empty-supla-linux-example
+  - cd extras/examples/linux
+  - rm -f build/supla-device-linux
   - cmake -B build
   - cmake --build build
-  - /bin/bash -c "[ -f build/empty-supla-linux-example ] && true || false"
+  - /bin/bash -c "[ -f build/supla-device-linux ] && true || false"
 
 - name: arduino_esp8266_compilation_check
   image: devel/arduino-cli

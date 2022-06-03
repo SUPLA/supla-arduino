@@ -27,7 +27,8 @@ class Thermometer : public ChannelElement {
  public:
   Thermometer();
   virtual double getValue();
-  void iterateAlways();
+  void onInit() override;
+  void iterateAlways() override;
 
  protected:
   unsigned long lastReadTime;

@@ -1,5 +1,40 @@
 # CHANGELOG.md
 
+## 2.4.2 (2022-06-xx) unreleased
+
+  - Change: (Arduino ESPx) Wi-Fi class handling change to support config mode
+  - Change: StatusLed - change led sequence on error (300/100 ms)
+  - Change: SuplaDevice removed entering to "No connection to network" state during first startup procedure for cleaner last status messages
+  - Change: SuplaDevice renamed "Iterate fail" to "Communication fail" last state name.
+  - Change: default device names adjustment
+  - Change: Moved onInit methods for thermometers and therm-hygro meters to base classes.
+  - Add: SuplaDevice: add handling of actions: enter config mode, toggle config mode, reset to factory default settings
+  - Add: SuplaDevice: automatic GUID and AuthKey generation when it is missing and storage config is available. This functionality requires Storage Config class implementation of GUID/AuthKey generation on specific platform. By default it won't generate anything.
+  - Add: RGBW, dimmer: add option to limit min/max values for brightness and colorBrightness
+  - Add: SuplaDevice: ability to set user defined activity timeout
+  - Add: VirtualThermometer
+  - Add: VirtualThermHygroMeter.
+  - Add: Element::onLoadConfig() method in which Element's config can be loaded
+  - Add: set, clear, toggle methods for VirtualBinary
+  - Add: SuplaDeviceClass::generateHostname method to generate DHCP hostname and AP Wi-Fi SSID in config mode
+  - Add: support for SUPLA_CALCFG_CMD_ENTER_CFG_MODE (requires Storage::Config instance)
+  - Add: Supla::Device::LastStateLogger to keep track of previous statuses and provide data for www
+  - Add: WebServer class
+  - Add: HTML blocks: DeviceInfo, ProtocolParameters, SwUpdate, SwUpdateBeta, WiFiParameters, CustomSwUpdate, StatusLedParameters
+  - Add: (Arduino ESPx) LittleFsConfig class for configuration storage
+  - Add: (ESP8266 RTOS, ESP IDF, Arduino ESPx, Linux): add GUID and AuthKey generation
+  - Add: (ESP8266 RTOS, ESP IDF, Arduino ESPx): add web server for config mode
+  - Add: (ESP8266 RTOS, ESP IDF) NvsConfig class for configuration storage
+  - Add: (ESP8266 RTOS, ESP IDF) added detailed log to Last State for Wi-Fi connection problems and Supla server connection problem.
+  - Add: (ESP8266 RTOS, ESP IDF) Sha256 and RsaVerificator implementation
+  - Add: (ESP8266 RTOS, ESP IDF) OTA SW update procedure
+  - Add: (Linux) time methods, timers implementation,
+  - Add: (Linux) add ThermometerParsed, Supla::Source::Cmd, Supla::Parser::Simple, Supla::Parser::Json, ImpulseCouterParsed, ElectricityMeterParsed, Source::File, BinaryParsed
+  - Add: (Linux) YAML config file support
+  - Add: (Linux) file storage for last state log
+
+
+
 ## 2.4.1 (2022-03-23)
 
   - Change: (Arduino) move WiFi events for ESP8266 Arduino WiFi class to protected section

@@ -23,10 +23,27 @@ set(SUPLA_DEVICE_SRCS
   ../../../src/supla/timer.cpp
   ../../../src/supla/tools.cpp
   ../../../src/supla/uptime.cpp
+  ../../../src/supla/mutex.cpp
+  ../../../src/supla/auto_lock.cpp
+  ../../../src/supla/sha256.cpp
+  ../../../src/supla/rsa_verificator.cpp
 
   ../../../src/supla/storage/storage.cpp
+  ../../../src/supla/storage/config.cpp
 
   ../../../src/supla/network/network.cpp
+  ../../../src/supla/network/netif_wifi.cpp
+  ../../../src/supla/network/web_server.cpp
+  ../../../src/supla/network/web_sender.cpp
+  ../../../src/supla/network/html_generator.cpp
+  ../../../src/supla/network/html_element.cpp
+  ../../../src/supla/network/html/device_info.cpp
+  ../../../src/supla/network/html/wifi_parameters.cpp
+  ../../../src/supla/network/html/protocol_parameters.cpp
+  ../../../src/supla/network/html/status_led_parameters.cpp
+  ../../../src/supla/network/html/custom_sw_update.cpp
+  ../../../src/supla/network/html/sw_update_beta.cpp
+  ../../../src/supla/network/html/sw_update.cpp
 
   ../../../src/supla/clock/clock.cpp
 
@@ -61,6 +78,8 @@ set(SUPLA_DEVICE_SRCS
   ../../../src/supla/conditions/on_invalid.cpp
 
   ../../../src/supla/device/status_led.cpp
+  ../../../src/supla/device/last_state_logger.cpp
+  ../../../src/supla/device/sw_update.cpp
 # not all files from sensor folder are compiled here. Some still require
 # porting from ARDUINO
   ../../../src/supla/sensor/binary.cpp
@@ -75,19 +94,40 @@ set(SUPLA_DEVICE_SRCS
   ../../../src/supla/sensor/HC_SR04.cpp
 )
 
+set(NETTLE_SRCS
+  ../../../src/nettle/bignum.c
+  ../../../src/nettle/gmp-glue.c
+  ../../../src/nettle/mini-gmp.c
+  ../../../src/nettle/pkcs1-rsa-sha256.c
+  ../../../src/nettle/pkcs1.c
+  ../../../src/nettle/rsa-sha256-verify.c
+  ../../../src/nettle/rsa-verify.c
+  ../../../src/nettle/rsa.c
+  ../../../src/nettle/sha256-compress.c
+  ../../../src/nettle/sha256.c
+  ../../../src/nettle/write-be32.c
+  )
+
+
 set(SUPLA_DEVICE_PORTING_SRCS
+  ../../porting/esp-idf/esp_platform.cpp
   ../../porting/esp-idf/esp_idf_wifi.cpp
   ../../porting/esp-idf/esp_idf_gpio.cpp
   ../../porting/esp-idf/spiffs_storage.cpp
+  ../../porting/esp-idf/nvs_config.cpp
+  ../../porting/esp-idf/esp_idf_web_server.cpp
+  ../../porting/esp-idf/esp_idf_mutex.cpp
+  ../../porting/esp-idf/esp_idf_ota.cpp
 )
 
 
 idf_component_register(SRCS
   ${SUPLA_COMMONM_SRCS}
   ${SUPLA_DEVICE_SRCS}
+  ${NETTLE_SRCS}
   ${SUPLA_DEVICE_PORTING_SRCS}
   INCLUDE_DIRS "../../../src/" "../../porting/esp-idf"
-  REQUIRES esp-tls nvs_flash spiffs
+  REQUIRES esp-tls nvs_flash spiffs esp_http_server app_update esp_http_client json
   EMBED_TXTFILES supla_org_cert.pem
 )
 

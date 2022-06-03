@@ -85,10 +85,6 @@ class DHT: public ThermHygroMeter {
       }
     }
 
-    void onInit() {
-      channel.setNewValue(getTemp(), getHumi());
-    }
-
     protected:
       ::DHT dht;
       double lastValidTemp;

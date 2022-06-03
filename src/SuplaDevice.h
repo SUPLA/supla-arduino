@@ -19,10 +19,12 @@
 
 #include "supla-common/proto.h"
 #include "supla/network/network.h"
+#include "supla/storage/config.h"
 #include "supla/uptime.h"
 #include "supla/clock/clock.h"
-
-#define ACTIVITY_TIMEOUT 30
+#include "supla/storage/config.h"
+#include "supla/device/last_state_logger.h"
+#include "supla/action_handler.h"
 
 #define STATUS_UNKNOWN                   -1
 #define STATUS_ALREADY_INITIALIZED       1
@@ -54,34 +56,18 @@
 #define STATUS_UNKNOWN_ERROR             35
 
 #define STATUS_CONFIG_MODE               40
+#define STATUS_SOFTWARE_RESET            41
 #define STATUS_SW_DOWNLOAD               50
 
 typedef void (*_impl_arduino_status)(int status, const char *msg);
 
-class SuplaDeviceClass {
- protected:
-  void *srpc;
-  int8_t registered;
-  int port;
-  int connectionFailCounter;
-  int networkIsNotReadyCounter;
+namespace Supla {
+  namespace Device {
+    class SwUpdate;
+  };
+};
 
-  unsigned long lastIterateTime;
-  unsigned long waitForIterate;
-
-  int currentStatus;
-
-  _impl_arduino_status impl_arduino_status;
-
-  Supla::Uptime uptime;
-  Supla::Clock *clock;
-
-  bool isInitialized(bool msg);
-  void setString(char *dst, const char *src, int max_size);
-
- private:
-  void status(int status, const char *msg, bool alwaysLog = false);
-
+class SuplaDeviceClass : public Supla::ActionHandler {
  public:
   SuplaDeviceClass();
   ~SuplaDeviceClass();
@@ -105,6 +91,13 @@ class SuplaDeviceClass {
   void setAuthKey(const char authkey[SUPLA_AUTHKEY_SIZE]);
   void setEmail(const char *email);
   void setServer(const char *server);
+  void setSwVersion(const char *);
+  void setManufacurerId(_supla_int16_t);
+  void setProductId(_supla_int16_t);
+  void addFlags(_supla_int_t);
+  void removeFlags(_supla_int_t);
+
+  int generateHostname(char*, int macSize = 6);
 
   // Timer with 100 Hz frequency (10 ms)
   void onTimer(void);
@@ -120,9 +113,85 @@ class SuplaDeviceClass {
   void channelSetActivityTimeoutResult(
       TSDC_SuplaSetActivityTimeoutResult *result);
   void onGetUserLocaltimeResult(TSDC_UserLocalTimeResult *result);
+  int handleCalcfgFromServer(TSD_DeviceCalCfgRequest *request);
 
-  void setSwVersion(const char *);
+  void enterConfigMode();
+  void enterNormalMode();
+  // Schedules timeout to restart device. When provided timeout is 0
+  // then restart will be done asap.
+  void scheduleSoftRestart(int timeout = 0);
+  void softRestart();
+  void saveStateToStorage();
+  void disableCfgModeTimeout();
+  void resetToFactorySettings();
+
   int getCurrentStatus();
+  void loadDeviceConfig();
+  bool prepareLastStateLog();
+  char *getLastStateLog();
+  void addLastStateLog(const char*);
+  void setRsaPublicKeyPtr(const uint8_t *ptr);
+  const uint8_t *getRsaPublicKey();
+
+  void setActivityTimeout(_supla_int_t newActivityTimeout);
+
+  void handleAction(int event, int action) override;
+
+  // Enables automatic software reset of device in case of network/server
+  // connection problems longer than timeSec.
+  // timeSec is always round down to multiplication of 10 s.
+  // timeSec <= 60 will disable automatic restart.
+  void setAutomaticResetOnConnectionProblem(unsigned int timeSec);
+
+  void setLastStateLogger(Supla::Device::LastStateLogger *logger);
+
+ protected:
+  void *srpc = nullptr;
+  int8_t registered = 0;
+  int port = -1;
+  unsigned int connectionFailCounter = 0;
+  unsigned int lastConnectionResetCounter = 0;
+  int networkIsNotReadyCounter = 0;
+
+  unsigned long lastIterateTime = 0;
+  unsigned long waitForIterate = 0;
+  unsigned long deviceRestartTimeoutTimestamp = 0;
+  unsigned int forceRestartTimeMs = 0;
+  unsigned int resetOnConnectionFailCounter = 0;
+  _supla_int_t activityTimeout = 30;
+
+  enum Supla::DeviceMode deviceMode = Supla::DEVICE_MODE_NOT_SET;
+  int currentStatus = STATUS_UNKNOWN;
+  bool goToConfigModeAsap = false;
+  bool triggerResetToFacotrySettings = false;
+  bool triggerStartLocalWebServer = false;
+  bool triggerStopLocalWebServer = false;
+  bool triggerCheckSwUpdate = false;
+  Supla::Device::SwUpdate *swUpdate = nullptr;
+  const uint8_t *rsaPublicKey = nullptr;
+
+  _impl_arduino_status impl_arduino_status = nullptr;
+
+  Supla::Uptime uptime;
+  Supla::Clock *clock = nullptr;
+  Supla::Device::LastStateLogger *lastStateLogger = nullptr;
+
+  bool isSrpcInitialized(bool msg);
+  // used to indicate if begin() method was called - it will be set to
+  // true even if initialization procedure failed for some reason
+  bool initializationDone = false;
+
+  void setString(char *dst, const char *src, int max_size);
+
+  void iterateAlwaysElements(unsigned long _millis);
+  bool iterateNetworkSetup();
+  bool iterateSuplaProtocol(unsigned int _millis);
+  void handleLocalActionTriggers();
+  void checkIfRestartIsNeeded(unsigned long _millis);
+
+ private:
+  void status(int status, const char *msg, bool alwaysLog = false);
+
 };
 
 extern SuplaDeviceClass SuplaDevice;

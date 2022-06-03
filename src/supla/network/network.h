@@ -21,83 +21,28 @@
 
 #include "supla-common/log.h"
 #include "supla-common/proto.h"
+#include "supla/storage/config.h"
+
+class SuplaDeviceClass;
 
 namespace Supla {
 class Network {
  public:
-  static Network *Instance() {
-    return netIntf;
-  }
-
-  static bool Connected() {
-    if (Instance() != nullptr) {
-      return Instance()->connected();
-    }
-    return false;
-  }
-
-  static int Read(void *buf, int count) {
-    if (Instance() != nullptr) {
-      return Instance()->read(buf, count);
-    }
-    return -1;
-  }
-
-  static int Write(void *buf, int count) {
-    if (Instance() != nullptr) {
-      return Instance()->write(buf, count);
-    }
-    return -1;
-  }
-
-  static int Connect(const char *server, int port = -1) {
-    if (Instance() != nullptr) {
-      Instance()->clearTimeCounters();
-      return Instance()->connect(server, port);
-    }
-    return 0;
-  }
-
-  static void Disconnect() {
-    if (Instance() != nullptr) {
-      return Instance()->disconnect();
-    }
-    return;
-  }
-
-  static void Setup() {
-    if (Instance() != nullptr) {
-      return Instance()->setup();
-    }
-    return;
-  }
-
-  static bool IsReady() {
-    if (Instance() != nullptr) {
-      return Instance()->isReady();
-    }
-    return false;
-  }
-
-  static bool Iterate() {
-    if (Instance() != nullptr) {
-      return Instance()->iterate();
-    }
-    return false;
-  }
-
-  static void SetSrpc(void *_srpc) {
-    if (Instance() != nullptr) {
-      Instance()->setSrpc(_srpc);
-    }
-  }
-
-  static bool Ping(void *srpc) {
-    if (Instance() != nullptr) {
-      return Instance()->ping(srpc);
-    }
-    return false;
-  }
+  static Network *Instance();
+  static bool Connected();
+  static int Read(void *buf, int count);
+  static int Write(void *buf, int count);
+  static int Connect(const char *server, int port = -1);
+  static void Disconnect();
+  static void Setup();
+  static void Uninit();
+  static bool IsReady();
+  static bool Iterate();
+  static bool Ping(void *srpc);
+  static void SetConfigMode();
+  static void SetNormalMode();
+  static bool GetMacAddr(uint8_t*);
+  static void SetHostname(const char*);
 
   static void printData(const char *prefix, const void *buf, const int count);
 
@@ -109,7 +54,12 @@ class Network {
   virtual bool connected() = 0;
   virtual void disconnect() = 0;
   virtual void setup() = 0;
+  virtual void uninit();
   virtual void setTimeout(int);
+  virtual void setConfigMode();
+  virtual void setNormalMode();
+  virtual bool getMacAddr(uint8_t*);
+  virtual void setHostname(const char*);
 
   virtual bool isReady() = 0;
   virtual bool iterate();
@@ -117,11 +67,20 @@ class Network {
 
   virtual void fillStateData(TDSC_ChannelState &channelState);
 
-  void setSrpc(void *_srpc);
+  // WiFi specific part
+  virtual bool isWifiConfigRequired();
+  virtual void setSsid(const char *wifiSsid);
+  virtual void setPassword(const char *wifiPassword);
+
+  // SSL configuration
+  virtual void setSSLEnabled(bool enabled);
+  void setCACert(const char *rootCA);
+
   void updateLastSent();
   void updateLastResponse();
   void clearTimeCounters();
   void setActivityTimeout(_supla_int_t activityTimeoutSec);
+  void setSuplaDeviceClass(SuplaDeviceClass *);
 
  protected:
   static Network *netIntf;
@@ -130,9 +89,16 @@ class Network {
   _supla_int64_t lastPingTimeMs;
   _supla_int_t serverActivityTimeoutS;
   void *srpc;
+  SuplaDeviceClass *sdc = nullptr;
 
+  enum DeviceMode mode = DEVICE_MODE_NORMAL;
+  bool modeChanged = false;
   bool useLocalIp;
   unsigned char localIp[4];
+  char hostname[32] = {};
+
+  bool sslEnabled = true;
+  char *rootCACert = nullptr;
 };
 
 // Method passed to SRPC as a callback to read raw data from network interface

@@ -71,6 +71,8 @@ TEST(EmGetterTests, VoltageGetter) {
   EXPECT_NEAR(getterPhase2->getValue(&em, isValid), 320, 0.05);
   EXPECT_TRUE(isValid);
 
+  delete getter;
+  delete getterPhase2;
 }
 
 TEST(EmGetterTests, CurrentGetter) {
@@ -117,6 +119,8 @@ TEST(EmGetterTests, CurrentGetter) {
   EXPECT_NEAR(getterPhase2->getValue(&em, isValid), 66, 0.05);
   EXPECT_TRUE(isValid);
 
+  delete getter;
+  delete getterPhase2;
 }
 
 TEST(EmGetterTests, TotalCurrentGetter) {
@@ -158,6 +162,7 @@ TEST(EmGetterTests, TotalCurrentGetter) {
   EXPECT_NEAR(getter->getValue(&em, isValid), 8.52 + 66, 0.005);
   EXPECT_TRUE(isValid);
 
+  delete getter;
 }
 
 TEST(EmGetterTests, PowerActiveWGetter) {
@@ -204,6 +209,8 @@ TEST(EmGetterTests, PowerActiveWGetter) {
   EXPECT_NEAR(getterPhase2->getValue(&em, isValid), 66, 0.05);
   EXPECT_TRUE(isValid);
 
+  delete getter;
+  delete getterPhase2;
 }
 
 TEST(EmGetterTests, TotalPowerActiveWGetter) {
@@ -245,6 +252,7 @@ TEST(EmGetterTests, TotalPowerActiveWGetter) {
   EXPECT_NEAR(getter->getValue(&em, isValid), 8.52 + 66, 0.005);
   EXPECT_TRUE(isValid);
 
+  delete getter;
 }
 
 TEST(EmGetterTests, PowerApparentGetter) {
@@ -291,6 +299,8 @@ TEST(EmGetterTests, PowerApparentGetter) {
   EXPECT_NEAR(getterPhase2->getValue(&em, isValid), 66, 0.05);
   EXPECT_TRUE(isValid);
 
+  delete getter;
+  delete getterPhase2;
 }
 
 TEST(EmGetterTests, TotalPowerApparentGetter) {
@@ -332,6 +342,7 @@ TEST(EmGetterTests, TotalPowerApparentGetter) {
   EXPECT_NEAR(getter->getValue(&em, isValid), 8.52 + 66, 0.005);
   EXPECT_TRUE(isValid);
 
+  delete getter;
 }
 
 TEST(EmGetterTests, PowerReactiveGetter) {
@@ -378,6 +389,8 @@ TEST(EmGetterTests, PowerReactiveGetter) {
   EXPECT_NEAR(getterPhase2->getValue(&em, isValid), 66, 0.05);
   EXPECT_TRUE(isValid);
 
+  delete getter;
+  delete getterPhase2;
 }
 
 TEST(EmGetterTests, TotalPowerReactiveGetter) {
@@ -419,4 +432,5 @@ TEST(EmGetterTests, TotalPowerReactiveGetter) {
   EXPECT_NEAR(getter->getValue(&em, isValid), 8.52 + 66, 0.005);
   EXPECT_TRUE(isValid);
 
+  delete getter;
 }

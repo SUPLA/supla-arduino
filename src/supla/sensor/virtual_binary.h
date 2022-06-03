@@ -26,10 +26,13 @@ namespace Sensor {
 class VirtualBinary : public ChannelElement, public ActionHandler {
  public:
   VirtualBinary();
-  bool getValue();
+  virtual bool getValue();
   void iterateAlways();
   void onInit();
   void handleAction(int event, int action);
+  void set();
+  void clear();
+  void toggle();
 
  protected:
   bool state;

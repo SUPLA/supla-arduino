@@ -26,17 +26,18 @@
 #include <esp_wifi.h>
 
 // supla-device includes
-#include <supla/network/network.h>
+#include <supla/network/netif_wifi.h>
 
-#define MAX_SSID_SIZE          32
-#define MAX_WIFI_PASSWORD_SIZE 64
 
 namespace Supla {
-  class EspIdfWifi : public Supla::Network {
+  class Mutex;
+
+  class EspIdfWifi : public Supla::Wifi {
     public:
       EspIdfWifi(const char *wifiSsid = nullptr,
           const char *wifiPassword = nullptr,
           unsigned char *ip = nullptr);
+      virtual ~EspIdfWifi();
 
       int read(void *buf, int count) override;
       int write(void *buf, int count) override;
@@ -45,29 +46,38 @@ namespace Supla {
       bool isReady() override;
       void disconnect() override;
       void setup() override;
+      void uninit() override;
+      bool getMacAddr(uint8_t *out) override;
 
-      void enableSSL(bool value);
-      void setSsid(const char *wifiSsid);
-      void setPassword(const char *wifiPassword);
-      void setTimeout(int timeoutMs);
+      void setTimeout(int timeoutMs) override;
       void fillStateData(TDSC_ChannelState &channelState) override;
 
       void setIpReady(bool ready);
       void setIpv4Addr(unsigned _supla_int_t);
       void setWifiConnected(bool state);
 
+      bool isInConfigMode();
+      void logWifiReason(int);
+      void logConnReason(int, int, int);
     protected:
-      bool isSecured = true;
+
       bool initDone = false;
       bool isWifiConnected = false;
       bool isIpReady = false;
       bool isServerConnected = false;
-      char ssid[MAX_SSID_SIZE] = {};
-      char password[MAX_WIFI_PASSWORD_SIZE] = {};
       EventGroupHandle_t wifiEventGroup;
       esp_tls_t *client = nullptr;
       int timeoutMs = 10000;
       unsigned _supla_int_t ipv4 = 0;
+      int lastReasons[2] = {};
+      int lastReasonIdx = 0;
+      int lastConnErr = 0;
+      int lastTlsErr = 0;
+      Supla::Mutex *mutex = nullptr;
+#ifdef SUPLA_DEVICE_ESP32
+      esp_netif_t* staNetIf = nullptr;
+      esp_netif_t* apNetIf = nullptr;
+#endif
   };
 
 };  // namespace Supla

@@ -26,6 +26,7 @@ class Element;
 
 class ConditionGetter {
   public:
+    virtual ~ConditionGetter() {};
     virtual double getValue(Supla::Element *element, bool &isValid) = 0;
   protected:
     TElectricityMeter_Measurement *getMeasurement(Supla::Element *element,
