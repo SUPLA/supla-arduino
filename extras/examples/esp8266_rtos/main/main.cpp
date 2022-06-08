@@ -40,10 +40,6 @@
 #include <spiffs_storage.h>
 #include <nvs_config.h>
 
-// Please make sure that you have rsa_public_key.h added in your project.
-// You can check ESP example applications for details.
-#include "rsa_public_key.h"
-
 extern "C" void cpp_main(void*);
 
 
@@ -70,13 +66,11 @@ void cpp_main(void* param)
   b1->setMulticlickTime(300);
   b1->addAction(Supla::TOGGLE, r1, Supla::ON_CLICK_1);
   b1->addAction(Supla::START_LOCAL_WEB_SERVER, SuplaDevice, Supla::ON_CLICK_2);
-  b1->addAction(Supla::CHECK_SW_UPDATE, SuplaDevice, Supla::ON_CLICK_3);
   b1->addAction(Supla::RESET_TO_FACTORY_SETTINGS, SuplaDevice, Supla::ON_CLICK_5);
   b1->addAction(Supla::TOGGLE_CONFIG_MODE, SuplaDevice, Supla::ON_HOLD);
 
   supla_log(LOG_DEBUG, "Free heap: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
   SuplaDevice.setName("SUPLA-Example");
-  SuplaDevice.setRsaPublicKeyPtr(rsa_public_key_bytes);
   SuplaDevice.begin();
   supla_log(LOG_DEBUG, "Free heap: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
 
