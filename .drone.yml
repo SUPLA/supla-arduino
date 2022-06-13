@@ -78,7 +78,7 @@ steps:
   commands:
   - export SUPLA_DEVICE_PATH=/drone/src
   - rm ~/Arduino/libraries/supla-device
-  - ln -s /drone/ ~/Arduino/libraries/supla-device
+  - ln -s /drone/src ~/Arduino/libraries/supla-device
   - cd examples
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./Afore/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./DallasTemperature/
@@ -101,7 +101,7 @@ steps:
   commands:
   - export SUPLA_DEVICE_PATH=/drone/src
   - rm ~/Arduino/libraries/supla-device
-  - ln -s /drone/ ~/Arduino/libraries/supla-device
+  - ln -s /drone/src ~/Arduino/libraries/supla-device
   - cd examples
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./Afore/
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./DallasTemperature/
@@ -124,7 +124,7 @@ steps:
   commands:
   - export SUPLA_DEVICE_PATH=/drone/src
   - rm ~/Arduino/libraries/supla-device
-  - ln -s /drone/ ~/Arduino/libraries/supla-device
+  - ln -s /drone/src ~/Arduino/libraries/supla-device
   - cd examples
   - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./Afore/
   - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./DallasTemperature/
