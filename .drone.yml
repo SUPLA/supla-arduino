@@ -90,6 +90,7 @@ steps:
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./RGBW/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./RollerShutter/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./SequenceButton/
+  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./WebInterface/
 
 - name: arduino_esp32_compilation_check
   image: devel/arduino-cli
@@ -109,6 +110,7 @@ steps:
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./RGBW/
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./RollerShutter/
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./SequenceButton/
+  - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./WebInterface/
 
 - name: arduino_mega_compilation_check
   image: devel/arduino-cli
