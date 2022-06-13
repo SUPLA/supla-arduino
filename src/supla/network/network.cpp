@@ -371,17 +371,20 @@ void Network::fillStateData(TDSC_ChannelState &channelState) {
   supla_log(LOG_DEBUG, "fillStateData is not implemented for this interface");
 }
 
+#ifdef ARDUINO
+#define TMP_STRING_SIZE 1024
+#else
 #define TMP_STRING_SIZE 2048
+#endif
 
 void Network::printData(const char *prefix, const void *buf, const int count) {
   char tmp[TMP_STRING_SIZE] = {};
-  for (int i = 0; i < count && ((i + 1) * 3 < TMP_STRING_SIZE); i++) {
+  for (int i = 0; i < count && ((i + 1) * 3 < TMP_STRING_SIZE - 1); i++) {
     sprintf(tmp + i * 3,
         "%02X ",
         static_cast<unsigned int>(static_cast<const unsigned char *>(buf)[i]));
   }
   supla_log(LOG_DEBUG, "%s: [%s]", prefix, tmp);
-
 }
 
 void Network::setSsid(const char *wifiSsid) {

@@ -43,7 +43,7 @@ class RollerShutter : public ChannelElement, public ActionHandler {
 
   void close(); // Sets target position to 100%
   void open();  // Sets target position to 0%
-  void stop();  // Stop motor
+  virtual void stop();  // Stop motor
   void moveUp();   // start opening roller shutter regardless of its position (keep motor going up)
   void moveDown(); // starts closing roller shutter regardless of its position (keep motor going down)
   void setTargetPosition(int newPosition);
@@ -71,7 +71,7 @@ class RollerShutter : public ChannelElement, public ActionHandler {
 
   bool lastDirectionWasOpen();
   bool lastDirectionWasClose();
-  bool inMove();
+  virtual bool inMove();
 
   uint32_t closingTimeMs;
   uint32_t openingTimeMs;

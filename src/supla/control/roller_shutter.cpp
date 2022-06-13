@@ -310,7 +310,7 @@ void RollerShutter::switchOffRelays() {
 
 void RollerShutter::onTimer() {
   if (millis() - doNothingTime <
-      300) {  // doNothingTime time is used when we change
+      500) {  // doNothingTime time is used when we change
               // direction of roller - to stop for a moment
               // before enabling opposite direction
     return;
