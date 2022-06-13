@@ -109,6 +109,7 @@ unsigned char PROTO_ICACHE_FLASH sproto_buffer_append(
     void *spd_ptr, char **buffer, unsigned _supla_int_t *buffer_size,
     unsigned _supla_int_t *buffer_data_size, char *data,
     unsigned _supla_int_t data_size) {
+  (void)(spd_ptr);
   unsigned _supla_int_t size = *buffer_size;
 
   if (size < BUFFER_MIN_SIZE) {
@@ -216,6 +217,7 @@ unsigned _supla_int_t PROTO_ICACHE_FLASH sproto_pop_out_data(
 #endif /*SPROTO_WITHOUT_OUT_BUFFER*/
 
 char PROTO_ICACHE_FLASH sproto_out_dataexists(void *spd_ptr) {
+  (void)(spd_ptr);
 #ifdef SPROTO_WITHOUT_OUT_BUFFER
   return SUPLA_RESULT_FALSE;
 #else
@@ -232,7 +234,7 @@ char PROTO_ICACHE_FLASH sproto_in_dataexists(void *spd_ptr) {
 void PROTO_ICACHE_FLASH sproto_shrink_in_buffer(TSuplaProtoInBuffer *in,
                                                 unsigned _supla_int_t size) {
   unsigned _supla_int_t old_size = in->size;
-  _supla_int_t a, b;
+  unsigned _supla_int_t a, b;
 
   in->begin_tag = 0;
 

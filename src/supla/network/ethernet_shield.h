@@ -120,7 +120,9 @@ class EthernetShield : public Supla::Network {
     Ethernet.MACAddress(channelState.MAC);
   }
 
-  virtual void setSSLEnabled(bool enabled) override {};
+  virtual void setSSLEnabled(bool enabled) override {
+    (void)(enabled);
+  };
 
  protected:
   EthernetClient client;

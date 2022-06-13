@@ -226,6 +226,9 @@ char SRPC_ICACHE_FLASH srpc_queue_pop(Tsrpc_Queue *queue, TSuplaDataPacket *sdp,
 
 char SRPC_ICACHE_FLASH srpc_in_queue_pop(Tsrpc *srpc, TSuplaDataPacket *sdp,
                                          unsigned _supla_int_t rr_id) {
+  (void)(srpc);
+  (void)(sdp);
+  (void)(rr_id);
 #ifdef SRPC_WITHOUT_IN_QUEUE
   return 1;
 #else
@@ -273,6 +276,7 @@ char SRPC_ICACHE_FLASH srpc_out_queue_pop(Tsrpc *srpc, TSuplaDataPacket *sdp,
 #endif /*SRPC_WITHOUT_OUT_QUEUE*/
 
 unsigned char SRPC_ICACHE_FLASH srpc_out_queue_item_count(void *srpc) {
+  (void)(srpc);
 #ifdef SRPC_WITHOUT_OUT_QUEUE
   return 0;
 #else
@@ -1448,6 +1452,7 @@ void SRPC_ICACHE_FLASH srpc_rd_free(TsrpcReceivedData *rd) {
 
 unsigned char SRPC_ICACHE_FLASH
 srpc_call_min_version_required(void *_srpc, unsigned _supla_int_t call_type) {
+  (void)(_srpc);
   switch (call_type) {
     case SUPLA_DCS_CALL_GETVERSION:
     case SUPLA_SDC_CALL_GETVERSION_RESULT:
@@ -1696,6 +1701,7 @@ _supla_int_t SRPC_ICACHE_FLASH srpc_dcs_async_ping_server(void *_srpc) {
 }
 
 _supla_int_t SRPC_ICACHE_FLASH srpc_sdc_async_ping_server_result(void *_srpc) {
+  (void)(_srpc);
 #if !defined(ESP8266) && !defined(__AVR__) && !defined(ESP32) && \
   !defined(SUPLA_DEVICE)
   TSDC_SuplaPingServerResult ps;
