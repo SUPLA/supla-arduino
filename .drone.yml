@@ -72,7 +72,7 @@ steps:
   - cmake --build build
   - /bin/bash -c "[ -f build/supla-device-linux ] && true || false"
 
-- name: arduino_esp8266_compilation_check
+- name: arduino_esp8266_compilation_check_part_1
   image: devel/arduino-cli
   pull: never
   commands:
@@ -85,17 +85,35 @@ steps:
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./DHT/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./Fronius/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./GarageParkingAssistLight/
+
+- name: arduino_esp8266_compilation_check_part_2
+  image: devel/arduino-cli
+  pull: never
+  commands:
+  - export SUPLA_DEVICE_PATH=/drone/src
+  - rm ~/Arduino/libraries/supla-device
+  - ln -s /drone/src ~/Arduino/libraries/supla-device
+  - cd examples
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./HC_SR04_Distance_sensor/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./HC_SR04_Distance_sensor_extended/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./ImpulseCounter/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./Pzem_V_2/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./Pzem_V_3/
+
+- name: arduino_esp8266_compilation_check_part_3
+  image: devel/arduino-cli
+  pull: never
+  commands:
+  - export SUPLA_DEVICE_PATH=/drone/src
+  - rm ~/Arduino/libraries/supla-device
+  - ln -s /drone/src ~/Arduino/libraries/supla-device
+  - cd examples
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./RGBW/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./RollerShutter/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./SequenceButton/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./WebInterface/
 
-- name: arduino_esp32_compilation_check
+- name: arduino_esp32_compilation_check_part_1
   image: devel/arduino-cli
   pull: never
   commands:
@@ -107,10 +125,28 @@ steps:
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./DallasTemperature/
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./DHT/
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./Fronius/
+
+- name: arduino_esp32_compilation_check_part_2
+  image: devel/arduino-cli
+  pull: never
+  commands:
+  - export SUPLA_DEVICE_PATH=/drone/src
+  - rm ~/Arduino/libraries/supla-device
+  - ln -s /drone/src ~/Arduino/libraries/supla-device
+  - cd examples
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./GarageParkingAssistLight/
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./HC_SR04_Distance_sensor/
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./HC_SR04_Distance_sensor_extended/
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./ImpulseCounter/
+
+- name: arduino_esp32_compilation_check_part_3
+  image: devel/arduino-cli
+  pull: never
+  commands:
+  - export SUPLA_DEVICE_PATH=/drone/src
+  - rm ~/Arduino/libraries/supla-device
+  - ln -s /drone/src ~/Arduino/libraries/supla-device
+  - cd examples
 #  - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./Pzem_V_2/
 #  - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./Pzem_V_3/
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./RGBW/
@@ -158,8 +194,12 @@ steps:
         - pull_request
   depends_on: [tests, esp8266_rtos_compilation_check, esp_idf_compilation_check,
                freertos_linux_compilation_check,
-               arduino_esp32_compilation_check,
-               arduino_esp8266_compilation_check,
+               arduino_esp32_compilation_check_part_1,
+               arduino_esp32_compilation_check_part_2,
+               arduino_esp32_compilation_check_part_3,
+               arduino_esp8266_compilation_check_part_1,
+               arduino_esp8266_compilation_check_part_2,
+               arduino_esp8266_compilation_check_part_3,
                arduino_mega_compilation_check
               ]
 
