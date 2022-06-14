@@ -50,7 +50,7 @@ namespace Supla {
       bool getMacAddr(uint8_t *out) override;
 
       void setTimeout(int timeoutMs) override;
-      void fillStateData(TDSC_ChannelState &channelState) override;
+      void fillStateData(TDSC_ChannelState *channelState) override;
 
       void setIpReady(bool ready);
       void setIpv4Addr(unsigned _supla_int_t);

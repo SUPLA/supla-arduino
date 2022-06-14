@@ -18,7 +18,7 @@
 
 #if defined(ARDUINO) || defined(SUPLA_TEST) || defined(SUPLA_LINUX) || \
   defined(SUPLA_FREERTOS)
-// TODO implement mutex for Arduino targets on ESP
+// TODO(klew): implement mutex for Arduino targets on ESP
 Supla::Mutex *Supla::Mutex::Create() {
   // put target specific stuff here
   return new Supla::Mutex;

@@ -100,34 +100,34 @@ bool LocalAction::isEventAlreadyUsed(int event) {
   return false;
 }
 
-void LocalAction::disableOtherClients(ActionHandler &client, int event) {
+void LocalAction::disableOtherClients(const ActionHandler &client, int event) {
   disableOtherClients(&client, event);
 }
 
-void LocalAction::enableOtherClients(ActionHandler &client, int event) {
+void LocalAction::enableOtherClients(const ActionHandler &client, int event) {
   enableOtherClients(&client, event);
 }
 
-void LocalAction::disableOtherClients(ActionHandler *client, int event) {
+void LocalAction::disableOtherClients(const ActionHandler *client, int event) {
   auto ptr = ActionHandlerClient::begin;
   while (ptr) {
-    if (ptr->trigger == this && ptr->onEvent == event && ptr->client != client) {
+    if (ptr->trigger == this && ptr->onEvent == event &&
+        ptr->client != client) {
       ptr->enabled = false;
     }
     ptr = ptr->next;
   }
-
 }
 
-void LocalAction::enableOtherClients(ActionHandler *client, int event) {
+void LocalAction::enableOtherClients(const ActionHandler *client, int event) {
   auto ptr = ActionHandlerClient::begin;
   while (ptr) {
-    if (ptr->trigger == this && ptr->onEvent == event && ptr->client != client) {
+    if (ptr->trigger == this && ptr->onEvent == event &&
+        ptr->client != client) {
       ptr->enabled = true;
     }
     ptr = ptr->next;
   }
-
 }
 
 ActionHandlerClient *LocalAction::getHandlerForFirstClient(int event) {

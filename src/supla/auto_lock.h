@@ -14,22 +14,23 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _SUPLA_AUTO_LOCK_H_
-#define _SUPLA_AUTO_LOCK_H_
+#ifndef SRC_SUPLA_AUTO_LOCK_H_
+#define SRC_SUPLA_AUTO_LOCK_H_
 
 namespace Supla {
-  class Mutex;
+class Mutex;
 
-  class AutoLock {
-    public:
-      AutoLock(Mutex *);
-      ~AutoLock();
-      void lock();
-      void unlock();
-    protected:
-      Mutex* mutex;
-  };
+class AutoLock {
+ public:
+  explicit AutoLock(Mutex *);
+  ~AutoLock();
+  void lock();
+  void unlock();
 
+ protected:
+  Mutex* mutex;
 };
-#endif /*_SUPLA_AUTO_LOCK_H_*/
+
+};  // namespace Supla
+#endif  // SRC_SUPLA_AUTO_LOCK_H_
 

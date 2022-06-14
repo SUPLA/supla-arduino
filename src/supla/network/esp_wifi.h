@@ -232,21 +232,21 @@ class ESPWifi : public Supla::Wifi {
     }
   }
 
-  void fillStateData(TDSC_ChannelState &channelState) {
-    channelState.Fields |= SUPLA_CHANNELSTATE_FIELD_IPV4 |
+  void fillStateData(TDSC_ChannelState *channelState) {
+    channelState->Fields |= SUPLA_CHANNELSTATE_FIELD_IPV4 |
                            SUPLA_CHANNELSTATE_FIELD_MAC |
                            SUPLA_CHANNELSTATE_FIELD_WIFIRSSI |
                            SUPLA_CHANNELSTATE_FIELD_WIFISIGNALSTRENGTH;
-    channelState.IPv4 = WiFi.localIP();
-    WiFi.macAddress(channelState.MAC);
+    channelState->IPv4 = WiFi.localIP();
+    WiFi.macAddress(channelState->MAC);
     int rssi = WiFi.RSSI();
-    channelState.WiFiRSSI = rssi;
+    channelState->WiFiRSSI = rssi;
     if (rssi > -50) {
-      channelState.WiFiSignalStrength = 100;
+      channelState->WiFiSignalStrength = 100;
     } else if (rssi <= -100) {
-      channelState.WiFiSignalStrength = 0;
+      channelState->WiFiSignalStrength = 0;
     } else {
-      channelState.WiFiSignalStrength = 2 * (rssi + 100);
+      channelState->WiFiSignalStrength = 2 * (rssi + 100);
     }
   }
 

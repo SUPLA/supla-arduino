@@ -196,12 +196,12 @@ void message_received(void *_srpc,
         memset(&state, 0, sizeof(TDSC_ChannelState));
         state.ReceiverID = rd.data.csd_channel_state_request->SenderID;
         state.ChannelNumber = rd.data.csd_channel_state_request->ChannelNumber;
-        Network::Instance()->fillStateData(state);
-        ((SuplaDeviceClass *)_sdc)->fillStateData(state);
+        Network::Instance()->fillStateData(&state);
+        ((SuplaDeviceClass *)_sdc)->fillStateData(&state);
         auto element = Supla::Element::getElementByChannelNumber(
             rd.data.csd_channel_state_request->ChannelNumber);
         if (element) {
-          element->handleGetChannelState(state);
+          element->handleGetChannelState(&state);
         }
         srpc_csd_async_channel_state_result(_srpc, &state);
         break;
@@ -366,7 +366,7 @@ void Network::setTimeout(int timeoutMs) {
   supla_log(LOG_DEBUG, "setTimeout is not implemented for this interface");
 }
 
-void Network::fillStateData(TDSC_ChannelState &channelState) {
+void Network::fillStateData(TDSC_ChannelState *channelState) {
   (void)(channelState);
   supla_log(LOG_DEBUG, "fillStateData is not implemented for this interface");
 }

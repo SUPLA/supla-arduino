@@ -176,6 +176,13 @@ steps:
   - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./RollerShutter/
   - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./SequenceButton/
 
+- name: cpplint
+  image: devel/supla-core
+  pull: never
+  commands:
+    - cpplint --filter=-build/include_subdir ./src/*
+    - cpplint --filter=-build/include_subdir ./src/supla/*
+
 - name: rocket
   image: mike1pol/drone-rocket
   settings:
@@ -200,6 +207,7 @@ steps:
                arduino_esp8266_compilation_check_part_1,
                arduino_esp8266_compilation_check_part_2,
                arduino_esp8266_compilation_check_part_3,
-               arduino_mega_compilation_check
+               arduino_mega_compilation_check,
+               cpplint
               ]
 

@@ -65,7 +65,7 @@ class Network {
   virtual bool iterate();
   virtual bool ping(void *);
 
-  virtual void fillStateData(TDSC_ChannelState &channelState);
+  virtual void fillStateData(TDSC_ChannelState *channelState);
 
   // WiFi specific part
   virtual bool isWifiConfigRequired();

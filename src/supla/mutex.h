@@ -14,20 +14,20 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _SUPLA_MUTEX_H_
-#define _SUPLA_MUTEX_H_
+#ifndef SRC_SUPLA_MUTEX_H_
+#define SRC_SUPLA_MUTEX_H_
 
 namespace Supla {
 
-  class Mutex {
-    public:
-      static Mutex* Create();
-      virtual ~Mutex();
-      virtual void lock();
-      virtual void unlock();
-    protected:
-      Mutex();
-  };
-
+class Mutex {
+ public:
+  static Mutex* Create();
+  virtual ~Mutex();
+  virtual void lock();
+  virtual void unlock();
+ protected:
+  Mutex();
 };
-#endif /*_SUPLA_MUTEX_H_*/
+
+};  // namespace Supla
+#endif  // SRC_SUPLA_MUTEX_H_

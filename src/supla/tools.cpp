@@ -56,8 +56,12 @@ float doublePacked2float(uint8_t *bar) {
   return fl.f;
 }
 
-long adjustRange(long input, long inMin, long inMax, long outMin, long outMax) {
-  long result = (input - inMin) * (outMax - outMin) / (inMax - inMin);
+int64_t adjustRange(int64_t input,
+    int64_t inMin,
+    int64_t inMax,
+    int64_t outMin,
+    int64_t outMax) {
+  int64_t result = (input - inMin) * (outMax - outMin) / (inMax - inMin);
   return result + outMin;
 }
 
@@ -71,7 +75,10 @@ bool isArrayEmpty(void* array, size_t arraySize) {
   return true;
 }
 
-int generateHexString(const void *input, char *output, int inputLength, char separator) {
+int generateHexString(const void *input,
+    char *output,
+    int inputLength,
+    char separator) {
   const char hexMap[] = "0123456789ABCDEF";
   int destIdx = 0;
 
@@ -118,7 +125,7 @@ uint32_t hexStringToInt(const char *str, int len) {
   }
 
   return result;
-};
+}
 
 uint32_t stringToUInt(const char *str, int len) {
   if (len == -1) {
@@ -149,11 +156,11 @@ void urlDecodeInplace(char *buffer, int size) {
     if (*parserPtr == '+') {
       *insertPtr = ' ';
     } else if (*parserPtr == '%') {
-      parserPtr++; // skip '%'
+      parserPtr++;  // skip '%'
       if (parserPtr + 1 < endPtr) {
         *insertPtr = static_cast<char>(hexStringToInt(parserPtr, 2));
-        parserPtr++; // there are 2 bytes, so we shift one here
-        // decode %HEX
+        parserPtr++;  // there are 2 bytes, so we shift one here
+                      // decode %HEX
       } else {
         *insertPtr = '\0';
         parserPtr = endPtr;
@@ -200,7 +207,7 @@ int urlEncode(char *input, char *output, int outputMaxSize) {
 int stringAppend(char *output, const char *input, int maxSize) {
   int inputSize = strlen(input);
   if (inputSize < maxSize) {
-    strcpy(output, input);
+    strncpy(output, input, inputSize);
     return inputSize;
   }
   return 0;

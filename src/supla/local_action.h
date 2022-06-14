@@ -14,8 +14,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _local_action_h
-#define _local_action_h
+#ifndef SRC_SUPLA_LOCAL_ACTION_H_
+#define SRC_SUPLA_LOCAL_ACTION_H_
 
 #include <stdint.h>
 #include "action_handler.h"
@@ -43,7 +43,9 @@ class ActionHandlerClient {
 class LocalAction {
  public:
   virtual ~LocalAction();
-  virtual void addAction(int action, ActionHandler &client, int event);
+  virtual void addAction(int action,
+      ActionHandler &client,   // NOLINT(runtime/references)
+      int event);
   virtual void addAction(int action, ActionHandler *client, int event);
 
   virtual void runAction(int event);
@@ -51,14 +53,14 @@ class LocalAction {
   virtual bool isEventAlreadyUsed(int event);
   virtual ActionHandlerClient *getHandlerForFirstClient(int event);
 
-  virtual void disableOtherClients(ActionHandler &client, int event);
-  virtual void enableOtherClients(ActionHandler &client, int event);
-  virtual void disableOtherClients(ActionHandler *client, int event);
-  virtual void enableOtherClients(ActionHandler *client, int event);
+  virtual void disableOtherClients(const ActionHandler &client, int event);
+  virtual void enableOtherClients(const ActionHandler &client, int event);
+  virtual void disableOtherClients(const ActionHandler *client, int event);
+  virtual void enableOtherClients(const ActionHandler *client, int event);
 
   static ActionHandlerClient *getClientListPtr();
 };
 
 };  // namespace Supla
 
-#endif
+#endif  // SRC_SUPLA_LOCAL_ACTION_H_

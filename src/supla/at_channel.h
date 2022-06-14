@@ -14,26 +14,26 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _at_channel_h
-#define _at_channel_h
+#ifndef SRC_SUPLA_AT_CHANNEL_H_
+#define SRC_SUPLA_AT_CHANNEL_H_
 
 #include "channel.h"
 
 namespace Supla {
 
 class AtChannel : public Channel {
-  public:
-    void sendUpdate(void *srpc) override;
-    void pushAction(int action);
-    void activateAction(int action);
-    int popAction();
-    void setRelatedChannel(uint8_t channelNumber);
-    void setDisablesLocalOperation(uint32_t actions);
+ public:
+  void sendUpdate(void *srpc) override;
+  void pushAction(int action);
+  void activateAction(int action);
+  int popAction();
+  void setRelatedChannel(uint8_t channelNumber);
+  void setDisablesLocalOperation(uint32_t actions);
 
-  protected:
-    int actionToSend = 0;
+ protected:
+  int actionToSend = 0;
 };
 
-};
+};  // namespace Supla
 
-#endif /*_at_channel_h*/
+#endif  // SRC_SUPLA_AT_CHANNEL_H_

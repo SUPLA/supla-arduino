@@ -24,7 +24,7 @@ namespace Control {
 class LightRelay : public Relay {
  public:
   LightRelay(int pin, bool highIsOn = true);
-  void handleGetChannelState(TDSC_ChannelState &channelState);
+  void handleGetChannelState(TDSC_ChannelState *channelState);
   int handleCalcfgFromServer(TSD_DeviceCalCfgRequest *request);
   void onLoadState();
   void onSaveState();

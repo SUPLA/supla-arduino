@@ -371,25 +371,25 @@ void Supla::EspIdfWifi::setTimeout(int newTimeoutMs) {
   }
 }
 
-void Supla::EspIdfWifi::fillStateData(TDSC_ChannelState &channelState) {
-  channelState.Fields |= SUPLA_CHANNELSTATE_FIELD_IPV4 |
+void Supla::EspIdfWifi::fillStateData(TDSC_ChannelState *channelState) {
+  channelState->Fields |= SUPLA_CHANNELSTATE_FIELD_IPV4 |
     SUPLA_CHANNELSTATE_FIELD_MAC |
     SUPLA_CHANNELSTATE_FIELD_WIFIRSSI |
     SUPLA_CHANNELSTATE_FIELD_WIFISIGNALSTRENGTH;
 
-  esp_read_mac(channelState.MAC, ESP_MAC_WIFI_STA);
-  channelState.IPv4 = ipv4;
+  esp_read_mac(channelState->MAC, ESP_MAC_WIFI_STA);
+  channelState->IPv4 = ipv4;
 
   wifi_ap_record_t ap;
   esp_wifi_sta_get_ap_info(&ap);
   int rssi = ap.rssi;
-  channelState.WiFiRSSI = rssi;
+  channelState->WiFiRSSI = rssi;
   if (rssi > -50) {
-    channelState.WiFiSignalStrength = 100;
+    channelState->WiFiSignalStrength = 100;
   } else if (rssi <= -100) {
-    channelState.WiFiSignalStrength = 0;
+    channelState->WiFiSignalStrength = 0;
   } else {
-    channelState.WiFiSignalStrength = 2 * (rssi + 100);
+    channelState->WiFiSignalStrength = 2 * (rssi + 100);
   }
 }
 

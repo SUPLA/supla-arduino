@@ -72,13 +72,11 @@ ISR(TIMER2_COMPA_vect) {
 TimerHandle_t slowerTimer;
 TimerHandle_t fasterTimer;
 
-void slowerTimerCb(TimerHandle_t xTimer)
-{
+void slowerTimerCb(TimerHandle_t xTimer) {
   SuplaDevice.onTimer();
 }
 
-void fasterTimerCb(TimerHandle_t xTimer)
-{
+void fasterTimerCb(TimerHandle_t xTimer) {
   SuplaDevice.onFastTimer();
 }
 #endif
@@ -89,11 +87,15 @@ void initTimers() {
 #if defined(ARDUINO_ARCH_ESP8266)
 
   os_timer_disarm(&supla_esp_timer);
-  os_timer_setfn(&supla_esp_timer, (os_timer_func_t *)esp_timer_cb, NULL);
+  os_timer_setfn(&supla_esp_timer,
+      reinterpret_cast<os_timer_func_t *>(esp_timer_cb),
+      NULL);
   os_timer_arm(&supla_esp_timer, 10, 1);
 
   os_timer_disarm(&supla_esp_fastTimer);
-  os_timer_setfn(&supla_esp_fastTimer, (os_timer_func_t *)esp_fastTimer_cb, NULL);
+  os_timer_setfn(&supla_esp_fastTimer,
+      reinterpret_cast<os_timer_func_t *>(esp_fastTimer_cb),
+      NULL);
   os_timer_arm(&supla_esp_fastTimer, 1, 1);
 
 #elif defined(ARDUINO_ARCH_ESP32)
@@ -132,13 +134,13 @@ void initTimers() {
   // ESP-IDF and ESP8266 RTOS (non Arduino)
 
   slowerTimer = xTimerCreate(
-      "SuplaSlowerTm", pdMS_TO_TICKS(10), pdTRUE, (void*)0, &slowerTimerCb);
+      "SuplaSlowerTm", pdMS_TO_TICKS(10), pdTRUE, nullptr, &slowerTimerCb);
   if (xTimerStart(slowerTimer, 100) != pdPASS) {
     supla_log(LOG_ERR, "Slower Timer start error");
   }
 
   fasterTimer = xTimerCreate(
-      "SuplaFasterTm", pdMS_TO_TICKS(1), pdTRUE, (void*)0, &fasterTimerCb);
+      "SuplaFasterTm", pdMS_TO_TICKS(1), pdTRUE, nullptr, &fasterTimerCb);
   if (xTimerStart(fasterTimer, 100) != pdPASS) {
     supla_log(LOG_ERR, "Faster Timer start error");
   }
@@ -150,7 +152,6 @@ void initTimers() {
 #else
 #error Please implement timers
 #endif
-  // TODO implement timers startup
 }
 
 };  // namespace Supla

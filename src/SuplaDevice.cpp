@@ -269,7 +269,8 @@ bool SuplaDeviceClass::begin(unsigned char version) {
       }
       generateHexString(Supla::Channel::reg_dev.GUID, buf, SUPLA_GUID_SIZE);
       supla_log(LOG_INFO, "New GUID: %s", buf);
-      generateHexString(Supla::Channel::reg_dev.AuthKey, buf, SUPLA_AUTHKEY_SIZE);
+      generateHexString(Supla::Channel::reg_dev.AuthKey, buf,
+          SUPLA_AUTHKEY_SIZE);
       supla_log(LOG_DEBUG, "New AuthKey: %s", buf);
     } else {
       supla_log(LOG_ERR, "Failed to generate GUID and AuthKey");
@@ -277,7 +278,6 @@ bool SuplaDeviceClass::begin(unsigned char version) {
       status(STATUS_INVALID_AUTHKEY, "Missing AuthKey");
       return false;
     }
-
   }
 
   status(STATUS_INITIALIZED, "SuplaDevice initialized");
@@ -325,7 +325,7 @@ void SuplaDeviceClass::iterate(void) {
     return;
   }
 
-  unsigned long _millis = millis();
+  uint64_t _millis = millis();
   checkIfRestartIsNeeded(_millis);
   handleLocalActionTriggers();
   iterateAlwaysElements(_millis);
@@ -517,7 +517,8 @@ void SuplaDeviceClass::onRegisterResult(
       break;
 
     case SUPLA_RESULTCODE_BAD_CREDENTIALS:
-      status(STATUS_BAD_CREDENTIALS, "Bad credentials - incorrect AuthKey or email", true);
+      status(STATUS_BAD_CREDENTIALS,
+          "Bad credentials - incorrect AuthKey or email", true);
       break;
 
     case SUPLA_RESULTCODE_REGISTRATION_DISABLED:
@@ -580,15 +581,15 @@ int SuplaDeviceClass::getCurrentStatus() {
   return currentStatus;
 }
 
-void SuplaDeviceClass::fillStateData(TDSC_ChannelState &channelState) {
-  channelState.Fields |= SUPLA_CHANNELSTATE_FIELD_UPTIME |
+void SuplaDeviceClass::fillStateData(TDSC_ChannelState *channelState) {
+  channelState->Fields |= SUPLA_CHANNELSTATE_FIELD_UPTIME |
                          SUPLA_CHANNELSTATE_FIELD_CONNECTIONUPTIME;
 
-  channelState.Uptime = uptime.getUptime();
-  channelState.ConnectionUptime = uptime.getConnectionUptime();
+  channelState->Uptime = uptime.getUptime();
+  channelState->ConnectionUptime = uptime.getConnectionUptime();
   if (uptime.getLastResetCause() > 0) {
-    channelState.Fields |= SUPLA_CHANNELSTATE_FIELD_LASTCONNECTIONRESETCAUSE;
-    channelState.LastConnectionResetCause = uptime.getLastResetCause();
+    channelState->Fields |= SUPLA_CHANNELSTATE_FIELD_LASTCONNECTIONRESETCAUSE;
+    channelState->LastConnectionResetCause = uptime.getLastResetCause();
   }
 }
 
@@ -670,12 +671,11 @@ void SuplaDeviceClass::loadDeviceConfig() {
     if (cfg->getAuthKey(buf)) {
       setAuthKey(buf);
     }
-
   }
 
   // MQTT protocol specific config
   if (cfg->isMqttCommProtocolEnabled()) {
-    // TODO add MQTT config
+    // TODO(klew): add MQTT config
     addLastStateLog("MQTT protocol is not supported yet");
     configIncomplete = true;
     supla_log(LOG_ERR, "MQTT support not implemented yet");
@@ -710,7 +710,7 @@ void SuplaDeviceClass::loadDeviceConfig() {
   }
 }
 
-void SuplaDeviceClass::iterateAlwaysElements(unsigned long _millis) {
+void SuplaDeviceClass::iterateAlwaysElements(uint64_t _millis) {
   uptime.iterate(_millis);
 
   // Iterate all elements
@@ -724,7 +724,6 @@ void SuplaDeviceClass::iterateAlwaysElements(unsigned long _millis) {
   if (Supla::Storage::SaveStateAllowed(_millis)) {
     saveStateToStorage();
   }
-
 }
 
 
@@ -765,7 +764,7 @@ bool SuplaDeviceClass::iterateNetworkSetup() {
   return true;
 }
 
-bool SuplaDeviceClass::iterateSuplaProtocol(unsigned int _millis) {
+bool SuplaDeviceClass::iterateSuplaProtocol(uint64_t _millis) {
   if (srpc_iterate(srpc) == SUPLA_RESULT_FALSE) {
     status(STATUS_ITERATE_FAIL, "Communication failure");
     Supla::Network::Disconnect();
@@ -786,7 +785,8 @@ bool SuplaDeviceClass::iterateSuplaProtocol(unsigned int _millis) {
   } else if (registered == -1) {
     // Handle registration timeout (in case of no reply received)
     if (_millis - lastIterateTime > 10*1000) {
-      supla_log(LOG_DEBUG, "No reply to registration message. Resetting connection.");
+      supla_log(LOG_DEBUG,
+          "No reply to registration message. Resetting connection.");
       status(STATUS_SERVER_DISCONNECTED, "Not connected to Supla server");
       Supla::Network::Disconnect();
 
@@ -840,7 +840,7 @@ void SuplaDeviceClass::softRestart() {
   }
   deviceMode = Supla::DEVICE_MODE_NORMAL;
 
-  // TODO stop supla timers
+  // TODO(klew): stop supla timers
 
   if (Supla::WebServer::Instance()) {
     Supla::WebServer::Instance()->stop();
@@ -934,15 +934,15 @@ int SuplaDeviceClass::generateHostname(char *buf, int macSize) {
     } else if (srcName[i] < 48) {
       name[destIdx++] = '-';
     } else if (srcName[i] < 58) {
-      name[destIdx++] = srcName[i]; // copy numbers
+      name[destIdx++] = srcName[i];  // copy numbers
     } else if (srcName[i] < 65) {
       name[destIdx++] = '-';
     } else if (srcName[i] < 91) {
-      name[destIdx++] = srcName[i]; // copy capital chars
+      name[destIdx++] = srcName[i];  // copy capital chars
     } else if (srcName[i] < 97) {
       name[destIdx++] = '-';
     } else if (srcName[i] < 123) {
-      name[destIdx++] = srcName[i] - 32; // capitalize small chars
+      name[destIdx++] = srcName[i] - 32;  // capitalize small chars
     }
   }
 
@@ -950,7 +950,8 @@ int SuplaDeviceClass::generateHostname(char *buf, int macSize) {
     uint8_t mac[6] = {};
     if (Supla::Network::GetMacAddr(mac)) {
       name[destIdx++] = '-';
-      destIdx += generateHexString(mac + (6 - macSize), &(name[destIdx]), macSize);
+      destIdx += generateHexString(mac + (6 - macSize), &(name[destIdx]),
+          macSize);
     }
   }
 
@@ -1017,7 +1018,7 @@ void SuplaDeviceClass::handleAction(int event, int action) {
     }
     case Supla::CHECK_SW_UPDATE: {
       if (deviceMode != Supla::DEVICE_MODE_SW_UPDATE) {
-        triggerCheckSwUpdate= true;
+        triggerCheckSwUpdate = true;
       }
       break;
     }
@@ -1068,7 +1069,7 @@ void SuplaDeviceClass::handleLocalActionTriggers() {
   }
 }
 
-void SuplaDeviceClass::checkIfRestartIsNeeded(unsigned long _millis) {
+void SuplaDeviceClass::checkIfRestartIsNeeded(uint64_t _millis) {
   if (deviceRestartTimeoutTimestamp != 0 &&
       _millis - deviceRestartTimeoutTimestamp > 5ul * 60 * 1000) {
     supla_log(LOG_INFO, "Config mode 5 min timeout. Reset device");

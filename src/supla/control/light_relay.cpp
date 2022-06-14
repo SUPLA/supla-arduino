@@ -37,11 +37,11 @@ LightRelay::LightRelay(int pin, bool highIsOn)
   channel.setFlag(SUPLA_CHANNEL_FLAG_LIGHTSOURCELIFESPAN_SETTABLE);
 }
 
-void LightRelay::handleGetChannelState(TDSC_ChannelState &channelState) {
-  channelState.Fields |= SUPLA_CHANNELSTATE_FIELD_LIGHTSOURCELIFESPAN |
+void LightRelay::handleGetChannelState(TDSC_ChannelState *channelState) {
+  channelState->Fields |= SUPLA_CHANNELSTATE_FIELD_LIGHTSOURCELIFESPAN |
                          SUPLA_CHANNELSTATE_FIELD_LIGHTSOURCEOPERATINGTIME;
-  channelState.LightSourceLifespan = lifespan;
-  channelState.LightSourceOperatingTime = turnOnSecondsCumulative;
+  channelState->LightSourceLifespan = lifespan;
+  channelState->LightSourceOperatingTime = turnOnSecondsCumulative;
 }
 
 int LightRelay::handleCalcfgFromServer(TSD_DeviceCalCfgRequest *request) {

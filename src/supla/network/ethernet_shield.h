@@ -113,11 +113,11 @@ class EthernetShield : public Supla::Network {
     return true;
   }
 
-  void fillStateData(TDSC_ChannelState &channelState) {
-    channelState.Fields |= SUPLA_CHANNELSTATE_FIELD_IPV4 |
+  void fillStateData(TDSC_ChannelState *channelState) {
+    channelState->Fields |= SUPLA_CHANNELSTATE_FIELD_IPV4 |
                            SUPLA_CHANNELSTATE_FIELD_MAC;
-    channelState.IPv4 = Ethernet.localIP();
-    Ethernet.MACAddress(channelState.MAC);
+    channelState->IPv4 = Ethernet.localIP();
+    Ethernet.MACAddress(channelState->MAC);
   }
 
   virtual void setSSLEnabled(bool enabled) override {

@@ -14,8 +14,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _channel_element_h
-#define _channel_element_h
+#ifndef SRC_SUPLA_CHANNEL_ELEMENT_H_
+#define SRC_SUPLA_CHANNEL_ELEMENT_H_
 
 #include "element.h"
 #include "channel.h"
@@ -28,23 +28,26 @@ namespace Supla {
 class Condition;
 
 class ChannelElement : public Element, public LocalAction {
-  public:
-  
-  Channel *getChannel();
+ public:
+  Channel *getChannel() override;
 
   // Override local action methods in order to delegate execution to Channel
-  void addAction(int action, ActionHandler &client, int event) override;
+  void addAction(int action,
+      ActionHandler &client,  // NOLINT(runtime/references)
+      int event) override;
   void addAction(int action, ActionHandler *client, int event) override;
   bool isEventAlreadyUsed(int event) override;
 
-  virtual void addAction(int action, ActionHandler &client, Supla::Condition *condition);
-  virtual void addAction(int action, ActionHandler *client, Supla::Condition *condition);
+  virtual void addAction(int action,
+      ActionHandler &client,  // NOLINT(runtime/references)
+      Supla::Condition *condition);
+  virtual void addAction(int action, ActionHandler *client,
+      Supla::Condition *condition);
 
-  protected:
-    Channel channel;
+ protected:
+  Channel channel;
 };
 
-};
+};  // namespace Supla
 
-#endif
-
+#endif  // SRC_SUPLA_CHANNEL_ELEMENT_H_

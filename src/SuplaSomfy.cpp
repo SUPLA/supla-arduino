@@ -113,7 +113,7 @@ somfy_remote_t SuplaSomfy::GetRemote() {
 }
 
 void SuplaSomfy::PushButton(ControlButtons pushButton) {
-  somfy_frame_t *frame = (somfy_frame_t *)malloc(FRAME_SIZE);
+  somfy_frame_t *frame = reinterpret_cast<somfy_frame_t *>(malloc(FRAME_SIZE));
 
   frame[0] = 0xA7;             // Encryption key
   frame[1] = pushButton << 4;  // MSB - Button pressed, LSB - Checksum

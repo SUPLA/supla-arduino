@@ -273,12 +273,12 @@ bool Supla::LinuxNetwork::iterate() {
   return true;
 }
 
-void Supla::LinuxNetwork::fillStateData(TDSC_ChannelState &channelState) {
-  channelState.Fields |= SUPLA_CHANNELSTATE_FIELD_IPV4;
+void Supla::LinuxNetwork::fillStateData(TDSC_ChannelState *channelState) {
+  channelState->Fields |= SUPLA_CHANNELSTATE_FIELD_IPV4;
 
   struct sockaddr_in address = {};
   socklen_t len = sizeof(address);
   getsockname(connectionFd, (struct sockaddr *)&address, &len);
-  channelState.IPv4 =
+  channelState->IPv4 =
     static_cast<unsigned _supla_int_t>(address.sin_addr.s_addr);
 }

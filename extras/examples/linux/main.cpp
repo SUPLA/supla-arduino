@@ -64,7 +64,6 @@
 #include <supla/IEEE754tools.h>
 #include <supla/io.h>
 #include <supla/local_action.h>
-#include <supla/status.h>
 #include <supla/supla_lib_config.h>
 #include <supla/time.h>
 #include <supla/timer.h>

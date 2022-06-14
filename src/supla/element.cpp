@@ -14,9 +14,10 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#include <supla-common/log.h>
+
 #include "time.h"
 #include "element.h"
-#include <supla-common/log.h>
 
 namespace Supla {
 Element *Element::firstPtr = nullptr;
@@ -68,21 +69,21 @@ Element *Element::next() {
   return nextPtr;
 }
 
-void Element::onInit(){};
+void Element::onInit() {}
 
-void Element::onLoadConfig(){};
+void Element::onLoadConfig() {}
 
-void Element::onLoadState(){};
+void Element::onLoadState() {}
 
-void Element::onSaveState(){};
+void Element::onSaveState() {}
 
-void Element::onRegistered(){};
+void Element::onRegistered() {}
 
-void Element::iterateAlways(){};
+void Element::iterateAlways() {}
 
 bool Element::iterateConnected(void *srpc) {
   bool response = true;
-  unsigned long timestamp = millis();
+  uint64_t timestamp = millis();
   Channel *secondaryChannel = getSecondaryChannel();
   if (secondaryChannel && secondaryChannel->isUpdateReady() &&
       timestamp - secondaryChannel->lastCommunicationTimeMs > 100) {
@@ -101,9 +102,9 @@ bool Element::iterateConnected(void *srpc) {
   return response;
 }
 
-void Element::onTimer(){};
+void Element::onTimer() {}
 
-void Element::onFastTimer(){};
+void Element::onFastTimer() {}
 
 int Element::handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue) {
   (void)(newValue);
@@ -127,7 +128,7 @@ Channel *Element::getSecondaryChannel() {
   return nullptr;
 }
 
-void Element::handleGetChannelState(TDSC_ChannelState &channelState) {
+void Element::handleGetChannelState(TDSC_ChannelState *channelState) {
   (void)(channelState);
   return;
 }

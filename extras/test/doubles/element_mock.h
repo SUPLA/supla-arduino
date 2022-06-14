@@ -31,7 +31,7 @@ class ElementMock : public Supla::Element {
   MOCK_METHOD(void, onTimer, (), (override));
   MOCK_METHOD(void, onFastTimer, (), (override));
   MOCK_METHOD(int, handleNewValueFromServer, (TSD_SuplaChannelNewValue *), (override));
-  MOCK_METHOD(void, handleGetChannelState, (TDSC_ChannelState &), (override));
+  MOCK_METHOD(void, handleGetChannelState, (TDSC_ChannelState *), (override));
   MOCK_METHOD(int, handleCalcfgFromServer, (TSD_DeviceCalCfgRequest *), (override));
     
 };
