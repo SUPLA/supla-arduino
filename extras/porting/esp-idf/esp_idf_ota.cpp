@@ -399,7 +399,7 @@ bool Supla::EspIdfOta::verifyRsaSignature(
 
   if (sdc && sdc->getRsaPublicKey()) {
     Supla::RsaVerificator rsa(sdc->getRsaPublicKey());
-    if (rsa.verify(hash, otaBuffer)) {
+    if (rsa.verify(&hash, otaBuffer)) {
       supla_log(LOG_DEBUG, "RSA signature verification successful");
       return true;
     } else {
