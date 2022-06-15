@@ -182,6 +182,15 @@ steps:
   commands:
     - cpplint --filter=-build/include_subdir ./src/*
     - cpplint --filter=-build/include_subdir ./src/supla/*
+    - cpplint --filter=-build/include_subdir ./src/supla/clock/*
+    - cpplint --filter=-build/include_subdir ./src/supla/conditions/*
+    - cpplint --filter=-build/include_subdir ./src/supla/control/*
+    - cpplint --filter=-build/include_subdir ./src/supla/device/*
+    - cpplint --filter=-build/include_subdir ./src/supla/network/*
+    - cpplint --filter=-build/include_subdir ./src/supla/network/html/*
+    - cpplint --filter=-build/include_subdir ./src/supla/pv/*
+    - cpplint --filter=-build/include_subdir ./src/supla/sensor/*
+    - cpplint --filter=-build/include_subdir ./src/supla/storage/*
 
 - name: rocket
   image: mike1pol/drone-rocket

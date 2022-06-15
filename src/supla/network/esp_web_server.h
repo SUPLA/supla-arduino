@@ -14,11 +14,11 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _supla_esp_web_server_h_
-#define _supla_esp_web_server_h_
+#ifndef SRC_SUPLA_NETWORK_ESP_WEB_SERVER_H_
+#define SRC_SUPLA_NETWORK_ESP_WEB_SERVER_H_
 
-#include <supla/network/web_server.h>
 #include <supla/network/web_sender.h>
+#include <supla/network/web_server.h>
 #if defined(ESP8266)
 #include <ESP8266WebServer.h>
 #define ESPWebServer ESP8266WebServer
@@ -34,35 +34,34 @@
 namespace Supla {
 
 class EspSender : public Supla::WebSender {
-  public:
-    EspSender(::ESPWebServer *req);
-    ~EspSender();
-    void send(const char*, int) override;
+ public:
+  explicit EspSender(::ESPWebServer *req);
+  ~EspSender();
+  void send(const char *, int) override;
 
-  protected:
-    ::ESPWebServer *reqHandler;
-    bool error = false;
+ protected:
+  ::ESPWebServer *reqHandler;
+  bool error = false;
 };
 
 class EspWebServer : public Supla::WebServer, public Supla::Element {
-  public:
-    EspWebServer(HtmlGenerator *generator = nullptr);
-    virtual ~EspWebServer();
-    virtual void start() override;
-    virtual void stop() override;
-    void iterateAlways() override;
+ public:
+  explicit EspWebServer(HtmlGenerator *generator = nullptr);
+  virtual ~EspWebServer();
+  void start() override;
+  void stop() override;
+  void iterateAlways() override;
 
-    bool handlePost();
-    ::ESPWebServer *getServerPtr();
+  bool handlePost();
+  ::ESPWebServer *getServerPtr();
 
-    bool dataSaved = false;
-  protected:
-    ::ESPWebServer server;
-    bool started = false;
+  bool dataSaved = false;
+
+ protected:
+  ::ESPWebServer server;
+  bool started = false;
 };
 
-};
+};  // namespace Supla
 
-#endif /*_supla_esp_web_server_h_*/
-
-
+#endif  // SRC_SUPLA_NETWORK_ESP_WEB_SERVER_H_

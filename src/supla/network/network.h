@@ -5,17 +5,19 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _network_interface_h
-#define _network_interface_h
+#ifndef SRC_SUPLA_NETWORK_NETWORK_H_
+#define SRC_SUPLA_NETWORK_NETWORK_H_
 
 #include <stdint.h>
 
@@ -41,12 +43,12 @@ class Network {
   static bool Ping(void *srpc);
   static void SetConfigMode();
   static void SetNormalMode();
-  static bool GetMacAddr(uint8_t*);
-  static void SetHostname(const char*);
+  static bool GetMacAddr(uint8_t *);
+  static void SetHostname(const char *);
 
   static void printData(const char *prefix, const void *buf, const int count);
 
-  Network(uint8_t ip[4]);
+  explicit Network(uint8_t ip[4]);
   virtual ~Network();
   virtual int read(void *buf, int count) = 0;
   virtual int write(void *buf, int count) = 0;
@@ -58,8 +60,8 @@ class Network {
   virtual void setTimeout(int);
   virtual void setConfigMode();
   virtual void setNormalMode();
-  virtual bool getMacAddr(uint8_t*);
-  virtual void setHostname(const char*);
+  virtual bool getMacAddr(uint8_t *);
+  virtual void setHostname(const char *);
 
   virtual bool isReady() = 0;
   virtual bool iterate();
@@ -114,4 +116,4 @@ void message_received(void *_srpc,
 
 };  // namespace Supla
 
-#endif
+#endif  // SRC_SUPLA_NETWORK_NETWORK_H_

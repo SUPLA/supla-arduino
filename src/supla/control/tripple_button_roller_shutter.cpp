@@ -16,57 +16,59 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "tripple_button_roller_shutter.h"
 #include <supla/storage/storage.h>
 #include <supla/time.h>
 
+#include "tripple_button_roller_shutter.h"
+
 namespace Supla {
-  namespace Control {
+namespace Control {
 
-    TrippleButtonRollerShutter::TrippleButtonRollerShutter(int pinUp,
-        int pinDown,
-        int pinStop,
-        bool highIsOn)
-      : BistableRollerShutter(pinUp, pinDown, highIsOn), pinStop(pinStop) {
-      }
+TrippleButtonRollerShutter::TrippleButtonRollerShutter(int pinUp,
+                                                       int pinDown,
+                                                       int pinStop,
+                                                       bool highIsOn)
+    : BistableRollerShutter(pinUp, pinDown, highIsOn), pinStop(pinStop) {
+}
 
-    TrippleButtonRollerShutter::~TrippleButtonRollerShutter() {}
+TrippleButtonRollerShutter::~TrippleButtonRollerShutter() {
+}
 
-    void TrippleButtonRollerShutter::stopMovement() {
-      relayStopOn();
-      currentDirection = STOP_DIR;
-      doNothingTime = millis();
-      // Schedule save in 5 s after stop movement of roller shutter
-      Supla::Storage::ScheduleSave(5000);
-    }
+void TrippleButtonRollerShutter::stopMovement() {
+  relayStopOn();
+  currentDirection = STOP_DIR;
+  doNothingTime = millis();
+  // Schedule save in 5 s after stop movement of roller shutter
+  Supla::Storage::ScheduleSave(5000);
+}
 
-    void TrippleButtonRollerShutter::relayStopOn() {
-      activeBiRelay = true;
-      toggleTime = millis();
-      Supla::Io::digitalWrite(
-          channel.getChannelNumber(), pinStop, highIsOn ? HIGH : LOW);
-    }
+void TrippleButtonRollerShutter::relayStopOn() {
+  activeBiRelay = true;
+  toggleTime = millis();
+  Supla::Io::digitalWrite(
+      channel.getChannelNumber(), pinStop, highIsOn ? HIGH : LOW);
+}
 
-    void TrippleButtonRollerShutter::relayStopOff() {
-      activeBiRelay = false;
-      Supla::Io::digitalWrite(
-          channel.getChannelNumber(), pinStop, highIsOn ? LOW : HIGH);
-    }
+void TrippleButtonRollerShutter::relayStopOff() {
+  activeBiRelay = false;
+  Supla::Io::digitalWrite(
+      channel.getChannelNumber(), pinStop, highIsOn ? LOW : HIGH);
+}
 
-    void TrippleButtonRollerShutter::switchOffRelays() {
-      relayUpOff();
-      relayDownOff();
-      relayStopOff();
-    }
+void TrippleButtonRollerShutter::switchOffRelays() {
+  relayUpOff();
+  relayDownOff();
+  relayStopOff();
+}
 
-    bool TrippleButtonRollerShutter::inMove() {
-      bool result = false;
-      if (newTargetPositionAvailable && targetPosition == STOP_POSITION) {
-        result = true;
-        newTargetPositionAvailable = false;
-      }
-      return result || currentDirection != STOP_DIR;
-    }
+bool TrippleButtonRollerShutter::inMove() {
+  bool result = false;
+  if (newTargetPositionAvailable && targetPosition == STOP_POSITION) {
+    result = true;
+    newTargetPositionAvailable = false;
+  }
+  return result || currentDirection != STOP_DIR;
+}
 
-  };  // namespace Control
+};  // namespace Control
 };  // namespace Supla

@@ -165,16 +165,16 @@ int Supla::LinuxYamlConfig::getBlobSize(const char* key) {
   return 0;
 }
 
-bool Supla::LinuxYamlConfig::getInt8(const char* key, int8_t& result) {
+bool Supla::LinuxYamlConfig::getInt8(const char* key, int8_t* result) {
   return false;
 }
-bool Supla::LinuxYamlConfig::getUInt8(const char* key, uint8_t& result) {
+bool Supla::LinuxYamlConfig::getUInt8(const char* key, uint8_t* result) {
   return false;
 }
-bool Supla::LinuxYamlConfig::getInt32(const char* key, int32_t& result) {
+bool Supla::LinuxYamlConfig::getInt32(const char* key, int32_t* result) {
   return false;
 }
-bool Supla::LinuxYamlConfig::getUInt32(const char* key, uint32_t& result) {
+bool Supla::LinuxYamlConfig::getUInt32(const char* key, uint32_t* result) {
   return false;
 }
 

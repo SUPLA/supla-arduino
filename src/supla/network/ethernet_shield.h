@@ -5,17 +5,19 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef ethernet_shield_h__
-#define ethernet_shield_h__
+#ifndef SRC_SUPLA_NETWORK_ETHERNET_SHIELD_H_
+#define SRC_SUPLA_NETWORK_ETHERNET_SHIELD_H_
 
 #include <Arduino.h>
 #include <Ethernet.h>
@@ -23,21 +25,22 @@
 #include "../supla_lib_config.h"
 #include "network.h"
 
-// TODO: change logs to supla_log
+// TODO(klew): change logs to supla_log
 
 namespace Supla {
 class EthernetShield : public Supla::Network {
  public:
-  EthernetShield(uint8_t mac[6], unsigned char *ip = NULL) : Network(ip), isDeviceReady(false) {
+  explicit EthernetShield(uint8_t mac[6], unsigned char *ip = NULL)
+      : Network(ip), isDeviceReady(false) {
     memcpy(this->mac, mac, 6);
-    sslEnabled = false; // SSL is not supported on Arduino MEGA target
+    sslEnabled = false;  // SSL is not supported on Arduino MEGA target
   }
 
   int read(void *buf, int count) {
     _supla_int_t size = client.available();
     if (size > 0) {
       if (size > count) size = count;
-      long readSize = client.read((uint8_t *)buf, size);
+      int readSize = client.read(reinterpret_cast<uint8_t *>(buf), size);
 #ifdef SUPLA_COMM_DEBUG
       Serial.print(F("Received: ["));
       for (int i = 0; i < readSize; i++) {
@@ -47,7 +50,7 @@ class EthernetShield : public Supla::Network {
       Serial.println(F("]"));
 #endif
       return readSize;
-    };
+    }
 
     return -1;
   }
@@ -61,14 +64,16 @@ class EthernetShield : public Supla::Network {
     }
     Serial.println(F("]"));
 #endif
-    long sendSize = client.write((const uint8_t *)buf, count);
+    int sendSize = client.write(reinterpret_cast<const uint8_t *>(buf), count);
     return sendSize;
   }
 
   int connect(const char *server, int port = -1) {
     int connectionPort = (port == -1 ? 2015 : port);
-    supla_log(
-        LOG_DEBUG, "Establishing connection with: %s (port: %d)", server, connectionPort);
+    supla_log(LOG_DEBUG,
+              "Establishing connection with: %s (port: %d)",
+              server,
+              connectionPort);
 
     return client.connect(server, connectionPort);
   }
@@ -114,13 +119,13 @@ class EthernetShield : public Supla::Network {
   }
 
   void fillStateData(TDSC_ChannelState *channelState) {
-    channelState->Fields |= SUPLA_CHANNELSTATE_FIELD_IPV4 |
-                           SUPLA_CHANNELSTATE_FIELD_MAC;
+    channelState->Fields |=
+        SUPLA_CHANNELSTATE_FIELD_IPV4 | SUPLA_CHANNELSTATE_FIELD_MAC;
     channelState->IPv4 = Ethernet.localIP();
     Ethernet.MACAddress(channelState->MAC);
   }
 
-  virtual void setSSLEnabled(bool enabled) override {
+  void setSSLEnabled(bool enabled) override {
     (void)(enabled);
   };
 
@@ -132,4 +137,4 @@ class EthernetShield : public Supla::Network {
 
 };  // namespace Supla
 
-#endif
+#endif  // SRC_SUPLA_NETWORK_ETHERNET_SHIELD_H_

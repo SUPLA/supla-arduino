@@ -5,28 +5,33 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "sequence_button.h"
 #include <string.h>
-#include <supla/time.h>
 #include <supla-common/log.h>
+#include <supla/time.h>
 
-Supla::Control::SequenceButton::SequenceButton(int pin, bool pullUp, bool invertLogic)
+#include "sequence_button.h"
+
+Supla::Control::SequenceButton::SequenceButton(int pin,
+                                               bool pullUp,
+                                               bool invertLogic)
     : SimpleButton(pin, pullUp, invertLogic),
       lastStateChangeMs(0),
       longestSequenceTimeDeltaWithMargin(800),
       clickCounter(0),
       sequenceDetectecion(true),
       currentSequence(),
-      matchSequence(), 
+      matchSequence(),
       margin(0.3) {
 }
 
@@ -50,7 +55,7 @@ void Supla::Control::SequenceButton::onTimer() {
       currentSequence.data[clickCounter - 1] = timeDelta;
     }
     if (clickCounter == 0) {
-      memset(currentSequence.data, 0, sizeof(uint16_t [SEQUENCE_MAX_SIZE]));
+      memset(currentSequence.data, 0, sizeof(uint16_t[SEQUENCE_MAX_SIZE]));
     }
     clickCounter++;
   }
@@ -58,50 +63,52 @@ void Supla::Control::SequenceButton::onTimer() {
   if (!stateChanged) {
     if (clickCounter > 0 && stateResult == RELEASED) {
       if (timeDelta > longestSequenceTimeDeltaWithMargin) {
-          supla_log(LOG_DEBUG, "Recorded sequence: ");
-          if (clickCounter > 31) {
-            clickCounter = 31;
-          }
-          for (int i = 0; i < clickCounter - 1; i++) {
-            supla_log(LOG_DEBUG, "%d", currentSequence.data[i]);
-          }
+        supla_log(LOG_DEBUG, "Recorded sequence: ");
+        if (clickCounter > 31) {
+          clickCounter = 31;
+        }
+        for (int i = 0; i < clickCounter - 1; i++) {
+          supla_log(LOG_DEBUG, "%d", currentSequence.data[i]);
+        }
 
-          int matchSequenceSize = 0;
-          for (; matchSequenceSize < 30; matchSequenceSize++) {
-            if (matchSequence.data[matchSequenceSize] == 0) {
+        int matchSequenceSize = 0;
+        for (; matchSequenceSize < 30; matchSequenceSize++) {
+          if (matchSequence.data[matchSequenceSize] == 0) {
+            break;
+          }
+        }
+        if (matchSequenceSize != clickCounter - 1) {
+          supla_log(LOG_DEBUG, "Sequence size doesn't match");
+          runAction(ON_SEQUENCE_DOESNT_MATCH);
+        } else {
+          bool match = true;
+          for (int i = 0; i < clickCounter - 1; i++) {
+            unsigned int marginValue = calculateMargin(matchSequence.data[i]);
+            if (!(matchSequence.data[i] - marginValue <=
+                      currentSequence.data[i] &&
+                  matchSequence.data[i] + marginValue >=
+                      currentSequence.data[i])) {
+              match = false;
               break;
             }
           }
-          if (matchSequenceSize != clickCounter - 1) {
-            supla_log(LOG_DEBUG, "Sequence size doesn't match");
-            runAction(ON_SEQUENCE_DOESNT_MATCH);
+          if (match) {
+            supla_log(LOG_DEBUG, "Sequence match");
+            runAction(ON_SEQUENCE_MATCH);
           } else {
-            bool match = true;
-            for (int i = 0; i < clickCounter - 1; i++) {
-              unsigned int marginValue = calculateMargin(matchSequence.data[i]);
-              if (!(matchSequence.data[i] - marginValue <= currentSequence.data[i] && matchSequence.data[i] + marginValue >= currentSequence.data[i])) {
-                match = false;
-                break;
-              }
-            }
-            if (match) {
-              supla_log(LOG_DEBUG, "Sequence match");
-              runAction(ON_SEQUENCE_MATCH);
-            } else {
-              supla_log(LOG_DEBUG, "Sequence doesn't match");
-              runAction(ON_SEQUENCE_DOESNT_MATCH);
-            }
-
+            supla_log(LOG_DEBUG, "Sequence doesn't match");
+            runAction(ON_SEQUENCE_DOESNT_MATCH);
           }
+        }
         clickCounter = 0;
       }
     }
   }
-
 }
 
-unsigned int Supla::Control::SequenceButton::calculateMargin(unsigned int value) {
-  unsigned int result = margin*value;
+unsigned int Supla::Control::SequenceButton::calculateMargin(
+    unsigned int value) {
+  unsigned int result = margin * value;
   if (result < 20) {
     result = 20;
   }
@@ -132,6 +139,7 @@ void Supla::Control::SequenceButton::setSequence(uint16_t *sequence) {
   longestSequenceTimeDeltaWithMargin = maxValue;
 }
 
-void Supla::Control::SequenceButton::getLastRecordedSequence(uint16_t *sequence) {
-  memcpy(sequence, currentSequence.data, sizeof(uint16_t [SEQUENCE_MAX_SIZE]));
+void Supla::Control::SequenceButton::getLastRecordedSequence(
+    uint16_t *sequence) {
+  memcpy(sequence, currentSequence.data, sizeof(uint16_t[SEQUENCE_MAX_SIZE]));
 }

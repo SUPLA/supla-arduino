@@ -14,8 +14,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _pin_status_led_h
-#define _pin_status_led_h
+#ifndef SRC_SUPLA_CONTROL_PIN_STATUS_LED_H_
+#define SRC_SUPLA_CONTROL_PIN_STATUS_LED_H_
 
 #include "../element.h"
 
@@ -40,4 +40,4 @@ class PinStatusLed : public Element {
 };  // namespace Control
 };  // namespace Supla
 
-#endif
+#endif  // SRC_SUPLA_CONTROL_PIN_STATUS_LED_H_

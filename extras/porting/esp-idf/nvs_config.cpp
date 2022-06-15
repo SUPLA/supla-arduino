@@ -87,23 +87,23 @@ int NvsConfig::getBlobSize(const char* key) {
   return -1;
 }
 
-bool NvsConfig::getInt8(const char* key, int8_t& result) {
-  esp_err_t err = nvs_get_i8(nvsHandle, key, &result);
+bool NvsConfig::getInt8(const char* key, int8_t* result) {
+  esp_err_t err = nvs_get_i8(nvsHandle, key, result);
   return err == ESP_OK;
 }
 
-bool NvsConfig::getUInt8(const char* key, uint8_t& result) {
-  esp_err_t err = nvs_get_u8(nvsHandle, key, &result);
+bool NvsConfig::getUInt8(const char* key, uint8_t* result) {
+  esp_err_t err = nvs_get_u8(nvsHandle, key, result);
   return err == ESP_OK;
 }
 
-bool NvsConfig::getInt32(const char* key, int32_t& result) {
-  esp_err_t err = nvs_get_i32(nvsHandle, key, &result);
+bool NvsConfig::getInt32(const char* key, int32_t* result) {
+  esp_err_t err = nvs_get_i32(nvsHandle, key, result);
   return err == ESP_OK;
 }
 
-bool NvsConfig::getUInt32(const char* key, uint32_t& result) {
-  esp_err_t err = nvs_get_u32(nvsHandle, key, &result);
+bool NvsConfig::getUInt32(const char* key, uint32_t* result) {
+  esp_err_t err = nvs_get_u32(nvsHandle, key, result);
   return err == ESP_OK;
 }
 

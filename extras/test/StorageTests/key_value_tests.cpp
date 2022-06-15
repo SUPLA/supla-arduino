@@ -85,16 +85,16 @@ TEST(KeyValueElementTests, gettersOnEmptyTest) {
   uint32_t resultU32 = 3;
   int32_t result32 = 4;
 
-  EXPECT_FALSE(kve1.getUInt8(resultU8));
+  EXPECT_FALSE(kve1.getUInt8(&resultU8));
   EXPECT_EQ(resultU8, 1);
 
-  EXPECT_FALSE(kve1.getInt8(result8));
+  EXPECT_FALSE(kve1.getInt8(&result8));
   EXPECT_EQ(result8, 2);
 
-  EXPECT_FALSE(kve1.getUInt32(resultU32));
+  EXPECT_FALSE(kve1.getUInt32(&resultU32));
   EXPECT_EQ(resultU32, 3);
 
-  EXPECT_FALSE(kve1.getInt32(result32));
+  EXPECT_FALSE(kve1.getInt32(&result32));
   EXPECT_EQ(result32, 4);
 
   char temp[10] = {};
@@ -116,16 +116,16 @@ TEST(KeyValueElementTests, intTest) {
 
   // UINT 8
   EXPECT_TRUE(kve1.setUInt8(250));
-  EXPECT_TRUE(kve1.getUInt8(resultU8));
+  EXPECT_TRUE(kve1.getUInt8(&resultU8));
   EXPECT_EQ(resultU8, 250);
 
-  EXPECT_FALSE(kve1.getInt8(result8));
+  EXPECT_FALSE(kve1.getInt8(&result8));
   EXPECT_EQ(result8, 2);
 
-  EXPECT_FALSE(kve1.getUInt32(resultU32));
+  EXPECT_FALSE(kve1.getUInt32(&resultU32));
   EXPECT_EQ(resultU32, 3);
 
-  EXPECT_FALSE(kve1.getInt32(result32));
+  EXPECT_FALSE(kve1.getInt32(&result32));
   EXPECT_EQ(result32, 4);
 
   char temp[10] = {};
@@ -134,78 +134,78 @@ TEST(KeyValueElementTests, intTest) {
   EXPECT_FALSE(kve1.getString(temp, 10));
 
   EXPECT_TRUE(kve1.setUInt8(25));
-  EXPECT_TRUE(kve1.getUInt8(resultU8));
+  EXPECT_TRUE(kve1.getUInt8(&resultU8));
   EXPECT_EQ(resultU8, 25);
 
   // INT 8
   EXPECT_TRUE(kve2.setInt8(70));
-  EXPECT_FALSE(kve2.getUInt8(resultU8));
+  EXPECT_FALSE(kve2.getUInt8(&resultU8));
   EXPECT_EQ(resultU8, 25);
 
-  EXPECT_TRUE(kve2.getInt8(result8));
+  EXPECT_TRUE(kve2.getInt8(&result8));
   EXPECT_EQ(result8, 70);
 
-  EXPECT_FALSE(kve2.getUInt32(resultU32));
+  EXPECT_FALSE(kve2.getUInt32(&resultU32));
   EXPECT_EQ(resultU32, 3);
 
-  EXPECT_FALSE(kve2.getInt32(result32));
+  EXPECT_FALSE(kve2.getInt32(&result32));
   EXPECT_EQ(result32, 4);
 
   EXPECT_FALSE(kve2.getBlob(temp, 10));
   EXPECT_FALSE(kve2.getString(temp, 10));
 
   EXPECT_FALSE(kve2.setUInt8(26));
-  EXPECT_FALSE(kve2.getUInt8(resultU8));
+  EXPECT_FALSE(kve2.getUInt8(&resultU8));
   EXPECT_EQ(resultU8, 25);
 
   EXPECT_TRUE(kve2.setInt8(71));
-  EXPECT_TRUE(kve2.getInt8(result8));
+  EXPECT_TRUE(kve2.getInt8(&result8));
   EXPECT_EQ(result8, 71);
 
   // UINT 32
   EXPECT_TRUE(kve3.setUInt32(12345));
-  EXPECT_TRUE(kve3.getUInt32(resultU32));
+  EXPECT_TRUE(kve3.getUInt32(&resultU32));
   EXPECT_EQ(resultU32, 12345);
 
-  EXPECT_FALSE(kve3.getUInt8(resultU8));
-  EXPECT_FALSE(kve3.getInt8(result8));
-  EXPECT_FALSE(kve3.getInt32(result32));
+  EXPECT_FALSE(kve3.getUInt8(&resultU8));
+  EXPECT_FALSE(kve3.getInt8(&result8));
+  EXPECT_FALSE(kve3.getInt32(&result32));
 
   EXPECT_FALSE(kve3.getBlob(temp, 10));
   EXPECT_FALSE(kve3.getString(temp, 10));
 
   EXPECT_FALSE(kve3.setUInt8(26));
-  EXPECT_FALSE(kve3.getUInt8(resultU8));
+  EXPECT_FALSE(kve3.getUInt8(&resultU8));
 
   EXPECT_FALSE(kve3.setInt8(71));
   EXPECT_FALSE(kve3.setBlob(temp, 10));
   EXPECT_FALSE(kve3.setString(temp));
-  EXPECT_FALSE(kve3.getInt8(result8));
+  EXPECT_FALSE(kve3.getInt8(&result8));
 
   EXPECT_TRUE(kve3.setUInt32(50));
-  EXPECT_TRUE(kve3.getUInt32(resultU32));
+  EXPECT_TRUE(kve3.getUInt32(&resultU32));
   EXPECT_EQ(resultU32, 50);
 
   // INT 32
   EXPECT_TRUE(kve4.setInt32(-12345));
-  EXPECT_TRUE(kve4.getInt32(result32));
+  EXPECT_TRUE(kve4.getInt32(&result32));
   EXPECT_EQ(result32, -12345);
 
-  EXPECT_FALSE(kve4.getUInt8(resultU8));
-  EXPECT_FALSE(kve4.getInt8(result8));
-  EXPECT_FALSE(kve4.getUInt32(resultU32));
+  EXPECT_FALSE(kve4.getUInt8(&resultU8));
+  EXPECT_FALSE(kve4.getInt8(&result8));
+  EXPECT_FALSE(kve4.getUInt32(&resultU32));
 
   EXPECT_FALSE(kve4.getBlob(temp, 10));
   EXPECT_FALSE(kve4.getString(temp, 10));
 
   EXPECT_FALSE(kve4.setUInt8(26));
-  EXPECT_FALSE(kve4.getUInt8(resultU8));
+  EXPECT_FALSE(kve4.getUInt8(&resultU8));
 
   EXPECT_FALSE(kve4.setInt8(71));
-  EXPECT_FALSE(kve4.getInt8(result8));
+  EXPECT_FALSE(kve4.getInt8(&result8));
 
   EXPECT_TRUE(kve4.setInt32(50));
-  EXPECT_TRUE(kve4.getInt32(result32));
+  EXPECT_TRUE(kve4.getInt32(&result32));
   EXPECT_EQ(result32, 50);
 
 
@@ -228,10 +228,10 @@ TEST(KeyValueElementTests, stringTest) {
   EXPECT_TRUE(kve1.getString(temp, 10));
   EXPECT_EQ(strncmp(temp, "testing", 10), 0);
 
-  EXPECT_FALSE(kve1.getUInt8(resultU8));
-  EXPECT_FALSE(kve1.getInt8(result8));
-  EXPECT_FALSE(kve1.getUInt32(resultU32));
-  EXPECT_FALSE(kve1.getInt32(result32));
+  EXPECT_FALSE(kve1.getUInt8(&resultU8));
+  EXPECT_FALSE(kve1.getInt8(&result8));
+  EXPECT_FALSE(kve1.getUInt32(&resultU32));
+  EXPECT_FALSE(kve1.getInt32(&result32));
   EXPECT_FALSE(kve1.getBlob(temp, 10));
 
   EXPECT_FALSE(kve1.setUInt8(25));
@@ -263,10 +263,10 @@ TEST(KeyValueElementTests, blobTest) {
   EXPECT_TRUE(kve1.getBlob(temp, 4));
   EXPECT_EQ(strncmp(temp, "test", 4), 0);
 
-  EXPECT_FALSE(kve1.getUInt8(resultU8));
-  EXPECT_FALSE(kve1.getInt8(result8));
-  EXPECT_FALSE(kve1.getUInt32(resultU32));
-  EXPECT_FALSE(kve1.getInt32(result32));
+  EXPECT_FALSE(kve1.getUInt8(&resultU8));
+  EXPECT_FALSE(kve1.getInt8(&result8));
+  EXPECT_FALSE(kve1.getUInt32(&resultU32));
+  EXPECT_FALSE(kve1.getInt32(&result32));
   EXPECT_FALSE(kve1.getString(temp, 10));
 
   EXPECT_FALSE(kve1.setUInt8(25));
@@ -300,10 +300,10 @@ TEST(KeyValueTests, integrationTest) {
   char temp[50];
 
   // checks on empty storage
-  EXPECT_FALSE(kvStorage.getInt8("test", result8));
-  EXPECT_FALSE(kvStorage.getUInt8("", resultU8));
-  EXPECT_FALSE(kvStorage.getInt32("test", result32));
-  EXPECT_FALSE(kvStorage.getUInt32("test", resultU32));
+  EXPECT_FALSE(kvStorage.getInt8("test", &result8));
+  EXPECT_FALSE(kvStorage.getUInt8("", &resultU8));
+  EXPECT_FALSE(kvStorage.getInt32("test", &result32));
+  EXPECT_FALSE(kvStorage.getUInt32("test", &resultU32));
   EXPECT_FALSE(kvStorage.getString("test", temp, 20));
   EXPECT_FALSE(kvStorage.getBlob("test", temp, 25));
 
@@ -323,7 +323,7 @@ TEST(KeyValueTests, integrationTest) {
   EXPECT_STREQ(temp, "secret");
 
   EXPECT_TRUE(kvStorage.setUInt32("suplaport", 2019));
-  EXPECT_TRUE(kvStorage.getUInt32("suplaport", resultU32));
+  EXPECT_TRUE(kvStorage.getUInt32("suplaport", &resultU32));
   EXPECT_EQ(resultU32, 2019);
 
   EXPECT_TRUE(kvStorage.getString("wifissid", temp, 50));
@@ -346,7 +346,7 @@ TEST(KeyValueTests, integrationTest) {
   EXPECT_STREQ(temp, "MY wiFi SSID");
   EXPECT_TRUE(kvStorageRestored.getString("passwd", temp, 50));
   EXPECT_STREQ(temp, "secret");
-  EXPECT_TRUE(kvStorageRestored.getUInt32("suplaport", resultU32));
+  EXPECT_TRUE(kvStorageRestored.getUInt32("suplaport", &resultU32));
   EXPECT_EQ(resultU32, 2019);
 
   uint8_t secondBuffer[1024] = {};
@@ -368,10 +368,10 @@ TEST(KeyValueTests, variousKVChecks) {
   int32_t result32 = {};
 
   EXPECT_TRUE(kvStorage.setInt8("this is too long key", 13));
-  EXPECT_TRUE(kvStorage.getInt8("this is too long key", result8));
+  EXPECT_TRUE(kvStorage.getInt8("this is too long key", &result8));
   EXPECT_EQ(result8, 13);
   // different 15th char
-  EXPECT_FALSE(kvStorage.getInt8("this is too low", result8));
+  EXPECT_FALSE(kvStorage.getInt8("this is too low", &result8));
 
   EXPECT_TRUE(kvStorage.setEmail("this_is_mail@user.com"));
   char buf[2000] = {};

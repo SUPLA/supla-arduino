@@ -18,15 +18,16 @@
 
 #ifndef ARDUINO_ARCH_AVR
 
-#include "esp_web_server.h"
-#include <string.h>
-#include <supla/network/html_element.h>
-#include <supla-common/log.h>
-#include <stddef.h>
-#include <supla/tools.h>
-#include <supla/time.h>
-#include <supla/network/html_generator.h>
 #include <SuplaDevice.h>
+#include <stddef.h>
+#include <string.h>
+#include <supla-common/log.h>
+#include <supla/network/html_element.h>
+#include <supla/network/html_generator.h>
+#include <supla/time.h>
+#include <supla/tools.h>
+
+#include "esp_web_server.h"
 
 static Supla::EspWebServer *serverInstance = nullptr;
 
@@ -37,8 +38,8 @@ void getFavicon() {
     auto svr = serverInstance->getServerPtr();
     svr->setContentLength(CONTENT_LENGTH_UNKNOWN);
     svr->send(200, "image/x-icon", "");
-    serverInstance->getServerPtr()->sendContent((const char*)(Supla::favico),
-        sizeof(Supla::favico));
+    serverInstance->getServerPtr()->sendContent((const char *)(Supla::favico),
+                                                sizeof(Supla::favico));
   }
 }
 
@@ -59,7 +60,8 @@ void getBetaHandler() {
   if (serverInstance && serverInstance->htmlGenerator) {
     Supla::EspSender sender(serverInstance->getServerPtr());
     serverInstance->notifyClientConnected();
-    serverInstance->htmlGenerator->sendBetaPage(&sender, serverInstance->dataSaved);
+    serverInstance->htmlGenerator->sendBetaPage(&sender,
+                                                serverInstance->dataSaved);
     serverInstance->dataSaved = false;
   }
 }
@@ -86,8 +88,8 @@ void postBetaHandler() {
   return &server;
 }
 
-Supla::EspWebServer::EspWebServer(Supla::HtmlGenerator *generator) :
-WebServer(generator), server(80) {
+Supla::EspWebServer::EspWebServer(Supla::HtmlGenerator *generator)
+    : WebServer(generator), server(80) {
   serverInstance = this;
 }
 
@@ -101,12 +103,13 @@ bool Supla::EspWebServer::handlePost() {
 
   for (int i = 0; i < server.args(); i++) {
     supla_log(LOG_DEBUG,
-        "SERVER: key %s, value %s",
-        server.argName(i).c_str(),
-        server.arg(i).c_str());
+              "SERVER: key %s, value %s",
+              server.argName(i).c_str(),
+              server.arg(i).c_str());
     for (auto htmlElement = Supla::HtmlElement::begin(); htmlElement;
-        htmlElement = htmlElement->next()) {
-      if (htmlElement->handleResponse(server.argName(i).c_str(), server.arg(i).c_str())) {
+         htmlElement = htmlElement->next()) {
+      if (htmlElement->handleResponse(server.argName(i).c_str(),
+                                      server.arg(i).c_str())) {
         break;
       }
     }
@@ -143,7 +146,6 @@ void Supla::EspWebServer::start() {
   server.on("/beta", HTTP_POST, postBetaHandler);
 
   server.begin();
-
 }
 
 void Supla::EspWebServer::stop() {

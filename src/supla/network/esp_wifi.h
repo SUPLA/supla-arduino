@@ -5,17 +5,19 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef esp_wifi_h__
-#define esp_wifi_h__
+#ifndef SRC_SUPLA_NETWORK_ESP_WIFI_H_
+#define SRC_SUPLA_NETWORK_ESP_WIFI_H_
 
 #include <Arduino.h>
 
@@ -23,7 +25,7 @@
 #include <ESP8266WiFi.h>
 
 // workaround for incompatible names in ESP8266 and ESP32 boards
-#define WIFI_MODE_AP WIFI_AP
+#define WIFI_MODE_AP  WIFI_AP
 #define WIFI_MODE_STA WIFI_STA
 
 #else
@@ -35,7 +37,7 @@
 #include "../supla_lib_config.h"
 #include "netif_wifi.h"
 
-// TODO: change logs to supla_log
+// TODO(klew): change logs to supla_log
 
 namespace Supla {
 class ESPWifi : public Supla::Wifi {
@@ -52,7 +54,7 @@ class ESPWifi : public Supla::Wifi {
 
       if (size > 0) {
         if (size > count) size = count;
-        long readSize = client->read((uint8_t *)buf, size);
+        int readSize = client->read(reinterpret_cast<uint8_t *>(buf), size);
 #ifdef SUPLA_COMM_DEBUG
         printData("Recv", buf, readSize);
 #endif
@@ -68,7 +70,8 @@ class ESPWifi : public Supla::Wifi {
 #ifdef SUPLA_COMM_DEBUG
       printData("Send", buf, count);
 #endif
-      long sendSize = client->write((const uint8_t *)buf, count);
+      int sendSize =
+          client->write(reinterpret_cast<const uint8_t *>(buf), count);
       return sendSize;
     }
     return 0;
@@ -130,7 +133,7 @@ class ESPWifi : public Supla::Wifi {
     }
   }
 
-  // TODO: add handling of custom local ip
+  // TODO(klew): add handling of custom local ip
   void setup() {
     if (!wifiConfigured) {
       // ESP32 requires setHostname to be called before begin...
@@ -146,7 +149,7 @@ class ESPWifi : public Supla::Wifi {
             Serial.println(WiFi.subnetMask());
             Serial.print(F("gatewayIP: "));
             Serial.println(WiFi.gatewayIP());
-            long rssi = WiFi.RSSI();
+            int rssi = WiFi.RSSI();
             Serial.print(F("Signal strength (RSSI): "));
             Serial.print(rssi);
             Serial.println(F(" dBm"));
@@ -165,7 +168,7 @@ class ESPWifi : public Supla::Wifi {
             Serial.println(WiFi.subnetMask());
             Serial.print(F("gatewayIP: "));
             Serial.println(WiFi.gatewayIP());
-            long rssi = WiFi.RSSI();
+            int rssi = WiFi.RSSI();
             Serial.print(F("Signal Strength (RSSI): "));
             Serial.print(rssi);
             Serial.println(F(" dBm"));
@@ -234,9 +237,9 @@ class ESPWifi : public Supla::Wifi {
 
   void fillStateData(TDSC_ChannelState *channelState) {
     channelState->Fields |= SUPLA_CHANNELSTATE_FIELD_IPV4 |
-                           SUPLA_CHANNELSTATE_FIELD_MAC |
-                           SUPLA_CHANNELSTATE_FIELD_WIFIRSSI |
-                           SUPLA_CHANNELSTATE_FIELD_WIFISIGNALSTRENGTH;
+                            SUPLA_CHANNELSTATE_FIELD_MAC |
+                            SUPLA_CHANNELSTATE_FIELD_WIFIRSSI |
+                            SUPLA_CHANNELSTATE_FIELD_WIFISIGNALSTRENGTH;
     channelState->IPv4 = WiFi.localIP();
     WiFi.macAddress(channelState->MAC);
     int rssi = WiFi.RSSI();
@@ -268,9 +271,8 @@ class ESPWifi : public Supla::Wifi {
 #ifdef ARDUINO_ARCH_ESP8266
   WiFiEventHandler gotIpEventHandler, disconnectedEventHandler;
 #endif
-
 };
 
 };  // namespace Supla
 
-#endif
+#endif  // SRC_SUPLA_NETWORK_ESP_WIFI_H_

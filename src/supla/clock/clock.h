@@ -14,23 +14,23 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _supla_clock_h
-#define _supla_clock_h
+#ifndef SRC_SUPLA_CLOCK_CLOCK_H_
+#define SRC_SUPLA_CLOCK_CLOCK_H_
 
-#include <time.h>
 #include <supla-common/proto.h>
 #include <supla/element.h>
+#include <time.h>
 
 namespace Supla {
 
 class Clock : public Element {
-  public:
+ public:
   Clock();
   virtual bool isReady();
   virtual int getYear();
   virtual int getMonth();
   virtual int getDay();
-  virtual int getDayOfWeek(); // 1 - Sunday, 2 - Monday
+  virtual int getDayOfWeek();  // 1 - Sunday, 2 - Monday
   virtual int getHour();
   virtual int getMin();
   virtual int getSec();
@@ -40,14 +40,13 @@ class Clock : public Element {
 
   virtual void parseLocaltimeFromServer(TSDC_UserLocalTimeResult *result);
 
-  protected:
+ protected:
   time_t localtime;
-  unsigned long lastServerUpdate;
-  unsigned long lastMillis;
+  uint64_t lastServerUpdate;
+  uint64_t lastMillis;
   bool isClockReady;
- 
 };
 
-};
+};  // namespace Supla
 
-#endif
+#endif  // SRC_SUPLA_CLOCK_CLOCK_H_

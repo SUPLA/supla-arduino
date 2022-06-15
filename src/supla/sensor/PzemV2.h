@@ -5,17 +5,19 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _PzemV2_h
-#define _PzemV2_h
+#ifndef SRC_SUPLA_SENSOR_PZEMV2_H_
+#define SRC_SUPLA_SENSOR_PZEMV2_H_
 
 #include <Arduino.h>
 // dependence: Arduino communication library for Peacefair PZEM-004T Energy
@@ -33,7 +35,7 @@ class PZEMv2 : public OnePhaseElectricityMeter {
   PZEMv2(int8_t pinRX, int8_t pinTX) : pzem(pinRX, pinTX), ip(192, 168, 1, 1) {
   }
 
-  PZEMv2(HardwareSerial *serial) : pzem(serial), ip(192, 168, 1, 1) {
+  explicit PZEMv2(HardwareSerial *serial) : pzem(serial), ip(192, 168, 1, 1) {
   }
 
   void onInit() {
@@ -43,10 +45,9 @@ class PZEMv2 : public OnePhaseElectricityMeter {
   }
 
   virtual void readValuesFromDevice() {
-
     float current = pzem.current(ip);
-    // If current reading is NAN, we assume that PZEM there is no valid communication
-    // with PZEM. Sensor shouldn't show any data
+    // If current reading is NAN, we assume that PZEM there is no valid
+    // communication with PZEM. Sensor shouldn't show any data
     if (current == PZEM_ERROR_VALUE) {
       resetReadParameters();
       return;
@@ -85,4 +86,4 @@ class PZEMv2 : public OnePhaseElectricityMeter {
 };  // namespace Sensor
 };  // namespace Supla
 
-#endif
+#endif  // SRC_SUPLA_SENSOR_PZEMV2_H_

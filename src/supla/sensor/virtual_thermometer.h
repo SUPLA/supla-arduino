@@ -16,26 +16,26 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _supla_sensor_virtual_thermometer_h_
-#define _supla_sensor_virtual_thermometer_h_
+#ifndef SRC_SUPLA_SENSOR_VIRTUAL_THERMOMETER_H_
+#define SRC_SUPLA_SENSOR_VIRTUAL_THERMOMETER_H_
 
 #include "thermometer.h"
 
 namespace Supla {
-  namespace Sensor {
-    class VirtualThermometer : public Supla::Sensor::Thermometer {
-      public:
-        double getValue() override {
-          return temperature;
-        }
-        void setValue(double val) {
-          temperature = val;
-        }
+namespace Sensor {
+class VirtualThermometer : public Supla::Sensor::Thermometer {
+ public:
+  double getValue() override {
+    return temperature;
+  }
+  void setValue(double val) {
+    temperature = val;
+  }
 
-      protected:
-        double temperature = TEMPERATURE_NOT_AVAILABLE;
-    };
-  };  // namespace Sensor
+ protected:
+  double temperature = TEMPERATURE_NOT_AVAILABLE;
+};
+};  // namespace Sensor
 };  // namespace Supla
 
-#endif /* _supla_sensor_virtual_thermometer_h_ */
+#endif  // SRC_SUPLA_SENSOR_VIRTUAL_THERMOMETER_H_

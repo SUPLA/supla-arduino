@@ -20,8 +20,8 @@
  * This class allows to control roller shutters with 3 buttons: up, down, stop
  */
 
-#ifndef _tripple_button_roller_shutter_h_
-#define _tripple_button_roller_shutter_h_
+#ifndef SRC_SUPLA_CONTROL_TRIPPLE_BUTTON_ROLLER_SHUTTER_H_
+#define SRC_SUPLA_CONTROL_TRIPPLE_BUTTON_ROLLER_SHUTTER_H_
 
 #include "bistable_roller_shutter.h"
 
@@ -29,11 +29,11 @@ namespace Supla {
 namespace Control {
 class TrippleButtonRollerShutter : public BistableRollerShutter {
  public:
-   TrippleButtonRollerShutter(int pinUp,
-       int pinDown,
-       int pinStop,
-       bool highIsOn = true);
-   virtual ~TrippleButtonRollerShutter();
+  TrippleButtonRollerShutter(int pinUp,
+                             int pinDown,
+                             int pinStop,
+                             bool highIsOn = true);
+  virtual ~TrippleButtonRollerShutter();
 
  protected:
   void stopMovement() override;
@@ -48,4 +48,4 @@ class TrippleButtonRollerShutter : public BistableRollerShutter {
 };  // namespace Control
 };  // namespace Supla
 
-#endif
+#endif  // SRC_SUPLA_CONTROL_TRIPPLE_BUTTON_ROLLER_SHUTTER_H_

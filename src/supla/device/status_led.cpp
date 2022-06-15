@@ -5,21 +5,22 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#include "../../SuplaDevice.h"
 #include "../io.h"
+#include "../storage/storage.h"
 #include "../time.h"
 #include "status_led.h"
-#include "../../SuplaDevice.h"
-#include "../storage/storage.h"
-
 
 Supla::Device::StatusLed::StatusLed(uint8_t outPin, bool invert)
     : outPin(outPin), invert(invert) {
@@ -29,7 +30,7 @@ void Supla::Device::StatusLed::onLoadConfig() {
   auto cfg = Supla::Storage::ConfigInstance();
   if (cfg) {
     int8_t value = 0;
-    if (cfg->getInt8("statusled", value)) {
+    if (cfg->getInt8("statusled", &value)) {
       switch (value) {
         default:
         case 0: {
@@ -44,7 +45,7 @@ void Supla::Device::StatusLed::onLoadConfig() {
           setMode(LED_ALWAYS_OFF);
           break;
         }
-      };
+      }
     }
   }
 }
@@ -164,9 +165,6 @@ void Supla::Device::StatusLed::iterateAlways() {
   }
 }
 
-
-
-
 void Supla::Device::StatusLed::onTimer() {
   updatePin();
 }
@@ -206,7 +204,8 @@ void Supla::Device::StatusLed::updatePin() {
   }
 }
 
-void Supla::Device::StatusLed::setCustomSequence(int onDurationMs, int offDurationMs) {
+void Supla::Device::StatusLed::setCustomSequence(int onDurationMs,
+                                                 int offDurationMs) {
   currentSequence = CUSTOM_SEQUENCE;
   onDuration = onDurationMs;
   offDuration = offDurationMs;

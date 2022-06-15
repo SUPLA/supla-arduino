@@ -94,10 +94,10 @@ namespace Supla {
       bool getBlob(const char* key, char* value, size_t blobSize) override;
       int getBlobSize(const char* key) override;
 
-      bool getInt8(const char* key, int8_t& result) override;
-      bool getUInt8(const char* key, uint8_t& result) override;
-      bool getInt32(const char* key, int32_t& result) override;
-      bool getUInt32(const char* key, uint32_t& result) override;
+      bool getInt8(const char* key, int8_t* result) override;
+      bool getUInt8(const char* key, uint8_t* result) override;
+      bool getInt32(const char* key, int32_t* result) override;
+      bool getUInt32(const char* key, uint32_t* result) override;
 
       bool setInt8(const char* key, const int8_t value) override;
       bool setUInt8(const char* key, const uint8_t value) override;
