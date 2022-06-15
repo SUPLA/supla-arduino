@@ -17,11 +17,14 @@
 */
 
 #include "html_generator.h"
-#include "web_sender.h"
+
 #include <string.h>
+
 #include <supla-common/log.h>
 #include <supla/network/html/device_info.h>
 #include <SuplaDevice.h>
+
+#include "web_sender.h"
 
 const char headerBegin[] =
 "<!doctype html><html lang=en><meta content=\"text/html;charset=UTF-8\"http-equ"
