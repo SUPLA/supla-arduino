@@ -14,29 +14,29 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _SUPLA_SENSOR_BINARY_PARSED_H_
-#define _SUPLA_SENSOR_BINARY_PARSED_H_
+#ifndef EXTRAS_PORTING_LINUX_SUPLA_SENSOR_BINARY_PARSED_H_
+#define EXTRAS_PORTING_LINUX_SUPLA_SENSOR_BINARY_PARSED_H_
 
-#include <supla/sensor/virtual_binary.h>
 #include <supla/parser/parser.h>
-#include "sensor_parsed.h"
+#include <supla/sensor/virtual_binary.h>
+
 #include <string>
 
+#include "sensor_parsed.h"
 
 namespace Supla {
-  namespace Parser {
-    const char State[] = "state";
-  };
+namespace Parser {
+const char State[] = "state";
+};
 
-  namespace Sensor {
+namespace Sensor {
 
-    class BinaryParsed : public VirtualBinary, public SensorParsed {
-      public:
-        BinaryParsed(Supla::Parser::Parser *);
-        virtual bool getValue() override;
-    };
-  };  // namespace Source
+class BinaryParsed : public VirtualBinary, public SensorParsed {
+ public:
+  explicit BinaryParsed(Supla::Parser::Parser *);
+  bool getValue() override;
+};
+};  // namespace Sensor
 };  // namespace Supla
 
-#endif /*_SUPLA_SENSOR_BINARY_PARSED_H_*/
-
+#endif  // EXTRAS_PORTING_LINUX_SUPLA_SENSOR_BINARY_PARSED_H_

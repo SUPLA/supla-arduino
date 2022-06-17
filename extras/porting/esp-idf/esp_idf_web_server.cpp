@@ -16,13 +16,14 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "esp_idf_web_server.h"
-#include <string.h>
-#include "supla/network/html_generator.h"
-#include <supla-common/log.h>
 #include <stddef.h>
-#include <supla/tools.h>
+#include <string.h>
+#include <supla-common/log.h>
 #include <supla/time.h>
+#include <supla/tools.h>
+
+#include "esp_idf_web_server.h"
+#include "supla/network/html_generator.h"
 
 static Supla::EspIdfWebServer *serverInstance = nullptr;
 
@@ -32,7 +33,7 @@ esp_err_t getFavicon(httpd_req_t *req) {
     serverInstance->notifyClientConnected();
   }
   httpd_resp_set_type(req, "image/x-icon");
-  httpd_resp_send(req, (const char*)(Supla::favico), sizeof(Supla::favico));
+  httpd_resp_send(req, (const char *)(Supla::favico), sizeof(Supla::favico));
   return ESP_OK;
 }
 
@@ -55,7 +56,8 @@ esp_err_t getBetaHandler(httpd_req_t *req) {
 
   if (serverInstance && serverInstance->htmlGenerator) {
     serverInstance->notifyClientConnected();
-    serverInstance->htmlGenerator->sendBetaPage(&sender, serverInstance->dataSaved);
+    serverInstance->htmlGenerator->sendBetaPage(&sender,
+                                                serverInstance->dataSaved);
     serverInstance->dataSaved = false;
   }
 
@@ -82,44 +84,29 @@ esp_err_t postBetaHandler(httpd_req_t *req) {
   return ESP_FAIL;
 }
 
-
 httpd_uri_t uriGet = {
-  .uri = "/",
-  .method = HTTP_GET,
-  .handler = getHandler,
-  .user_ctx = NULL
-};
+    .uri = "/", .method = HTTP_GET, .handler = getHandler, .user_ctx = NULL};
 
-httpd_uri_t uriGetBeta = {
-  .uri = "/beta",
-  .method = HTTP_GET,
-  .handler = getBetaHandler,
-  .user_ctx = NULL
-};
+httpd_uri_t uriGetBeta = {.uri = "/beta",
+                          .method = HTTP_GET,
+                          .handler = getBetaHandler,
+                          .user_ctx = NULL};
 
-httpd_uri_t uriFavicon = {
-  .uri = "/favicon.ico",
-  .method = HTTP_GET,
-  .handler = getFavicon,
-  .user_ctx = NULL
-};
+httpd_uri_t uriFavicon = {.uri = "/favicon.ico",
+                          .method = HTTP_GET,
+                          .handler = getFavicon,
+                          .user_ctx = NULL};
 
 httpd_uri_t uriPost = {
-  .uri = "/",
-  .method = HTTP_POST,
-  .handler = postHandler,
-  .user_ctx = NULL
-};
+    .uri = "/", .method = HTTP_POST, .handler = postHandler, .user_ctx = NULL};
 
-httpd_uri_t uriPostBeta = {
-  .uri = "/beta",
-  .method = HTTP_POST,
-  .handler = postBetaHandler,
-  .user_ctx = NULL
-};
+httpd_uri_t uriPostBeta = {.uri = "/beta",
+                           .method = HTTP_POST,
+                           .handler = postBetaHandler,
+                           .user_ctx = NULL};
 
-Supla::EspIdfWebServer::EspIdfWebServer(Supla::HtmlGenerator *generator) :
-WebServer(generator) {
+Supla::EspIdfWebServer::EspIdfWebServer(Supla::HtmlGenerator *generator)
+    : WebServer(generator) {
   serverInstance = this;
 }
 
@@ -145,7 +132,11 @@ bool Supla::EspIdfWebServer::handlePost(httpd_req_t *req) {
   while (contentLen > 0) {
     ret = httpd_req_recv(req, content, recvSize);
     content[ret] = '\0';
-    supla_log(LOG_DEBUG, "SERVER: received %d B (cl %d): %s", ret,contentLen, content);
+    supla_log(LOG_DEBUG,
+              "SERVER: received %d B (cl %d): %s",
+              ret,
+              contentLen,
+              content);
     contentLen -= ret;
     if (ret <= 0) {
       contentLen = 0;
@@ -197,7 +188,8 @@ void Supla::EspIdfWebServer::stop() {
   }
 }
 
-Supla::EspIdfSender::EspIdfSender(httpd_req_t *req) : reqHandler(req) {}
+Supla::EspIdfSender::EspIdfSender(httpd_req_t *req) : reqHandler(req) {
+}
 
 Supla::EspIdfSender::~EspIdfSender() {
   if (!error) {
@@ -220,5 +212,4 @@ void Supla::EspIdfSender::send(const char *buf, int size) {
   if (err != ESP_OK) {
     error = true;
   }
-
 }

@@ -5,10 +5,12 @@
    modify it under the terms of the GNU General Public License
    as published by the Free Software Foundation; either version 2
    of the License, or (at your option) any later version.
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
+
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -20,14 +22,14 @@
 #include <esp_mac.h>
 #endif
 
-#include <fcntl.h>
-#include <supla/supla_lib_config.h>
-#include <nvs_flash.h>
-#include <supla/storage/storage.h>
-#include <supla/storage/config.h>
 #include <SuplaDevice.h>
-#include <supla/mutex.h>
+#include <fcntl.h>
+#include <nvs_flash.h>
 #include <supla/auto_lock.h>
+#include <supla/mutex.h>
+#include <supla/storage/config.h>
+#include <supla/storage/storage.h>
+#include <supla/supla_lib_config.h>
 
 #include <cstring>
 
@@ -46,12 +48,12 @@ extern const uint8_t suplaOrgCertPemStart[] asm(
 extern const uint8_t suplaOrgCertPemEnd[] asm("_binary_supla_org_cert_pem_end");
 
 Supla::EspIdfWifi::EspIdfWifi(const char *wifiSsid,
-    const char *wifiPassword,
-    unsigned char *ip)
-  : Wifi(wifiSsid, wifiPassword, ip) {
-    netIntfPtr = this;
-    mutex = Supla::Mutex::Create();
-  }
+                              const char *wifiPassword,
+                              unsigned char *ip)
+    : Wifi(wifiSsid, wifiPassword, ip) {
+  netIntfPtr = this;
+  mutex = Supla::Mutex::Create();
+}
 
 Supla::EspIdfWifi::~EspIdfWifi() {
   netIntfPtr = nullptr;
@@ -146,7 +148,7 @@ int Supla::EspIdfWifi::connect(const char *server, int port) {
   esp_tls_cfg_t cfg = {};
   cfg.cacert_pem_buf = suplaOrgCertPemStart;
   cfg.cacert_pem_bytes =
-    static_cast<unsigned int>(suplaOrgCertPemEnd - suplaOrgCertPemStart);
+      static_cast<unsigned int>(suplaOrgCertPemEnd - suplaOrgCertPemStart);
   cfg.timeout_ms = timeoutMs;
   cfg.non_block = false;
 
@@ -156,9 +158,9 @@ int Supla::EspIdfWifi::connect(const char *server, int port) {
   }
 
   supla_log(LOG_INFO,
-      "Establishing connection with: %s (port: %d)",
-      server,
-      connectionPort);
+            "Establishing connection with: %s (port: %d)",
+            server,
+            connectionPort);
 
   client = esp_tls_init();
   int result = esp_tls_conn_new_sync(
@@ -171,11 +173,14 @@ int Supla::EspIdfWifi::connect(const char *server, int port) {
     }
 
   } else {
-    supla_log(LOG_DEBUG, "last errors %d %d %d", client->error_handle->last_error,
-        client->error_handle->esp_tls_error_code, client->error_handle->esp_tls_flags);
+    supla_log(LOG_DEBUG,
+              "last errors %d %d %d",
+              client->error_handle->last_error,
+              client->error_handle->esp_tls_error_code,
+              client->error_handle->esp_tls_flags);
     logConnReason(client->error_handle->last_error,
-        client->error_handle->esp_tls_error_code,
-        client->error_handle->esp_tls_flags);
+                  client->error_handle->esp_tls_error_code,
+                  client->error_handle->esp_tls_flags);
     autoLock.unlock();
     disconnect();
   }
@@ -203,9 +208,9 @@ bool Supla::EspIdfWifi::isReady() {
 }
 
 static void eventHandler(void *arg,
-    esp_event_base_t eventBase,
-    int32_t eventId,
-    void *eventData) {
+                         esp_event_base_t eventBase,
+                         int32_t eventId,
+                         void *eventData) {
   if (eventBase == WIFI_EVENT) {
     switch (eventId) {
       case WIFI_EVENT_STA_START: {
@@ -221,7 +226,8 @@ static void eventHandler(void *arg,
         break;
       }
       case WIFI_EVENT_STA_DISCONNECTED: {
-        wifi_event_sta_disconnected_t *data = (wifi_event_sta_disconnected_t*)(eventData);
+        wifi_event_sta_disconnected_t *data =
+            reinterpret_cast<wifi_event_sta_disconnected_t *>(eventData);
         if (netIntfPtr) {
           netIntfPtr->setIpReady(false);
           netIntfPtr->setWifiConnected(false);
@@ -230,8 +236,9 @@ static void eventHandler(void *arg,
         }
         if (!netIntfPtr->isInConfigMode()) {
           esp_wifi_connect();
-          supla_log(LOG_DEBUG, "connect to the AP fail (reason %d). Trying again",
-              data->reason);
+          supla_log(LOG_DEBUG,
+                    "connect to the AP fail (reason %d). Trying again",
+                    data->reason);
         }
         break;
       }
@@ -280,13 +287,12 @@ void Supla::EspIdfWifi::setup() {
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
     ESP_ERROR_CHECK(esp_event_handler_register(
-          WIFI_EVENT, ESP_EVENT_ANY_ID, &eventHandler, NULL));
+        WIFI_EVENT, ESP_EVENT_ANY_ID, &eventHandler, NULL));
     ESP_ERROR_CHECK(esp_event_handler_register(
-          IP_EVENT, IP_EVENT_STA_GOT_IP, &eventHandler, NULL));
+        IP_EVENT, IP_EVENT_STA_GOT_IP, &eventHandler, NULL));
     ESP_ERROR_CHECK(esp_event_handler_register(
-          IP_EVENT, IP_EVENT_STA_LOST_IP, &eventHandler, NULL));
+        IP_EVENT, IP_EVENT_STA_LOST_IP, &eventHandler, NULL));
     esp_wifi_set_ps(WIFI_PS_NONE);
-
 
   } else {
     supla_log(LOG_DEBUG, "WiFi: resetting WiFi connection");
@@ -301,13 +307,14 @@ void Supla::EspIdfWifi::setup() {
     wifi_config_t wifi_config = {};
 
     memcpy(wifi_config.ap.ssid, hostname, strlen(hostname));
-    wifi_config.ap.max_connection = 4; // default
+    wifi_config.ap.max_connection = 4;  // default
     wifi_config.ap.channel = 6;
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
   } else {
-    supla_log(LOG_INFO, "Wi-Fi: establishing connection with SSID: \"%s\"", ssid);
+    supla_log(
+        LOG_INFO, "Wi-Fi: establishing connection with SSID: \"%s\"", ssid);
     wifi_config_t wifi_config = {};
     memcpy(wifi_config.sta.ssid, ssid, MAX_SSID_SIZE);
     memcpy(wifi_config.sta.password, password, MAX_WIFI_PASSWORD_SIZE);
@@ -315,7 +322,7 @@ void Supla::EspIdfWifi::setup() {
     wifi_config.sta.scan_method = WIFI_ALL_CHANNEL_SCAN;
     wifi_config.sta.sort_method = WIFI_CONNECT_AP_BY_SIGNAL;
 
-    if (strlen((char *)(wifi_config.sta.password))) {
+    if (strlen(reinterpret_cast<char *>(wifi_config.sta.password))) {
       wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
     }
 
@@ -361,7 +368,6 @@ void Supla::EspIdfWifi::uninit() {
 
     vEventGroupDelete(wifiEventGroup);
     esp_event_loop_delete_default();
-
   }
 }
 
@@ -373,9 +379,9 @@ void Supla::EspIdfWifi::setTimeout(int newTimeoutMs) {
 
 void Supla::EspIdfWifi::fillStateData(TDSC_ChannelState *channelState) {
   channelState->Fields |= SUPLA_CHANNELSTATE_FIELD_IPV4 |
-    SUPLA_CHANNELSTATE_FIELD_MAC |
-    SUPLA_CHANNELSTATE_FIELD_WIFIRSSI |
-    SUPLA_CHANNELSTATE_FIELD_WIFISIGNALSTRENGTH;
+                          SUPLA_CHANNELSTATE_FIELD_MAC |
+                          SUPLA_CHANNELSTATE_FIELD_WIFIRSSI |
+                          SUPLA_CHANNELSTATE_FIELD_WIFISIGNALSTRENGTH;
 
   esp_read_mac(channelState->MAC, ESP_MAC_WIFI_STA);
   channelState->IPv4 = ipv4;
@@ -446,7 +452,8 @@ void Supla::EspIdfWifi::logWifiReason(int reason) {
         break;
       }
       case 15: {
-        sdc->addLastStateLog("Wi-Fi: 4way handshake timeout (incorrect password)");
+        sdc->addLastStateLog(
+            "Wi-Fi: 4way handshake timeout (incorrect password)");
         break;
       }
       case 200: {
@@ -455,7 +462,7 @@ void Supla::EspIdfWifi::logWifiReason(int reason) {
       }
       case 201: {
         char buf[100] = {};
-        snprintf(buf, 100, "Wi-Fi: \"%s\" not found", ssid);
+        snprintf(buf, sizeof(buf), "Wi-Fi: \"%s\" not found", ssid);
         sdc->addLastStateLog(buf);
         break;
       }
@@ -485,13 +492,11 @@ void Supla::EspIdfWifi::logWifiReason(int reason) {
       }
       default: {
         char buf[100] = {};
-        snprintf(buf, 100, "Wi-Fi: disconnect reason %d", reason);
+        snprintf(buf, sizeof(buf), "Wi-Fi: disconnect reason %d", reason);
         sdc->addLastStateLog(buf);
         break;
       }
-
-
-    };
+    }
   }
 }
 
@@ -515,32 +520,36 @@ void Supla::EspIdfWifi::logConnReason(int error, int tlsError, int tlsFlags) {
       case ESP_ERR_MBEDTLS_SSL_HANDSHAKE_FAILED: {
         switch (tlsError) {
           case -MBEDTLS_ERR_X509_CERT_VERIFY_FAILED: {
-            sdc->addLastStateLog("Connection TLS: handshake fail - server "
-                "certificate verification error"
-                );
+            sdc->addLastStateLog(
+                "Connection TLS: handshake fail - server "
+                "certificate verification error");
             break;
           }
           default: {
             char buf[100] = {};
-            snprintf(buf, 100, "Connection TLS: handshake fail (TLS 0x%X "
-                "flags 0x%x)",
-                tlsError, tlsFlags);
+            snprintf(buf,
+                     100,
+                     "Connection TLS: handshake fail (TLS 0x%X "
+                     "flags 0x%x)",
+                     tlsError,
+                     tlsFlags);
             sdc->addLastStateLog(buf);
             break;
           }
-
-        };
+        }
         break;
       }
       default: {
         char buf[100] = {};
-        snprintf(buf, 100, "Connection: error 0x%X (TLS 0x%X flags 0x%x)",
-            error, tlsError, tlsFlags);
+        snprintf(buf,
+                 100,
+                 "Connection: error 0x%X (TLS 0x%X flags 0x%x)",
+                 error,
+                 tlsError,
+                 tlsFlags);
         sdc->addLastStateLog(buf);
         break;
       }
-    };
+    }
   }
 }
-
-

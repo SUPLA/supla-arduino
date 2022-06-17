@@ -14,37 +14,39 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _SUPLA_PARSER_PARSER_H_
-#define _SUPLA_PARSER_PARSER_H_
+#ifndef EXTRAS_PORTING_LINUX_SUPLA_PARSER_PARSER_H_
+#define EXTRAS_PORTING_LINUX_SUPLA_PARSER_PARSER_H_
 
 #include <supla/source/source.h>
-#include <string>
+
 #include <map>
+#include <string>
 
 namespace Supla {
-  namespace Parser {
+namespace Parser {
 
-    class Parser {
-      public:
-        Parser(Supla::Source::Source *);
-        virtual ~Parser(){};
-        bool refreshParserSource();
+class Parser {
+ public:
+  explicit Parser(Supla::Source::Source *);
+  virtual ~Parser() {}
+  bool refreshParserSource();
 
-        virtual void addKey(const std::string& key, int index);
-        virtual double getValue(const std::string &key) = 0;
+  virtual void addKey(const std::string &key, int index);
+  virtual double getValue(const std::string &key) = 0;
 
-        virtual bool isValid();
-        virtual bool isBasedOnIndex() = 0;
-        void setRefreshTime(unsigned int timeMs);
-      protected:
-        virtual bool refreshSource() = 0;
-        std::map<std::string, int> keys;
-        bool valid = false;
-        Supla::Source::Source *source = nullptr;
-        uint64_t lastRefreshTime = 0;
-        unsigned int refreshTimeMs = 5*1000; // 5 s
-    };
-  };  // namespace Parser
+  virtual bool isValid();
+  virtual bool isBasedOnIndex() = 0;
+  void setRefreshTime(unsigned int timeMs);
+
+ protected:
+  virtual bool refreshSource() = 0;
+  std::map<std::string, int> keys;
+  bool valid = false;
+  Supla::Source::Source *source = nullptr;
+  uint64_t lastRefreshTime = 0;
+  unsigned int refreshTimeMs = 5 * 1000;  // 5 s
+};
+};  // namespace Parser
 };  // namespace Supla
-#endif /*_SUPLA_PARSER_PARSER_H_*/
 
+#endif  // EXTRAS_PORTING_LINUX_SUPLA_PARSER_PARSER_H_

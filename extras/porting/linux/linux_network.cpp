@@ -5,25 +5,27 @@
    modify it under the terms of the GNU General Public License
    as published by the Free Software Foundation; either version 2
    of the License, or (at your option) any later version.
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
+
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-   */
+*/
 
+#include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
 #include <openssl/err.h>
+#include <poll.h>
 #include <resolv.h>
 #include <string.h>
 #include <supla/supla_lib_config.h>
 #include <unistd.h>
-#include <arpa/inet.h>
-#include <poll.h>
 
 #include <iostream>
 
@@ -144,15 +146,15 @@ int Supla::LinuxNetwork::connect(const char *server, int port) {
 
   int connectionPort = (port == -1 ? 2015 : port);
   if (connectionPort != 2016) {
-    supla_log(
-        LOG_WARNING,
-        "Server port is not 2016. Trying to establish secured connection anyway");
+    supla_log(LOG_WARNING,
+              "Server port is not 2016. Trying to establish secured connection "
+              "anyway");
   }
 
   supla_log(LOG_INFO,
-      "Establishing connection with: %s (port: %d)",
-      server,
-      connectionPort);
+            "Establishing connection with: %s (port: %d)",
+            server,
+            connectionPort);
 
   struct hostent *host = gethostbyname(server);
   if (host == nullptr) {
@@ -167,7 +169,7 @@ int Supla::LinuxNetwork::connect(const char *server, int port) {
   hints.ai_protocol = IPPROTO_TCP;
 
   char portStr[10] = "2016";
-  snprintf(portStr, 10, "%d", port);
+  snprintf(portStr, sizeof(portStr), "%d", port);
 
   const int status = getaddrinfo(server, portStr, &hints, &addresses);
   if (status != 0) {
@@ -177,9 +179,10 @@ int Supla::LinuxNetwork::connect(const char *server, int port) {
 
   int err = 0;
   int flagsCopy = 0;
-  for (struct addrinfo *addr = addresses; addr != nullptr; addr = addr->ai_next) {
-    connectionFd =
-      socket(addresses->ai_family, addresses->ai_socktype, addresses->ai_protocol);
+  for (struct addrinfo *addr = addresses; addr != nullptr;
+       addr = addr->ai_next) {
+    connectionFd = socket(
+        addresses->ai_family, addresses->ai_socktype, addresses->ai_protocol);
     if (connectionFd == -1) {
       err = errno;
       continue;
@@ -280,5 +283,5 @@ void Supla::LinuxNetwork::fillStateData(TDSC_ChannelState *channelState) {
   socklen_t len = sizeof(address);
   getsockname(connectionFd, (struct sockaddr *)&address, &len);
   channelState->IPv4 =
-    static_cast<unsigned _supla_int_t>(address.sin_addr.s_addr);
+      static_cast<unsigned _supla_int_t>(address.sin_addr.s_addr);
 }

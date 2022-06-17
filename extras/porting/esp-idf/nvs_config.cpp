@@ -20,13 +20,13 @@
 #include <esp_random.h>
 #endif
 
-#include <nvs_flash.h>
+#include <esp_system.h>
 #include <nvs.h>
+#include <nvs_flash.h>
 #include <supla-common/log.h>
 #include <supla-common/proto.h>
-#include <esp_system.h>
 
-using namespace Supla;
+namespace Supla {
 
 NvsConfig::NvsConfig() {
 }
@@ -64,8 +64,7 @@ bool NvsConfig::setString(const char* key, const char* value) {
 }
 
 bool NvsConfig::getString(const char* key, char* value, size_t maxSize) {
-  esp_err_t err =
-    nvs_get_str(nvsHandle, key, value, &maxSize);
+  esp_err_t err = nvs_get_str(nvsHandle, key, value, &maxSize);
   return err == ESP_OK;
 }
 
@@ -107,7 +106,6 @@ bool NvsConfig::getUInt32(const char* key, uint32_t* result) {
   return err == ESP_OK;
 }
 
-
 bool NvsConfig::setInt8(const char* key, const int8_t value) {
   esp_err_t err = nvs_set_i8(nvsHandle, key, value);
   return err == ESP_OK;
@@ -144,3 +142,5 @@ bool NvsConfig::generateGuidAndAuthkey() {
   commit();
   return true;
 }
+
+}  // namespace Supla
