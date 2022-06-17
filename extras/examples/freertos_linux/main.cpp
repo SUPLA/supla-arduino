@@ -21,50 +21,50 @@
 */
 
 #include <FreeRTOS.h>
-#include <iostream>
 #include <supla-common/log.h>
 #include <supla/time.h>
 #include <task.h>
 
-using namespace std;
+#include <iostream>
 
 class TaskWrap {
-  public:
-    virtual ~TaskWrap() {}
-    void start(
-        const char *name, const uint16_t stackSize, UBaseType_t priority) {
-      xTaskCreate(
-          TaskWrap::setupTask, name, stackSize, this, priority, &handle);
-    }
+ public:
+  virtual ~TaskWrap() {
+  }
+  void start(const char *name, const uint16_t stackSize, UBaseType_t priority) {
+    xTaskCreate(TaskWrap::setupTask, name, stackSize, this, priority, &handle);
+  }
 
-  private:
-    virtual void setup() {}
-    virtual void loop() {}
+ private:
+  virtual void setup() {
+  }
+  virtual void loop() {
+  }
 
-    static void setupTask(void *ptr) {
-      TaskWrap *taskPtr = reinterpret_cast<TaskWrap *>(ptr);
-      taskPtr->setup();
-      while (1) {
-        taskPtr->loop();
-      }
+  static void setupTask(void *ptr) {
+    TaskWrap *taskPtr = reinterpret_cast<TaskWrap *>(ptr);
+    taskPtr->setup();
+    while (1) {
+      taskPtr->loop();
     }
-    TaskHandle_t handle;
+  }
+  TaskHandle_t handle;
 };
 
 class TestTask1 : public TaskWrap {
-  private:
-    void loop() override {
-      supla_log(LOG_DEBUG, "task1 test: %d", millis());
-      vTaskDelay(100);
-    }
+ private:
+  void loop() override {
+    supla_log(LOG_DEBUG, "task1 test: %d", millis());
+    vTaskDelay(100);
+  }
 };
 
 class TestTask2 : public TaskWrap {
-  private:
-    void loop() override {
-      supla_log(LOG_DEBUG, "task2 test: %d", millis());
-      vTaskDelay(550);
-    }
+ private:
+  void loop() override {
+    supla_log(LOG_DEBUG, "task2 test: %d", millis());
+    vTaskDelay(550);
+  }
 };
 
 int main() {
@@ -81,7 +81,9 @@ int main() {
   return 0;
 }
 
-void vAssertCalled(unsigned long line, const char *const fileName) {}
+void vAssertCalled(uint64_t line, const char *const fileName) {
+}
 
 extern "C" void vApplicationMallocFailedHook(void);
-void vApplicationMallocFailedHook(void) {}
+void vApplicationMallocFailedHook(void) {
+}

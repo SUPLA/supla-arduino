@@ -18,56 +18,51 @@
  Example of supla-device project for ESP32 with EPS-IDF SDK
  */
 
-#include <freertos/FreeRTOS.h>
+#include <SuplaDevice.h>
 #include <esp_heap_caps.h>
 #include <esp_log.h>
-
-#include <SuplaDevice.h>
-#include <supla/time.h>
+#include <freertos/FreeRTOS.h>
 #include <supla-common/log.h>
-
-#include <supla/control/virtual_relay.h>
+#include <supla/control/button.h>
 #include <supla/control/relay.h>
 #include <supla/control/roller_shutter.h>
-#include <supla/control/button.h>
-
+#include <supla/control/virtual_relay.h>
 #include <supla/device/status_led.h>
+#include <supla/time.h>
 
 // Supla extras/porting/esp-idf files - specific to ESP-IDF and ESP8266 RTOS
 // targets
-#include <esp_idf_wifi.h>
-#include <spiffs_storage.h>
-#include <nvs_config.h>
 #include <esp_idf_web_server.h>
+#include <esp_idf_wifi.h>
+#include <nvs_config.h>
+#include <spiffs_storage.h>
 
 // HTML generation
 #include "supla/network/html/device_info.h"
-#include "supla/network/html/wifi_parameters.h"
 #include "supla/network/html/protocol_parameters.h"
 #include "supla/network/html/status_led_parameters.h"
-
+#include "supla/network/html/wifi_parameters.h"
 
 extern "C" void cpp_main(void*);
 
-void cpp_main(void* param)
-{
-// Content of HTML for cfg mode
+void cpp_main(void* param) {
+  // Content of HTML for cfg mode
   new Supla::Html::DeviceInfo(&SuplaDevice);
   new Supla::Html::WifiParameters;
   new Supla::Html::ProtocolParameters;
   new Supla::Html::StatusLedParameters;
 
-// Device status LED
-//Supla::Device::StatusLed statusLed(2, false); // esp-wroom-32 GPIO2
-  new Supla::Device::StatusLed(18, false); // esp-wroom-32-c3 GPIO18
+  // Device status LED
+  // Supla::Device::StatusLed statusLed(2, false); // esp-wroom-32 GPIO2
+  new Supla::Device::StatusLed(18, false);  // esp-wroom-32-c3 GPIO18
 
-// Spiffs storage for channel states
+  // Spiffs storage for channel states
   new Supla::SpiffsStorage(512);
 
-// Nvs based device configuration storage
+  // Nvs based device configuration storage
   new Supla::NvsConfig;
 
-// Cfg mode web server
+  // Cfg mode web server
   new Supla::EspIdfWebServer;
 
   // Show all SUPLA related logs
@@ -89,16 +84,19 @@ void cpp_main(void* param)
   b1->addAction(Supla::TOGGLE, r1, Supla::ON_CLICK_1);
   b1->addAction(Supla::START_LOCAL_WEB_SERVER, SuplaDevice, Supla::ON_CLICK_2);
   b1->addAction(Supla::STOP_LOCAL_WEB_SERVER, SuplaDevice, Supla::ON_CLICK_3);
-  b1->addAction(Supla::RESET_TO_FACTORY_SETTINGS, SuplaDevice, Supla::ON_CLICK_5);
+  b1->addAction(
+      Supla::RESET_TO_FACTORY_SETTINGS, SuplaDevice, Supla::ON_CLICK_5);
   b1->addAction(Supla::TOGGLE_CONFIG_MODE, SuplaDevice, Supla::ON_HOLD);
 
   r1->setDefaultStateRestore();
   r2->setDefaultStateRestore();
   r3->setDefaultStateRestore();
 
-  supla_log(LOG_DEBUG, "Free heap: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
+  supla_log(
+      LOG_DEBUG, "Free heap: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
   SuplaDevice.begin();
-  supla_log(LOG_DEBUG, "Free heap: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
+  supla_log(
+      LOG_DEBUG, "Free heap: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
   supla_log(LOG_DEBUG, "port tick period %d", portTICK_PERIOD_MS);
 
   unsigned int lastTime = 0;
@@ -118,15 +116,16 @@ void cpp_main(void* param)
       if (lastFreeHeap != curHeap) {
         lastFreeHeap = curHeap;
         lastTimeHeap = millis();
-        supla_log(LOG_DEBUG, "Free heap: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
+        supla_log(LOG_DEBUG,
+                  "Free heap: %d",
+                  heap_caps_get_free_size(MALLOC_CAP_8BIT));
       }
     }
   }
 }
 
 extern "C" {
-  void app_main() {
-    xTaskCreate(&cpp_main, "cpp_main", 8192, NULL, 5, NULL);
-  }
+void app_main() {
+  xTaskCreate(&cpp_main, "cpp_main", 8192, NULL, 5, NULL);
 }
-
+}
