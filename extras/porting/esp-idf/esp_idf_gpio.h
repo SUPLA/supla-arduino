@@ -19,6 +19,8 @@
 #ifndef EXTRAS_PORTING_ESP_IDF_ESP_IDF_GPIO_H_
 #define EXTRAS_PORTING_ESP_IDF_ESP_IDF_GPIO_H_
 
+#include <stdint.h>
+
 void pinMode(uint8_t pin, uint8_t mode);
 int digitalRead(uint8_t pin);
 void digitalWrite(uint8_t pin, uint8_t val);

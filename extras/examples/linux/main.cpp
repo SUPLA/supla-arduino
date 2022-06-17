@@ -14,40 +14,29 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include <iostream>
 #include <supla-common/log.h>
-#include <supla/time.h>
-#include <SuplaDevice.h>
-#include <linux_network.h>
-#include <supla/version.h>
 #include <supla-common/tools.h>
-
-#include <supla/control/virtual_relay.h>
-#include <supla/control/rgb_leds.h>
-#include <supla/control/dimmer_leds.h>
-#include <supla/control/rgbw_leds.h>
-
+#include <linux_network.h>
 #include <unistd.h>
+#include <fstream>
+#include <iostream>
 #include <cxxopts.hpp>
+
+
+#include <SuplaDevice.h>
+#include <supla/control/dimmer_leds.h>
+#include <supla/control/rgb_leds.h>
+#include <supla/control/rgbw_leds.h>
+#include <supla/control/virtual_relay.h>
+#include <supla/time.h>
+#include <supla/version.h>
 
 // Below includes are added just for CI compilation check. Some of them
 // are not used in any cpp file, so they would not be compiled otherwise.
 // Remove them and keep only required one in real application.
-#include <supla/sensor/binary.h>
-#include <supla/sensor/distance.h>
-#include <supla/sensor/electricity_meter.h>
-#include <supla/sensor/general_purpose_measurement_base.h>
-#include <supla/sensor/hygro_meter.h>
-#include <supla/sensor/normally_open.h>
-#include <supla/sensor/one_phase_electricity_meter.h>
-#include <supla/sensor/pressure.h>
-#include <supla/sensor/rain.h>
-#include <supla/sensor/therm_hygro_meter.h>
-#include <supla/sensor/therm_hygro_press_meter.h>
-#include <supla/sensor/thermometer.h>
-#include <supla/sensor/virtual_binary.h>
-#include <supla/sensor/weight.h>
-#include <supla/sensor/wind.h>
+#include <linux_file_state_logger.h>
+#include <linux_yaml_config.h>
+#include <supla/IEEE754tools.h>
 #include <supla/action_handler.h>
 #include <supla/actions.h>
 #include <supla/at_channel.h>
@@ -61,63 +50,69 @@
 #include <supla/definitions.h>
 #include <supla/element.h>
 #include <supla/events.h>
-#include <supla/IEEE754tools.h>
 #include <supla/io.h>
 #include <supla/local_action.h>
+#include <supla/parser/json.h>
+#include <supla/parser/simple.h>
+#include <supla/pv/afore.h>
+#include <supla/pv/fronius.h>
+#include <supla/rsa_verificator.h>
+#include <supla/sensor/binary.h>
+#include <supla/sensor/binary_parsed.h>
+#include <supla/sensor/distance.h>
+#include <supla/sensor/electricity_meter.h>
+#include <supla/sensor/electricity_meter_parsed.h>
+#include <supla/sensor/general_purpose_measurement_base.h>
+#include <supla/sensor/hygro_meter.h>
+#include <supla/sensor/impulse_counter_parsed.h>
+#include <supla/sensor/normally_open.h>
+#include <supla/sensor/one_phase_electricity_meter.h>
+#include <supla/sensor/pressure.h>
+#include <supla/sensor/rain.h>
+#include <supla/sensor/therm_hygro_meter.h>
+#include <supla/sensor/therm_hygro_press_meter.h>
+#include <supla/sensor/thermometer.h>
+#include <supla/sensor/thermometer_parsed.h>
+#include <supla/sensor/virtual_binary.h>
+#include <supla/sensor/weight.h>
+#include <supla/sensor/wind.h>
+#include <supla/sha256.h>
+#include <supla/source/cmd.h>
+#include <supla/source/file.h>
 #include <supla/supla_lib_config.h>
-#include <supla/time.h>
 #include <supla/timer.h>
 #include <supla/tools.h>
 #include <supla/uptime.h>
-#include <supla/pv/fronius.h>
-#include <supla/pv/afore.h>
 
-#include <fstream>
-
-#include <supla/sha256.h>
-#include <supla/rsa_verificator.h>
-
-#include <supla/sensor/thermometer_parsed.h>
-#include <supla/sensor/impulse_counter_parsed.h>
-#include <supla/sensor/electricity_meter_parsed.h>
-#include <supla/parser/simple.h>
-#include <supla/parser/json.h>
-#include <supla/source/cmd.h>
-#include <supla/source/file.h>
-#include <supla/sensor/binary_parsed.h>
-
-#include <linux_yaml_config.h>
-#include <linux_file_state_logger.h>
 
 // reguired by linux_log.c
 int logLevel = LOG_INFO;
 int runAsDaemon = 0;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   try {
     cxxopts::Options options(argv[0], "Supla device client. See www.supla.org");
 
-    options.add_options()
-      ("D,debug", "Enable debug logs")
-      ("V,verbose", "Enable verbose debug logs", cxxopts::value<bool>()->default_value("false"))
-      ("i,integer", "Int param", cxxopts::value<int>())
-      ("c,config", "Config file name", cxxopts::value<std::string>()->default_value("etc/supla-device.yaml"))
-      ("d,daemon", "Run in daemon mode (run in background and log to syslog)")
-      ("s,service", "Run as a service (log to syslog but don't fork)")
-      ("h,help", "Show this help")
-      ("v,version", "Show version")
-      ;
+    options.add_options()("D,debug", "Enable debug logs")(
+        "V,verbose",
+        "Enable verbose debug logs",
+        cxxopts::value<bool>()->default_value("false"))(
+        "i,integer", "Int param", cxxopts::value<int>())(
+        "c,config",
+        "Config file name",
+        cxxopts::value<std::string>()->default_value("etc/supla-device.yaml"))(
+        "d,daemon", "Run in daemon mode (run in background and log to syslog)")(
+        "s,service", "Run as a service (log to syslog but don't fork)")(
+        "h,help", "Show this help")("v,version", "Show version");
 
     auto result = options.parse(argc, argv);
 
-    if (result.count("help"))
-    {
+    if (result.count("help")) {
       std::cout << options.help() << std::endl;
       exit(0);
     }
 
-    if (result.count("version"))
-    {
+    if (result.count("version")) {
       std::cout << argv[0] << " version: " << SUPLA_SHORT_VERSION << std::endl;
       exit(0);
     }
@@ -136,7 +131,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (result.count("service")) {
-      runAsDaemon = true; // just for using syslog
+      runAsDaemon = true;  // just for using syslog
       if ((chdir("/")) < 0) {
         supla_log(LOG_ERR, "Can't start as a service");
         exit(1);
@@ -171,7 +166,6 @@ int main(int argc, char *argv[]) {
       exit(1);
     }
 
-
     SuplaDevice.setLastStateLogger(
         new Supla::Device::FileStateLogger(config->getStateFilesPath()));
     Supla::LinuxNetwork network;
@@ -179,7 +173,8 @@ int main(int argc, char *argv[]) {
     SuplaDevice.begin();
 
     if (SuplaDevice.getCurrentStatus() != STATUS_INITIALIZED) {
-      supla_log(LOG_INFO, "Incomplete configuration. Please fix it and try again");
+      supla_log(LOG_INFO,
+                "Incomplete configuration. Please fix it and try again");
       exit(1);
     }
 
@@ -190,7 +185,6 @@ int main(int argc, char *argv[]) {
     supla_log(LOG_INFO, "Exit");
 
     exit(0);
-
   } catch (const cxxopts::OptionException& e) {
     std::cout << "error parsing options: " << e.what() << std::endl;
     exit(1);
