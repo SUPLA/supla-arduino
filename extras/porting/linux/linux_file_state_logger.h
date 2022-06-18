@@ -14,23 +14,25 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef __SUPLA_LINUX_FILE_STATE_LOGGER_H_
-#define __SUPLA_LINUX_FILE_STATE_LOGGER_H_
+#ifndef EXTRAS_PORTING_LINUX_LINUX_FILE_STATE_LOGGER_H_
+#define EXTRAS_PORTING_LINUX_LINUX_FILE_STATE_LOGGER_H_
 
 #include <supla/device/last_state_logger.h>
+
 #include <string>
 
 namespace Supla {
-  namespace Device {
-    class FileStateLogger : public LastStateLogger {
-      public:
-        FileStateLogger(const std::string&);
-        virtual void log(const char *) override;
-        void addToFile(const char *line);
-      protected:
-        std::string file;
-    };
-  };
-};
+namespace Device {
+class FileStateLogger : public LastStateLogger {
+ public:
+  explicit FileStateLogger(const std::string &);
+  void log(const char *) override;
+  void addToFile(const char *line);
 
-#endif /* __SUPLA_LINUX_FILE_STATE_LOGGER_H_ */
+ protected:
+  std::string file;
+};
+};  // namespace Device
+};  // namespace Supla
+
+#endif  // EXTRAS_PORTING_LINUX_LINUX_FILE_STATE_LOGGER_H_

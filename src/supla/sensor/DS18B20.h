@@ -5,17 +5,19 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _ds18b20_h
-#define _ds18b20_h
+#ifndef SRC_SUPLA_SENSOR_DS18B20_H_
+#define SRC_SUPLA_SENSOR_DS18B20_H_
 
 #include <Arduino.h>
 #include <DallasTemperature.h>
@@ -29,7 +31,7 @@ namespace Sensor {
 
 class OneWireBus {
  public:
-  OneWireBus(uint8_t pinNumber)
+  explicit OneWireBus(uint8_t pinNumber)
       : pin(pinNumber), nextBus(nullptr), lastReadTime(0), oneWire(pinNumber) {
     supla_log(LOG_DEBUG, "Initializing OneWire bus at pin %d", pinNumber);
     sensors.setOneWire(&oneWire);
@@ -53,8 +55,8 @@ class OneWireBus {
       if (!sensors.getAddress(address, i)) {
         supla_log(LOG_DEBUG, "Unable to find address for Device %d", i);
       } else {
-        sprintf(
-            strAddr,
+        snprintf(
+            strAddr, sizeof(strAddr),
             "{0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X}",
             address[0],
             address[1],
@@ -94,7 +96,7 @@ class OneWireBus {
 
   uint8_t pin;
   OneWireBus *nextBus;
-  unsigned long lastReadTime;
+  uint64_t lastReadTime;
   DallasTemperature sensors;
 
  protected:
@@ -103,7 +105,7 @@ class OneWireBus {
 
 class DS18B20 : public Thermometer {
  public:
-  DS18B20(uint8_t pin, uint8_t *deviceAddress = nullptr) {
+  explicit DS18B20(uint8_t pin, uint8_t *deviceAddress = nullptr) {
     OneWireBus *bus = oneWireBus;
     OneWireBus *prevBus = nullptr;
     address[0] = 0;
@@ -195,4 +197,4 @@ OneWireBus *DS18B20::oneWireBus = nullptr;
 };  // namespace Sensor
 };  // namespace Supla
 
-#endif
+#endif  // SRC_SUPLA_SENSOR_DS18B20_H_

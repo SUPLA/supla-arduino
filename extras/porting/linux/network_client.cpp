@@ -5,35 +5,39 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "network_client.h"
-#include <netdb.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <cstdio>
-#include <supla-common/log.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/ioctl.h>
+#include <netdb.h>
 #include <poll.h>
+#include <string.h>
+#include <supla-common/log.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
 
-Supla::NetworkClient::NetworkClient() {}
+#include <cstdio>
 
-Supla::NetworkClient::~NetworkClient() {}
+#include "network_client.h"
+
+Supla::NetworkClient::NetworkClient() {
+}
+
+Supla::NetworkClient::~NetworkClient() {
+}
 
 int Supla::NetworkClient::connect(const char *server, uint16_t port) {
-  supla_log(LOG_DEBUG,
-      "Establishing connection with: %s (port: %d)",
-      server,
-      port);
+  supla_log(
+      LOG_DEBUG, "Establishing connection with: %s (port: %d)", server, port);
 
   struct addrinfo hints = {0};
   struct addrinfo *addresses;
@@ -42,7 +46,7 @@ int Supla::NetworkClient::connect(const char *server, uint16_t port) {
   hints.ai_protocol = IPPROTO_TCP;
 
   char portStr[10] = {};
-  snprintf(portStr, 9, "%d", port);
+  snprintf(portStr, sizeof(portStr), "%d", port);
 
   const int status = getaddrinfo(server, portStr, &hints, &addresses);
   if (status != 0) {
@@ -52,9 +56,10 @@ int Supla::NetworkClient::connect(const char *server, uint16_t port) {
 
   int err = 0;
   int flagsCopy = 0;
-  for (struct addrinfo *addr = addresses; addr != nullptr; addr = addr->ai_next) {
-    connectionFd =
-      socket(addresses->ai_family, addresses->ai_socktype, addresses->ai_protocol);
+  for (struct addrinfo *addr = addresses; addr != nullptr;
+       addr = addr->ai_next) {
+    connectionFd = socket(
+        addresses->ai_family, addresses->ai_socktype, addresses->ai_protocol);
     if (connectionFd == -1) {
       err = errno;
       continue;
@@ -106,8 +111,13 @@ int Supla::NetworkClient::connect(const char *server, uint16_t port) {
 
 int Supla::NetworkClient::connect(IPAddress ip, uint16_t port) {
   char server[100] = {};
-  snprintf(
-      server, 99, "%d.%d.%d.%d", ip.addr[0], ip.addr[1], ip.addr[2], ip.addr[3]);
+  snprintf(server,
+           99,
+           "%d.%d.%d.%d",
+           ip.addr[0],
+           ip.addr[1],
+           ip.addr[2],
+           ip.addr[3]);
   return connect(server, port);
 }
 
@@ -162,7 +172,7 @@ int Supla::NetworkClient::read() {
   return result;
 }
 
-int Supla::NetworkClient::read(uint8_t* buf, std::size_t size) {
+int Supla::NetworkClient::read(uint8_t *buf, std::size_t size) {
   if (buf == nullptr || size <= 0) {
     return -1;
   }
@@ -185,8 +195,8 @@ int Supla::NetworkClient::read(uint8_t* buf, std::size_t size) {
   return response;
 }
 
-int Supla::NetworkClient::read(char* buf, std::size_t size) {
-  return read(reinterpret_cast<uint8_t*>(buf), size);
+int Supla::NetworkClient::read(char *buf, std::size_t size) {
+  return read(reinterpret_cast<uint8_t *>(buf), size);
 }
 
 void Supla::NetworkClient::stop() {
@@ -210,7 +220,7 @@ uint8_t Supla::NetworkClient::connected() {
   if (response == -1) {
     if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) {
       return true;
-    };
+    }
     return false;
   }
   return true;
@@ -225,13 +235,13 @@ std::size_t Supla::NetworkClient::println(const char *str) {
   int response = 0;
   int dataSend = 0;
   if (size > 0) {
-    response = write(reinterpret_cast<const uint8_t*>(str), size);
+    response = write(reinterpret_cast<const uint8_t *>(str), size);
     if (response < 0) {
       return response;
     }
     dataSend += response;
   }
-  response = write(reinterpret_cast<const uint8_t*>("\r\n"), 2);
+  response = write(reinterpret_cast<const uint8_t *>("\r\n"), 2);
   if (response <= 0) {
     return response;
   }
@@ -243,7 +253,7 @@ std::size_t Supla::NetworkClient::print(const char *str) {
   int size = strlen(str);
   int response = 0;
   if (size > 0) {
-    response = write(reinterpret_cast<const uint8_t*>(str), size);
+    response = write(reinterpret_cast<const uint8_t *>(str), size);
     if (response < 0) {
       return response;
     }
@@ -251,4 +261,3 @@ std::size_t Supla::NetworkClient::print(const char *str) {
 
   return response;
 }
-

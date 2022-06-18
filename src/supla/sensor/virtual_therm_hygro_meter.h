@@ -16,37 +16,36 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _supla_sensor_virtual_therm_hygro_meter_h_
-#define _supla_sensor_virtual_therm_hygro_meter_h_
+#ifndef SRC_SUPLA_SENSOR_VIRTUAL_THERM_HYGRO_METER_H_
+#define SRC_SUPLA_SENSOR_VIRTUAL_THERM_HYGRO_METER_H_
 
 #include "therm_hygro_meter.h"
 
 namespace Supla {
-  namespace Sensor {
-    class VirtualThermHygroMeter : public Supla::Sensor::ThermHygroMeter{
-      public:
-        double getTemp() override {
-          return temperature;
-        }
+namespace Sensor {
+class VirtualThermHygroMeter : public Supla::Sensor::ThermHygroMeter {
+ public:
+  double getTemp() override {
+    return temperature;
+  }
 
-        double getHumi() override {
-          return humidity;
-        }
+  double getHumi() override {
+    return humidity;
+  }
 
-        void setTemp(double val) {
-          temperature = val;
-        }
+  void setTemp(double val) {
+    temperature = val;
+  }
 
-        void setHumi(double val) {
-          humidity = val;
-        }
+  void setHumi(double val) {
+    humidity = val;
+  }
 
-      protected:
-        double temperature = TEMPERATURE_NOT_AVAILABLE;
-        double humidity = HUMIDITY_NOT_AVAILABLE;
-    };
-  };  // namespace Sensor
+ protected:
+  double temperature = TEMPERATURE_NOT_AVAILABLE;
+  double humidity = HUMIDITY_NOT_AVAILABLE;
+};
+};  // namespace Sensor
 };  // namespace Supla
 
-#endif /* _supla_sensor_virtual_therm_hygro_meter_h_ */
-
+#endif  // SRC_SUPLA_SENSOR_VIRTUAL_THERM_HYGRO_METER_H_

@@ -14,15 +14,14 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef SUPLADEVICE_H
-#define SUPLADEVICE_H
+#ifndef SRC_SUPLADEVICE_H_
+#define SRC_SUPLADEVICE_H_
 
 #include "supla-common/proto.h"
 #include "supla/network/network.h"
 #include "supla/storage/config.h"
 #include "supla/uptime.h"
 #include "supla/clock/clock.h"
-#include "supla/storage/config.h"
 #include "supla/device/last_state_logger.h"
 #include "supla/action_handler.h"
 
@@ -62,9 +61,9 @@
 typedef void (*_impl_arduino_status)(int status, const char *msg);
 
 namespace Supla {
-  namespace Device {
-    class SwUpdate;
-  };
+namespace Device {
+class SwUpdate;
+};
 };
 
 class SuplaDeviceClass : public Supla::ActionHandler {
@@ -72,7 +71,7 @@ class SuplaDeviceClass : public Supla::ActionHandler {
   SuplaDeviceClass();
   ~SuplaDeviceClass();
 
-  void fillStateData(TDSC_ChannelState &channelState);
+  void fillStateData(TDSC_ChannelState *channelState);
   void addClock(Supla::Clock *clock);
   Supla::Clock *getClock();
 
@@ -153,9 +152,9 @@ class SuplaDeviceClass : public Supla::ActionHandler {
   unsigned int lastConnectionResetCounter = 0;
   int networkIsNotReadyCounter = 0;
 
-  unsigned long lastIterateTime = 0;
-  unsigned long waitForIterate = 0;
-  unsigned long deviceRestartTimeoutTimestamp = 0;
+  uint64_t lastIterateTime = 0;
+  uint64_t waitForIterate = 0;
+  uint64_t deviceRestartTimeoutTimestamp = 0;
   unsigned int forceRestartTimeMs = 0;
   unsigned int resetOnConnectionFailCounter = 0;
   _supla_int_t activityTimeout = 30;
@@ -183,16 +182,15 @@ class SuplaDeviceClass : public Supla::ActionHandler {
 
   void setString(char *dst, const char *src, int max_size);
 
-  void iterateAlwaysElements(unsigned long _millis);
+  void iterateAlwaysElements(uint64_t _millis);
   bool iterateNetworkSetup();
-  bool iterateSuplaProtocol(unsigned int _millis);
+  bool iterateSuplaProtocol(uint64_t _millis);
   void handleLocalActionTriggers();
-  void checkIfRestartIsNeeded(unsigned long _millis);
+  void checkIfRestartIsNeeded(uint64_t _millis);
 
  private:
   void status(int status, const char *msg, bool alwaysLog = false);
-
 };
 
 extern SuplaDeviceClass SuplaDevice;
-#endif
+#endif  // SRC_SUPLADEVICE_H_

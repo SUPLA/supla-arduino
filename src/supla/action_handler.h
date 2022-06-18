@@ -14,8 +14,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _action_handler_h
-#define _action_handler_h
+#ifndef SRC_SUPLA_ACTION_HANDLER_H_
+#define SRC_SUPLA_ACTION_HANDLER_H_
 
 namespace Supla {
 class ActionHandler {
@@ -28,4 +28,4 @@ class ActionHandler {
 
 };
 
-#endif
+#endif  // SRC_SUPLA_ACTION_HANDLER_H_

@@ -5,15 +5,18 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 #include <string.h>
+#include <supla/time.h>
 
 #include "SuplaDevice.h"
 #include "supla-common/log.h"
@@ -21,7 +24,6 @@
 #include "supla/element.h"
 #include "supla/network/network.h"
 #include "supla/storage/config.h"
-#include <supla/time.h>
 
 namespace Supla {
 
@@ -157,14 +159,15 @@ void message_received(void *_srpc,
 
   Network::Instance()->updateLastResponse();
 
+  SuplaDeviceClass *sdc = reinterpret_cast<SuplaDeviceClass*>(_sdc);
+
   if (SUPLA_RESULT_TRUE == (getDataResult = srpc_getdata(_srpc, &rd, 0))) {
     switch (rd.call_type) {
       case SUPLA_SDC_CALL_VERSIONERROR:
-        ((SuplaDeviceClass *)_sdc)->onVersionError(rd.data.sdc_version_error);
+        sdc->onVersionError(rd.data.sdc_version_error);
         break;
       case SUPLA_SD_CALL_REGISTER_DEVICE_RESULT:
-        ((SuplaDeviceClass *)_sdc)
-            ->onRegisterResult(rd.data.sd_register_device_result);
+        sdc->onRegisterResult(rd.data.sd_register_device_result);
         break;
       case SUPLA_SD_CALL_CHANNEL_SET_VALUE: {
         auto element = Supla::Element::getElementByChannelNumber(
@@ -181,14 +184,13 @@ void message_received(void *_srpc,
           }
         } else {
           supla_log(LOG_DEBUG,
-              "Error: couldn't find element for a requested channel [%d]",
-              rd.data.sd_channel_new_value->ChannelNumber);
+                    "Error: couldn't find element for a requested channel [%d]",
+                    rd.data.sd_channel_new_value->ChannelNumber);
         }
         break;
       }
       case SUPLA_SDC_CALL_SET_ACTIVITY_TIMEOUT_RESULT:
-        ((SuplaDeviceClass *)_sdc)
-            ->channelSetActivityTimeoutResult(
+        sdc->channelSetActivityTimeoutResult(
                 rd.data.sdc_set_activity_timeout_result);
         break;
       case SUPLA_CSD_CALL_GET_CHANNEL_STATE: {
@@ -196,12 +198,12 @@ void message_received(void *_srpc,
         memset(&state, 0, sizeof(TDSC_ChannelState));
         state.ReceiverID = rd.data.csd_channel_state_request->SenderID;
         state.ChannelNumber = rd.data.csd_channel_state_request->ChannelNumber;
-        Network::Instance()->fillStateData(state);
-        ((SuplaDeviceClass *)_sdc)->fillStateData(state);
+        Network::Instance()->fillStateData(&state);
+        sdc->fillStateData(&state);
         auto element = Supla::Element::getElementByChannelNumber(
             rd.data.csd_channel_state_request->ChannelNumber);
         if (element) {
-          element->handleGetChannelState(state);
+          element->handleGetChannelState(&state);
         }
         srpc_csd_async_channel_state_result(_srpc, &state);
         break;
@@ -210,7 +212,7 @@ void message_received(void *_srpc,
         break;
 
       case SUPLA_DCS_CALL_GET_USER_LOCALTIME_RESULT: {
-        ((SuplaDeviceClass *)_sdc)->onGetUserLocaltimeResult(rd.data.sdc_user_localtime_result);
+        sdc->onGetUserLocaltimeResult(rd.data.sdc_user_localtime_result);
         break;
       }
       case SUPLA_SD_CALL_DEVICE_CALCFG_REQUEST: {
@@ -220,13 +222,15 @@ void message_received(void *_srpc,
         result.Command = rd.data.sd_device_calcfg_request->Command;
         result.Result = SUPLA_CALCFG_RESULT_NOT_SUPPORTED;
         result.DataSize = 0;
-        supla_log(LOG_DEBUG, "CALCFG CMD received: senderId %d, ch %d, cmd %d, suauth %d, datatype %d, datasize %d, ",
-            rd.data.sd_device_calcfg_request->SenderID,
-            rd.data.sd_device_calcfg_request->ChannelNumber,
-            rd.data.sd_device_calcfg_request->Command,
-            rd.data.sd_device_calcfg_request->SuperUserAuthorized,
-            rd.data.sd_device_calcfg_request->DataType,
-            rd.data.sd_device_calcfg_request->DataSize);
+        supla_log(LOG_DEBUG,
+                  "CALCFG CMD received: senderId %d, ch %d, cmd %d, suauth %d, "
+                  "datatype %d, datasize %d, ",
+                  rd.data.sd_device_calcfg_request->SenderID,
+                  rd.data.sd_device_calcfg_request->ChannelNumber,
+                  rd.data.sd_device_calcfg_request->Command,
+                  rd.data.sd_device_calcfg_request->SuperUserAuthorized,
+                  rd.data.sd_device_calcfg_request->DataType,
+                  rd.data.sd_device_calcfg_request->DataSize);
 
         if (rd.data.sd_device_calcfg_request->SuperUserAuthorized != 1) {
           result.Result = SUPLA_CALCFG_RESULT_UNAUTHORIZED;
@@ -234,16 +238,17 @@ void message_received(void *_srpc,
           if (rd.data.sd_device_calcfg_request->ChannelNumber == -1) {
             // calcfg with channel == -1 are for whole device, so we route
             // it to SuplaDeviceClass instance
-            result.Result =
-              ((SuplaDeviceClass *)_sdc)->handleCalcfgFromServer(
-                rd.data.sd_device_calcfg_request);
+            result.Result = sdc->
+              handleCalcfgFromServer(rd.data.sd_device_calcfg_request);
           } else {
             auto element = Supla::Element::getElementByChannelNumber(
                 rd.data.sd_device_calcfg_request->ChannelNumber);
             if (element) {
-              result.Result = element->handleCalcfgFromServer(rd.data.sd_device_calcfg_request);
+              result.Result = element->handleCalcfgFromServer(
+                  rd.data.sd_device_calcfg_request);
             } else {
-              supla_log(LOG_DEBUG,
+              supla_log(
+                  LOG_DEBUG,
                   "Error: couldn't find element for a requested channel [%d]",
                   rd.data.sd_channel_new_value->ChannelNumber);
             }
@@ -255,23 +260,22 @@ void message_received(void *_srpc,
       case SUPLA_SD_CALL_GET_CHANNEL_CONFIG_RESULT: {
         TSD_ChannelConfig *result = rd.data.sd_channel_config;
         if (result) {
-          auto element = Supla::Element::getElementByChannelNumber(
-              result->ChannelNumber);
+          auto element =
+              Supla::Element::getElementByChannelNumber(result->ChannelNumber);
           if (element) {
             element->handleChannelConfig(result);
           } else {
-            supla_log(LOG_DEBUG,
+            supla_log(
+                LOG_DEBUG,
                 "Error: couldn't find element for a requested channel [%d]",
                 result->ChannelNumber);
           }
-
-
         }
         break;
       }
       case SUPLA_SD_CALL_CHANNELGROUP_SET_VALUE: {
         TSD_SuplaChannelGroupNewValue *groupNewValue =
-          rd.data.sd_channelgroup_new_value;
+            rd.data.sd_channelgroup_new_value;
         if (groupNewValue) {
           auto element = Supla::Element::getElementByChannelNumber(
               groupNewValue->ChannelNumber);
@@ -280,10 +284,12 @@ void message_received(void *_srpc,
             newValue.SenderID = 0;
             newValue.ChannelNumber = groupNewValue->ChannelNumber;
             newValue.DurationMS = groupNewValue->DurationMS;
-            memcpy(newValue.value, groupNewValue->value, SUPLA_CHANNELVALUE_SIZE);
+            memcpy(
+                newValue.value, groupNewValue->value, SUPLA_CHANNELVALUE_SIZE);
             element->handleNewValueFromServer(&newValue);
           } else {
-            supla_log(LOG_DEBUG,
+            supla_log(
+                LOG_DEBUG,
                 "Error: couldn't find element for a requested channel [%d]",
                 rd.data.sd_channel_new_value->ChannelNumber);
           }
@@ -366,22 +372,26 @@ void Network::setTimeout(int timeoutMs) {
   supla_log(LOG_DEBUG, "setTimeout is not implemented for this interface");
 }
 
-void Network::fillStateData(TDSC_ChannelState &channelState) {
+void Network::fillStateData(TDSC_ChannelState *channelState) {
   (void)(channelState);
   supla_log(LOG_DEBUG, "fillStateData is not implemented for this interface");
 }
 
+#ifdef ARDUINO
+#define TMP_STRING_SIZE 1024
+#else
 #define TMP_STRING_SIZE 2048
+#endif
 
 void Network::printData(const char *prefix, const void *buf, const int count) {
   char tmp[TMP_STRING_SIZE] = {};
-  for (int i = 0; i < count && ((i + 1) * 3 < TMP_STRING_SIZE); i++) {
-    sprintf(tmp + i * 3,
+  for (int i = 0; i < count && ((i + 1) * 3 < TMP_STRING_SIZE - 1); i++) {
+    snprintf(
+        tmp + i * 3, 4,
         "%02X ",
         static_cast<unsigned int>(static_cast<const unsigned char *>(buf)[i]));
   }
   supla_log(LOG_DEBUG, "%s: [%s]", prefix, tmp);
-
 }
 
 void Network::setSsid(const char *wifiSsid) {
@@ -429,7 +439,7 @@ void Network::setSSLEnabled(bool enabled) {
 
 void Network::setCACert(const char *rootCA) {
   (void)(rootCA);
-  // TODO
+  // TODO(klew): implement
 }
 
 };  // namespace Supla

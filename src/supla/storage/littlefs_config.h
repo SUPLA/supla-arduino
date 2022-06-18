@@ -16,21 +16,20 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _supla_storage_littlefs_config_h_
-#define _supla_storage_littlefs_config_h_
+#ifndef SRC_SUPLA_STORAGE_LITTLEFS_CONFIG_H_
+#define SRC_SUPLA_STORAGE_LITTLEFS_CONFIG_H_
 
 #include "key_value.h"
 
-
 namespace Supla {
 
-  class LittleFsConfig : public KeyValue {
-    public:
-      LittleFsConfig();
-      virtual ~LittleFsConfig();
-      bool init() override;
-      void commit() override;
-  };
+class LittleFsConfig : public KeyValue {
+ public:
+  LittleFsConfig();
+  virtual ~LittleFsConfig();
+  bool init() override;
+  void commit() override;
 };
+};  // namespace Supla
 
-#endif /* _supla_storage_spiffs_config_h_ */
+#endif  // SRC_SUPLA_STORAGE_LITTLEFS_CONFIG_H_

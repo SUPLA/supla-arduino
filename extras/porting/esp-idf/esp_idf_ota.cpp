@@ -3,41 +3,45 @@
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-
-#include <esp_idf_ota.h>
-#include <esp_http_client.h>
-#include <esp_ota_ops.h>
 #include <cJSON.h>
-#include "supla/device/sw_update.h"
-#include <supla/time.h>
-#include <supla-common/log.h>
-#include <cerrno>
-#include <supla/sha256.h>
-#include <supla/rsa_verificator.h>
+#include <ctype.h>
+#include <esp_http_client.h>
+#include <esp_idf_ota.h>
+#include <esp_ota_ops.h>
 #include <esp_task_wdt.h>
 #include <stdio.h>
-#include <ctype.h>
+#include <supla-common/log.h>
+#include <supla/rsa_verificator.h>
+#include <supla/sha256.h>
+#include <supla/time.h>
 #include <supla/tools.h>
+
+#include <cerrno>
+
+#include "supla/device/sw_update.h"
 
 #define BUFFER_SIZE 4096
 
-Supla::Device::SwUpdate* Supla::Device::SwUpdate::Create(
-    SuplaDeviceClass *sdc, const char *newUrl) {
+Supla::Device::SwUpdate *Supla::Device::SwUpdate::Create(SuplaDeviceClass *sdc,
+                                                         const char *newUrl) {
   return new Supla::EspIdfOta(sdc, newUrl);
 }
 
-Supla::EspIdfOta::EspIdfOta(SuplaDeviceClass *sdc, const char* newUrl)
-  : Supla::Device::SwUpdate(sdc, newUrl) {
+Supla::EspIdfOta::EspIdfOta(SuplaDeviceClass *sdc, const char *newUrl)
+    : Supla::Device::SwUpdate(sdc, newUrl) {
 }
 
 void Supla::EspIdfOta::start() {
@@ -65,22 +69,20 @@ void Supla::EspIdfOta::start() {
     if (v == 0) break;
     curPos += v;
 
-    v = stringAppend(
-        urlWithParams + curPos, "&mfr=", URL_SIZE - curPos - 1);
+    v = stringAppend(urlWithParams + curPos, "&mfr=", URL_SIZE - curPos - 1);
     if (v == 0) break;
     curPos += v;
 
-    snprintf(buf, 10, "%d", Supla::Channel::reg_dev.ManufacturerID);
+    snprintf(buf, sizeof(buf), "%d", Supla::Channel::reg_dev.ManufacturerID);
     v = stringAppend(urlWithParams + curPos, buf, URL_SIZE - curPos - 1);
     if (v == 0) break;
     curPos += v;
 
-    v = stringAppend(
-        urlWithParams + curPos, "&prod=", URL_SIZE - curPos - 1);
+    v = stringAppend(urlWithParams + curPos, "&prod=", URL_SIZE - curPos - 1);
     if (v == 0) break;
     curPos += v;
 
-    snprintf(buf, 10, "%d", Supla::Channel::reg_dev.ProductID);
+    snprintf(buf, sizeof(buf), "%d", Supla::Channel::reg_dev.ProductID);
     v = stringAppend(urlWithParams + curPos, buf, URL_SIZE - curPos - 1);
     if (v == 0) break;
     curPos += v;
@@ -95,20 +97,19 @@ void Supla::EspIdfOta::start() {
     if (v == 0) break;
     curPos += v;
 
-    v = stringAppend(
-        urlWithParams + curPos, "&sguid=", URL_SIZE - curPos - 1);
+    v = stringAppend(urlWithParams + curPos, "&sguid=", URL_SIZE - curPos - 1);
     if (v == 0) break;
     curPos += v;
 
     {
       Supla::Sha256 hash;
-      hash.update(reinterpret_cast<uint8_t*>(Supla::Channel::reg_dev.GUID),
-          SUPLA_GUID_SIZE);
+      hash.update(reinterpret_cast<uint8_t *>(Supla::Channel::reg_dev.GUID),
+                  SUPLA_GUID_SIZE);
 
       uint8_t sha[32] = {};
       hash.digest(sha);
 
-      if (curPos < URL_SIZE - 1 - 32*2) {
+      if (curPos < URL_SIZE - 1 - 32 * 2) {
         curPos += generateHexString(sha, urlWithParams + curPos, 32);
       } else {
         v = 0;
@@ -132,12 +133,12 @@ void Supla::EspIdfOta::start() {
         size++;
       }
 
-      hash.update(reinterpret_cast<uint8_t*>(buf), size);
+      hash.update(reinterpret_cast<uint8_t *>(buf), size);
 
       uint8_t sha[32] = {};
       hash.digest(sha);
 
-      if (curPos < URL_SIZE - 1 - 32*2) {
+      if (curPos < URL_SIZE - 1 - 32 * 2) {
         curPos += generateHexString(sha, urlWithParams + curPos, 32);
       } else {
         v = 0;
@@ -175,7 +176,6 @@ void Supla::EspIdfOta::start() {
     return;
   }
   esp_http_client_fetch_headers(client);
-
 
   // Start fetching bin file and perform update
   const esp_partition_t *updatePartition = NULL;
@@ -226,8 +226,8 @@ void Supla::EspIdfOta::start() {
     supla_log(LOG_DEBUG, "%s", buf);
     log(buf);
   }
-  if (cJSON_IsString(version) && (version->valuestring != NULL)
-      && cJSON_IsString(url) && (url->valuestring != NULL) ) {
+  if (cJSON_IsString(version) && (version->valuestring != NULL) &&
+      cJSON_IsString(url) && (url->valuestring != NULL)) {
     snprintf(buf, BUF_SIZE, "SW update new version: %s", version->valuestring);
     supla_log(LOG_DEBUG, "%s", buf);
     log(buf);
@@ -254,8 +254,9 @@ void Supla::EspIdfOta::start() {
     return;
   }
   supla_log(LOG_DEBUG,
-      "Used ota partition subtype %d, offset 0x%x",
-      updatePartition->subtype, updatePartition->address);
+            "Used ota partition subtype %d, offset 0x%x",
+            updatePartition->subtype,
+            updatePartition->address);
 
   int binSize = 0;
 
@@ -328,7 +329,7 @@ void Supla::EspIdfOta::start() {
     fail("SW update: failed to set boot partition");
     return;
   }
-  delete [] otaBuffer;
+  delete[] otaBuffer;
   otaBuffer = nullptr;
   return;
 }
@@ -343,12 +344,26 @@ bool Supla::EspIdfOta::isFinished() {
 #define RSA_FOOTER_SIZE 16
 bool Supla::EspIdfOta::verifyRsaSignature(
     const esp_partition_t *updatePartition, int binSize) {
-	uint8_t footer[RSA_FOOTER_SIZE] = {};
+  uint8_t footer[RSA_FOOTER_SIZE] = {};
   // footer contain some information, however supla-esp-signtool is able to
   // produce only one footer, so here we hardcode it. Please check
   // supla-esp-signtool for details.
-  const uint8_t expectedFooter[RSA_FOOTER_SIZE] = {0xBA, 0xBE, 0x2B, 0xED, 0x00,
-    0x01, 0x02, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  const uint8_t expectedFooter[RSA_FOOTER_SIZE] = {0xBA,
+                                                   0xBE,
+                                                   0x2B,
+                                                   0xED,
+                                                   0x00,
+                                                   0x01,
+                                                   0x02,
+                                                   0x00,
+                                                   0x10,
+                                                   0x00,
+                                                   0x00,
+                                                   0x00,
+                                                   0x00,
+                                                   0x00,
+                                                   0x00,
+                                                   0x00};
 
   Supla::Sha256 hash;
 
@@ -359,13 +374,13 @@ bool Supla::EspIdfOta::verifyRsaSignature(
 
   int appSize = binSize - RSA_FOOTER_SIZE - RSA_NUM_BYTES;
 
-  for (int i = 0; i < appSize;
-      i += BUFFER_SIZE) {
+  for (int i = 0; i < appSize; i += BUFFER_SIZE) {
     int sizeToRead = BUFFER_SIZE;
     if (i + sizeToRead > appSize) {
       sizeToRead = appSize - i;
     }
-    esp_err_t err = esp_partition_read(updatePartition, i, otaBuffer, sizeToRead);
+    esp_err_t err =
+        esp_partition_read(updatePartition, i, otaBuffer, sizeToRead);
 
     if (err != ESP_OK) {
       supla_log(LOG_DEBUG, "Fail: error reading app");
@@ -375,8 +390,8 @@ bool Supla::EspIdfOta::verifyRsaSignature(
     hash.update(otaBuffer, sizeToRead);
   }
 
-  esp_err_t err = esp_partition_read(updatePartition, binSize - RSA_FOOTER_SIZE,
-      footer, RSA_FOOTER_SIZE);
+  esp_err_t err = esp_partition_read(
+      updatePartition, binSize - RSA_FOOTER_SIZE, footer, RSA_FOOTER_SIZE);
 
   if (err != ESP_OK) {
     supla_log(LOG_DEBUG, "Fail: error reading footer");
@@ -389,8 +404,9 @@ bool Supla::EspIdfOta::verifyRsaSignature(
   }
 
   err = esp_partition_read(updatePartition,
-      binSize - RSA_FOOTER_SIZE - RSA_NUM_BYTES,
-      otaBuffer, RSA_NUM_BYTES);
+                           binSize - RSA_FOOTER_SIZE - RSA_NUM_BYTES,
+                           otaBuffer,
+                           RSA_NUM_BYTES);
 
   if (err != ESP_OK) {
     supla_log(LOG_DEBUG, "Fail: error reading signature");
@@ -399,7 +415,7 @@ bool Supla::EspIdfOta::verifyRsaSignature(
 
   if (sdc && sdc->getRsaPublicKey()) {
     Supla::RsaVerificator rsa(sdc->getRsaPublicKey());
-    if (rsa.verify(hash, otaBuffer)) {
+    if (rsa.verify(&hash, otaBuffer)) {
       supla_log(LOG_DEBUG, "RSA signature verification successful");
       return true;
     } else {
@@ -407,7 +423,8 @@ bool Supla::EspIdfOta::verifyRsaSignature(
       return false;
     }
   } else {
-    supla_log(LOG_DEBUG, "Fail: RSA public key not set in SuplaDevice instance");
+    supla_log(LOG_DEBUG,
+              "Fail: RSA public key not set in SuplaDevice instance");
     return false;
   }
   return false;
@@ -419,7 +436,7 @@ bool Supla::EspIdfOta::isAborted() {
 
 void Supla::EspIdfOta::fail(const char *reason) {
   if (otaBuffer) {
-    delete [] otaBuffer;
+    delete[] otaBuffer;
     otaBuffer = nullptr;
   }
 

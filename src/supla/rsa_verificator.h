@@ -14,8 +14,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef __SUPLA_RSA_VERIFICATOR_H_
-#define __SUPLA_RSA_VERIFICATOR_H_
+#ifndef SRC_SUPLA_RSA_VERIFICATOR_H_
+#define SRC_SUPLA_RSA_VERIFICATOR_H_
 
 /*
  * Simple wrapper for Nettle RSA methods used to verify sha256 hash
@@ -31,16 +31,16 @@
 
 namespace Supla {
 
-  class RsaVerificator {
-    public:
-      RsaVerificator(const uint8_t* publicKeyBytes);
-      ~RsaVerificator();
-      bool verify(Supla::Sha256 &hash, const uint8_t *signatureBytes);
-    protected:
-      struct rsa_public_key publicKey;
-      mpz_t signature;
-  };
-
+class RsaVerificator {
+ public:
+  explicit RsaVerificator(const uint8_t* publicKeyBytes);
+  ~RsaVerificator();
+  bool verify(Supla::Sha256 *hash, const uint8_t *signatureBytes);
+ protected:
+  struct rsa_public_key publicKey;
+  mpz_t signature;
 };
 
-#endif /*__SUPLA_RSA_VERIFICATOR_H_*/
+};  // namespace Supla
+
+#endif  // SRC_SUPLA_RSA_VERIFICATOR_H_

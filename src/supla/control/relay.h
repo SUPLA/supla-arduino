@@ -19,29 +19,29 @@
  * by setting LOW or HIGH output on selected GPIO.
  */
 
-#ifndef _relay_h
-#define _relay_h
-
-#include "../actions.h"
-#include "../channel_element.h"
-#include "../io.h"
-#include "../storage/storage.h"
-#include "../action_handler.h"
-#include "../local_action.h"
+#ifndef SRC_SUPLA_CONTROL_RELAY_H_
+#define SRC_SUPLA_CONTROL_RELAY_H_
 
 #include <stdint.h>
 
+#include "../action_handler.h"
+#include "../actions.h"
+#include "../channel_element.h"
+#include "../io.h"
+#include "../local_action.h"
+#include "../storage/storage.h"
+
 #define STATE_ON_INIT_RESTORED_OFF -3
-#define STATE_ON_INIT_RESTORED_ON -2
-#define STATE_ON_INIT_RESTORE -1
-#define STATE_ON_INIT_OFF 0
-#define STATE_ON_INIT_ON 1
+#define STATE_ON_INIT_RESTORED_ON  -2
+#define STATE_ON_INIT_RESTORE      -1
+#define STATE_ON_INIT_OFF          0
+#define STATE_ON_INIT_ON           1
 
 namespace Supla {
 namespace Control {
 class Relay : public ChannelElement, public ActionHandler {
  public:
-  Relay(int pin,
+  explicit Relay(int pin,
         bool highIsOn = true,
         _supla_int_t functions = (0xFF ^
                                   SUPLA_BIT_FUNC_CONTROLLINGTHEROLLERSHUTTER));
@@ -75,11 +75,11 @@ class Relay : public ChannelElement, public ActionHandler {
 
   unsigned _supla_int_t durationMs;
   unsigned _supla_int_t storedTurnOnDurationMs;
-  unsigned long durationTimestamp;
+  uint64_t durationTimestamp;
   bool keepTurnOnDurationMs;
 };
 
 };  // namespace Control
 };  // namespace Supla
 
-#endif
+#endif  // SRC_SUPLA_CONTROL_RELAY_H_

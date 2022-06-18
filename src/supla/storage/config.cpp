@@ -5,15 +5,16 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
-
 
 /*
  * Default Config implementation assumes that values are stored in key-value
@@ -22,12 +23,13 @@
  * provide some key-value based interface.
  */
 
-#include "config.h"
-#include <supla-common/proto.h>
 #include <string.h>
+#include <supla-common/proto.h>
 #include <supla/device/sw_update.h>
 
-using namespace Supla;
+#include "config.h"
+
+namespace Supla {
 
 Config::Config() {
   Storage::SetConfigInstance(this);
@@ -37,37 +39,37 @@ Config::~Config() {
   Storage::SetConfigInstance(nullptr);
 }
 
-bool Config::getWiFiSSID(char *result) {
+bool Config::getWiFiSSID(char* result) {
   return getString("wifissid", result, MAX_SSID_SIZE);
 }
 
-bool Config::getWiFiPassword(char *result) {
+bool Config::getWiFiPassword(char* result) {
   return getString("wifipasswd", result, MAX_WIFI_PASSWORD_SIZE);
 }
 
-bool Config::getAltWiFiSSID(char *result) {
+bool Config::getAltWiFiSSID(char* result) {
   return getString("altwifissid", result, MAX_SSID_SIZE);
 }
 
-bool Config::getAltWiFiPassword(char *result) {
+bool Config::getAltWiFiPassword(char* result) {
   return getString("altwifipasswd", result, MAX_WIFI_PASSWORD_SIZE);
 }
 
-bool Config::getDeviceName(char *result) {
+bool Config::getDeviceName(char* result) {
   return getString("devicename", result, SUPLA_DEVICE_NAME_MAXSIZE);
 }
 
 bool Config::isSuplaCommProtocolEnabled() {
   // by default Supla communication protocol is enabled
   int8_t result = 1;
-  getInt8("suplacommproto", result);
+  getInt8("suplacommproto", &result);
   return result == 1;
 }
 
 bool Config::isMqttCommProtocolEnabled() {
   // by default MQTT communication protocol is enabled
   int8_t result = 0;
-  getInt8("mqttcommproto", result);
+  getInt8("mqttcommproto", &result);
   return result == 1;
 }
 
@@ -78,7 +80,7 @@ bool Config::setMqttTlsEnabled(bool enabled) {
 
 bool Config::isMqttTlsEnabled() {
   int8_t result = 0;
-  getInt8("mqtttls", result);
+  getInt8("mqtttls", &result);
   return result == 1;
 }
 
@@ -89,7 +91,7 @@ bool Config::setMqttAuthEnabled(bool enabled) {
 
 bool Config::isMqttAuthEnabled() {
   int8_t result = 1;
-  getInt8("mqttauth", result);
+  getInt8("mqttauth", &result);
   return result == 1;
 }
 
@@ -100,13 +102,13 @@ bool Config::setMqttRetainEnabled(bool enabled) {
 
 bool Config::isMqttRetainEnabled() {
   int8_t result = 1;
-  getInt8("mqttretain", result);
+  getInt8("mqttretain", &result);
   return result == 1;
 }
 
 enum DeviceMode Config::getDeviceMode() {
   int32_t result = 0;
-  if (getInt32("devicemode", result)) {
+  if (getInt32("devicemode", &result)) {
     switch (result) {
       case 0:
         return DEVICE_MODE_NOT_SET;
@@ -132,7 +134,7 @@ bool Config::getSuplaServer(char* result) {
 
 int32_t Config::getSuplaServerPort() {
   int32_t result = -1;
-  getInt32("suplaport", result);
+  getInt32("suplaport", &result);
   if (result <= 0 || result > 65536) {
     result = 2016;
   }
@@ -158,7 +160,7 @@ bool Config::getMqttServer(char* result) {
 
 int32_t Config::getMqttServerPort() {
   int32_t result = -1;
-  getInt32("mqttport", result);
+  getInt32("mqttport", &result);
   if (result <= 0 || result > 65536) {
     result = 1883;
   }
@@ -175,7 +177,7 @@ bool Config::getMqttPassword(char* result) {
 
 int32_t Config::getMqttQos() {
   int32_t result = -1;
-  getInt32("mqttqos", result);
+  getInt32("mqttqos", &result);
   if (result < 0) {
     result = 0;
   }
@@ -184,42 +186,42 @@ int32_t Config::getMqttQos() {
 
 int32_t Config::getMqttPoolPublicationDelay() {
   int32_t result = -1;
-  getInt32("mqttpooldelay", result);
+  getInt32("mqttpooldelay", &result);
   if (result < 0) {
     result = 0;
   }
   return result;
 }
 
-bool Config::setWiFiSSID(const char *ssid) {
+bool Config::setWiFiSSID(const char* ssid) {
   if (strlen(ssid) > MAX_SSID_SIZE - 1) {
     return false;
   }
   return setString("wifissid", ssid);
 }
 
-bool Config::setWiFiPassword(const char *password) {
+bool Config::setWiFiPassword(const char* password) {
   if (strlen(password) > MAX_WIFI_PASSWORD_SIZE - 1) {
     return false;
   }
   return setString("wifipasswd", password);
 }
 
-bool Config::setAltWiFiSSID(const char *ssid) {
+bool Config::setAltWiFiSSID(const char* ssid) {
   if (strlen(ssid) > MAX_SSID_SIZE - 1) {
     return false;
   }
   return setString("altwifissid", ssid);
 }
 
-bool Config::setAltWiFiPassword(const char *password) {
+bool Config::setAltWiFiPassword(const char* password) {
   if (strlen(password) > MAX_WIFI_PASSWORD_SIZE - 1) {
     return false;
   }
   return setString("altwifipasswd", password);
 }
 
-bool Config::setDeviceName(const char *name) {
+bool Config::setDeviceName(const char* name) {
   if (strlen(name) > SUPLA_DEVICE_NAME_MAXSIZE - 1) {
     return false;
   }
@@ -351,18 +353,18 @@ bool Config::generateGuidAndAuthkey() {
   return false;
 }
 
-bool Config::getSwUpdateServer(char *url) {
+bool Config::getSwUpdateServer(char* url) {
   return getString("swupdateurl", url, SUPLA_MAX_URL_LENGTH);
 }
 
 bool Config::isSwUpdateBeta() {
   // by default beta sw update is disabled
   int8_t result = 0;
-  getInt8("swupdatebeta", result);
+  getInt8("swupdatebeta", &result);
   return result == 1;
 }
 
-bool Config::setSwUpdateServer(const char *url) {
+bool Config::setSwUpdateServer(const char* url) {
   if (strlen(url) > SUPLA_MAX_URL_LENGTH - 1) {
     return false;
   }
@@ -373,3 +375,5 @@ bool Config::setSwUpdateBeta(bool enabled) {
   int8_t value = (enabled ? 1 : 0);
   return setInt8("swupdatebeta", value);
 }
+
+}  // namespace Supla

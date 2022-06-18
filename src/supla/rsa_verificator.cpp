@@ -27,9 +27,10 @@ Supla::RsaVerificator::~RsaVerificator() {
   rsa_public_key_clear(&publicKey);
 }
 
-bool Supla::RsaVerificator::verify(Supla::Sha256 &hash, const uint8_t *signatureBytes) {
+bool Supla::RsaVerificator::verify(Supla::Sha256 *hash,
+    const uint8_t *signatureBytes) {
   nettle_mpz_init_set_str_256_u(signature, RSA_NUM_BYTES, signatureBytes);
-  int result = rsa_sha256_verify(&publicKey, hash.getHash(), signature);
+  int result = rsa_sha256_verify(&publicKey, hash->getHash(), signature);
   mpz_clear(signature);
 
   return result == 1;

@@ -14,8 +14,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _element_h
-#define _element_h
+#ifndef SRC_SUPLA_ELEMENT_H_
+#define SRC_SUPLA_ELEMENT_H_
 
 #include "channel.h"
 
@@ -79,7 +79,7 @@ class Element {
 
   // Handles "get channel state" request from server
   // channelState is prefilled with network and device status informations
-  virtual void handleGetChannelState(TDSC_ChannelState &channelState);
+  virtual void handleGetChannelState(TDSC_ChannelState *channelState);
 
   virtual int handleCalcfgFromServer(TSD_DeviceCalCfgRequest *request);
   virtual void handleChannelConfig(TSD_ChannelConfig *result);
@@ -97,4 +97,4 @@ class Element {
 
 };  // namespace Supla
 
-#endif
+#endif  // SRC_SUPLA_ELEMENT_H_

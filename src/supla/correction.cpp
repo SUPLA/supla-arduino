@@ -16,14 +16,17 @@
 
 #include "correction.h"
 
-void Supla::Correction::add(uint8_t channelNumber, double correction, bool forSecondaryValue) {
+void Supla::Correction::add(uint8_t channelNumber,
+    double correction,
+    bool forSecondaryValue) {
   new Correction(channelNumber, correction, forSecondaryValue);
 }
 
 double Supla::Correction::get(uint8_t channelNumber, bool forSecondaryValue) {
   auto ptr = first;
   while (ptr) {
-    if (ptr->channelNumber == channelNumber && ptr->forSecondaryValue == forSecondaryValue) {
+    if (ptr->channelNumber == channelNumber &&
+        ptr->forSecondaryValue == forSecondaryValue) {
       return ptr->correction;
     }
     ptr = ptr->next;
@@ -33,7 +36,7 @@ double Supla::Correction::get(uint8_t channelNumber, bool forSecondaryValue) {
 
 Supla::Correction::Correction(uint8_t channelNumber, double correction,
     bool forSecondaryValue)
-  : next(nullptr), 
+  : next(nullptr),
   channelNumber(channelNumber),
   correction(correction),
   forSecondaryValue(forSecondaryValue) {

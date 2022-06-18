@@ -5,21 +5,26 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "html_generator.h"
-#include "web_sender.h"
+
 #include <string.h>
+
 #include <supla-common/log.h>
 #include <supla/network/html/device_info.h>
 #include <SuplaDevice.h>
+
+#include "web_sender.h"
 
 const char headerBegin[] =
 "<!doctype html><html lang=en><meta content=\"text/html;charset=UTF-8\"http-equ"
@@ -190,8 +195,7 @@ void Supla::HtmlGenerator::sendForm(Supla::WebSender *sender) {
 
   sender->send(
       "<div class=\"w\">"
-      "<h3>Additional Settings</h3>"
-      );
+      "<h3>Additional Settings</h3>");
   for (auto htmlElement = Supla::HtmlElement::begin(); htmlElement;
       htmlElement = htmlElement->next()) {
     if (htmlElement->section == HTML_SECTION_FORM) {
@@ -209,8 +213,7 @@ void Supla::HtmlGenerator::sendBetaForm(Supla::WebSender *sender) {
 
   sender->send(
       "<div class=\"w\">"
-      "<h3>Additional Settings</h3>"
-      );
+      "<h3>Additional Settings</h3>");
   for (auto htmlElement = Supla::HtmlElement::begin(); htmlElement;
       htmlElement = htmlElement->next()) {
     if (htmlElement->section == HTML_SECTION_BETA_FORM) {

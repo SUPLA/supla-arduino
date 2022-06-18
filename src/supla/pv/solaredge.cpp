@@ -5,10 +5,12 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -19,16 +21,27 @@
 
 #define TEMPERATURE_NOT_AVAILABLE -275.0
 
-using namespace Supla;
-using namespace PV;
+namespace Supla {
+namespace PV {
 
 // This header should be received from server when data is returned
-// It will be verified with actual header if they match. Otherwise, data structure is assumed to be changed
-// and it will require this file to be adjusted to support new format
-const char headerVerification[] = "date,inverterMode,temperature,totalActivePower,dcVoltage,groundFaultResistance,powerLimit,totalEnergy,vL1To2,vL2To3,vL3To1,L1-acCurrent,L1-acVoltage,L1-acFrequency,L1-apparentPower,L1-activePower,L1-reactivePower,L1-qRef,L1-cosPhi,L2-acCurrent,L2-acVoltage,L2-acFrequency,L2-apparentPower,L2-activePower,L2-reactivePower,L2-qRef,L2-cosPhi,L3-acCurrent,L3-acVoltage,L3-acFrequency,L3-apparentPower,L3-activePower,L3-reactivePower,L3-qRef,L3-cosPhi";
+// It will be verified with actual header if they match. Otherwise, data
+// structure is assumed to be changed and it will require this file to be
+// adjusted to support new format
+const char headerVerification[] =
+    "date,inverterMode,temperature,totalActivePower,dcVoltage,"
+    "groundFaultResistance,powerLimit,totalEnergy,vL1To2,vL2To3,vL3To1,L1-"
+    "acCurrent,L1-acVoltage,L1-acFrequency,L1-apparentPower,L1-activePower,L1-"
+    "reactivePower,L1-qRef,L1-cosPhi,L2-acCurrent,L2-acVoltage,L2-acFrequency,"
+    "L2-apparentPower,L2-activePower,L2-reactivePower,L2-qRef,L2-cosPhi,L3-"
+    "acCurrent,L3-acVoltage,L3-acFrequency,L3-apparentPower,L3-activePower,L3-"
+    "reactivePower,L3-qRef,L3-cosPhi";
 
-SolarEdge::SolarEdge(const char *apiKeyValue, const char *siteIdValue, const char *inverterSerialNumberValue, Supla::Clock *clock) : 
-      buf{},
+SolarEdge::SolarEdge(const char *apiKeyValue,
+                     const char *siteIdValue,
+                     const char *inverterSerialNumberValue,
+                     Supla::Clock *clock)
+    : buf{},
       temperature(TEMPERATURE_NOT_AVAILABLE),
       totalGeneratedEnergy(0),
       currentCurrent{},
@@ -43,10 +56,10 @@ SolarEdge::SolarEdge(const char *apiKeyValue, const char *siteIdValue, const cha
       dataFetchInProgress(false),
       headerFound(false),
       connectionTimeoutMs(0),
-      clock(clock)
-{
-  // SolarEdge api allows 300 requests daily, so it is one request per almost 5 min
-  refreshRateSec = 6*60; // refresh every 6 min
+      clock(clock) {
+  // SolarEdge api allows 300 requests daily, so it is one request per almost 5
+  // min
+  refreshRateSec = 6 * 60;  // refresh every 6 min
 
   int len = strlen(apiKeyValue);
   if (len > APIKEY_MAX_LENGTH) {
@@ -74,7 +87,8 @@ SolarEdge::SolarEdge(const char *apiKeyValue, const char *siteIdValue, const cha
 void SolarEdge::iterateAlways() {
   if (dataFetchInProgress) {
     if (millis() - connectionTimeoutMs > 30000) {
-      Serial.println(F("SolarEdge: connection timeout. Remote host is not responding"));
+      Serial.println(
+          F("SolarEdge: connection timeout. Remote host is not responding"));
       pvClient.stop();
       dataFetchInProgress = false;
       dataIsReady = false;
@@ -95,11 +109,15 @@ void SolarEdge::iterateAlways() {
       Serial.print(c);
       if (c == '\n') {
         if (bytesCounter > 0) {
-          // new line is found with bytesCounter > 0 means that we have full received line of data in buf
-          buf[bytesCounter] = '\0'; // add null character at the end of received string
+          // new line is found with bytesCounter > 0 means that we have full
+          // received line of data in buf
+          buf[bytesCounter] =
+              '\0';  // add null character at the end of received string
 
           if (!headerFound) {
-            if (0 == strncmp(headerVerification, buf, sizeof(headerVerification)-1)) {
+            if (0 == strncmp(headerVerification,
+                             buf,
+                             sizeof(headerVerification) - 1)) {
               headerFound = true;
             }
           } else {
@@ -111,7 +129,8 @@ void SolarEdge::iterateAlways() {
             if (commaCount >= 34) {
               strtok(buf, ",");
               for (int i = 1; i < 34; i++) {
-                char *value = strtok(nullptr, ",");
+                char *value =
+                    strtok(nullptr, ",");  // NOLINT(runtime/threadsafe_fn)
                 /*
 0 date,
 1 inverterMode,
@@ -150,98 +169,98 @@ void SolarEdge::iterateAlways() {
 34 L3-cosPhi
 */
                 switch (i) {
-                  case 1: { // inverterMode
+                  case 1: {  // inverterMode
                     if (strncmp(value, "MPPT", 4) != 0) {
                       // ignoring data for inverter in mode other than MPPT
                       i = commaCount;
                     }
                     break;
                   }
-                  case 2: { // temperature
+                  case 2: {  // temperature
                     temperature = atof(value);
                     break;
                   }
-                  case 7: { // totalEnergy - split per 3 phases
-                    double energy = atof(value); 
+                  case 7: {  // totalEnergy - split per 3 phases
+                    double energy = atof(value);
                     totalGeneratedEnergy = energy * 100;
                     break;
                   }
-                  case 11: { // L1 - acCurrent
+                  case 11: {  // L1 - acCurrent
                     double current = atof(value);
                     currentCurrent[0] = current * 1000;
                     break;
                   }
-                  case 12: { // L1 - acVoltage
+                  case 12: {  // L1 - acVoltage
                     double voltage = atof(value);
                     currentVoltage[0] = voltage * 100;
                     break;
                   }
-                  case 13: { // L1 - acFrequency
+                  case 13: {  // L1 - acFrequency
                     double frequency = atof(value);
                     currentFreq = frequency * 100;
                     break;
                   }
-                  case 14: { // L1 - apparentPower
+                  case 14: {  // L1 - apparentPower
                     double power = atof(value);
                     currentApparentPower[0] = power * 100000;
                     break;
                   }
-                  case 15: { // L1 - activePower
+                  case 15: {  // L1 - activePower
                     double power = atof(value);
                     currentActivePower[0] = power * 100000;
                     break;
                   }
-                  case 16: { // L1 - ReactivePower
+                  case 16: {  // L1 - ReactivePower
                     double power = atof(value);
                     currentReactivePower[0] = power * 100000;
                     break;
                   }
-                  case 19: { // L2 - acCurrent
-                    double current = atof(value); // Wh
+                  case 19: {                       // L2 - acCurrent
+                    double current = atof(value);  // Wh
                     currentCurrent[1] = current * 1000;
                     break;
                   }
-                  case 20: { // L2 - acVoltage
-                    double voltage = atof(value); // Wh
+                  case 20: {                       // L2 - acVoltage
+                    double voltage = atof(value);  // Wh
                     currentVoltage[1] = voltage * 100;
                     break;
                   }
-                  case 22: { // L2 - apparentPower
+                  case 22: {  // L2 - apparentPower
                     double power = atof(value);
                     currentApparentPower[1] = power * 100000;
                     break;
                   }
-                  case 23: { // L2 - activePower
+                  case 23: {  // L2 - activePower
                     double power = atof(value);
                     currentActivePower[1] = power * 100000;
                     break;
                   }
-                  case 24: { // L2 - ReactivePower
+                  case 24: {  // L2 - ReactivePower
                     double power = atof(value);
                     currentReactivePower[1] = power * 100000;
                     break;
                   }
-                  case 27: { // L3 - acCurrent
-                    double current = atof(value); // Wh
+                  case 27: {                       // L3 - acCurrent
+                    double current = atof(value);  // Wh
                     currentCurrent[2] = current * 1000;
                     break;
                   }
-                  case 28: { // L3 - acVoltage
-                    double voltage = atof(value); // Wh
+                  case 28: {                       // L3 - acVoltage
+                    double voltage = atof(value);  // Wh
                     currentVoltage[2] = voltage * 100;
                     break;
                   }
-                  case 30: { // L3 - apparentPower
+                  case 30: {  // L3 - apparentPower
                     double power = atof(value);
                     currentApparentPower[2] = power * 100000;
                     break;
                   }
-                  case 31: { // L3 - activePower
+                  case 31: {  // L3 - activePower
                     double power = atof(value);
                     currentActivePower[2] = power * 100000;
                     break;
                   }
-                  case 32: { // L3 - ReactivePower
+                  case 32: {  // L3 - ReactivePower
                     double power = atof(value);
                     currentReactivePower[2] = power * 100000;
                     break;
@@ -252,16 +271,13 @@ void SolarEdge::iterateAlways() {
                     // apparentPower
                     // activePower
                     // ReactivePower
-
                 }
               }
             }
-
           }
-
         }
         bytesCounter = 0;
-      } else if (bytesCounter < 1023) {   
+      } else if (bytesCounter < 1023) {
         buf[bytesCounter] = c;
         bytesCounter++;
       }
@@ -275,7 +291,7 @@ void SolarEdge::iterateAlways() {
     headerFound = false;
     for (int i = 0; i < 3; i++) {
       if (totalGeneratedEnergy > 0) {
-        setFwdActEnergy(i, totalGeneratedEnergy/3.0);
+        setFwdActEnergy(i, totalGeneratedEnergy / 3.0);
       }
       setPowerActive(i, currentActivePower[i]);
       currentActivePower[i] = 0;
@@ -302,11 +318,13 @@ bool SolarEdge::iterateConnected(void *srpc) {
   if (clock && clock->isReady()) {
     if (!dataFetchInProgress) {
       bytesCounter = 0;
-      if (lastReadTime == 0 || millis() - lastReadTime > (retryCounter > 0 ? 5000 : refreshRateSec*1000)) {
+      if (lastReadTime == 0 ||
+          millis() - lastReadTime >
+              (retryCounter > 0 ? 5000 : refreshRateSec * 1000)) {
         lastReadTime = millis();
         Serial.println(F("SolarEdge connecting"));
 #ifdef ARDUINO_ARCH_ESP8266
-        pvClient.setBufferSizes(2048, 512); //
+        pvClient.setBufferSizes(2048, 512);  //
 #endif
         pvClient.setInsecure();
         int returnCode = pvClient.connect("monitoringapi.solaredge.com", 443);
@@ -317,15 +335,15 @@ bool SolarEdge::iterateConnected(void *srpc) {
           Serial.println(F("Succesful connect"));
 
           char buf[200];
-          strcpy(buf, "GET /equipment/");
+          strcpy(buf, "GET /equipment/");  // NOLINT(runtime/printf)
 
-          strcat(buf, siteId);
-          strcat(buf, "/");
-          strcat(buf, inverterSerialNumber);
-          strcat(buf, "/data.csv?startTime=");
+          strcat(buf, siteId);                  // NOLINT(runtime/printf)
+          strcat(buf, "/");                     // NOLINT(runtime/printf)
+          strcat(buf, inverterSerialNumber);    // NOLINT(runtime/printf)
+          strcat(buf, "/data.csv?startTime=");  // NOLINT(runtime/printf)
 
-          time_t timestamp = time(0); // get current time
-          timestamp -= 10*60; // go back in time 10 minutes
+          time_t timestamp = time(0);  // get current time
+          timestamp -= 10 * 60;        // go back in time 10 minutes
 
 #define SOLAR_TMP_BUFFER_SIZE 100
 
@@ -336,27 +354,27 @@ bool SolarEdge::iterateConnected(void *srpc) {
           gmtime_r(&timestamp, &timeinfo);
 
           snprintf(startTime,
-              SOLAR_TMP_BUFFER_SIZE,
-              "%d-%d-%d%%20%d:%d:%d",
-              timeinfo.tm_year + 1900,
-              timeinfo.tm_mon + 1,
-              timeinfo.tm_mday,
-              timeinfo.tm_hour,
-              timeinfo.tm_min,
-              timeinfo.tm_sec);
+                   SOLAR_TMP_BUFFER_SIZE,
+                   "%d-%d-%d%%20%d:%d:%d",
+                   timeinfo.tm_year + 1900,
+                   timeinfo.tm_mon + 1,
+                   timeinfo.tm_mday,
+                   timeinfo.tm_hour,
+                   timeinfo.tm_min,
+                   timeinfo.tm_sec);
           snprintf(endTime,
-              SOLAR_TMP_BUFFER_SIZE,
-              "%d-%d-%d%%2023:59:59",
-              timeinfo.tm_year + 1900,
-              timeinfo.tm_mon + 1,
-              timeinfo.tm_mday);
+                   SOLAR_TMP_BUFFER_SIZE,
+                   "%d-%d-%d%%2023:59:59",
+                   timeinfo.tm_year + 1900,
+                   timeinfo.tm_mon + 1,
+                   timeinfo.tm_mday);
 
-          strcat(buf, startTime);
-          strcat(buf, "&endTime=");
-          strcat(buf, endTime);
-          strcat(buf, "&api_key=");
-          strcat(buf, apiKey);
-          strcat(buf, " HTTP/1.1");
+          strcat(buf, startTime);    // NOLINT(runtime/printf)
+          strcat(buf, "&endTime=");  // NOLINT(runtime/printf)
+          strcat(buf, endTime);      // NOLINT(runtime/printf)
+          strcat(buf, "&api_key=");  // NOLINT(runtime/printf)
+          strcat(buf, apiKey);       // NOLINT(runtime/printf)
+          strcat(buf, " HTTP/1.1");  // NOLINT(runtime/printf)
 
           Serial.print(F("Query: "));
           Serial.println(buf);
@@ -382,5 +400,8 @@ void SolarEdge::readValuesFromDevice() {
 Supla::Channel *SolarEdge::getSecondaryChannel() {
   return &temperatureChannel;
 }
+
+}  // namespace PV
+}  // namespace Supla
 
 #endif

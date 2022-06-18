@@ -56,119 +56,118 @@ channels:
 
  */
 
-#ifndef _supla_linux_yaml_config_h
-#define _supla_linux_yaml_config_h
+#ifndef EXTRAS_PORTING_LINUX_LINUX_YAML_CONFIG_H_
+#define EXTRAS_PORTING_LINUX_LINUX_YAML_CONFIG_H_
 
-#include <supla/storage/config.h>
-#include <string>
-#include <yaml-cpp/yaml.h>
-#include <map>
 #include <supla/channel_element.h>
-#include <supla/sensor/electricity_meter_parsed.h>
 #include <supla/parser/parser.h>
+#include <supla/sensor/electricity_meter_parsed.h>
 #include <supla/source/source.h>
+#include <supla/storage/config.h>
+#include <yaml-cpp/yaml.h>
+
+#include <map>
+#include <string>
 
 namespace Supla {
 
-  class LinuxYamlConfig : public Config {
-    public:
-      LinuxYamlConfig(const std::string& file);
-      virtual ~LinuxYamlConfig();
+class LinuxYamlConfig : public Config {
+ public:
+  explicit LinuxYamlConfig(const std::string& file);
+  virtual ~LinuxYamlConfig();
 
-      bool isDebug();
-      bool isVerbose();
+  bool isDebug();
+  bool isVerbose();
 
-      bool loadChannels();
+  bool loadChannels();
 
-      bool init() override;
-      void removeAll() override;
+  bool init() override;
+  void removeAll() override;
 
-      bool generateGuidAndAuthkey() override;
+  bool generateGuidAndAuthkey() override;
 
-      // Generic getters and setters
-      bool setString(const char* key, const char* value) override;
-      bool getString(const char* key, char* value, size_t maxSize) override;
-      int getStringSize(const char* key) override;
+  // Generic getters and setters
+  bool setString(const char* key, const char* value) override;
+  bool getString(const char* key, char* value, size_t maxSize) override;
+  int getStringSize(const char* key) override;
 
-      bool setBlob(const char* key, const char* value, size_t blobSize) override;
-      bool getBlob(const char* key, char* value, size_t blobSize) override;
-      int getBlobSize(const char* key) override;
+  bool setBlob(const char* key, const char* value, size_t blobSize) override;
+  bool getBlob(const char* key, char* value, size_t blobSize) override;
+  int getBlobSize(const char* key) override;
 
-      bool getInt8(const char* key, int8_t& result) override;
-      bool getUInt8(const char* key, uint8_t& result) override;
-      bool getInt32(const char* key, int32_t& result) override;
-      bool getUInt32(const char* key, uint32_t& result) override;
+  bool getInt8(const char* key, int8_t* result) override;
+  bool getUInt8(const char* key, uint8_t* result) override;
+  bool getInt32(const char* key, int32_t* result) override;
+  bool getUInt32(const char* key, uint32_t* result) override;
 
-      bool setInt8(const char* key, const int8_t value) override;
-      bool setUInt8(const char* key, const uint8_t value) override;
-      bool setInt32(const char* key, const int32_t value) override;
-      bool setUInt32(const char* key, const uint32_t value) override;
+  bool setInt8(const char* key, const int8_t value) override;
+  bool setUInt8(const char* key, const uint8_t value) override;
+  bool setInt32(const char* key, const int32_t value) override;
+  bool setUInt32(const char* key, const uint32_t value) override;
 
-      void commit() override;
+  void commit() override;
 
-      // Device generic config
-      virtual bool setGUID(const char* guid) override;
-      virtual bool getGUID(char* result) override;
-      virtual bool setAuthKey(const char* authkey) override;
-      virtual bool getAuthKey(char* result) override;
+  // Device generic config
+  bool setGUID(const char* guid) override;
+  bool getGUID(char* result) override;
+  bool setAuthKey(const char* authkey) override;
+  bool getAuthKey(char* result) override;
 
-      virtual bool setDeviceName(const char *name) override; // disabled
-      virtual bool getDeviceName(char *result) override;
+  bool setDeviceName(const char* name) override;  // disabled
+  bool getDeviceName(char* result) override;
 
-      // Supla protocol config
-      virtual bool setSuplaCommProtocolEnabled(
-          bool enabled) override;  // disabled
-      virtual bool setSuplaServer(const char* server) override; // disabled
-      virtual bool setSuplaServerPort(int32_t port) override; // disabled
-      virtual bool setEmail(const char* email) override; // disabled
+  // Supla protocol config
+  bool setSuplaCommProtocolEnabled(bool enabled) override;  // disabled
+  bool setSuplaServer(const char* server) override;         // disabled
+  bool setSuplaServerPort(int32_t port) override;           // disabled
+  bool setEmail(const char* email) override;                // disabled
 
-      virtual bool isSuplaCommProtocolEnabled() override;
-      virtual bool getSuplaServer(char* result) override;
-      virtual int32_t getSuplaServerPort() override;
-      virtual bool getEmail(char* result) override;
+  bool isSuplaCommProtocolEnabled() override;
+  bool getSuplaServer(char* result) override;
+  int32_t getSuplaServerPort() override;
+  bool getEmail(char* result) override;
 
-      std::string getStateFilesPath();
+  std::string getStateFilesPath();
 
-    protected:
-      bool parseChannel(const YAML::Node& ch, int channelNumber);
-      Supla::Parser::Parser* addParser(const YAML::Node& parser,
-          Supla::Source::Source *src);
-      Supla::Source::Source* addSource(const YAML::Node& ch);
+ protected:
+  bool parseChannel(const YAML::Node& ch, int channelNumber);
+  Supla::Parser::Parser* addParser(const YAML::Node& parser,
+                                   Supla::Source::Source* src);
+  Supla::Source::Source* addSource(const YAML::Node& ch);
 
-      bool addVirtualRelay(const YAML::Node& ch, int channelNumber);
-      bool addFronius(const YAML::Node& ch, int channelNumber);
-      bool addThermometerParsed(const YAML::Node& ch,
-          int channelNumber,
-          Supla::Parser::Parser *parser);
-      bool addImpulseCounterParsed(const YAML::Node& ch,
-          int channelNumber,
-          Supla::Parser::Parser *parser);
-      bool addElectricityMeterParsed(const YAML::Node& ch,
-          int channelNumber,
-          Supla::Parser::Parser *parser);
-      bool addBinaryParsed(const YAML::Node& ch,
-          int channelNumber,
-          Supla::Parser::Parser *parser);
-      void loadGuidAuthFromPath(const std::string& path);
-      bool saveGuidAuth(const std::string& path);
+  bool addVirtualRelay(const YAML::Node& ch, int channelNumber);
+  bool addFronius(const YAML::Node& ch, int channelNumber);
+  bool addThermometerParsed(const YAML::Node& ch,
+                            int channelNumber,
+                            Supla::Parser::Parser* parser);
+  bool addImpulseCounterParsed(const YAML::Node& ch,
+                               int channelNumber,
+                               Supla::Parser::Parser* parser);
+  bool addElectricityMeterParsed(const YAML::Node& ch,
+                                 int channelNumber,
+                                 Supla::Parser::Parser* parser);
+  bool addBinaryParsed(const YAML::Node& ch,
+                       int channelNumber,
+                       Supla::Parser::Parser* parser);
+  void loadGuidAuthFromPath(const std::string& path);
+  bool saveGuidAuth(const std::string& path);
 
-      std::string file;
-      YAML::Node config;
-      std::string stateFilesLocaltion;
+  std::string file;
+  YAML::Node config;
+  std::string stateFilesLocaltion;
 
-      std::string guid;
-      std::string authkey;
-      std::map<std::string, int> channelNames;
-      std::map<std::string, int> parserNames;
-      std::map<std::string, int> sourceNames;
-      std::map<int, Supla::Parser::Parser*> parsers;
-      std::map<int, Supla::Source::Source*> sources;
+  std::string guid;
+  std::string authkey;
+  std::map<std::string, int> channelNames;
+  std::map<std::string, int> parserNames;
+  std::map<std::string, int> sourceNames;
+  std::map<int, Supla::Parser::Parser*> parsers;
+  std::map<int, Supla::Source::Source*> sources;
 
-      int paramCount = 0;
-      int parserCount = 0;
-      int sourceCount = 0;
-  };
+  int paramCount = 0;
+  int parserCount = 0;
+  int sourceCount = 0;
 };
+};  // namespace Supla
 
-#endif /*_supla_yaml_config_h*/
-
+#endif  // EXTRAS_PORTING_LINUX_LINUX_YAML_CONFIG_H_

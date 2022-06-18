@@ -16,42 +16,36 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef SRC_SUPLA_SENSOR_HC_SR04_H_
-#define SRC_SUPLA_SENSOR_HC_SR04_H_
+/*
+ * This class allows to control roller shutters with 3 buttons: up, down, stop
+ */
 
-#include "supla/channel.h"
-#include "supla/sensor/distance.h"
+#ifndef SRC_SUPLA_CONTROL_TRIPPLE_BUTTON_ROLLER_SHUTTER_H_
+#define SRC_SUPLA_CONTROL_TRIPPLE_BUTTON_ROLLER_SHUTTER_H_
 
-#define DURATION_COUNT 2
+#include "bistable_roller_shutter.h"
 
 namespace Supla {
-namespace Sensor {
-class HC_SR04 : public Distance {
+namespace Control {
+class TrippleButtonRollerShutter : public BistableRollerShutter {
  public:
-  HC_SR04(int8_t trigPin,
-          int8_t echoPin,
-          int16_t minIn = 0,
-          int16_t maxIn = 500,
-          int16_t minOut = 0,
-          int16_t maxOut = 500);
-  void onInit();
-  virtual double getValue();
-  void setMinMaxIn(int16_t minIn, int16_t maxIn);
-  void setMinMaxOut(int16_t minOut, int16_t maxOut);
+  TrippleButtonRollerShutter(int pinUp,
+                             int pinDown,
+                             int pinStop,
+                             bool highIsOn = true);
+  virtual ~TrippleButtonRollerShutter();
 
  protected:
-  int8_t _trigPin;
-  int8_t _echoPin;
-  int16_t _minIn;
-  int16_t _maxIn;
-  int16_t _minOut;
-  int16_t _maxOut;
-  char failCount;
-  uint64_t readouts[5];
-  int index;
+  void stopMovement() override;
+  void switchOffRelays() override;
+  bool inMove() override;
+  virtual void relayStopOn();
+  virtual void relayStopOff();
+
+  int pinStop = 0;
 };
 
-};  // namespace Sensor
+};  // namespace Control
 };  // namespace Supla
 
-#endif  // SRC_SUPLA_SENSOR_HC_SR04_H_
+#endif  // SRC_SUPLA_CONTROL_TRIPPLE_BUTTON_ROLLER_SHUTTER_H_

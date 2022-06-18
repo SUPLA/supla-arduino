@@ -14,8 +14,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _actions_h
-#define _actions_h
+#ifndef SRC_SUPLA_ACTIONS_H_
+#define SRC_SUPLA_ACTIONS_H_
 
 // Actions are used in ActionHandler elements. They are grouped by most common
 // usage, but you should not rely on it. Please check exact supported actions
@@ -98,8 +98,7 @@ enum Action {
   START_LOCAL_WEB_SERVER,
   STOP_LOCAL_WEB_SERVER,
   CHECK_SW_UPDATE
-
 };
-};
+};  // namespace Supla
 
-#endif /*_actions_h*/
+#endif  // SRC_SUPLA_ACTIONS_H_

@@ -24,7 +24,7 @@
 #include <esp_idf_gpio.h>
 // methods implemented in extras/porting/esp-idf/gpio.cpp
 #else
-// TODO implement those methods or extract them to separate interface
+// TODO(klew): implement those methods or extract them to separate interface
 void pinMode(uint8_t pin, uint8_t mode) {
   (void)(pin);
   (void)(mode);
@@ -44,7 +44,7 @@ void analogWrite(uint8_t pin, int val) {
   (void)(val);
 }
 
-unsigned int pulseIn(uint8_t pin, uint8_t val, unsigned long timeoutMicro) {
+unsigned int pulseIn(uint8_t pin, uint8_t val, uint64_t timeoutMicro) {
   (void)(pin);
   (void)(val);
   (void)(timeoutMicro);
@@ -138,19 +138,18 @@ void Io::customAnalogWrite(int channelNumber, uint8_t pin, int val) {
   ::analogWrite(pin, val);
 }
 
-unsigned int Io::pulseIn(uint8_t pin, uint8_t value,
-      unsigned long timeoutMicro) {
+unsigned int Io::pulseIn(uint8_t pin, uint8_t value, uint64_t timeoutMicro) {
   return pulseIn(-1, pin, value, timeoutMicro);
 }
 
 unsigned int Io::pulseIn(int channelNumber, uint8_t pin, uint8_t value,
-      unsigned long timeoutMicro) {
+      uint64_t timeoutMicro) {
   (void)(channelNumber);
   return ::pulseIn(pin, value, timeoutMicro);
 }
 
 unsigned int Io::customPulseIn(int channelNumber, uint8_t pin, uint8_t value,
-      unsigned long timeoutMicro) {
+      uint64_t timeoutMicro) {
   (void)(channelNumber);
   return ::pulseIn(pin, value, timeoutMicro);
 }

@@ -5,35 +5,39 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _SUPLA_SOURCE_CMD_H_
-#define _SUPLA_SOURCE_CMD_H_
+#ifndef EXTRAS_PORTING_LINUX_SUPLA_SOURCE_CMD_H_
+#define EXTRAS_PORTING_LINUX_SUPLA_SOURCE_CMD_H_
 
 #include <supla/parser/parser.h>
-#include "source.h"
+
 #include <string>
+
+#include "source.h"
 
 namespace Supla {
 
-  namespace Source {
-    class Cmd : public Source {
-      public:
-        Cmd(const char *cmd);
-        virtual ~Cmd();
-        virtual std::string getContent() override;
+namespace Source {
+class Cmd : public Source {
+ public:
+  explicit Cmd(const char *cmd);
+  virtual ~Cmd();
+  std::string getContent() override;
 
-      protected:
-        std::string cmdLine;
-    };
-  };  // namespace Source
+ protected:
+  std::string cmdLine;
+};
+};  // namespace Source
 };  // namespace Supla
 
-#endif /*_SUPLA_SOURCE_CMD_H_*/
+#endif  // EXTRAS_PORTING_LINUX_SUPLA_SOURCE_CMD_H_

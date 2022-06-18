@@ -5,24 +5,28 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "action_trigger.h"
 #include <supla-common/log.h>
+
+#include "action_trigger.h"
 
 Supla::Control::ActionTrigger::ActionTrigger() {
   channel.setType(SUPLA_CHANNELTYPE_ACTIONTRIGGER);
   channel.setDefault(SUPLA_CHANNELFNC_ACTIONTRIGGER);
 }
 
-Supla::Control::ActionTrigger::~ActionTrigger() {}
+Supla::Control::ActionTrigger::~ActionTrigger() {
+}
 
 void Supla::Control::ActionTrigger::attach(Supla::Control::Button *button) {
   attachedButton = button;
@@ -130,13 +134,12 @@ int Supla::Control::ActionTrigger::actionTriggerCapToButtonEvent(
   return 0;
 }
 
-
 void Supla::Control::ActionTrigger::onRegistered() {
   // cleanup actions to be send
-  while (channel.popAction());
+  while (channel.popAction()) {
+  }
 
   channel.requestChannelConfig();
-
 }
 
 void Supla::Control::ActionTrigger::handleChannelConfig(
@@ -144,12 +147,14 @@ void Supla::Control::ActionTrigger::handleChannelConfig(
   if (result->ConfigType == 0 &&
       result->ConfigSize == sizeof(TSD_ChannelConfig_ActionTrigger)) {
     TSD_ChannelConfig_ActionTrigger *config =
-      reinterpret_cast<TSD_ChannelConfig_ActionTrigger *>(result->Config);
+        reinterpret_cast<TSD_ChannelConfig_ActionTrigger *>(result->Config);
     activeActionsFromServer = config->ActiveActions;
-    supla_log(LOG_DEBUG, "AT[%d] received config with active actions: %d",
-        channel.getChannelNumber(), activeActionsFromServer);
+    supla_log(LOG_DEBUG,
+              "AT[%d] received config with active actions: %d",
+              channel.getChannelNumber(),
+              activeActionsFromServer);
     uint32_t actionsToDisable =
-      activeActionsFromServer & disablesLocalOperation;
+        activeActionsFromServer & disablesLocalOperation;
     if (attachedButton) {
       bool makeSureThatOnClick1IsDisabled = false;
 
@@ -216,13 +221,13 @@ void Supla::Control::ActionTrigger::onInit() {
       !attachedButton->isEventAlreadyUsed(Supla::ON_CLICK_1)) {
     if (attachedButton->isBistable() &&
         attachedButton->isEventAlreadyUsed(Supla::ON_CHANGE)) {
-        // for bistable button use on_change <-> on_click_1
-        localHandlerForDisabledAt = attachedButton->getHandlerForFirstClient(
-            Supla::ON_CHANGE);
+      // for bistable button use on_change <-> on_click_1
+      localHandlerForDisabledAt =
+          attachedButton->getHandlerForFirstClient(Supla::ON_CHANGE);
     }
     if (!attachedButton->isBistable()) {
       // for monostable button use on_press/on_release <-> on_click_1
-      bool onPress   = attachedButton->isEventAlreadyUsed(Supla::ON_PRESS);
+      bool onPress = attachedButton->isEventAlreadyUsed(Supla::ON_PRESS);
       bool onRelease = attachedButton->isEventAlreadyUsed(Supla::ON_RELEASE);
       if (onPress != onRelease) {
         localHandlerForDisabledAt = attachedButton->getHandlerForFirstClient(
@@ -231,11 +236,12 @@ void Supla::Control::ActionTrigger::onInit() {
     }
 
     if (localHandlerForDisabledAt) {
-        attachedButton->addAction(localHandlerForDisabledAt->action,
-            localHandlerForDisabledAt->client, Supla::ON_CLICK_1);
-        localHandlerForEnabledAt =
+      attachedButton->addAction(localHandlerForDisabledAt->action,
+                                localHandlerForDisabledAt->client,
+                                Supla::ON_CLICK_1);
+      localHandlerForEnabledAt =
           attachedButton->getHandlerForFirstClient(Supla::ON_CLICK_1);
-        localHandlerForEnabledAt->enabled = false;
+      localHandlerForEnabledAt->enabled = false;
     }
   }
 

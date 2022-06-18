@@ -51,7 +51,7 @@ double HC_SR04::getValue() {
   Supla::Io::digitalWrite(_trigPin, HIGH);
   delayMicroseconds(10);
   Supla::Io::digitalWrite(_trigPin, LOW);
-  unsigned long duration = Supla::Io::pulseIn(_echoPin, HIGH, 60000);
+  uint64_t duration = Supla::Io::pulseIn(_echoPin, HIGH, 60000);
 //  interrupts();
   if (duration > 50) {
     index++;
@@ -62,7 +62,9 @@ double HC_SR04::getValue() {
     failCount++;
   }
 
-  unsigned long min = 0, max = 0, sum = 0;
+  uint64_t min = 0;
+  uint64_t max = 0;
+  uint64_t sum = 0;
   int count = 0;
   for (int i = 0; i < 5; i++) {
     if (readouts[i] > 0) {
@@ -87,8 +89,8 @@ double HC_SR04::getValue() {
     duration = sum / count;
   }
 
-  long distance = (duration / 2.0) / 29.1;
-  long value = adjustRange(distance, _minIn, _maxIn, _minOut, _maxOut);
+  int64_t distance = (duration / 2.0) / 29.1;
+  int64_t value = adjustRange(distance, _minIn, _maxIn, _minOut, _maxOut);
   if (_minOut < _maxOut) {
     if (value < _minOut) {
       value = _minOut;

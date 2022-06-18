@@ -16,20 +16,20 @@
 
 #include "sensor_parsed.h"
 
-Supla::Sensor::SensorParsed::SensorParsed(Supla::Parser::Parser *parser) :
-  parser(parser) {
+Supla::Sensor::SensorParsed::SensorParsed(Supla::Parser::Parser *parser)
+    : parser(parser) {
   static int instanceCounter = 0;
   id = instanceCounter++;
 }
 
 void Supla::Sensor::SensorParsed::setMapping(const std::string &parameter,
-    const std::string &key) {
+                                             const std::string &key) {
   parameterToKey[parameter] = key;
-  parser->addKey(key, -1); // ignore index
+  parser->addKey(key, -1);  // ignore index
 }
 
 void Supla::Sensor::SensorParsed::setMapping(const std::string &parameter,
-    const int index) {
+                                             const int index) {
   std::string key = parameter;
   key += "_";
   key += std::to_string(id);
@@ -38,7 +38,7 @@ void Supla::Sensor::SensorParsed::setMapping(const std::string &parameter,
 }
 
 void Supla::Sensor::SensorParsed::setMultiplier(const std::string &parameter,
-    double multiplier) {
+                                                double multiplier) {
   parameterMultiplier[parameter] = multiplier;
 }
 

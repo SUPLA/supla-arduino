@@ -18,7 +18,6 @@ set(SUPLA_DEVICE_SRCS
   ../../../src/supla/io.cpp
   ../../../src/supla/local_action.cpp
   ../../../src/supla/log_wrapper.cpp
-  ../../../src/supla/status.cpp
   ../../../src/supla/time.cpp
   ../../../src/supla/timer.cpp
   ../../../src/supla/tools.cpp

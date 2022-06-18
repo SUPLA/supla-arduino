@@ -16,10 +16,10 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "log.h"
 #include <stdio.h>
+
+#include "log.h"
 
 void supla_vlog(int __pri, const char *message) {
   printf("%s\n", message);
 }
-

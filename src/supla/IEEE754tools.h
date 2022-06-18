@@ -1,3 +1,4 @@
+// Copyright (C) TBD
 //
 //    FILE: IEEE754tools.h
 //  AUTHOR: Rob Tillaart
@@ -10,30 +11,27 @@
 // not tested, use with care
 //
 
-#ifndef IEEE754tools_h
-#define IEEE754tools_h
+#ifndef SRC_SUPLA_IEEE754TOOLS_H_
+#define SRC_SUPLA_IEEE754TOOLS_H_
 
-// IEEE754 float layout; 
-struct IEEEfloat
-{
-    uint32_t m:23; 
+// IEEE754 float layout;
+struct IEEEfloat {
+    uint32_t m:23;
     uint8_t e:8;
     uint8_t s:1;
 };
 
 // for packing and unpacking a float
-typedef union _FLOATCONV
-{
+typedef union _FLOATCONV {
     IEEEfloat p;
     float f;
     uint8_t b[4];
 } _FLOATCONV;
 
-// Arduino UNO double layout: 
+// Arduino UNO double layout:
 // the UNO has no 64 bit double, it is only able to map 23 bits of the mantisse
 // a filler is added.
-struct _DBL
-{
+struct _DBL {
     uint32_t filler:29;
     uint32_t m:23;
     uint16_t e:11;
@@ -42,8 +40,7 @@ struct _DBL
 
 
 // for packing and unpacking a double
-typedef union _DBLCONV
-{
+typedef union _DBLCONV {
     // IEEEdouble p;
     _DBL p;
     double d;           // !! is a 32bit float for UNO.
@@ -56,7 +53,7 @@ typedef union _DBLCONV
 //
 // float;  array of 8 bytes;  LSBFIRST; MSBFIRST
 //
-//void float2DoublePacked(float number, byte* bar, int byteOrder=LSBFIRST);
+// void float2DoublePacked(float number, byte* bar, int byteOrder=LSBFIRST);
 
 
-#endif
+#endif  // SRC_SUPLA_IEEE754TOOLS_H_

@@ -16,12 +16,14 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "log.h"
-#include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <syslog.h>
+#include <stdlib.h>
+#include <stdint.h>
 #include <sys/time.h>
+#include <syslog.h>
+
+#include "log.h"
 
 extern int runAsDaemon;
 extern int logLevel;
@@ -70,10 +72,9 @@ void supla_vlog(int __pri, const char *message) {
 
     struct timeval now = {};
     gettimeofday(&now, NULL);
-    printf("[%li.%li] ", (unsigned long)now.tv_sec, (unsigned long)now.tv_usec);
+    printf("[%li.%li] ", (uint64_t)now.tv_sec, (uint64_t)now.tv_usec);
     printf("%s", message);
     printf("\n");
     fflush(stdout);
   }
 }
-

@@ -20,7 +20,7 @@
 namespace Supla {
 
 TElectricityMeter_Measurement *ConditionGetter::getMeasurement(
-      Supla::Element *element, _supla_int_t &measuredValues) {
+      Supla::Element *element, _supla_int_t *measuredValues) {
   if (!element || !element->getChannel() ||
       !element->getChannel()->getExtValue() ||
       element->getChannel()->getChannelType() !=
@@ -40,218 +40,222 @@ TElectricityMeter_Measurement *ConditionGetter::getMeasurement(
     return nullptr;
   }
 
-  measuredValues = emValue->measured_values;
+  *measuredValues = emValue->measured_values;
   return &(emValue->m[0]);
 }
 
 class VoltageGetter : public ConditionGetter {
-  public:
-    VoltageGetter(int8_t phase) : phase(phase) {}
+ public:
+  explicit VoltageGetter(int8_t phase) : phase(phase) {}
 
-    double getValue(Supla::Element *element, bool &isValid) override {
-      isValid = false;
-      if (phase < 0 || phase >= 3 /* MAX_PHASES */) {
-        return 0;
-      }
-
-      _supla_int_t measuredValues = 0;
-      if (auto measurement = getMeasurement(element, measuredValues)) {
-        if (measuredValues & EM_VAR_VOLTAGE) {
-          isValid = true;
-          return measurement->voltage[phase] / 100.0;
-        }
-      }
-      
+  double getValue(Supla::Element *element, bool *isValid) override {
+    *isValid = false;
+    if (phase < 0 || phase >= 3 /* MAX_PHASES */) {
       return 0;
     }
-  protected:
-    int8_t phase = 0;
+
+    _supla_int_t measuredValues = 0;
+    if (auto measurement = getMeasurement(element, &measuredValues)) {
+      if (measuredValues & EM_VAR_VOLTAGE) {
+        *isValid = true;
+        return measurement->voltage[phase] / 100.0;
+      }
+    }
+
+    return 0;
+  }
+
+ protected:
+  int8_t phase = 0;
 };
 
 class CurrentGetter : public ConditionGetter {
-  public:
-    CurrentGetter(int8_t phase) : phase(phase) {}
+ public:
+  explicit CurrentGetter(int8_t phase) : phase(phase) {
+  }
 
-    double getValue(Supla::Element *element, bool &isValid) override {
-      isValid = false;
-      if (phase < 0 || phase >= 3 /* MAX_PHASES */) {
-        return 0;
-      }
-
-      _supla_int_t measuredValues = 0;
-      if (auto measurement = getMeasurement(element, measuredValues)) {
-        if (measuredValues & EM_VAR_CURRENT) {
-          isValid = true;
-          return measurement->current[phase] / 1000.0;
-        }
-        if (measuredValues & EM_VAR_CURRENT_OVER_65A) {
-          isValid = true;
-          return measurement->current[phase] / 100.0;
-        }
-      }
-      
+  double getValue(Supla::Element *element, bool *isValid) override {
+    *isValid = false;
+    if (phase < 0 || phase >= 3 /* MAX_PHASES */) {
       return 0;
     }
-  protected:
-    int8_t phase = 0;
+
+    _supla_int_t measuredValues = 0;
+    if (auto measurement = getMeasurement(element, &measuredValues)) {
+      if (measuredValues & EM_VAR_CURRENT) {
+        *isValid = true;
+        return measurement->current[phase] / 1000.0;
+      }
+      if (measuredValues & EM_VAR_CURRENT_OVER_65A) {
+        *isValid = true;
+        return measurement->current[phase] / 100.0;
+      }
+    }
+
+    return 0;
+  }
+
+ protected:
+  int8_t phase = 0;
 };
 
 class TotalCurrentGetter : public ConditionGetter {
-  public:
-    double getValue(Supla::Element *element, bool &isValid) override {
-      isValid = false;
+ public:
+  double getValue(Supla::Element *element, bool *isValid) override {
+    *isValid = false;
 
-      _supla_int_t measuredValues = 0;
-      if (auto measurement = getMeasurement(element, measuredValues)) {
-        double totalCurrent = 
-          (measurement->current[0] + measurement->current[1] + measurement->current[2]);
-        if (measuredValues & EM_VAR_CURRENT) {
-          isValid = true;
-          return totalCurrent / 1000.0;
-        }
-        if (measuredValues & EM_VAR_CURRENT_OVER_65A) {
-          isValid = true;
-          return totalCurrent / 100.0;
-        }
+    _supla_int_t measuredValues = 0;
+    if (auto measurement = getMeasurement(element, &measuredValues)) {
+      double totalCurrent =
+        (measurement->current[0] + measurement->current[1] +
+         measurement->current[2]);
+      if (measuredValues & EM_VAR_CURRENT) {
+        *isValid = true;
+        return totalCurrent / 1000.0;
       }
-      
-      return 0;
+      if (measuredValues & EM_VAR_CURRENT_OVER_65A) {
+        *isValid = true;
+        return totalCurrent / 100.0;
+      }
     }
+
+    return 0;
+  }
 };
 
 class PowerActiveWGetter : public ConditionGetter {
-  public:
-    PowerActiveWGetter(int8_t phase) : phase(phase) {}
+ public:
+  explicit PowerActiveWGetter(int8_t phase) : phase(phase) {}
 
-    double getValue(Supla::Element *element, bool &isValid) override {
-      isValid = false;
-      if (phase < 0 || phase >= 3 /* MAX_PHASES */) {
-        return 0;
-      }
-
-      _supla_int_t measuredValues = 0;
-      if (auto measurement = getMeasurement(element, measuredValues)) {
-        if (measuredValues & EM_VAR_POWER_ACTIVE) {
-          isValid = true;
-          return measurement->power_active[phase] / 100000.0;
-        }
-      }
-      
+  double getValue(Supla::Element *element, bool *isValid) override {
+    *isValid = false;
+    if (phase < 0 || phase >= 3 /* MAX_PHASES */) {
       return 0;
     }
-  protected:
-    int8_t phase = 0;
+
+    _supla_int_t measuredValues = 0;
+    if (auto measurement = getMeasurement(element, &measuredValues)) {
+      if (measuredValues & EM_VAR_POWER_ACTIVE) {
+        *isValid = true;
+        return measurement->power_active[phase] / 100000.0;
+      }
+    }
+
+    return 0;
+  }
+ protected:
+  int8_t phase = 0;
 };
 
 class TotalPowerActiveWGetter : public ConditionGetter {
-  public:
-    double getValue(Supla::Element *element, bool &isValid) override {
-      isValid = false;
+ public:
+  double getValue(Supla::Element *element, bool *isValid) override {
+    *isValid = false;
 
-      _supla_int_t measuredValues = 0;
-      if (auto measurement = getMeasurement(element, measuredValues)) {
-        if (measuredValues & EM_VAR_POWER_ACTIVE) {
-          double totalPower = 
-            measurement->power_active[0] + measurement->power_active[1] +
-            measurement->power_active[2];
-          isValid = true;
-          return totalPower / 100000.0;
-        }
+    _supla_int_t measuredValues = 0;
+    if (auto measurement = getMeasurement(element, &measuredValues)) {
+      if (measuredValues & EM_VAR_POWER_ACTIVE) {
+        double totalPower =
+          measurement->power_active[0] + measurement->power_active[1] +
+          measurement->power_active[2];
+        *isValid = true;
+        return totalPower / 100000.0;
       }
-      
-      return 0;
     }
+
+    return 0;
+  }
 };
 
 class PowerApparentVAGetter : public ConditionGetter {
-  public:
-    PowerApparentVAGetter(int8_t phase) : phase(phase) {}
+ public:
+  explicit PowerApparentVAGetter(int8_t phase) : phase(phase) {}
 
-    double getValue(Supla::Element *element, bool &isValid) override {
-      isValid = false;
-      if (phase < 0 || phase >= 3 /* MAX_PHASES */) {
-        return 0;
-      }
-
-      _supla_int_t measuredValues = 0;
-      if (auto measurement = getMeasurement(element, measuredValues)) {
-        if (measuredValues & EM_VAR_POWER_APPARENT) {
-          isValid = true;
-          return measurement->power_apparent[phase] / 100000.0;
-        }
-      }
-      
+  double getValue(Supla::Element *element, bool *isValid) override {
+    *isValid = false;
+    if (phase < 0 || phase >= 3 /* MAX_PHASES */) {
       return 0;
     }
-  protected:
-    int8_t phase = 0;
+
+    _supla_int_t measuredValues = 0;
+    if (auto measurement = getMeasurement(element, &measuredValues)) {
+      if (measuredValues & EM_VAR_POWER_APPARENT) {
+        *isValid = true;
+        return measurement->power_apparent[phase] / 100000.0;
+      }
+    }
+
+    return 0;
+  }
+ protected:
+  int8_t phase = 0;
 };
 
 class TotalPowerApparentVAGetter : public ConditionGetter {
-  public:
-    double getValue(Supla::Element *element, bool &isValid) override {
-      isValid = false;
+ public:
+  double getValue(Supla::Element *element, bool *isValid) override {
+    *isValid = false;
 
-      _supla_int_t measuredValues = 0;
-      if (auto measurement = getMeasurement(element, measuredValues)) {
-        if (measuredValues & EM_VAR_POWER_APPARENT) {
-          double totalPower = 
-            measurement->power_apparent[0] + measurement->power_apparent[1] +
-            measurement->power_apparent[2];
-          isValid = true;
-          return totalPower / 100000.0;
-        }
+    _supla_int_t measuredValues = 0;
+    if (auto measurement = getMeasurement(element, &measuredValues)) {
+      if (measuredValues & EM_VAR_POWER_APPARENT) {
+        double totalPower =
+          measurement->power_apparent[0] + measurement->power_apparent[1] +
+          measurement->power_apparent[2];
+        *isValid = true;
+        return totalPower / 100000.0;
       }
-      
-      return 0;
     }
+
+    return 0;
+  }
 };
 
 class PowerReactiveVarGetter : public ConditionGetter {
-  public:
-    PowerReactiveVarGetter(int8_t phase) : phase(phase) {}
+ public:
+  explicit PowerReactiveVarGetter(int8_t phase) : phase(phase) {}
 
-    double getValue(Supla::Element *element, bool &isValid) override {
-      isValid = false;
-      if (phase < 0 || phase >= 3 /* MAX_PHASES */) {
-        return 0;
-      }
-
-      _supla_int_t measuredValues = 0;
-      if (auto measurement = getMeasurement(element, measuredValues)) {
-        if (measuredValues & EM_VAR_POWER_REACTIVE) {
-          isValid = true;
-          return measurement->power_reactive[phase] / 100000.0;
-        }
-      }
-      
+  double getValue(Supla::Element *element, bool *isValid) override {
+    *isValid = false;
+    if (phase < 0 || phase >= 3 /* MAX_PHASES */) {
       return 0;
     }
-  protected:
-    int8_t phase = 0;
+
+    _supla_int_t measuredValues = 0;
+    if (auto measurement = getMeasurement(element, &measuredValues)) {
+      if (measuredValues & EM_VAR_POWER_REACTIVE) {
+        *isValid = true;
+        return measurement->power_reactive[phase] / 100000.0;
+      }
+    }
+
+    return 0;
+  }
+ protected:
+  int8_t phase = 0;
 };
 
 class TotalPowerReactiveVarGetter : public ConditionGetter {
-  public:
-    double getValue(Supla::Element *element, bool &isValid) override {
-      isValid = false;
+ public:
+  double getValue(Supla::Element *element, bool *isValid) override {
+    *isValid = false;
 
-      _supla_int_t measuredValues = 0;
-      if (auto measurement = getMeasurement(element, measuredValues)) {
-        if (measuredValues & EM_VAR_POWER_REACTIVE) {
-          double totalPower = 
-            measurement->power_reactive[0] + measurement->power_reactive[1] +
-            measurement->power_reactive[2];
-          isValid = true;
-          return totalPower / 100000.0;
-        }
+    _supla_int_t measuredValues = 0;
+    if (auto measurement = getMeasurement(element, &measuredValues)) {
+      if (measuredValues & EM_VAR_POWER_REACTIVE) {
+        double totalPower =
+          measurement->power_reactive[0] + measurement->power_reactive[1] +
+          measurement->power_reactive[2];
+        *isValid = true;
+        return totalPower / 100000.0;
       }
-      
-      return 0;
     }
+
+    return 0;
+  }
 };
 
-};
+};  // namespace Supla
 
 Supla::ConditionGetter *EmVoltage(int8_t phase) {
   return new Supla::VoltageGetter(phase);

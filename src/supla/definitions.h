@@ -16,8 +16,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef _definitions_h_
-#define _definitions_h_
+#ifndef SRC_SUPLA_DEFINITIONS_H_
+#define SRC_SUPLA_DEFINITIONS_H_
 
 #ifdef ARDUINO
 #include <Arduino.h>
@@ -47,4 +47,4 @@
 #define OUTPUT 1
 #endif /*OUTPUT*/
 
-#endif /*_definitions_h_*/
+#endif  // SRC_SUPLA_DEFINITIONS_H_

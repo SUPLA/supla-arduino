@@ -16,8 +16,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef _tools_H_
-#define _tools_H_
+#ifndef SRC_SUPLA_TOOLS_H_
+#define SRC_SUPLA_TOOLS_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -27,7 +27,11 @@
 void float2DoublePacked(float number, uint8_t *bar, int byteOrder = LSBFIRST);
 float doublePacked2float(uint8_t *bar);
 
-long adjustRange(long input, long inMin, long inMax, long outMin, long outMax);
+int64_t adjustRange(int64_t input,
+    int64_t inMin,
+    int64_t inMax,
+    int64_t outMin,
+    int64_t outMax);
 
 bool isArrayEmpty(void* array, size_t arraySize);
 
@@ -65,4 +69,4 @@ int stringAppend(char *output, const char *input, int maxSize);
 // This method should be implemented in platform specific cpp file
 void deviceSoftwareReset();
 
-#endif
+#endif  // SRC_SUPLA_TOOLS_H_

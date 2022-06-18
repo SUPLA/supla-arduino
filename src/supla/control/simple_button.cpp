@@ -14,9 +14,9 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "button.h"
 #include "../io.h"
 #include "../time.h"
+#include "button.h"
 
 Supla::Control::ButtonState::ButtonState(int pin, bool pullUp, bool invertLogic)
     : debounceTimeMs(0),
@@ -31,7 +31,7 @@ Supla::Control::ButtonState::ButtonState(int pin, bool pullUp, bool invertLogic)
 }
 
 int Supla::Control::ButtonState::update() {
-  unsigned long curMillis = millis();
+  uint64_t curMillis = millis();
   if (debounceDelayMs == 0 || curMillis - debounceTimeMs > debounceDelayMs) {
     int currentState = Supla::Io::digitalRead(pin);
     if (currentState != prevState) {
@@ -41,8 +41,8 @@ int Supla::Control::ButtonState::update() {
         newStatusCandidate = currentState;
         filterTimeMs = curMillis;
       } else if (curMillis - filterTimeMs > swNoiseFilterDelayMs) {
-      // If new status is kept at least swNoiseFilterDelayMs ms, then apply
-      // change of status
+        // If new status is kept at least swNoiseFilterDelayMs ms, then apply
+        // change of status
         debounceTimeMs = curMillis;
         prevState = currentState;
         if (currentState == valueOnPress()) {
@@ -64,7 +64,9 @@ int Supla::Control::ButtonState::update() {
   }
 }
 
-Supla::Control::SimpleButton::SimpleButton(int pin, bool pullUp, bool invertLogic)
+Supla::Control::SimpleButton::SimpleButton(int pin,
+                                           bool pullUp,
+                                           bool invertLogic)
     : state(pin, pullUp, invertLogic) {
 }
 
@@ -93,10 +95,12 @@ int Supla::Control::ButtonState::valueOnPress() {
   return invertLogic ? LOW : HIGH;
 }
 
-void Supla::Control::SimpleButton::setSwNoiseFilterDelay(unsigned int newDelayMs) {
+void Supla::Control::SimpleButton::setSwNoiseFilterDelay(
+    unsigned int newDelayMs) {
   state.setSwNoiseFilterDelay(newDelayMs);
 }
-void Supla::Control::ButtonState::setSwNoiseFilterDelay(unsigned int newDelayMs) {
+void Supla::Control::ButtonState::setSwNoiseFilterDelay(
+    unsigned int newDelayMs) {
   swNoiseFilterDelayMs = newDelayMs;
 }
 

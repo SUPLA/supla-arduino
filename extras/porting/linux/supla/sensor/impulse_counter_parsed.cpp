@@ -14,12 +14,14 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "impulse_counter_parsed.h"
-#include <supla/time.h>
 #include <supla-common/log.h>
+#include <supla/time.h>
+
+#include "impulse_counter_parsed.h"
 
 Supla::Sensor::ImpulseCounterParsed::ImpulseCounterParsed(
-    Supla::Parser::Parser *parser) : SensorParsed(parser) {
+    Supla::Parser::Parser *parser)
+    : SensorParsed(parser) {
   channel.setType(SUPLA_CHANNELTYPE_IMPULSE_COUNTER);
 }
 
@@ -45,7 +47,7 @@ unsigned _supla_int64_t Supla::Sensor::ImpulseCounterParsed::getValue() {
       if (!isDataErrorLogged) {
         isDataErrorLogged = true;
         supla_log(LOG_WARNING,
-            "ImpulseCounterParsed: data source is not valid");
+                  "ImpulseCounterParsed: data source is not valid");
       }
       return 0;
     } else {
@@ -53,7 +55,7 @@ unsigned _supla_int64_t Supla::Sensor::ImpulseCounterParsed::getValue() {
     }
   } else {
     supla_log(LOG_WARNING,
-        "ImpulseCounterParsed: \"counter\" parameter is not configured");
+              "ImpulseCounterParsed: \"counter\" parameter is not configured");
   }
   return static_cast<unsigned _supla_int64_t>(value);
 }

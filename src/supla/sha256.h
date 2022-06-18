@@ -14,8 +14,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef __SUPLA_SHA256_H_
-#define __SUPLA_SHA256_H_
+#ifndef SRC_SUPLA_SHA256_H_
+#define SRC_SUPLA_SHA256_H_
 
 #include "nettle/sha2.h"
 
@@ -25,19 +25,18 @@
 
 namespace Supla {
 
-  class Sha256 {
-    public:
-      Sha256();
-      ~Sha256();
-      void update(const uint8_t *data, const int size);
-      struct sha256_ctx* getHash();
-      void digest(uint8_t *output, int length = 32);
+class Sha256 {
+ public:
+  Sha256();
+  ~Sha256();
+  void update(const uint8_t *data, const int size);
+  struct sha256_ctx* getHash();
+  void digest(uint8_t *output, int length = 32);
 
-    protected:
-      struct sha256_ctx hash;
-
-  };
-
+ protected:
+  struct sha256_ctx hash;
 };
 
-#endif /*__SUPLA_SHA256_H_*/
+};  // namespace Supla
+
+#endif  // SRC_SUPLA_SHA256_H_

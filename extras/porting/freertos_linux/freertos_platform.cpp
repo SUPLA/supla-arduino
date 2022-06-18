@@ -17,6 +17,6 @@
  */
 
 void deviceSoftwareReset() {
-  // TODO implement device sw reset for freeRTOS
+  // TODO(klew): implement device sw reset for freeRTOS
 }
 

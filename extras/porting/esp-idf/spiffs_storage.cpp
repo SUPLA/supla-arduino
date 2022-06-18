@@ -5,37 +5,39 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include <esp_spiffs.h>
+#include <stdio.h>
 #include <string.h>
 #include <supla-common/log.h>
 
 #include <cstdlib>
-#include <stdio.h>
 
 #include "spiffs_storage.h"
 
-using namespace Supla;
+namespace Supla {
 
 // By default, update storage every 3 min
 // Storage is not saved if there is no change
-#define SUPLA_WRITING_PERIOD 3 * 60 * 1000
+#define SUPLA_WRITING_PERIOD 3 * 60 * 1000L
 
 SpiffsStorage::SpiffsStorage(uint32_t storageSize)
-  : Storage(0), bufferSize(storageSize) {
-    setStateSavePeriod((unsigned long)SUPLA_WRITING_PERIOD);
+    : Storage(0), bufferSize(storageSize) {
+  setStateSavePeriod(SUPLA_WRITING_PERIOD);
 
-    buffer = (char *)malloc(bufferSize);
-    memset(buffer, 0, bufferSize);
-  }
+  buffer = reinterpret_cast<char *>(malloc(bufferSize));
+  memset(buffer, 0, bufferSize);
+}
 
 SpiffsStorage::~SpiffsStorage() {
   if (buffer) {
@@ -51,9 +53,9 @@ bool SpiffsStorage::init() {
   }
   // init spiffs
   esp_vfs_spiffs_conf_t conf = {.base_path = "/spiffs",
-    .partition_label = NULL,
-    .max_files = 5,
-    .format_if_mount_failed = true};
+                                .partition_label = NULL,
+                                .max_files = 5,
+                                .format_if_mount_failed = true};
 
   esp_err_t ret = esp_vfs_spiffs_register(&conf);
 
@@ -74,8 +76,8 @@ bool SpiffsStorage::init() {
   ret = esp_spiffs_info(conf.partition_label, &total, &used);
   if (ret != ESP_OK) {
     supla_log(LOG_ERR,
-        "Failed to get SPIFFS partition information (%s)",
-        esp_err_to_name(ret));
+              "Failed to get SPIFFS partition information (%s)",
+              esp_err_to_name(ret));
   } else {
     supla_log(LOG_INFO, "Partition size: total: %d, used: %d", total, used);
   }
@@ -104,9 +106,9 @@ bool SpiffsStorage::init() {
 }
 
 int SpiffsStorage::readStorage(unsigned int offset,
-    unsigned char *buf,
-    int size,
-    bool logs) {
+                               unsigned char *buf,
+                               int size,
+                               bool logs) {
   if (!buffer) {
     return 0;
   }
@@ -123,8 +125,8 @@ int SpiffsStorage::readStorage(unsigned int offset,
 }
 
 int SpiffsStorage::writeStorage(unsigned int offset,
-    const unsigned char *buf,
-    int size) {
+                                const unsigned char *buf,
+                                int size) {
   dataChanged = true;
 
   if (offset + size > bufferSize) {
@@ -159,3 +161,5 @@ void SpiffsStorage::commit() {
   }
   dataChanged = false;
 }
+
+}  // namespace Supla

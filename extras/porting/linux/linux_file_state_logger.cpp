@@ -5,33 +5,37 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "linux_file_state_logger.h"
-#include <filesystem>
-#include <ctime>
-#include <iomanip>
 #include <supla-common/log.h>
+
+#include <ctime>
+#include <filesystem>
 #include <fstream>
+#include <iomanip>
+
+#include "linux_file_state_logger.h"
 #include "supla/device/last_state_logger.h"
 
 namespace Supla {
-  const char LastStateFile[] = "/last_state.txt";
+const char LastStateFile[] = "/last_state.txt";
 };
 
-Supla::Device::FileStateLogger::FileStateLogger(const std::string& path) {
+Supla::Device::FileStateLogger::FileStateLogger(const std::string &path) {
   if (!std::filesystem::exists(path)) {
     std::error_code err;
     if (!std::filesystem::create_directories(path, err)) {
       supla_log(LOG_WARNING,
-          "Config: failed to create folder for last state file");
+                "Config: failed to create folder for last state file");
       return;
     }
   }
@@ -52,6 +56,8 @@ void Supla::Device::FileStateLogger::addToFile(const char *line) {
   std::ofstream out(file, std::ios_base::app);
 
   time_t now = time(nullptr);
-  out << std::put_time(localtime(&now), "%F %T ") << line << std::endl;
+  out <<
+    std::put_time(localtime(&now), "%F %T ")  // NOLINT(runtime/threadsafe_fn)
+    << line << std::endl;
   out.close();
 }

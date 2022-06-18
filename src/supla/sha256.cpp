@@ -16,7 +16,7 @@
 
 #include "sha256.h"
 
-Supla::Sha256::Sha256(){
+Supla::Sha256::Sha256() {
   sha256_init(&hash);
 }
 
