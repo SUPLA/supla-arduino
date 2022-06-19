@@ -14,20 +14,20 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _roller_shutter_h
-#define _roller_shutter_h
+#ifndef SRC_SUPLA_CONTROL_ROLLER_SHUTTER_H_
+#define SRC_SUPLA_CONTROL_ROLLER_SHUTTER_H_
 
 #include <stdint.h>
 
-#include "../io.h"
-#include "../channel_element.h"
 #include "../action_handler.h"
 #include "../actions.h"
+#include "../channel_element.h"
+#include "../io.h"
 
-#define UNKNOWN_POSITION    -1
-#define STOP_POSITION       -2
-#define MOVE_UP_POSITION    -3
-#define MOVE_DOWN_POSITION  -4
+#define UNKNOWN_POSITION   -1
+#define STOP_POSITION      -2
+#define MOVE_UP_POSITION   -3
+#define MOVE_DOWN_POSITION -4
 
 namespace Supla {
 namespace Control {
@@ -41,17 +41,18 @@ class RollerShutter : public ChannelElement, public ActionHandler {
   int handleNewValueFromServer(TSD_SuplaChannelNewValue *newValue);
   void handleAction(int event, int action);
 
-  void close(); // Sets target position to 100%
-  void open();  // Sets target position to 0%
-  void stop();  // Stop motor
-  void moveUp();   // start opening roller shutter regardless of its position (keep motor going up)
-  void moveDown(); // starts closing roller shutter regardless of its position (keep motor going down)
+  void close();         // Sets target position to 100%
+  void open();          // Sets target position to 0%
+  virtual void stop();  // Stop motor
+  void moveUp();    // start opening roller shutter regardless of its position
+                    // (keep motor going up)
+  void moveDown();  // starts closing roller shutter regardless of its position
+                    // (keep motor going down)
   void setTargetPosition(int newPosition);
   int getCurrentPosition();
 
   void configComfortUpValue(uint8_t position);
   void configComfortDownValue(uint8_t position);
-
 
   void onInit();
   void onTimer();
@@ -71,11 +72,12 @@ class RollerShutter : public ChannelElement, public ActionHandler {
 
   bool lastDirectionWasOpen();
   bool lastDirectionWasClose();
-  bool inMove();
+  virtual bool inMove();
 
   uint32_t closingTimeMs;
   uint32_t openingTimeMs;
-  bool calibrate; // set to true when new closing/opening time is given - calibration is done to sync roller shutter position
+  bool calibrate;  // set to true when new closing/opening time is given -
+                   // calibration is done to sync roller shutter position
 
   uint8_t comfortDownValue;
   uint8_t comfortUpValue;
@@ -84,25 +86,23 @@ class RollerShutter : public ChannelElement, public ActionHandler {
 
   bool highIsOn;
 
-  uint8_t currentDirection; // stop, up, down 
+  uint8_t currentDirection;  // stop, up, down
   uint8_t lastDirection;
 
-  int8_t currentPosition; // 0 - closed; 100 - opened
-  int8_t targetPosition; // 0-100 
-  int8_t lastPositionBeforeMovement; // 0-100
+  int8_t currentPosition;             // 0 - closed; 100 - opened
+  int8_t targetPosition;              // 0-100
+  int8_t lastPositionBeforeMovement;  // 0-100
 
   int pinUp;
   int pinDown;
 
-  unsigned long lastMovementStartTime;
-  unsigned long doNothingTime;
-  unsigned long calibrationTime;
-  unsigned long operationTimeout;
+  uint64_t lastMovementStartTime;
+  uint64_t doNothingTime;
+  uint64_t calibrationTime;
+  uint64_t operationTimeout;
 };
 
 };  // namespace Control
 };  // namespace Supla
 
-#endif
-
-
+#endif  // SRC_SUPLA_CONTROL_ROLLER_SHUTTER_H_

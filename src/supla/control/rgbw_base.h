@@ -5,17 +5,19 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _rgbw_base_h
-#define _rgbw_base_h
+#ifndef SRC_SUPLA_CONTROL_RGBW_BASE_H_
+#define SRC_SUPLA_CONTROL_RGBW_BASE_H_
 
 #include <stdint.h>
 
@@ -61,6 +63,14 @@ class RGBWBase : public ChannelElement, public ActionHandler {
   virtual RGBWBase &setDefaultStateOn();
   virtual RGBWBase &setDefaultStateOff();
   virtual RGBWBase &setDefaultStateRestore();
+  // Set mapping between interface setting of brightness and actual value
+  // set on device. Values should be between 0 and 1023 (min, max).
+  // I.e. if limit is set to (100, 800), then values from Supla in range
+  // 0-100% are mapped to PWM values in range 100 and 800.
+  virtual RGBWBase &setBrightnessLimits(int min, int max);
+  // Set mapping between interface setting of color brightness and actual value
+  // set on device. Values should be between 0 and 1023 (min, max).
+  virtual RGBWBase &setColorBrightnessLimits(int min, int max);
 
  protected:
   uint8_t addWithLimit(int value, int addition, int limit = 255);
@@ -83,8 +93,12 @@ class RGBWBase : public ChannelElement, public ActionHandler {
   int hwBlue;             // 0 - 255
   int hwColorBrightness;  // 0 - 100
   int hwBrightness;       // 0 - 100
-  unsigned long lastTick;
-  unsigned long lastMsgReceivedMs;
+  int minBrightness = 0;
+  int maxBrightness = 1023;
+  int minColorBrightness = 0;
+  int maxColorBrightness = 1023;
+  uint64_t lastTick;
+  uint64_t lastMsgReceivedMs;
   int8_t stateOnInit;
   uint8_t minIterationBrightness;
 };
@@ -92,4 +106,4 @@ class RGBWBase : public ChannelElement, public ActionHandler {
 };  // namespace Control
 };  // namespace Supla
 
-#endif
+#endif  // SRC_SUPLA_CONTROL_RGBW_BASE_H_

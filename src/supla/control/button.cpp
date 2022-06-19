@@ -5,17 +5,20 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include "button.h"
 #include <supla/time.h>
+
+#include "button.h"
 
 Supla::Control::Button::Button(int pin, bool pullUp, bool invertLogic)
     : SimpleButton(pin, pullUp, invertLogic),
@@ -51,7 +54,9 @@ void Supla::Control::Button::onTimer() {
 
   if (!stateChanged) {
     if (!bistable && stateResult == PRESSED) {
-      if (clickCounter <= 1 && holdTimeMs > 0 && timeDelta > (holdTimeMs + holdSend*repeatOnHoldMs) && (repeatOnHoldMs == 0 ? !holdSend : true)) {
+      if (clickCounter <= 1 && holdTimeMs > 0 &&
+          timeDelta > (holdTimeMs + holdSend * repeatOnHoldMs) &&
+          (repeatOnHoldMs == 0 ? !holdSend : true)) {
         runAction(ON_HOLD);
         ++holdSend;
       }
@@ -97,7 +102,7 @@ void Supla::Control::Button::onTimer() {
           if (clickCounter >= 10) {
             runAction(ON_CRAZY_CLICKER);
           }
-        }  else {
+        } else {
           switch (clickCounter) {
             // for LONG_CLICK counter was incremented once by ON_HOLD
             case 1:
@@ -134,8 +139,6 @@ void Supla::Control::Button::onTimer() {
               runAction(ON_LONG_CLICK_10);
               break;
           }
-
-
         }
         holdSend = 0;
         clickCounter = 0;
@@ -151,7 +154,8 @@ void Supla::Control::Button::setHoldTime(unsigned int timeMs) {
   }
 }
 
-void Supla::Control::Button::setMulticlickTime(unsigned int timeMs, bool bistableButton) {
+void Supla::Control::Button::setMulticlickTime(unsigned int timeMs,
+                                               bool bistableButton) {
   multiclickTimeMs = timeMs;
   bistable = bistableButton;
   if (bistable) {

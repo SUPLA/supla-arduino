@@ -14,6 +14,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#include "esp_idf_gpio.h"
+
 #include <driver/gpio.h>
 #include <supla-common/log.h>
 #include <supla/definitions.h>
@@ -35,8 +37,8 @@ void pinMode(uint8_t pin, uint8_t mode) {
     }
     case OUTPUT: {
       // in OUTPUT mode we also want to read GPIO value
-      cfg.mode =
-        static_cast<gpio_mode_t>((GPIO_MODE_DEF_INPUT) | (GPIO_MODE_DEF_OUTPUT));
+      cfg.mode = static_cast<gpio_mode_t>((GPIO_MODE_DEF_INPUT) |
+                                          (GPIO_MODE_DEF_OUTPUT));
       break;
     }
     case INPUT_PULLUP: {
@@ -48,7 +50,7 @@ void pinMode(uint8_t pin, uint8_t mode) {
       supla_log(LOG_ERR, "GPIO pinMode: mode %d is not implemented", mode);
       break;
     }
-  };
+  }
 
   gpio_config(&cfg);
 }
@@ -66,7 +68,7 @@ void analogWrite(uint8_t pin, int val) {
       LOG_ERR, " *** NOT IMPLEMENTED *** GPIO %d analog write %d", pin, val);
 }
 
-unsigned int pulseIn(uint8_t pin, uint8_t val, unsigned long timeoutMicro) {
+unsigned int pulseIn(uint8_t pin, uint8_t val, uint64_t timeoutMicro) {
   supla_log(LOG_ERR, " *** NOT IMPLEMENTED *** GPIO %d pulse in %d", pin, val);
   return 0;
 }

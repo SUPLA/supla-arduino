@@ -14,8 +14,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _events_h
-#define _events_h
+#ifndef SRC_SUPLA_EVENTS_H_
+#define SRC_SUPLA_EVENTS_H_
 
 namespace Supla {
 
@@ -35,8 +35,8 @@ enum Event {
   ON_CLICK_8,
   ON_CLICK_9,
   ON_CLICK_10,
-  ON_CRAZY_CLICKER,  // triggered on >= 10 clicks 
-  ON_SEQUENCE_MATCH,        // triggered by SequenceButton 
+  ON_CRAZY_CLICKER,  // triggered on >= 10 clicks
+  ON_SEQUENCE_MATCH,        // triggered by SequenceButton
   ON_SEQUENCE_DOESNT_MATCH,  // triggered by SequenceButton
   ON_TURN_ON,
   ON_TURN_OFF,
@@ -54,6 +54,6 @@ enum Event {
   ON_LONG_CLICK_10,
 };
 
-};
+};  // namespace Supla
 
-#endif
+#endif  // SRC_SUPLA_EVENTS_H_

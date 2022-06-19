@@ -14,8 +14,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _element_h
-#define _element_h
+#ifndef SRC_SUPLA_ELEMENT_H_
+#define SRC_SUPLA_ELEMENT_H_
 
 #include "channel.h"
 
@@ -30,13 +30,20 @@ class Element {
   static Element *getElementByChannelNumber(int channelNumber);
   Element *next();
 
-  // method called during SuplaDevice initialization. I.e. load initial state,
-  // initialize pins etc.
-  virtual void onInit();
+  // First method called on element in SuplaDevice.begin()
+  // Called only if Config Storage class is configured
+  // Element should read its configration in this method
+  virtual void onLoadConfig();
 
+  // Second method called on element in SuplaDevice.begin()
   // method called during Config initialization (i.e. read from EEPROM, FRAM).
   // Called only if Storage class is configured
   virtual void onLoadState();
+
+  // Third method called on element in SuplaDevice.begin()
+  // method called during SuplaDevice initialization. I.e. load initial state,
+  // initialize pins etc.
+  virtual void onInit();
 
   // method called periodically during SuplaDevice iteration
   // Called only if Storage class is configured
@@ -72,7 +79,7 @@ class Element {
 
   // Handles "get channel state" request from server
   // channelState is prefilled with network and device status informations
-  virtual void handleGetChannelState(TDSC_ChannelState &channelState);
+  virtual void handleGetChannelState(TDSC_ChannelState *channelState);
 
   virtual int handleCalcfgFromServer(TSD_DeviceCalCfgRequest *request);
   virtual void handleChannelConfig(TSD_ChannelConfig *result);
@@ -90,4 +97,4 @@ class Element {
 
 };  // namespace Supla
 
-#endif
+#endif  // SRC_SUPLA_ELEMENT_H_

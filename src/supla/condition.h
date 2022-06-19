@@ -14,8 +14,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _condition_h
-#define _condition_h
+#ifndef SRC_SUPLA_CONDITION_H_
+#define SRC_SUPLA_CONDITION_H_
 
 #include "action_handler.h"
 #include "condition_getter.h"
@@ -23,7 +23,7 @@
 namespace Supla {
 
 class Element;
- 
+
 class Condition : public ActionHandler {
  public:
   Condition(double threshold, bool useAlternativeMeasurement);
@@ -32,8 +32,8 @@ class Condition : public ActionHandler {
   virtual ~Condition();
   void setSource(Element *src);
   void setClient(ActionHandler *clientPtr);
-  void setSource(Element &src);
-  void setClient(ActionHandler &clientPtr);
+  void setSource(Element &src);  // NOLINT(runtime/references)
+  void setClient(ActionHandler &clientPtr);  // NOLINT(runtime/references)
 
   void activateAction(int action) override;
   void handleAction(int event, int action) override;
@@ -50,27 +50,39 @@ class Condition : public ActionHandler {
   Supla::Element *source = nullptr;
   Supla::ActionHandler *client = nullptr;
   Supla::ConditionGetter *getter = nullptr;
-
 };
 
-};
+};  // namespace Supla
 
-Supla::Condition *OnLess(double threshold, bool useAlternativeMeasurement = false);
-Supla::Condition *OnLessEq(double threshold, bool useAlternativeMeasurement = false);
-Supla::Condition *OnGreater(double threshold, bool useAlternativeMeasurement = false);
-Supla::Condition *OnGreaterEq(double threshold, bool useAlternativeMeasurement = false);
-Supla::Condition *OnBetween(double threshold1, double threshold2, bool useAlternativeMeasurement = false);
-Supla::Condition *OnBetweenEq(double threshold1, double threshold2, bool useAlternativeMeasurement = false);
-Supla::Condition *OnEqual(double threshold, bool useAlternativeMeasurement = false);
+Supla::Condition *OnLess(double threshold,
+    bool useAlternativeMeasurement = false);
+Supla::Condition *OnLessEq(double threshold,
+    bool useAlternativeMeasurement = false);
+Supla::Condition *OnGreater(double threshold,
+    bool useAlternativeMeasurement = false);
+Supla::Condition *OnGreaterEq(double threshold,
+    bool useAlternativeMeasurement = false);
+Supla::Condition *OnBetween(double threshold1,
+    double threshold2,
+    bool useAlternativeMeasurement = false);
+Supla::Condition *OnBetweenEq(double threshold1,
+    double threshold2,
+    bool useAlternativeMeasurement = false);
+Supla::Condition *OnEqual(double threshold,
+    bool useAlternativeMeasurement = false);
 Supla::Condition *OnInvalid(bool useAlternativeMeasurement = false);
 
 Supla::Condition *OnLess(double threshold, Supla::ConditionGetter *);
 Supla::Condition *OnLessEq(double threshold, Supla::ConditionGetter *);
 Supla::Condition *OnGreater(double threshold, Supla::ConditionGetter *);
 Supla::Condition *OnGreaterEq(double threshold, Supla::ConditionGetter *);
-Supla::Condition *OnBetween(double threshold1, double threshold2, Supla::ConditionGetter *);
-Supla::Condition *OnBetweenEq(double threshold1, double threshold2, Supla::ConditionGetter *);
+Supla::Condition *OnBetween(double threshold1,
+    double threshold2,
+    Supla::ConditionGetter *);
+Supla::Condition *OnBetweenEq(double threshold1,
+    double threshold2,
+    Supla::ConditionGetter *);
 Supla::Condition *OnEqual(double threshold, Supla::ConditionGetter *);
 Supla::Condition *OnInvalid(Supla::ConditionGetter *);
 
-#endif
+#endif  // SRC_SUPLA_CONDITION_H_

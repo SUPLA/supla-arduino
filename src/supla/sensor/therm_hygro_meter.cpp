@@ -22,6 +22,10 @@ Supla::Sensor::ThermHygroMeter::ThermHygroMeter() {
   channel.setDefault(SUPLA_CHANNELFNC_HUMIDITYANDTEMPERATURE);
 }
 
+void Supla::Sensor::ThermHygroMeter::onInit() {
+  channel.setNewValue(getTemp(), getHumi());
+}
+
 double Supla::Sensor::ThermHygroMeter::getTemp() {
   return TEMPERATURE_NOT_AVAILABLE;
 }

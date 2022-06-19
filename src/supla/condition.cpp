@@ -20,16 +20,18 @@
 
 Supla::Condition::Condition(double threshold, bool useAlternativeMeasurement)
   : threshold(threshold),
-  useAlternativeMeasurement(useAlternativeMeasurement)
-{
-}
+  useAlternativeMeasurement(useAlternativeMeasurement) {
+  }
 
 Supla::Condition::Condition(double threshold, Supla::ConditionGetter *getter)
-  : threshold(threshold), getter(getter)
-{
-}
+  : threshold(threshold), getter(getter) {
+  }
 
 Supla::Condition::~Condition() {
+  if (getter) {
+    delete getter;
+    getter = nullptr;
+  }
 }
 
 void Supla::Condition::handleAction(int event, int action) {
@@ -40,13 +42,13 @@ void Supla::Condition::handleAction(int event, int action) {
     }
 
     int channelType = source->getChannel()->getChannelType();
-    
+
     // Read channel value
     double value = 0;
     bool isValid = true;
 
     if (getter) {
-      value = getter->getValue(source, isValid);
+      value = getter->getValue(source, &isValid);
     } else {
       switch (channelType) {
         case SUPLA_CHANNELTYPE_DISTANCESENSOR:

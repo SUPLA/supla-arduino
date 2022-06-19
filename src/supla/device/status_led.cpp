@@ -5,23 +5,49 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#include "../../SuplaDevice.h"
 #include "../io.h"
+#include "../storage/storage.h"
 #include "../time.h"
 #include "status_led.h"
-#include "../../SuplaDevice.h"
-
 
 Supla::Device::StatusLed::StatusLed(uint8_t outPin, bool invert)
     : outPin(outPin), invert(invert) {
+}
+
+void Supla::Device::StatusLed::onLoadConfig() {
+  auto cfg = Supla::Storage::ConfigInstance();
+  if (cfg) {
+    int8_t value = 0;
+    if (cfg->getInt8("statusled", &value)) {
+      switch (value) {
+        default:
+        case 0: {
+          setMode(LED_ON_WHEN_CONNECTED);
+          break;
+        }
+        case 1: {
+          setMode(LED_OFF_WHEN_CONNECTED);
+          break;
+        }
+        case 2: {
+          setMode(LED_ALWAYS_OFF);
+          break;
+        }
+      }
+    }
+  }
 }
 
 void Supla::Device::StatusLed::onInit() {
@@ -56,6 +82,7 @@ void Supla::Device::StatusLed::iterateAlways() {
         currentSequence = SERVER_CONNECTING;
         break;
 
+      case STATUS_SOFTWARE_RESET:
       case STATUS_REGISTERED_AND_READY:
         currentSequence = REGISTERED_AND_READY;
         break;
@@ -127,8 +154,8 @@ void Supla::Device::StatusLed::iterateAlways() {
         break;
 
       case PACZKOW_WE_HAVE_A_PROBLEM:
-        onDuration = 500;
-        offDuration = 500;
+        onDuration = 300;
+        offDuration = 100;
         break;
 
       case CUSTOM_SEQUENCE:
@@ -137,9 +164,6 @@ void Supla::Device::StatusLed::iterateAlways() {
     }
   }
 }
-
-
-
 
 void Supla::Device::StatusLed::onTimer() {
   updatePin();
@@ -180,7 +204,8 @@ void Supla::Device::StatusLed::updatePin() {
   }
 }
 
-void Supla::Device::StatusLed::setCustomSequence(int onDurationMs, int offDurationMs) {
+void Supla::Device::StatusLed::setCustomSequence(int onDurationMs,
+                                                 int offDurationMs) {
   currentSequence = CUSTOM_SEQUENCE;
   onDuration = onDurationMs;
   offDuration = offDurationMs;

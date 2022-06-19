@@ -16,11 +16,11 @@
 
 #include "action_handler.h"
 
-Supla::ActionHandler::~ActionHandler() {};
+Supla::ActionHandler::~ActionHandler() {}
 
 void Supla::ActionHandler::activateAction(int action) {
   (void)(action);
-};
+}
 
 bool Supla::ActionHandler::deleteClient() {
   return false;

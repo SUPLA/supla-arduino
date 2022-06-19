@@ -5,17 +5,19 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _bme280_h
-#define _bme280_h
+#ifndef SRC_SUPLA_SENSOR_BME280_H_
+#define SRC_SUPLA_SENSOR_BME280_H_
 
 // Dependency: Adafruid BME280 library - use library manager to install it
 #include <Adafruit_BME280.h>
@@ -26,7 +28,8 @@ namespace Supla {
 namespace Sensor {
 class BME280 : public ThermHygroPressMeter {
  public:
-  BME280(int8_t address = 0x77, float altitude = NAN) : address(address), sensorStatus(false), altitude(altitude) {
+  explicit BME280(int8_t address = 0x77, float altitude = NAN)
+      : address(address), sensorStatus(false), altitude(altitude) {
   }
 
   double getTemp() {
@@ -101,4 +104,4 @@ class BME280 : public ThermHygroPressMeter {
 };  // namespace Sensor
 };  // namespace Supla
 
-#endif
+#endif  // SRC_SUPLA_SENSOR_BME280_H_

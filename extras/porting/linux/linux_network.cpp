@@ -5,24 +5,27 @@
    modify it under the terms of the GNU General Public License
    as published by the Free Software Foundation; either version 2
    of the License, or (at your option) any later version.
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
+
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-   */
+*/
 
+#include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
 #include <openssl/err.h>
+#include <poll.h>
 #include <resolv.h>
 #include <string.h>
 #include <supla/supla_lib_config.h>
 #include <unistd.h>
-#include <arpa/inet.h>
 
 #include <iostream>
 
@@ -35,31 +38,31 @@ int32_t print_ssl_error(SSL *ssl, int ret_code) {
 
   switch (ssl_error) {
     case SSL_ERROR_NONE:
-      supla_log(LOG_DEBUG, "SSL_ERROR_NONE");
+      supla_log(LOG_ERR, "SSL_ERROR_NONE");
       break;
     case SSL_ERROR_SSL:
-      supla_log(LOG_DEBUG, "SSL_ERROR_SSL");
+      supla_log(LOG_ERR, "SSL_ERROR_SSL");
       break;
     case SSL_ERROR_WANT_READ:
-      supla_log(LOG_DEBUG, "SSL_ERROR_WANT_READ");
+      supla_log(LOG_ERR, "SSL_ERROR_WANT_READ");
       break;
     case SSL_ERROR_WANT_WRITE:
-      supla_log(LOG_DEBUG, "SSL_ERROR_WANT_WRITE");
+      supla_log(LOG_ERR, "SSL_ERROR_WANT_WRITE");
       break;
     case SSL_ERROR_WANT_X509_LOOKUP:
-      supla_log(LOG_DEBUG, "SSL_ERROR_WANT_X509_LOOKUP");
+      supla_log(LOG_ERR, "SSL_ERROR_WANT_X509_LOOKUP");
       break;
     case SSL_ERROR_SYSCALL:
-      supla_log(LOG_DEBUG, "SSL_ERROR_SYSCALL");
+      supla_log(LOG_ERR, "SSL_ERROR_SYSCALL");
       break;
     case SSL_ERROR_ZERO_RETURN:
-      supla_log(LOG_DEBUG, "SSL_ERROR_ZERO_RETURN");
+      supla_log(LOG_ERR, "SSL_ERROR_ZERO_RETURN");
       break;
     case SSL_ERROR_WANT_CONNECT:
-      supla_log(LOG_DEBUG, "SSL_ERROR_WANT_CONNECT");
+      supla_log(LOG_ERR, "SSL_ERROR_WANT_CONNECT");
       break;
     case SSL_ERROR_WANT_ACCEPT:
-      supla_log(LOG_DEBUG, "SSL_ERROR_WANT_ACCEPT");
+      supla_log(LOG_ERR, "SSL_ERROR_WANT_ACCEPT");
       break;
   }
 
@@ -67,7 +70,7 @@ int32_t print_ssl_error(SSL *ssl, int ret_code) {
 }
 
 void print_ssl_certs(SSL *ssl) {
-  X509 *cert;
+  X509 *cert = nullptr;
   char *line;
 
   cert = SSL_get_peer_certificate(ssl);
@@ -86,6 +89,7 @@ void print_ssl_certs(SSL *ssl) {
 }
 
 Supla::LinuxNetwork::LinuxNetwork() : Network(nullptr) {
+  signal(SIGPIPE, SIG_IGN);
 }
 
 Supla::LinuxNetwork::~LinuxNetwork() {
@@ -109,7 +113,7 @@ int Supla::LinuxNetwork::read(void *buf, int count) {
         break;
       }
       case SSL_ERROR_ZERO_RETURN: {
-        supla_log(LOG_DEBUG, "Connection closed by peer");
+        supla_log(LOG_INFO, "Connection closed by peer");
         Disconnect();
         break;
       }
@@ -142,15 +146,15 @@ int Supla::LinuxNetwork::connect(const char *server, int port) {
 
   int connectionPort = (port == -1 ? 2015 : port);
   if (connectionPort != 2016) {
-    supla_log(
-        LOG_DEBUG,
-        "Server port is not 2016. Trying to establish secured connection anyway");
+    supla_log(LOG_WARNING,
+              "Server port is not 2016. Trying to establish secured connection "
+              "anyway");
   }
 
-  supla_log(LOG_DEBUG,
-      "Establishing connection with: %s (port: %d)",
-      server,
-      connectionPort);
+  supla_log(LOG_INFO,
+            "Establishing connection with: %s (port: %d)",
+            server,
+            connectionPort);
 
   struct hostent *host = gethostbyname(server);
   if (host == nullptr) {
@@ -165,7 +169,7 @@ int Supla::LinuxNetwork::connect(const char *server, int port) {
   hints.ai_protocol = IPPROTO_TCP;
 
   char portStr[10] = "2016";
-  snprintf(portStr, 10, "%d", port);
+  snprintf(portStr, sizeof(portStr), "%d", port);
 
   const int status = getaddrinfo(server, portStr, &hints, &addresses);
   if (status != 0) {
@@ -173,20 +177,45 @@ int Supla::LinuxNetwork::connect(const char *server, int port) {
     return 0;
   }
 
-  int err;
-  for (struct addrinfo *addr = addresses; addr != nullptr; addr = addr->ai_next) {
-    connectionFd =
-      socket(addresses->ai_family, addresses->ai_socktype, addresses->ai_protocol);
+  int err = 0;
+  int flagsCopy = 0;
+  for (struct addrinfo *addr = addresses; addr != nullptr;
+       addr = addr->ai_next) {
+    connectionFd = socket(
+        addresses->ai_family, addresses->ai_socktype, addresses->ai_protocol);
     if (connectionFd == -1) {
       err = errno;
       continue;
     }
 
+    flagsCopy = fcntl(connectionFd, F_GETFL, 0);
+    fcntl(connectionFd, F_SETFL, O_NONBLOCK);
     if (::connect(connectionFd, addr->ai_addr, addr->ai_addrlen) == 0) {
       break;
     }
 
     err = errno;
+    bool isConnected = false;
+
+    if (errno == EWOULDBLOCK || errno == EINPROGRESS) {
+      struct pollfd pfd = {};
+      pfd.fd = connectionFd;
+      pfd.events = POLLOUT;
+
+      int result = poll(&pfd, 1, 3000);
+      if (result > 0) {
+        socklen_t len = sizeof(err);
+        int retval = getsockopt(connectionFd, SOL_SOCKET, SO_ERROR, &err, &len);
+
+        if (retval == 0 && err == 0) {
+          isConnected = true;
+        }
+      }
+    }
+
+    if (isConnected) {
+      break;
+    }
     connectionFd = -1;
     close(connectionFd);
   }
@@ -197,6 +226,8 @@ int Supla::LinuxNetwork::connect(const char *server, int port) {
     supla_log(LOG_ERR, "%s: %s", server, strerror(err));
     return 0;
   }
+
+  fcntl(connectionFd, F_SETFL, flagsCopy);
 
   SSL_set_fd(ssl, connectionFd);
   SSL_connect(ssl);
@@ -214,8 +245,12 @@ bool Supla::LinuxNetwork::connected() {
 }
 
 void Supla::LinuxNetwork::disconnect() {
-  SSL_free(ssl);
-  close(connectionFd);
+  if (ssl) {
+    SSL_free(ssl);
+  }
+  if (connectionFd >= 0) {
+    close(connectionFd);
+  }
   connectionFd = -1;
   ssl = nullptr;
 }
@@ -241,12 +276,12 @@ bool Supla::LinuxNetwork::iterate() {
   return true;
 }
 
-void Supla::LinuxNetwork::fillStateData(TDSC_ChannelState &channelState) {
-  channelState.Fields |= SUPLA_CHANNELSTATE_FIELD_IPV4;
+void Supla::LinuxNetwork::fillStateData(TDSC_ChannelState *channelState) {
+  channelState->Fields |= SUPLA_CHANNELSTATE_FIELD_IPV4;
 
   struct sockaddr_in address = {};
   socklen_t len = sizeof(address);
   getsockname(connectionFd, (struct sockaddr *)&address, &len);
-  channelState.IPv4 =
-    static_cast<unsigned _supla_int_t>(address.sin_addr.s_addr);
+  channelState->IPv4 =
+      static_cast<unsigned _supla_int_t>(address.sin_addr.s_addr);
 }

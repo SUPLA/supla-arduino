@@ -21,11 +21,15 @@ Supla::Channel *Supla::ChannelElement::getChannel() {
   return &channel;
 }
 
-void Supla::ChannelElement::addAction(int action, ActionHandler &client, int event) {
+void Supla::ChannelElement::addAction(int action,
+    ActionHandler &client,
+    int event) {
   channel.addAction(action, client, event);
 }
 
-void Supla::ChannelElement::addAction(int action, ActionHandler *client, int event) {
+void Supla::ChannelElement::addAction(int action,
+    ActionHandler *client,
+    int event) {
   addAction(action, *client, event);
 }
 
@@ -33,13 +37,16 @@ bool Supla::ChannelElement::isEventAlreadyUsed(int event) {
   return channel.isEventAlreadyUsed(event);
 }
 
-void Supla::ChannelElement::addAction(int action, ActionHandler &client, Supla::Condition *condition) {
+void Supla::ChannelElement::addAction(int action,
+    ActionHandler &client,
+    Supla::Condition *condition) {
   condition->setClient(client);
   condition->setSource(this);
   channel.addAction(action, condition, Supla::ON_CHANGE);
 }
 
-void Supla::ChannelElement::addAction(int action, ActionHandler *client, Supla::Condition *condition) {
+void Supla::ChannelElement::addAction(int action,
+    ActionHandler *client,
+    Supla::Condition *condition) {
   addAction(action, *client, condition);
 }
-

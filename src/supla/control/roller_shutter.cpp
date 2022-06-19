@@ -14,10 +14,11 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#include <supla/storage/storage.h>
-
 #include "roller_shutter.h"
+
 #include <supla-common/log.h>
+
+#include <supla/storage/storage.h>
 #include <supla/time.h>
 
 namespace Supla {
@@ -310,7 +311,7 @@ void RollerShutter::switchOffRelays() {
 
 void RollerShutter::onTimer() {
   if (millis() - doNothingTime <
-      300) {  // doNothingTime time is used when we change
+      500) {  // doNothingTime time is used when we change
               // direction of roller - to stop for a moment
               // before enabling opposite direction
     return;

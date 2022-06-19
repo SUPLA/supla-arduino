@@ -5,17 +5,19 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _sequence_button_h
-#define _sequence_button_h
+#ifndef SRC_SUPLA_CONTROL_SEQUENCE_BUTTON_H_
+#define SRC_SUPLA_CONTROL_SEQUENCE_BUTTON_H_
 
 #include "button.h"
 
@@ -27,10 +29,12 @@ namespace Control {
 struct ClickSequence {
   uint16_t data[SEQUENCE_MAX_SIZE];
 };
- 
+
 class SequenceButton : public SimpleButton {
  public:
-  SequenceButton(int pin, bool pullUp = false, bool invertLogic = false);
+  explicit SequenceButton(int pin,
+                          bool pullUp = false,
+                          bool invertLogic = false);
 
   void onTimer();
 
@@ -39,7 +43,7 @@ class SequenceButton : public SimpleButton {
   void getLastRecordedSequence(uint16_t *sequence);
 
  protected:
-  unsigned long lastStateChangeMs;
+  uint64_t lastStateChangeMs;
   uint16_t longestSequenceTimeDeltaWithMargin;
   uint8_t clickCounter;
   bool sequenceDetectecion;
@@ -49,10 +53,9 @@ class SequenceButton : public SimpleButton {
 
   float margin;
   unsigned int calculateMargin(unsigned int);
-
 };
 
 };  // namespace Control
 };  // namespace Supla
 
-#endif
+#endif  // SRC_SUPLA_CONTROL_SEQUENCE_BUTTON_H_

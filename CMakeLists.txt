@@ -14,6 +14,10 @@ set(SUPLA_DEVICE_SRCS
   src/supla/action_handler.cpp
   src/supla/time.cpp
   src/supla/timer.cpp
+  src/supla/mutex.cpp
+  src/supla/auto_lock.cpp
+  src/supla/sha256.cpp
+  src/supla/rsa_verificator.cpp
 
   src/supla/condition.cpp
   src/supla/condition_getter.cpp
@@ -28,9 +32,27 @@ set(SUPLA_DEVICE_SRCS
 
   src/supla/clock/clock.cpp
 
+  src/supla/device/last_state_logger.cpp
+  src/supla/device/status_led.cpp
+  src/supla/device/sw_update.cpp
+
   src/supla/storage/storage.cpp
+  src/supla/storage/config.cpp
+  src/supla/storage/key_value.cpp
 
   src/supla/network/network.cpp
+  src/supla/network/html_element.cpp
+  src/supla/network/html_generator.cpp
+  src/supla/network/web_server.cpp
+  src/supla/network/web_sender.cpp
+  src/supla/network/netif_wifi.cpp
+  src/supla/network/html/device_info.cpp
+  src/supla/network/html/protocol_parameters.cpp
+  src/supla/network/html/status_led_parameters.cpp
+  src/supla/network/html/wifi_parameters.cpp
+  src/supla/network/html/sw_update_beta.cpp
+  src/supla/network/html/sw_update.cpp
+  src/supla/network/html/custom_sw_update.cpp
 
   src/supla/control/action_trigger.cpp
   src/supla/control/bistable_relay.cpp
@@ -51,6 +73,12 @@ set(SUPLA_DEVICE_SRCS
   src/supla/control/simple_button.cpp
   src/supla/control/virtual_relay.cpp
 
+  # FreeRTOS target can't compile those files currently. So they are removed
+  # here and added in linux porting cmake only;
+  # TODO add freertos implementation
+  #  src/supla/pv/fronius.cpp
+  #  src/supla/pv/afore.cpp
+
 # not all files from sensor folder are compiled here. Some still require
 # porting from ARDUINO
   src/supla/sensor/binary.cpp
@@ -62,6 +90,20 @@ set(SUPLA_DEVICE_SRCS
   src/supla/sensor/thermometer.cpp
   src/supla/sensor/virtual_binary.cpp
 )
+
+set(NETTLE_SRCS
+  src/nettle/bignum.c
+  src/nettle/gmp-glue.c
+  src/nettle/mini-gmp.c
+  src/nettle/pkcs1-rsa-sha256.c
+  src/nettle/pkcs1.c
+  src/nettle/rsa-sha256-verify.c
+  src/nettle/rsa-verify.c
+  src/nettle/rsa.c
+  src/nettle/sha256-compress.c
+  src/nettle/sha256.c
+  src/nettle/write-be32.c
+  )
 
 set(SUPLA_COMMON_SRCS
   src/supla-common/lck.c
@@ -75,6 +117,7 @@ target_sources(supladevice
   PUBLIC
   ${SUPLA_DEVICE_SRCS}
   ${SUPLA_COMMON_SRCS}
+  ${NETTLE_SRCS}
   )
 
 target_include_directories (supladevice

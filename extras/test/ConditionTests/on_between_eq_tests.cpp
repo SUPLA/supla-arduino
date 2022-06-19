@@ -37,6 +37,8 @@ TEST(OnBetweenEqTests, OnBetweenEqConditionTests) {
   EXPECT_FALSE(cond->checkConditionFor(5));
 
   EXPECT_TRUE(cond->checkConditionFor(24));
+
+  delete cond;
 }
 
 

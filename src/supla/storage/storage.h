@@ -5,17 +5,19 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _supla_storage_h
-#define _supla_storage_h
+#ifndef SRC_SUPLA_STORAGE_STORAGE_H_
+#define SRC_SUPLA_STORAGE_STORAGE_H_
 
 #include <stdint.h>
 
@@ -25,35 +27,36 @@
 
 namespace Supla {
 
+class Config;
+
 class Storage {
  public:
   static Storage *Instance();
+  static Config *ConfigInstance();
   static bool Init();
   static bool ReadState(unsigned char *, int);
   static bool WriteState(const unsigned char *, int);
-  static bool LoadDeviceConfig();
-  static bool LoadElementConfig();
   static bool PrepareState(bool dryRun = false);
   static bool FinalizeSaveState();
-  static bool SaveStateAllowed(unsigned long);
-  static void ScheduleSave(unsigned long delayMs);
+  static bool SaveStateAllowed(uint64_t);
+  static void ScheduleSave(uint64_t delayMs);
+  static void SetConfigInstance(Config *instance);
+  static bool IsConfigStorageAvailable();
 
-  Storage(unsigned int storageStartingOffset = 0);
+  explicit Storage(unsigned int storageStartingOffset = 0);
   virtual ~Storage();
 
   // Changes default state save period time
-  virtual void setStateSavePeriod(unsigned long periodMs);
+  virtual void setStateSavePeriod(uint64_t periodMs);
 
   virtual bool init();
   virtual bool readState(unsigned char *, int);
   virtual bool writeState(const unsigned char *, int);
 
-  virtual bool loadDeviceConfig();
-  virtual bool loadElementConfig();
   virtual bool prepareState(bool performDryRun);
   virtual bool finalizeSaveState();
-  virtual bool saveStateAllowed(unsigned long);
-  virtual void scheduleSave(unsigned long delayMs);
+  virtual bool saveStateAllowed(uint64_t);
+  virtual void scheduleSave(uint64_t delayMs);
 
   virtual void commit() = 0;
 
@@ -77,10 +80,11 @@ class Storage {
   int sectionsCount;
   bool dryRun;
 
-  unsigned long saveStatePeriod;
-  unsigned long lastWriteTimestamp;
+  uint64_t saveStatePeriod;
+  uint64_t lastWriteTimestamp;
 
   static Storage *instance;
+  static Config *configInstance;
 };
 
 #pragma pack(push, 1)
@@ -100,4 +104,4 @@ struct SectionPreamble {
 
 };  // namespace Supla
 
-#endif
+#endif  // SRC_SUPLA_STORAGE_STORAGE_H_

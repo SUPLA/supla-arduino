@@ -23,6 +23,10 @@ Supla::Sensor::Thermometer::Thermometer() : lastReadTime(0) {
   channel.setDefault(SUPLA_CHANNELFNC_THERMOMETER);
 }
 
+void Supla::Sensor::Thermometer::onInit() {
+  channel.setNewValue(getValue());
+}
+
 double Supla::Sensor::Thermometer::getValue() {
   return TEMPERATURE_NOT_AVAILABLE;
 }

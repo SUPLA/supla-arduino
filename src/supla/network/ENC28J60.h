@@ -5,17 +5,19 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef ENC28J60_h_
-#define ENC28J60_h_
+#ifndef SRC_SUPLA_NETWORK_ENC28J60_H_
+#define SRC_SUPLA_NETWORK_ENC28J60_H_
 
 #include <Arduino.h>
 #include <UIPEthernet.h>
@@ -23,13 +25,14 @@
 #include "../supla_lib_config.h"
 #include "network.h"
 
-// TODO: change logs to supla_log
+// TODO(klew): change logs to supla_log
 
 namespace Supla {
 class ENC28J60 : public Supla::Network {
  public:
-  ENC28J60(uint8_t mac[6], IPAddress *ip = NULL) : Network(ip) {
+  explicit ENC28J60(uint8_t mac[6], IPAddress *ip = NULL) : Network(ip) {
     memcpy(this->mac, mac, 6);
+    sslEnabled = false;
   }
 
   int read(void *buf, int count) {
@@ -37,7 +40,7 @@ class ENC28J60 : public Supla::Network {
 
     if (size > 0) {
       if (size > count) size = count;
-      long readSize = client.read((uint8_t *)buf, size);
+      int readSize = client.read(reinterpret_cast<uint8_t *>(buf), size);
 #ifdef SUPLA_COMM_DEBUG
       Serial.print(F("Received: ["));
       for (int i = 0; i < readSize; i++) {
@@ -45,9 +48,8 @@ class ENC28J60 : public Supla::Network {
         Serial.print(F(" "));
       }
       Serial.println(F("]"));
-#endif
       return readSize;
-    };
+    }
 
     return -1;
   }
@@ -61,14 +63,16 @@ class ENC28J60 : public Supla::Network {
     }
     Serial.println(F("]"));
 #endif
-    long sendSize = client.write((const uint8_t *)buf, count);
+    int sendSize = client.write(reinterpret_cast<const uint8_t *>(buf), count);
     return sendSize;
   }
 
   int connect(const char *server, int port = -1) {
     int connectionPort = (port == -1 ? 2015 : port);
-    supla_log(
-        LOG_DEBUG, "Establishing connection with: %s (port: %d)", server, connectionPort);
+    supla_log(LOG_DEBUG,
+              "Establishing connection with: %s (port: %d)",
+              server,
+              connectionPort);
 
     return client.connect(server, connectionPort);
   }
@@ -103,6 +107,8 @@ class ENC28J60 : public Supla::Network {
     Serial.println(Ethernet.dnsServerIP());
   }
 
+  void setSSLEnabled(bool enabled) override{};
+
  protected:
   EthernetClient client;
   uint8_t mac[6];
@@ -110,4 +116,4 @@ class ENC28J60 : public Supla::Network {
 
 };  // namespace Supla
 
-#endif
+#endif  // SRC_SUPLA_NETWORK_ENC28J60_H_

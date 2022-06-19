@@ -153,11 +153,10 @@ void supla_vlog(int __pri, const char *message) {
   };
 }
 #elif defined(SUPLA_DEVICE)
-void supla_vlog(int __pri, const char *message) {
-  (void)(__pri);
-  printf("%s\n", message);
-  // TODO add implementation
-}
+// Keep it empty - supla_vlog is defined in target specific file in porting
+// folder
+void supla_vlog(int __pri, const char *message);
+
 #elif defined(ESP8266)
 // supla-espressif-esp variant
 void LOG_ICACHE_FLASH supla_vlog(int __pri, const char *message) {
@@ -166,6 +165,7 @@ void LOG_ICACHE_FLASH supla_vlog(int __pri, const char *message) {
 #endif
 }
 #else
+
 void LOG_ICACHE_FLASH supla_vlog(int __pri, const char *message) {
 #ifdef __ANDROID__
   switch (__pri) {

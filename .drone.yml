@@ -26,10 +26,10 @@ steps:
   - echo $SUPLA_DEVICE_PATH
   - ls -al
   - export SUPLA_DEVICE_PATH=/drone/src
-  - cd extras/examples/empty_esp8266_rtos_sdk_project/
-  - rm -f build/supla-empty-esp8266-mk.bin
+  - cd extras/examples/esp8266_rtos/
+  - rm -f build/supla-esp8266-mk.bin
   - /bin/bash -c "source /supla/esp/ESP8266_RTOS_SDK/export.sh && make -j32"
-  - /bin/bash -c "[ -f build/supla-empty-esp8266-mk.bin ] && true || false"
+  - /bin/bash -c "[ -f build/supla-esp8266-mk.bin ] && true || false"
 
 - name: esp_idf_compilation_check
   image: devel/esp-idf
@@ -39,10 +39,10 @@ steps:
   - echo $SUPLA_DEVICE_PATH
   - ls -al
   - export SUPLA_DEVICE_PATH=/drone/src
-  - cd extras/examples/empty_esp_idf_project/
-  - rm -f build/supla_empty_esp32.bin
+  - cd extras/examples/esp_idf/
+  - rm -f build/supla_esp32.bin
   - /bin/bash -c "source /supla/esp/esp-idf/export.sh && idf.py build"
-  - /bin/bash -c "[ -f build/supla_empty_esp32.bin ] && true || false"
+  - /bin/bash -c "[ -f build/supla_esp32.bin ] && true || false"
 
 - name: freertos_linux_compilation_check
   image: devel/freertos
@@ -53,11 +53,11 @@ steps:
   - ls -al
   - export SUPLA_DEVICE_PATH=/drone/src
   - export SUPLA_FREERTOS_PATH=/supla/FreeRTOS
-  - cd extras/examples/empty_freertos_linux_project
-  - rm -f build/empty-supla-freertos-example
+  - cd extras/examples/freertos_linux
+  - rm -f build/supla-freertos-example
   - cmake -B build
   - cmake --build build
-  - /bin/bash -c "[ -f build/empty-supla-freertos-example ] && true || false"
+  - /bin/bash -c "[ -f build/supla-freertos-example ] && true || false"
 
 - name: linux_compilation_check
 # Linux compilation requires generic linux toolset for compilation and building
@@ -66,54 +66,101 @@ steps:
   pull: never
   commands:
   - export SUPLA_DEVICE_PATH=/drone/src
-  - cd extras/examples/empty_linux_project
-  - rm -f build/empty-supla-linux-example
+  - cd extras/examples/linux
+  - rm -f build/supla-device-linux
   - cmake -B build
   - cmake --build build
-  - /bin/bash -c "[ -f build/empty-supla-linux-example ] && true || false"
+  - /bin/bash -c "[ -f build/supla-device-linux ] && true || false"
 
-- name: arduino_esp8266_compilation_check
+- name: arduino_esp8266_compilation_check_part_1
   image: devel/arduino-cli
   pull: never
   commands:
+  - export SUPLA_DEVICE_PATH=/drone/src
+  - rm ~/Arduino/libraries/supla-device
+  - ln -s /drone/src ~/Arduino/libraries/supla-device
   - cd examples
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./Afore/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./DallasTemperature/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./DHT/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./Fronius/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./GarageParkingAssistLight/
+
+- name: arduino_esp8266_compilation_check_part_2
+  image: devel/arduino-cli
+  pull: never
+  commands:
+  - export SUPLA_DEVICE_PATH=/drone/src
+  - rm ~/Arduino/libraries/supla-device
+  - ln -s /drone/src ~/Arduino/libraries/supla-device
+  - cd examples
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./HC_SR04_Distance_sensor/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./HC_SR04_Distance_sensor_extended/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./ImpulseCounter/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./Pzem_V_2/
   - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./Pzem_V_3/
-  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./RGBW/
-  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./RollerShutter/
-  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./SequenceButton/
 
-- name: arduino_esp32_compilation_check
+- name: arduino_esp8266_compilation_check_part_3
   image: devel/arduino-cli
   pull: never
   commands:
+  - export SUPLA_DEVICE_PATH=/drone/src
+  - rm ~/Arduino/libraries/supla-device
+  - ln -s /drone/src ~/Arduino/libraries/supla-device
+  - cd examples
+  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./RGBW/
+  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./RollerShutter/
+  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./SequenceButton/
+  - arduino-cli compile --fqbn esp8266:esp8266:generic --optimize-for-debug --export-binaries --warnings all --clean ./WebInterface/
+
+- name: arduino_esp32_compilation_check_part_1
+  image: devel/arduino-cli
+  pull: never
+  commands:
+  - export SUPLA_DEVICE_PATH=/drone/src
+  - rm ~/Arduino/libraries/supla-device
+  - ln -s /drone/src ~/Arduino/libraries/supla-device
   - cd examples
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./Afore/
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./DallasTemperature/
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./DHT/
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./Fronius/
+
+- name: arduino_esp32_compilation_check_part_2
+  image: devel/arduino-cli
+  pull: never
+  commands:
+  - export SUPLA_DEVICE_PATH=/drone/src
+  - rm ~/Arduino/libraries/supla-device
+  - ln -s /drone/src ~/Arduino/libraries/supla-device
+  - cd examples
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./GarageParkingAssistLight/
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./HC_SR04_Distance_sensor/
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./HC_SR04_Distance_sensor_extended/
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./ImpulseCounter/
+
+- name: arduino_esp32_compilation_check_part_3
+  image: devel/arduino-cli
+  pull: never
+  commands:
+  - export SUPLA_DEVICE_PATH=/drone/src
+  - rm ~/Arduino/libraries/supla-device
+  - ln -s /drone/src ~/Arduino/libraries/supla-device
+  - cd examples
 #  - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./Pzem_V_2/
 #  - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./Pzem_V_3/
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./RGBW/
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./RollerShutter/
   - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./SequenceButton/
+  - arduino-cli compile --fqbn esp32:esp32:esp32wrover --optimize-for-debug --export-binaries --warnings all --clean ./WebInterface/
 
 - name: arduino_mega_compilation_check
   image: devel/arduino-cli
   pull: never
   commands:
+  - export SUPLA_DEVICE_PATH=/drone/src
+  - rm ~/Arduino/libraries/supla-device
+  - ln -s /drone/src ~/Arduino/libraries/supla-device
   - cd examples
   - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./Afore/
   - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./DallasTemperature/
@@ -128,6 +175,18 @@ steps:
   - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./RGBW/
   - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./RollerShutter/
   - arduino-cli compile --fqbn arduino:avr:mega --optimize-for-debug --export-binaries --warnings all --clean ./SequenceButton/
+
+- name: cpplint
+  image: devel/supla-core
+  pull: never
+  commands:
+    - cpplint --filter=-build/include_subdir ./src/*
+    - cpplint --filter=-build/include_subdir --recursive ./src/supla/*
+    - cpplint --filter=-build/include_subdir --recursive ./extras/porting/*
+    - cpplint --filter=-build/include_subdir,-build/include_order ./extras/examples/linux/*
+    - cpplint --filter=-build/include_subdir ./extras/examples/esp8266_rtos/main/*
+    - cpplint --filter=-build/include_subdir ./extras/examples/esp_idf/main/*
+    - cpplint --filter=-build/include_subdir ./extras/examples/freertos_linux/main.cpp
 
 - name: rocket
   image: mike1pol/drone-rocket
@@ -147,8 +206,13 @@ steps:
         - pull_request
   depends_on: [tests, esp8266_rtos_compilation_check, esp_idf_compilation_check,
                freertos_linux_compilation_check,
-               arduino_esp32_compilation_check,
-               arduino_esp8266_compilation_check,
-               arduino_mega_compilation_check
+               arduino_esp32_compilation_check_part_1,
+               arduino_esp32_compilation_check_part_2,
+               arduino_esp32_compilation_check_part_3,
+               arduino_esp8266_compilation_check_part_1,
+               arduino_esp8266_compilation_check_part_2,
+               arduino_esp8266_compilation_check_part_3,
+               arduino_mega_compilation_check,
+               cpplint
               ]
 

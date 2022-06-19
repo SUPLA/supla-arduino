@@ -67,7 +67,7 @@ TEST(OnInvalidTests, OnInvalidCondition) {
 
   // it is still invalid, so nothing should happen
   cond->handleAction(Supla::ON_CHANGE, action4);
-  
+
   // nothing should happen
   channel->setNewValue(25.0);
   cond->handleAction(Supla::ON_CHANGE, action5);
@@ -76,4 +76,5 @@ TEST(OnInvalidTests, OnInvalidCondition) {
   channel->setNewValue(-275.0);
   cond->handleAction(Supla::ON_CHANGE, action6);
 
+  delete cond;
 }

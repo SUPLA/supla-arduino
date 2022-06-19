@@ -1,0 +1,96 @@
+# Example supla-device config file for Linux device
+# https://github.com/SUPLA/supla-device
+
+name: My fancy device
+log_level: debug
+state_files_path: "/var/local/supla-device"
+
+supla:
+  server: svr123.supla.org
+  mail: mail@user.com
+
+channels:
+  - type: VirtualRelay
+    name: vr1 # optional, can be used as reference for adding actions (TBD)
+
+  - type: VirtualRelay
+    name: vr2
+
+  - type: Fronius
+    ip: 192.168.1.7
+    port: 80
+    device_id: 1
+
+  - type: ThermometerParsed
+    name: t1
+    temperature: 0
+    multiplier: 1
+    parser:
+      name: parser_1
+      type: Simple
+      refresh_time_ms: 200
+    source:
+      name: s1
+      type: File
+      file: temp.txt
+
+  - type: ThermometerParsed
+    name: t2
+    temperature: 3
+    multiplier: 1
+    parser:
+      use: parser_1
+
+  - type: ImpulseCounterParsed
+    name: i1
+    counter: total_m3
+    multiplier: 1000
+    source:
+      type: File
+      file: "/var/log/wmbusmeters/meter_readings/water.json"
+    parser:
+      type: Json
+
+  - type: ElectricityMeterParsed
+    parser:
+      type: Json
+    source:
+      type: File
+      file: tauron.json
+    phase_1:
+      - voltage: voltage_at_phase_1_v
+        multiplier: 1
+      - fwd_act_energy: total_energy_consumption_tariff_1_kwh
+        multiplier: 1
+      - rvr_act_energy: total_energy_production_tariff_1_kwh
+        multiplier: 1
+      - power_active: current_power_consumption_kw
+        multiplier: 1000
+      - rvr_power_active: current_power_production_kw
+        multiplier: 1000
+    phase_2:
+      - voltage: voltage_at_phase_2_v
+        multiplier: 1
+      - fwd_act_energy: total_energy_consumption_tariff_2_kwh
+        multiplier: 1
+      - rvr_act_energy: total_energy_production_tariff_2_kwh
+        multiplier: 1
+    phase_3:
+      - voltage: voltage_at_phase_3_v
+        multiplier: 1
+
+  - type: ThermometerParsed
+    temperature: 0
+    source:
+      type: Cmd
+# call sensors, take line with word "temp3", split it on ":" and return second
+# value
+      command: "sensors | grep temp3 | cut -d : -f2"
+    parser:
+      type: Simple
+
+  - type: BinaryParsed
+    state: 1
+    parser:
+      use: parser_1
+

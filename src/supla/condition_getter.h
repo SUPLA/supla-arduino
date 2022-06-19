@@ -14,8 +14,8 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _condition_getter_h
-#define _condition_getter_h
+#ifndef SRC_SUPLA_CONDITION_GETTER_H_
+#define SRC_SUPLA_CONDITION_GETTER_H_
 
 #include <stdint.h>
 #include <supla-common/proto.h>
@@ -25,11 +25,12 @@ namespace Supla {
 class Element;
 
 class ConditionGetter {
-  public:
-    virtual double getValue(Supla::Element *element, bool &isValid) = 0;
-  protected:
-    TElectricityMeter_Measurement *getMeasurement(Supla::Element *element,
-        _supla_int_t &measuredValues);
+ public:
+  virtual ~ConditionGetter() {}
+  virtual double getValue(Supla::Element *element, bool *isValid) = 0;
+ protected:
+  TElectricityMeter_Measurement *getMeasurement(Supla::Element *element,
+      _supla_int_t *measuredValues);
 };
 
 
@@ -45,4 +46,4 @@ Supla::ConditionGetter *EmTotalPowerApparentVA();
 Supla::ConditionGetter *EmPowerReactiveVar(int8_t phase = 0);
 Supla::ConditionGetter *EmTotalPowerReactiveVar();
 
-#endif /*_condition_getter_h*/
+#endif  // SRC_SUPLA_CONDITION_GETTER_H_

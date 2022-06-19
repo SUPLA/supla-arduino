@@ -5,10 +5,12 @@
    modify it under the terms of the GNU General Public License
    as published by the Free Software Foundation; either version 2
    of the License, or (at your option) any later version.
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
+
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -19,8 +21,8 @@
  * Please install it from librarary manager in Arduino
  */
 
-#ifndef _supla_fram_spi_h
-#define _supla_fram_spi_h
+#ifndef SRC_SUPLA_STORAGE_FRAM_SPI_H_
+#define SRC_SUPLA_STORAGE_FRAM_SPI_H_
 
 #include <SPI.h>
 
@@ -38,12 +40,11 @@ class FramSpi : public Storage {
           int8_t mosi,
           int8_t framCs,
           unsigned int storageStartingOffset = 0)
-      : Storage(storageStartingOffset),
-        fram(clk, miso, mosi, framCs) {
+      : Storage(storageStartingOffset), fram(clk, miso, mosi, framCs) {
     setStateSavePeriod(SUPLA_FRAM_WRITING_PERIOD);
   }
 
-  FramSpi(int8_t framCs, unsigned int storageStartingOffset = 0)
+  explicit FramSpi(int8_t framCs, unsigned int storageStartingOffset = 0)
       : Storage(storageStartingOffset), fram(framCs) {
     setStateSavePeriod(SUPLA_FRAM_WRITING_PERIOD);
   }
@@ -58,10 +59,13 @@ class FramSpi : public Storage {
     return Storage::init();
   }
 
-  void commit(){};
+  void commit() {}
 
  protected:
-  int readStorage(unsigned int offset, unsigned char *buf, int size, bool logs) {
+  int readStorage(unsigned int offset,
+                  unsigned char *buf,
+                  int size,
+                  bool logs) {
     if (logs) {
       Serial.print(F("readStorage: "));
       Serial.print(size);
@@ -96,4 +100,4 @@ class FramSpi : public Storage {
 
 };  // namespace Supla
 
-#endif
+#endif  // SRC_SUPLA_STORAGE_FRAM_SPI_H_

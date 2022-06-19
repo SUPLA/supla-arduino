@@ -1,0 +1,68 @@
+/*
+ Copyright (C) AC SOFTWARE SP. Z O.O.
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+*/
+
+#include <supla-common/log.h>
+
+#include <stdexcept>
+
+#include "json.h"
+
+Supla::Parser::Json::Json(Supla::Source::Source* src)
+    : Supla::Parser::Parser(src) {
+}
+
+Supla::Parser::Json::~Json() {
+}
+
+bool Supla::Parser::Json::refreshSource() {
+  valid = false;
+  if (source) {
+    std::string sourceContent = source->getContent();
+
+    if (sourceContent.length() == 0) {
+      return valid;
+    }
+
+    supla_log(LOG_VERBOSE, "Source: %s", sourceContent.c_str());
+    try {
+      json = nlohmann::json::parse(sourceContent);
+    } catch (nlohmann::json::parse_error& ex) {
+      supla_log(LOG_ERR, "JSON parsing error at byte %d", ex.byte);
+      return valid;
+    }
+
+    valid = true;
+  }
+  return valid;
+}
+
+bool Supla::Parser::Json::isValid() {
+  return valid;
+}
+
+double Supla::Parser::Json::getValue(const std::string& key) {
+  try {
+    return json[key].get<double>();
+  } catch (nlohmann::json::type_error& ex) {
+    supla_log(LOG_ERR, "JSON key \"%s\" not found", key.c_str());
+    valid = false;
+  }
+  return 0;
+}
+
+bool Supla::Parser::Json::isBasedOnIndex() {
+  return false;
+}

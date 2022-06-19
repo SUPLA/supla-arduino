@@ -23,20 +23,20 @@
 #include <FreeRTOS.h>
 #include <task.h>
 
-unsigned long millis(void) {
+uint64_t millis(void) {
   if (portTICK_PERIOD_MS != 1) {
-    // TODO
+    // TODO(klew): implement
     // error
   }
   return xTaskGetTickCount();
 }
 
-void delay(unsigned long delayMs) {
-// TODO  usleep(delayMs * 1000);
+void delay(uint64_t delayMs) {
+// TODO(klew):  usleep(delayMs * 1000);
 }
 
-void delayMicroseconds(unsigned long delayMicro) {
-// TODO usleep(delayMicro);
+void delayMicroseconds(uint64_t delayMicro) {
+// TODO(klew): usleep(delayMicro);
 }
 
 #elif defined(ESP_PLATFORM)
@@ -45,35 +45,36 @@ void delayMicroseconds(unsigned long delayMicro) {
 #include <freertos/task.h>
 #include <unistd.h>
 
-unsigned long millis(void) {
+uint64_t millis(void) {
   return xTaskGetTickCount() * portTICK_PERIOD_MS;
 }
 
-void delay(unsigned long delayMs) {
+void delay(uint64_t delayMs) {
   usleep(delayMs * 1000);
 }
 
-void delayMicroseconds(unsigned long delayMicro) {
+void delayMicroseconds(uint64_t delayMicro) {
   usleep(delayMicro);
 }
 
 #elif SUPLA_LINUX
-#include <chrono>
+#include <chrono>  // NOLINT(build/c++11)
+#include <thread>  // NOLINT(build/c++11)
 
 std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-unsigned long millis() {
+uint64_t millis() {
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
   return std::chrono::duration_cast<std::chrono::milliseconds>(end - begin)
     .count();
 }
 
-void delay(unsigned long) {
-// TODO
+void delay(uint64_t v) {
+  std::this_thread::sleep_for(std::chrono::milliseconds(v));
 }
 
-void delayMicroseconds(unsigned long delayMicro) {
-// TODO
+void delayMicroseconds(uint64_t v) {
+  std::this_thread::sleep_for(std::chrono::microseconds(v));
 }
 
 #else

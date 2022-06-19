@@ -122,7 +122,7 @@ TEST_F(ElementTests, NoChannelElementMethods) {
   el1.onFastTimer();
 
   TDSC_ChannelState channelState;
-  el1.handleGetChannelState(channelState);
+  el1.handleGetChannelState(&channelState);
 
   EXPECT_EQ(el1.getChannelNumber(), -1);
   EXPECT_EQ(el1.getChannel(), nullptr);
@@ -152,7 +152,7 @@ TEST_F(ElementTests, ChannelElementMethods) {
   el1.onRegistered();
 
   TDSC_ChannelState channelState;
-  el1.handleGetChannelState(channelState);
+  el1.handleGetChannelState(&channelState);
 
   EXPECT_EQ(el1.getChannelNumber(), 0);
   EXPECT_EQ(el1.getChannel(), &(el1.channel));

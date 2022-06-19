@@ -1,3 +1,4 @@
-extras/examples/empty_esp_idf_project/sdkconfig
+extras/examples/esp_idf/sdkconfig
 **/build/*
 sdkconfig.old
+**/.cache/*

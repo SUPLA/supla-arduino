@@ -5,17 +5,19 @@
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#ifndef _three_phase_PzemV3_h
-#define _three_phase_PzemV3_h
+#ifndef SRC_SUPLA_SENSOR_THREE_PHASE_PZEMV3_H_
+#define SRC_SUPLA_SENSOR_THREE_PHASE_PZEMV3_H_
 
 #include <Arduino.h>
 // dependence: Arduino library for the Updated PZEM-004T v3.0 Power and Energy
@@ -23,7 +25,7 @@
 #include <PZEM004Tv30.h>
 #if defined(PZEM004_SOFTSERIAL)
 #include <SoftwareSerial.h>
-#endif 
+#endif
 
 #include "electricity_meter.h"
 
@@ -47,25 +49,23 @@ class ThreePhasePZEMv3 : public ElectricityMeter {
 
 #if defined(ESP32)
   ThreePhasePZEMv3(HardwareSerial *serial1,
-      int8_t pinRx1,
-      int8_t pinTx1,
-      HardwareSerial *serial2,
-      int8_t pinRx2,
-      int8_t pinTx2,
-      HardwareSerial *serial3,
-      int8_t pinRx3,
-      int8_t pinTx3)
+                   int8_t pinRx1,
+                   int8_t pinTx1,
+                   HardwareSerial *serial2,
+                   int8_t pinRx2,
+                   int8_t pinTx2,
+                   HardwareSerial *serial3,
+                   int8_t pinRx3,
+                   int8_t pinTx3)
       : pzem{PZEM004Tv30(serial1, pinRx1, pinTx1),
              PZEM004Tv30(serial2, pinRx2, pinTx2),
              PZEM004Tv30(serial3, pinRx3, pinTx3)} {
-             }
+  }
 #else
   ThreePhasePZEMv3(HardwareSerial *serial1,
                    HardwareSerial *serial2,
                    HardwareSerial *serial3)
-      : pzem{PZEM004Tv30(serial1),
-             PZEM004Tv30(serial2),
-             PZEM004Tv30(serial3)} {
+      : pzem{PZEM004Tv30(serial1), PZEM004Tv30(serial2), PZEM004Tv30(serial3)} {
   }
 #endif
 
@@ -125,4 +125,4 @@ class ThreePhasePZEMv3 : public ElectricityMeter {
 };  // namespace Sensor
 };  // namespace Supla
 
-#endif
+#endif  // SRC_SUPLA_SENSOR_THREE_PHASE_PZEMV3_H_
