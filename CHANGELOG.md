@@ -1,6 +1,6 @@
 # CHANGELOG.md
 
-## 2.4.2 (2022-06-xx) unreleased
+## 2.4.2 (2022-06-20)
 
   - Change: (Arduino ESPx) Wi-Fi class handling change to support config mode
   - Change: StatusLed - change led sequence on error (300/100 ms)
@@ -32,6 +32,7 @@
   - Add: (Linux) add ThermometerParsed, Supla::Source::Cmd, Supla::Parser::Simple, Supla::Parser::Json, ImpulseCouterParsed, ElectricityMeterParsed, Source::File, BinaryParsed
   - Add: (Linux) YAML config file support
   - Add: (Linux) file storage for last state log
+  - Add: (Arduino ESPx) WebInterface Arduino example
 
 
 
