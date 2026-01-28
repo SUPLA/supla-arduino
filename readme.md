@@ -1,3 +1,7 @@
+> ⚠️ **This repository is no longer actively developed and is kept for reference only.**  
+> Development of SUPLA device firmware and libraries continues in  
+> 👉 https://github.com/SUPLA/supla-device
+
 # SUPLA project
 
 [SUPLA](https://www.supla.org) is an open source project for home automation. 
